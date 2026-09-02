@@ -1,5 +1,16 @@
 # DRAGON Daily Newspaper — Technical Specification v1
 
+## Subscription and execution constraints
+
+The production boundary is the user's existing ChatGPT Plus subscription.
+Execution must happen in hosted Codex Cloud. The project must not use the
+OpenAI API, require `OPENAI_API_KEY`, create pay-as-you-go OpenAI usage, call
+the OpenAI API from GitHub Actions, use external paid compute, require a
+self-hosted runner, or require the user's PC to stay online. GitHub remains
+source control, persistent memory, edition archive, and artifact storage
+only. Until native recurring Codex Cloud scheduling is available in this
+account/setup, production runs are manual hosted Cloud runs only.
+
 ## Scope
 
 One hosted Codex Cloud run produces one real or synthetic archived edition.

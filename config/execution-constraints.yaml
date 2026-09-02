@@ -1,0 +1,20 @@
+version: 1
+
+# Hard production boundary: use the user's existing ChatGPT Plus subscription.
+subscription: chatgpt-plus
+
+production:
+  execution_environment: hosted-codex-cloud
+  openai_api_allowed: false
+  openai_api_key_required: false
+  pay_as_you_go_openai_allowed: false
+  github_actions_openai_api_allowed: false
+  external_paid_compute_allowed: false
+  self_hosted_runner_required: false
+  local_pc_required: false
+  github_role: source-control-persistent-memory-edition-archive-artifacts
+
+scheduling:
+  until_native_recurring_cloud_scheduler: manual-cloud-run-only
+  timezone: Africa/Casablanca
+  target_local_time: "10:00"

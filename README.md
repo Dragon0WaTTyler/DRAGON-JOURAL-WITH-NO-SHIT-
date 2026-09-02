@@ -6,6 +6,20 @@ must run in hosted Codex Cloud and must not depend on the user's PC.
 
 The stage contract is in [config/pipeline.yaml](config/pipeline.yaml), and
 Cloud credential rotation is documented in [SECURITY.md](SECURITY.md).
+The subscription and execution boundary is enforced by
+[config/execution-constraints.yaml](config/execution-constraints.yaml).
+
+## Subscription boundary
+
+Production is limited to the existing ChatGPT Plus subscription and hosted
+Codex Cloud. The OpenAI API, `OPENAI_API_KEY`, pay-as-you-go OpenAI usage,
+GitHub Actions calling the OpenAI API, external paid compute, self-hosted
+runners, and a continuously online PC are forbidden. GitHub is only the
+source-control, persistent-memory, archive, and artifact store.
+
+Until native recurring Codex Cloud scheduling is available in this account,
+production remains **manual hosted Cloud runs only**. The target remains
+10:00 Africa/Casablanca using the existing pipeline unchanged.
 
 ## Current state
 

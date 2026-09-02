@@ -46,6 +46,7 @@ def main() -> int:
         roles_config = load_yaml(ROOT / "config/roles.yaml")
         permissions = load_yaml(ROOT / "config/permissions.yaml")
         pipeline = load_yaml(ROOT / "config/pipeline.yaml")
+        constraints = load_yaml(ROOT / "config/execution-constraints.yaml")
         editorial = load_yaml(ROOT / "config/editorial.yaml")
         schedule = load_yaml(ROOT / "config/schedule.yaml")
         output_schema = json.loads((ROOT / "config/output-schema.json").read_text(encoding="utf-8"))
@@ -88,6 +89,21 @@ def main() -> int:
         errors.append("archive stage must require remote-sha-match")
     if pipeline.get("failure_policy", {}).get("force_push") != "forbidden":
         errors.append("force pushes must be forbidden")
+
+    production = constraints.get("production", {})
+    if constraints.get("subscription") != "chatgpt-plus":
+        errors.append("execution constraints must target the existing ChatGPT Plus subscription")
+    for key in (
+        "openai_api_allowed", "openai_api_key_required", "pay_as_you_go_openai_allowed",
+        "github_actions_openai_api_allowed", "external_paid_compute_allowed",
+        "self_hosted_runner_required", "local_pc_required",
+    ):
+        if production.get(key) is not False:
+            errors.append(f"execution constraint {key} must be false")
+    if production.get("execution_environment") != "hosted-codex-cloud":
+        errors.append("production execution environment must be hosted-codex-cloud")
+    if constraints.get("scheduling", {}).get("until_native_recurring_cloud_scheduler") != "manual-cloud-run-only":
+        errors.append("schedule fallback must remain manual-cloud-run-only")
 
     required_persistence = ["artifact_validation", "git_commit", "git_push", "remote_sha_match"]
     if editorial.get("publication_status_requires") != required_persistence:

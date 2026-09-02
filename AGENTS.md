@@ -5,6 +5,15 @@ production and pre-production workflow must execute in hosted Codex Cloud.
 The local PC, localhost, desktop files, and a local process are never runtime
 dependencies.
 
+## Subscription and execution boundary
+
+Production must stay within the user's existing ChatGPT Plus subscription and
+use hosted Codex Cloud only. The OpenAI API, `OPENAI_API_KEY`, pay-as-you-go
+OpenAI usage, GitHub Actions calling the OpenAI API, external paid compute,
+self-hosted runners, and a continuously online PC are forbidden. GitHub is
+used only for source control, persistent memory, edition archival, and
+artifact storage. See `config/execution-constraints.yaml`.
+
 ## Operating modes
 
 There are two explicit modes:
@@ -120,9 +129,10 @@ secrets or print `GITHUB_TOKEN`.
 
 ## Scheduling and cloud-only acceptance
 
-`config/schedule.yaml` must remain disabled until the real pre-production run,
-quality fixes, a fresh second run, and the three-day pilot all pass. Only then
-may the daily Cloud schedule be configured for 10:00 Africa/Casablanca.
+`config/schedule.yaml` must remain disabled until a native recurring hosted
+Codex Cloud scheduler is available and the PC-off acceptance test passes.
+Until then, production is manual hosted Cloud runs only. Do not replace this
+with GitHub Actions, an API-based runner, paid compute, or a local scheduler.
 
 The final acceptance test must run with the local desktop and PC unavailable
 and verify that the scheduled hosted run creates, validates, commits, pushes,
