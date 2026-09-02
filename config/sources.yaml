@@ -72,3 +72,232 @@ desks:
       - university presses
       - peer-reviewed scholarship
       - museum and archive collections
+
+# Preferred starting points. This is a discovery map, not a closed whitelist.
+# Agents must follow the source-priority and verification rules below and may
+# use a stronger primary, specialist, or independent source when appropriate.
+preferred_source_map:
+  morocco_news_politics:
+    primary:
+      - {name: "Maroc.ma news", url: "https://maroc.ma/en/news"}
+      - {name: "Maghreb Arab Press English", url: "https://mobile.mapnews.ma/en/"}
+      - {name: "Maroc.ma", url: "https://www.maroc.ma/"}
+      - {name: "MAP", url: "https://www.mapnews.ma/"}
+      - {name: "House of Representatives", url: "https://www.chambredesrepresentants.ma/"}
+      - {name: "House of Councillors", url: "https://www.chambredesconseillers.ma/"}
+      - {name: "Ministry of Foreign Affairs", url: "https://diplomatie.ma/"}
+      - {name: "General Secretariat of Government", url: "https://www.sgg.gov.ma/"}
+    independent:
+      - {name: "Reuters Africa", url: "https://www.reuters.com/world/africa/"}
+      - {name: "Hespress English", url: "https://en.hespress.com/"}
+      - {name: "Morocco World News", url: "https://www.moroccoworldnews.com/"}
+      - {name: "Medias24", url: "https://medias24.com/"}
+      - {name: "TelQuel", url: "https://telquel.ma/"}
+      - {name: "Le Desk", url: "https://ledesk.ma/"}
+    priority: "official source -> independent reporting -> international cross-check"
+    rule: "Political, diplomatic, security, Western Sahara, Algeria, and geopolitical claims require independent verification when possible."
+
+  morocco_economy_data:
+    primary:
+      - {name: "Haut-Commissariat au Plan", url: "https://www.hcp.ma/"}
+      - {name: "HCP downloads", url: "https://www.hcp.ma/downloads/"}
+      - {name: "Bank Al-Maghrib", url: "https://www.bkam.ma/"}
+      - {name: "Bank Al-Maghrib press releases", url: "https://www.bkam.ma/en/Press-releases"}
+      - {name: "Ministry of Economy and Finance", url: "https://www.finances.gov.ma/"}
+      - {name: "Ministry of Economy and Finance English", url: "https://www.finances.gov.ma/en/Pages/home.aspx"}
+      - {name: "World Bank Morocco", url: "https://www.worldbank.org/ext/en/country/morocco"}
+      - {name: "IMF data", url: "https://www.imf.org/en/data"}
+      - {name: "IMF news", url: "https://www.imf.org/en/news"}
+      - {name: "World Bank news", url: "https://www.worldbank.org/ext/en/news"}
+      - {name: "OECD newsroom", url: "https://www.oecd.org/en/about/newsroom.html"}
+    infrastructure:
+      - {name: "National Ports Agency", url: "https://www.anp.org.ma/"}
+      - {name: "ONCF", url: "https://www.oncf.ma/"}
+      - {name: "ONEE", url: "https://www.onee.ma/"}
+      - {name: "Autoroutes du Maroc", url: "https://www.adm.co.ma/"}
+      - {name: "MASEN", url: "https://www.masen.ma/"}
+      - {name: "AMDIE", url: "https://www.amdie.gov.ma/"}
+    rule: "For inflation, unemployment, GDP, budget, investment, or monetary policy, trace summaries back to the original report or dataset."
+
+  meknes:
+    primary:
+      - {name: "Commune de Meknes", url: "https://communemeknes.ma/"}
+      - {name: "Commune de Meknes announcements", url: "https://communemeknes.ma/ar/annonces"}
+      - {name: "Universite Moulay Ismail", url: "https://www.umi.ac.ma/"}
+      - {name: "Fes-Meknes Invest", url: "https://fesmeknesinvest.ma/"}
+      - {name: "Fes-Meknes Invest news", url: "https://fesmeknesinvest.ma/actualites/"}
+      - {name: "Morocco public procurement", url: "https://www.marchespublics.gov.ma/"}
+      - {name: "ONSSA", url: "https://www.onssa.gov.ma/"}
+      - {name: "ONCA", url: "https://www.onca.gov.ma/"}
+      - {name: "Visit Meknes", url: "https://visit-meknes.com/"}
+      - {name: "Ministry of Culture e-services", url: "https://e-services.minculture.gov.ma/"}
+      - {name: "ONCF", url: "https://www.oncf.ma/"}
+      - {name: "Autoroutes du Maroc", url: "https://www.adm.co.ma/"}
+      - {name: "ONEE", url: "https://www.onee.ma/"}
+    secondary_radar:
+      - {name: "Borj Marche Public Meknes", url: "https://borjmarchepublic.ma/marches-publics/ville/meknes/"}
+    search_variants: ["Meknes", "Meknès", "Meknes Prefecture", "Commune de Meknes", "Region Fes-Meknes"]
+    radar_topics: ["appels d'offres", "municipal projects", "public works", "transport", "university", "culture", "heritage", "agriculture", "investment", "sports", "public services"]
+    rule: "Use aggregators only for discovery; verify the finding in an official or primary source. Do not rely on national newspapers alone."
+
+  palestine:
+    lead:
+      - {name: "Al Jazeera", url: "https://www.aljazeera.com/"}
+      - {name: "Al Jazeera Palestine", url: "https://www.aljazeera.com/where/palestine/"}
+    cross_check:
+      - {name: "Reuters Middle East", url: "https://www.reuters.com/world/middle-east/"}
+      - {name: "AP World News", url: "https://apnews.com/world-news"}
+      - {name: "AFP", url: "https://www.afp.com/"}
+    humanitarian_primary:
+      - {name: "UN OCHA occupied Palestinian territory", url: "https://www.ochaopt.org/"}
+      - {name: "UNRWA", url: "https://www.unrwa.org/"}
+      - {name: "WHO Israel and occupied Palestinian territory", url: "https://www.who.int/emergencies/situations/conflict-in-Israel-and-oPt"}
+      - {name: "ICRC", url: "https://www.icrc.org/"}
+    international_law:
+      - {name: "International Court of Justice", url: "https://www.icj-cij.org/"}
+      - {name: "International Criminal Court", url: "https://www.icc-cpi.int/"}
+    rule: "Attribute casualty figures, military claims, hostage or prisoner claims, ceasefire claims, aid access, and disputed incidents explicitly; separate fact, claim, disputed claim, estimate, and unknown."
+
+  world:
+    discovery:
+      - {name: "Reuters World", url: "https://www.reuters.com/world/"}
+      - {name: "AP World News", url: "https://apnews.com/world-news"}
+      - {name: "Al Jazeera", url: "https://www.aljazeera.com/"}
+      - {name: "UN News English", url: "https://news.un.org/en/"}
+      - {name: "Reuters Middle East", url: "https://www.reuters.com/world/middle-east/"}
+      - {name: "AFP", url: "https://www.afp.com/"}
+    primary_or_specialist:
+      - {name: "Financial Times", url: "https://www.ft.com/"}
+      - {name: "IMF news", url: "https://www.imf.org/en/news"}
+      - {name: "World Bank news", url: "https://www.worldbank.org/ext/en/news"}
+      - {name: "UN News", url: "https://news.un.org/"}
+    rule: "Use Reuters, AP, AFP, and Al Jazeera for discovery; use primary government or multilateral records for decisions, data, elections, court rulings, and official policy."
+
+  ai_technology:
+    independent_reporting:
+      - {name: "Reuters AI", url: "https://www.reuters.com/technology/artificial-intelligence/"}
+      - {name: "Reuters Technology", url: "https://www.reuters.com/technology/"}
+    company_primary:
+      - {name: "OpenAI News", url: "https://openai.com/news/"}
+      - {name: "OpenAI Research", url: "https://openai.com/research/"}
+      - {name: "Anthropic News", url: "https://www.anthropic.com/news"}
+      - {name: "Google DeepMind Blog", url: "https://deepmind.google/blog/"}
+      - {name: "Meta AI Blog", url: "https://ai.meta.com/blog/"}
+      - {name: "Microsoft Research Blog", url: "https://www.microsoft.com/en-us/research/blog/"}
+      - {name: "NVIDIA Blog", url: "https://blogs.nvidia.com/"}
+      - {name: "Hugging Face", url: "https://huggingface.co/"}
+    research:
+      - {name: "arXiv cs.AI recent", url: "https://arxiv.org/list/cs.AI/recent"}
+      - {name: "arXiv cs.CL recent", url: "https://arxiv.org/list/cs.CL/recent"}
+      - {name: "arXiv cs.LG recent", url: "https://arxiv.org/list/cs.LG/recent"}
+      - {name: "Nature Machine Intelligence", url: "https://www.nature.com/natmachintell/"}
+    independent_analysis:
+      - {name: "Stanford AI Index", url: "https://hai.stanford.edu/ai-index"}
+      - {name: "Epoch AI", url: "https://epoch.ai/"}
+    evidence_order: ["company announcement", "technical report or model card", "research paper", "independent benchmark or test", "specialist reporting"]
+    rule: "A company announcement establishes what the company claims, not independent proof. For benchmarks, record what is measured, who tested it, whether the test is independent, and what it does not measure."
+
+  morocco_history:
+    primary_archival:
+      - {name: "Archives du Maroc", url: "https://www.archivesdumaroc.ma/"}
+      - {name: "Bibliothèque Nationale du Royaume du Maroc", url: "https://www.bnrm.ma/"}
+      - {name: "Gallica", url: "https://gallica.bnf.fr/"}
+    academic:
+      - {name: "IMIST journals", url: "https://revues.imist.ma/"}
+      - {name: "Persée", url: "https://www.persee.fr/"}
+      - {name: "JSTOR", url: "https://www.jstor.org/"}
+    heritage:
+      - {name: "UNESCO World Heritage Morocco", url: "https://whc.unesco.org/en/statesparties/ma"}
+      - {name: "UNESCO Intangible Cultural Heritage Morocco", url: "https://ich.unesco.org/en/state/morocco-MA"}
+    rule: "For disputed history, distinguish documented evidence, interpretation, oral tradition, legend, and nationalist narrative; compare multiple historians when possible."
+
+  culture_human_history:
+    preferred:
+      - {name: "UNESCO Culture", url: "https://www.unesco.org/en/culture"}
+      - {name: "UNESCO World Heritage", url: "https://whc.unesco.org/"}
+      - {name: "The Metropolitan Museum of Art", url: "https://www.metmuseum.org/"}
+      - {name: "Smithsonian", url: "https://www.si.edu/"}
+      - {name: "Europeana", url: "https://www.europeana.eu/"}
+      - {name: "British Film Institute", url: "https://www.bfi.org.uk/"}
+      - {name: "Library of Congress", url: "https://www.loc.gov/"}
+      - {name: "Gallica", url: "https://gallica.bnf.fr/"}
+      - {name: "Persée", url: "https://www.persee.fr/"}
+    rule: "Prefer original catalogues, archives, museums, libraries, film institutes, and academic sources; prioritize context, influence, evolution, and meaning over trivia."
+
+  psychology_anthropology:
+    discovery:
+      - {name: "PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/"}
+      - {name: "Google Scholar", url: "https://scholar.google.com/"}
+      - {name: "APA PsycINFO", url: "https://www.apa.org/psycinfo/"}
+      - {name: "PsyArXiv", url: "https://osf.io/preprints/psyarxiv"}
+    journals:
+      - {name: "Nature Human Behaviour", url: "https://www.nature.com/nathumbehav/"}
+      - {name: "Nature Human Behaviour subject page", url: "https://www.nature.com/subjects/human-behaviour"}
+      - {name: "PNAS", url: "https://www.pnas.org/"}
+      - {name: "Science", url: "https://www.science.org/"}
+      - {name: "Psychological Science", url: "https://journals.sagepub.com/home/pss"}
+      - {name: "Current Directions in Psychological Science", url: "https://journals.sagepub.com/home/cdp"}
+      - {name: "Association for Psychological Science News", url: "https://www.psychologicalscience.org/news"}
+      - {name: "APA News", url: "https://www.apa.org/news"}
+    evidence_synthesis:
+      - {name: "Cochrane Library", url: "https://www.cochranelibrary.com/"}
+      - {name: "Annual Review of Psychology", url: "https://www.annualreviews.org/content/journals/psych"}
+    rule: "A news article about a study is not sufficient. Check the original paper, publication status, sample, method, effect size, limitations, preregistration, replication, and conflicts of interest when relevant. Label preprints clearly and do not treat correlation as causation."
+
+  psychology_deep_dive:
+    preferred:
+      - {name: "Nature Human Behaviour", url: "https://www.nature.com/nathumbehav/"}
+      - {name: "Nature human behaviour subject page", url: "https://www.nature.com/subjects/human-behaviour"}
+      - {name: "Psychological Science", url: "https://journals.sagepub.com/home/pss"}
+      - {name: "APS News", url: "https://www.psychologicalscience.org/news"}
+      - {name: "APA News", url: "https://www.apa.org/news"}
+      - {name: "APA Science", url: "https://www.apa.org/science/"}
+      - {name: "PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/"}
+      - {name: "Cochrane Library", url: "https://www.cochranelibrary.com/"}
+      - {name: "Annual Review of Psychology", url: "https://www.annualreviews.org/content/journals/psych"}
+      - {name: "PNAS", url: "https://www.pnas.org/"}
+    rule: "Prefer reviews, meta-analyses, replications, and the full body of evidence over one paper; state clearly when a popular concept has disputed evidence."
+
+  science_health:
+    news:
+      - {name: "Nature News", url: "https://www.nature.com/news"}
+      - {name: "Science News", url: "https://www.science.org/news"}
+    primary_research:
+      - {name: "Nature research articles", url: "https://www.nature.com/nature/research-articles"}
+      - {name: "Science current issue", url: "https://www.science.org/toc/science/current"}
+      - {name: "Nature Medicine", url: "https://www.nature.com/nm/"}
+    health_institutions:
+      - {name: "WHO News", url: "https://www.who.int/news"}
+      - {name: "NIH News Releases", url: "https://www.nih.gov/news-events/news-releases"}
+    evidence_synthesis:
+      - {name: "Cochrane News", url: "https://www.cochrane.org/about-us/news"}
+      - {name: "Cochrane Library", url: "https://www.cochranelibrary.com/"}
+    rule: "For health or science claims, trace press release -> original paper -> methodology -> independent context. Do not turn a preliminary result into an established fact."
+
+  fact_check:
+    preferred:
+      - {name: "Reuters Fact Check", url: "https://www.reuters.com/fact-check/"}
+      - {name: "AP Fact Check", url: "https://apnews.com/ap-fact-check"}
+      - {name: "Full Fact", url: "https://fullfact.org/"}
+      - {name: "Google Fact Check Explorer", url: "https://toolbox.google.com/factcheck/explorer"}
+      - {name: "FactCheck.org", url: "https://www.factcheck.org/"}
+      - {name: "AFP Fact Check", url: "https://factcheck.afp.com/"}
+    rule: "Use fact-check sources for viral, manipulated, false-context, quote, statistic, and recycled-media claims, while preferring primary evidence whenever available."
+
+source_priority_ladder:
+  - primary_source
+  - strong_independent_reporting
+  - specialist_source
+  - secondary_reporting
+  - aggregator_or_social_media_for_discovery_only
+
+verification_workflow:
+  - discover
+  - trace_claim_to_original_source
+  - verify_with_independent_source
+  - challenge_with_contradictory_evidence_when_available
+  - contextualize
+  - synthesize
+
+source_independence_rule: "Five articles repeating the same wire report count as one source trail; origin diversity matters more than link quantity."
+homepage_rule: "A homepage or successful connection is not evidence of a claim. Cite the exact article, report, dataset, law, court document, announcement, paper, model card, or technical report whenever possible."
