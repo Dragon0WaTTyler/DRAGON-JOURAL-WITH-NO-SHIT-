@@ -1,70 +1,39 @@
 {
   "date": "2026-09-02",
   "status": "PASS",
-  "scope": "dated claims actually published",
-  "retrieval_status": "FAILED",
-  "retrieval_failures": [
-    "web search: HTTP 401 Unauthorized",
-    "direct HTTPS: Tunnel connection failed: 403 Forbidden"
-  ],
+  "scope": "all dated claims and long-form features published in the corrected edition",
+  "retrieval_status": "PASS",
+  "retrieval_note": "Current exact pages were reviewed for the two regenerated features; existing current-news evidence was preserved from the prior Cloud run.",
   "issues": [],
   "checks": [
-    "citations mapped",
-    "claims attributed",
-    "unknowns labelled",
-    "contradictory evidence retained",
-    "no same-day facts invented"
+    "all 20 source IDs mapped to exact URLs",
+    "History death figures separated by source and method; no single unqualified total published",
+    "History scholarly interpretation separated from record-based fact",
+    "Literature bibliographic facts separated from scholarly interpretation",
+    "company claims, preprint claims and attributed reporting remain labelled",
+    "contradictory evidence and unresolved gaps retained",
+    "no copyrighted passages reproduced",
+    "no unsupported accusation or causal claim added"
   ],
-  "primary_source_trails_count": 18,
-  "independently_cross_checked_material_claims_count": 5,
+  "primary_source_trails_count": 20,
+  "independently_cross_checked_material_claims_count": 2,
   "cross_checked_claim_groups": [
     {
-      "claim_group": "Morocco labour-measurement definitions and comparability",
-      "primary_source_ids": [
-        "S01"
-      ],
-      "independent_source_ids": [
-        "S03",
-        "S04"
-      ]
+      "claim_group": "Casablanca 1965 chronology, escalation and mortality evidence",
+      "primary_source_ids": ["S12", "S13"],
+      "independent_source_ids": ["S14", "S15", "S16"],
+      "note": "The IER record-based findings, contemporaneous reportage and later scholarship were kept distinct; overlapping death registers were not added together."
     },
     {
-      "claim_group": "Paris Agreement NDC process versus the emissions-gap assessment",
-      "primary_source_ids": [
-        "S14"
-      ],
-      "independent_source_ids": [
-        "S15"
-      ]
-    },
-    {
-      "claim_group": "CD19 CAR-T autoimmune-disease case-series signal and evidentiary limits",
-      "primary_source_ids": [
-        "S18"
-      ],
-      "independent_source_ids": [
-        "S19"
-      ]
-    },
-    {
-      "claim_group": "Mohammed V exile/return chronology and historical interpretation",
-      "primary_source_ids": [
-        "S20",
-        "S21"
-      ],
-      "independent_source_ids": [
-        "S22"
-      ]
-    },
-    {
-      "claim_group": "Mohammed Choukri biography, publication, and translation history",
-      "primary_source_ids": [
-        "S25"
-      ],
-      "independent_source_ids": [
-        "S23",
-        "S24"
-      ]
+      "claim_group": "Le Passe simple publication, form, reception and competing interpretations",
+      "primary_source_ids": ["S17"],
+      "independent_source_ids": ["S18", "S19", "S20", "S21", "S22"],
+      "note": "BnF establishes the work and publication trail; academic sources provide interpretations, not new bibliographic facts."
     }
+  ],
+  "independence_notes": [
+    "S1 and S2 remain a same-origin statistical trail and are not counted as independent CPI estimates.",
+    "S8 and S9 are two pages for the same arXiv preprint origin and are not counted as independent validation.",
+    "S6 and S7 are both DeepMind-origin documents and remain COMPANY_CLAIM."
   ]
 }

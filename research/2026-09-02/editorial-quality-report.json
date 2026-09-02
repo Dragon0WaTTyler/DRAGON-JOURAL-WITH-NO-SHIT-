@@ -1,7 +1,7 @@
 {
   "date": "2026-09-02",
   "validation_status": "PASS",
-  "total_word_count": 4042,
+  "total_word_count": 5895,
   "total": {
     "hard_min_words": 4000,
     "target_range": [
@@ -12,8 +12,8 @@
   },
   "per_section_word_counts": {
     "history": {
-      "heading": "Tarikh l-Mghreb - HOLD: exact record ma kaykfi-sh l-feature",
-      "word_count": 56,
+      "heading": "Tarikh l-Mghreb - Casablanca 1965: mlli l-madrassa khrejat l-zan9a w l-dawla jawbat b l-9owwa",
+      "word_count": 1024,
       "hard_min_words": 800,
       "publication_min_words": null,
       "target_range": [
@@ -23,8 +23,8 @@
       "pass": true
     },
     "literature_culture": {
-      "heading": "Adab w Culture - HOLD: Malhun kay7taj aktar mn catalogue",
-      "word_count": 144,
+      "heading": "Adab w Culture - Le Passe simple: riwaya kat9ra l-Mghreb mn dakhel l-3a2ila w l-isti3mar",
+      "word_count": 1054,
       "hard_min_words": 800,
       "publication_min_words": null,
       "target_range": [
@@ -110,14 +110,14 @@
   },
   "allowed_exceptions": {
     "history": {
-      "allowed": true,
-      "used": true,
-      "reason": "section is explicitly held rather than published"
+      "allowed": false,
+      "used": false,
+      "reason": null
     },
     "literature_culture": {
-      "allowed": true,
-      "used": true,
-      "reason": "section is explicitly held rather than published"
+      "allowed": false,
+      "used": false,
+      "reason": null
     },
     "morocco": {
       "allowed": false,

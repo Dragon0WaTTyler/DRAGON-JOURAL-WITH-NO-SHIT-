@@ -1,36 +1,94 @@
 {
-  "story_id": "culture-malhun-unesco-record-2026-09-02",
-  "proposed_title": "Malhun's UNESCO record as a starting point for cultural research",
-  "importance_score": 6.5,
-  "what_happened": "A fresh Cloud GET retrieved UNESCO's exact Malhun item page. The record describes a Moroccan sung poetic form, its languages, instruments, themes and transmission, and records its 2023 inscription. This is stable cultural documentation, not a claim of a current event.",
+  "story_id": "culture-le-passe-simple-chraibi-2026-09-03",
+  "proposed_title": "Le Passe simple: riwaya kat9ra l-Mghreb mn dakhel l-3a2ila w l-isti3mar",
+  "importance_score": 8.5,
+  "what_happened": "Fresh research selected Driss Chraibi's Le Passe simple, first published in 1954, as a substantial Moroccan literature feature. A BnF bibliographic record establishes the work and its publication trail, while recent and established scholarship reads its family conflict, language, colonial setting, religious argument and political reception in competing ways. The feature can therefore discuss the novel's form and afterlife without reproducing copyrighted passages.",
   "key_facts": [
-    "FACT: UNESCO's exact item page records Malhun on the Representative List in 2023.",
-    "FACT: the record describes sung verse in dialectical Arabic and sometimes Hebrew, accompanied by instruments including lute, violin, rebab and small drums.",
-    "INTERPRETATION: UNESCO's safeguarding framework is one institutional perspective and does not by itself document the form's full literary evolution or regional disagreements.",
-    "UNKNOWN: no current performance, funding, audience or practitioner-impact record was retrieved."
+    "FACT: The BnF catalogue records Le Passe simple as a novel by Driss Chraibi, with a 1954 Denoel edition and later Gallimard editions.",
+    "INTERPRETATION: Ellen McLarney reads the novel's father-son conflict as an allegorical form for political tensions among monarchy, intelligentsia and competing Moroccan projects in the 1950s.",
+    "INTERPRETATION: Hoda El Shakry argues that the novel stages a double critique of colonial and nationalist teleologies rather than functioning simply as an attack on Moroccan tradition or Islam.",
+    "FACT: The 2025 IMIST article describes the novel's deliberately subversive ambition and frames its title as an unstable relation to inherited pasts and the present.",
+    "UNKNOWN: the retrieved sources do not establish a complete reception history across every Moroccan school, readership or language community; claims about a universal national reaction must remain limited."
   ],
   "primary_sources": [
     {
-      "url": "https://ich.unesco.org/en/RL/malhun-a-popular-poetic-and-musical-art-01592",
-      "publisher": "UNESCO Intangible Cultural Heritage",
-      "publication_date": "2023 inscription; stable record retrieved 2026-09-02",
-      "retrieved_at": "2026-09-02T20:44:05+01:00",
-      "source_type": "catalogue",
-      "attribution": "UNESCO Intangible Cultural Heritage item record",
-      "claim_supported": "Inscription status and UNESCO's description of Malhun practice and transmission",
+      "url": "https://catalogue.bnf.fr/ark:/12148/cb34868659s",
+      "publisher": "Bibliotheque nationale de France",
+      "publication_date": "1954 first edition; 1986 catalogue record",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "national_library_bibliographic_record",
+      "attribution": "BnF notice for Le Passe simple",
+      "claim_supported": "Author, work identity, genre and publication trail",
       "evidence_label": "FACT",
-      "independence": "Multilateral catalogue based on a nomination process; not independent literary criticism"
+      "independence": "National library catalogue; bibliographic evidence rather than literary interpretation"
     }
   ],
-  "independent_sources": [],
-  "contradictory_evidence": [
-    "UNESCO recognition does not establish current vitality, access or funding.",
-    "One institutional record cannot sustain a complete literary and social history."
+  "independent_sources": [
+    {
+      "url": "https://revues.imist.ma/index.php/limpact/article/view/62450",
+      "publisher": "L'IMPACT / Salome Paule, Universite d'Artois",
+      "publication_date": "2025-12-27",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "recent_academic_article",
+      "attribution": "La difficulte d'etre au present: Une lecture du Passe simple",
+      "claim_supported": "Recent scholarly reading of the novel's subversive ambition, title and relation to inherited pasts",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Academic article independent of the BnF catalogue"
+    },
+    {
+      "url": "https://www.persee.fr/doc/caief_0571-5865_1992_num_44_1_1779?pageId=T1_68",
+      "publisher": "Persée / Marie-Therese Bet",
+      "publication_date": "1992",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "academic_literary_history_article",
+      "attribution": "La Litterature maghrebine francophone",
+      "claim_supported": "The novel's themes, style and place in Francophone Maghrebi literary history",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent literary-history article"
+    },
+    {
+      "url": "https://scholars.duke.edu/publication/1119235",
+      "publisher": "Duke University / Ellen McLarney",
+      "publication_date": "2003",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "scholarly_journal_article",
+      "attribution": "Politics of Le passe simple, Journal of North African Studies 8(2), 1-18",
+      "claim_supported": "Political allegory, father-son conflict, publication climate and competing readings",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent peer-reviewed scholarship with DOI record"
+    },
+    {
+      "url": "https://api.repository.cam.ac.uk/server/api/core/bitstreams/724e4e53-486f-4fc9-b1e4-e0817bc75a14/content",
+      "publisher": "Cambridge University repository / Hoda El Shakry",
+      "publication_date": "2019",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "scholarly_book_chapter",
+      "attribution": "Tense Eruptions in Driss Chraibi's Le passe simple, in The Literary Qur'an",
+      "claim_supported": "Double critique of colonial and nationalist teleologies, religious imagery and the novel's controversy",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent university-hosted scholarly chapter"
+    },
+    {
+      "url": "https://acta.bibl.u-szeged.hu/7652/",
+      "publisher": "Universite de Szeged / Szonja Hollosi",
+      "publication_date": "1998",
+      "retrieved_at": "2026-09-03T10:20:00+01:00",
+      "source_type": "university_repository_article",
+      "attribution": "Colonise et colonisateur dans Le Passe Simple de Driss Chraibi",
+      "claim_supported": "Colonial relationship, form and the novel's positioning between colonized and colonizer perspectives",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent university repository article"
+    }
   ],
-  "uncertainty": "The inscription and catalogue description are supported; present practice and interpretive disagreements remain unresearched.",
-  "context": "A later feature should compare practitioners, Moroccan scholarship and archival texts rather than equate listing with cultural health.",
-  "why_it_matters": "Malhun connects poetry, music, language, craft and transmission across Moroccan communities.",
-  "strategic_angle": "HOLD for a substantial feature until exact Moroccan archival and scholarly sources are retrieved.",
+  "contradictory_evidence": [
+    "A reading that treats the novel as an allegory of political revolt is productive, but it can narrow a formally complex work into a historical document and miss its language, irony and ethical ambiguity.",
+    "A reading that emphasizes anti-colonial critique must still account for the novel's harsh representation of Moroccan authority and religious instruction; calling it either simple colonial mimicry or pure national liberation is inadequate.",
+    "The BnF record establishes publication, not reception. Reports about bans, school use or a universal scandal require a separate exact source and should not be generalized from one scholarly summary."
+  ],
+  "uncertainty": "High confidence in the work's identity, first-publication date and the existence of multiple scholarly interpretations. Medium confidence in broad claims about Moroccan readership and censorship because the retrieved evidence is selective and not a complete reception archive.",
+  "context": "The novel arrived while Morocco was still under the French Protectorate and while anti-colonial nationalism, elite formation, religious authority and francophone publishing were entangled. Its French language is part of the historical problem, not proof that the novel speaks only for Europe or only for a national elite.",
+  "why_it_matters": "Le Passe simple remains useful because it refuses a comfortable division between an innocent national tradition and an external colonial force. Its family structure makes power intimate; its style makes inherited authority unstable; its later scholarship shows how a text can be both a political event and a literary construction. That combination is richer than a quote-of-the-day treatment.",
+  "strategic_angle": "PUBLISH as a long-form critical essay organized around context, form, family and power, reception, competing interpretations and present relevance. Paraphrase the scholarship and discuss the novel without reproducing copyrighted passages.",
   "confidence": "high",
-  "recommendation": "HOLD"
+  "recommendation": "PUBLISH"
 }

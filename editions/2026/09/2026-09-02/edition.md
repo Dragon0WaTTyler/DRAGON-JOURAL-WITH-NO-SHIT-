@@ -12,7 +12,7 @@ F l-Mghreb, l-mo2achir l-rasmi dyal l-as3ar 3tana tswira m7doda 3la July 2026. M
 
 F AI, DeepMind kat9dem pilot dyal double-blind evaluation. L-announcement w technical report dyal nafs charika kaywerriwn shno kat9tar7, walakin ma kaydirouch independent validation. W f Science, paper f arXiv baqi preprint under review; 7na chofna metadata w abstract, ma chofna-sh full methods. Had l-far9 ma-shi tta9al f l-lougha: howa l-amana lli katkhlli l-9ari ma ykhlat-sh idea wa3da m3a natija t2kkdat.
 
-Qrar t-ta7rir f History w Literature/Culture howa HOLD. L-records dyal UNESCO 3la Historic City of Meknes w Malhun mzyanin b7al bidaya, walakin source wa7ed institutional ma kaykfi-sh l-feature dyal 1,000-1,500 kelma b ikhtilaf, archive, w scholarship. Bla ma n7awlo l-heritage l-khbar 3ajel, kan9olo sra7a: had jouj l-abwab ma tnshrou-sh l-yom. L-investigation 7ta hiya RESEARCHING; ma kayn la ittiham la kholasa. Hadchi kamel ma kayn9ess-sh mn j-jarida; kay7miha mn filler w mn thi9a ma 3ndha fin ttsned.
+History w Literature/Culture rj3o features kamlin b3d fresh research: 1965 Casablanca b source recordi w scholarly disagreement, w Le Passe simple b publication trail w multiple literary readings. L-investigation ba9ya RESEARCHING; ma kayn la ittiham la kholasa. Hadchi kamel ma kayn9ess-sh mn j-jarida; kay7miha mn filler w mn thi9a ma 3ndha fin ttsned.
 
 Had edition kat9ra sources b hierarchy, ma-shi b l-3adad. Official statistics t9der tkoun authority 3la series dyalha, w tab9a m7taja independent context l-meaning social. Company report y9der ykoun primary document 3la design dyal company, w ma ykoun-sh audit. UN report y9der y3ti attribution l-agency, w ma ykoun-sh forensic responsibility. ArXiv y manuscript, w ma ykoun-sh peer review. Had distinctions homa l-bniya dyal had n-noskha.
 
@@ -148,17 +148,85 @@ Fact-check correction 7yed "authors report" mn voice dyalna w 3awedha b attribut
 
 L-kholasa: exact current preprint kay3ti method m9tar7a l-agent benchmarking. FACT howa existence, date, title, w under-review status. ABSTRACT_ONLY howa method description w results kifma kaydwhom authors. UNKNOWN howa robustness, effect sizes, leakage, reproducibility, w independent validation. [S8] [S9]
 
-## Tarikh l-Mghreb - HOLD: exact record ma kaykfi-sh l-feature
+## Tarikh l-Mghreb - Casablanca 1965: mlli l-madrassa khrejat l-zan9a w l-dawla jawbat b l-9owwa
 
-History packet 3ndo exact UNESCO World Heritage record l-Historic City of Meknes. Record kaydkor inscription f 1996 w kay3ti institutional description l-tatawor mn settlement Almoravid l-capital dyal Moulay Ismail, m3a qra2a dyal urban/architectural mix. Hadchi useful starting point, walakin ma howa-sh complete historiography, ma kaynach Moroccan archival voices ma3ah, w ma kaynach current conservation outcome. [S10]
+F nhar 23 Mars 1965, Casablanca ma bdat-sh b wa7ed l-mashhad dyal chaos. Bdat b talaba kaymchiw f manifestation li katban f l-bidaya i7tijaj m7doud 3la l-madrassa. Le Monde, f ta9rir mo3asir, kaywasaf sbah dyal grève estudiantine: tlaba kaydouro f rows, kaymchiw l-mas2oulin dyal ta3lim, w kay7awlo y3tiw l-i7tijaj wa7ed l-massar ma3rof. M3a l-3chiya, l-mashhad tbdl: 7jar, 7ra9 dyal buses w tomobilat, w mowt. Had l-intiqal mn talab m7doud l-infi3al l-3onif howa l-maftah dyal l-qissa. [S13]
 
-## Adab w Culture - HOLD: Malhun kay7taj aktar mn catalogue
+L9adiya katwli akbar ila 7tina l-event f zman dyalo. L-Mghreb kan khrej mn l-isti3mar, walakin ma khrej-sh mn jami3 l-as2ila dyal dawla jdida. Susan Gilson Miller kat7et f chronology dyal Morocco belli Hassan II wla malik f 1961, w belli inti9ab dyal talaba w khddama f Casablanca ja f 22 Mars 1965. Ba3d chi chhor, f 7 June, t3alla9at constitution dyal 1962 w t3lanat 7alat isti3jal. Hadi ma kat3nich belli kol wa7ed mn had l-a7dat kan sabab direct f l-akhor, walakin kat3ti l-frame: i7tijaj shahri f wa9t dawla katqleb 3la l-istiqrar w katwessa3 l-sulta dyal l-markaz. [S15]
 
-Culture packet 3ndo exact UNESCO Intangible Cultural Heritage page 3la Malhun, listed f 2023. Page katwasaf sung poetic form, languages, instruments, themes, w transmission. Walakin nomination/listing framework ma kay3tich current vitality, access, funding, wla disagreement bin practitioners w scholars. [S11]
+### Chkon kan f l-midan?
 
-Repository depth gate kaytaleb 800 kelma minimum l-kol wa7ed ila feature tnsher, w editorial brief talab feature ta9riban 1,000-1,500 kelma mn exact archival/scholarly/heritage sources. Source institutional wa7ed l-kol mawdo3 ma kaykfi-sh. 3la hadchi ma kayn la "Tarikh l-Mghreb" feature la "Adab w Culture" feature f had edition. Qrar howa HOLD sarih, bash ma n9albo-sh source sghir q essay kbir.
+L-source mo3asir kay3ti l-bidaya dyal talaba, walakin kaybayen kifach l-midan t7ell 3la nass aktar. F l-madina kaynin tlaba, 3mal, chabab bla khdma, w nass dyal ahya2 li ma kanosh kaychoufou l-madrassa b7al wa7ed l-moshkil bo7do. Ma 3ndnach f had l-madda list kamla dyal l-organisateurs, ma 3ndnach proof belli 7izb wa7ed 9ad l-kol, w ma khasnach n7awlo l-mashhad l-wa7ed l-mansou9 b command center. Abderrahmane Rachik kayfar9 bin movement social morganize 3ndo programme w qiyada, w bin émeute 3omraniya spontanea, katsra3 w katntacher mn quartier l-akhor. 3la 7sab had l-qra2a, 1965 katbayan kifach l-3onf l-3omrani kaytla3 mn tawatour ijtima3i bla ma ykoun darori 3ndo structure wa7da. [S14]
 
-Follow-up l-Tarikh khaso Archives du Maroc/Bibliotheque Nationale records, scholarship mghribi, conservation documentation, w interpretation m9abla. Follow-up l-Malhun khaso texts/catalogues, practitioner voices, academic history, w current evidence 3la transmission. 7ta ytkmlo, had jouj links leads f research, ma-shi current news. [S10] [S11]
+F nafs l-wa9t, kalmat spontanea ma khas-hach twlli excuse bach n7aydo l-ma3na. Talaba ma khrejosh mn faragh; kayn ta3lim, wa3d dyal dawla wataniya, w su2al 3la chkon ghadi ystafed mn l-isti9lal. Casablanca kanat l-marka dyal l-iqtisad w l-khedma, w l-far9 bin centre, periferie, w ahya2 mhemchin kan kaykabbər ay i7tijaj. Rachik kaygol belli had l-inti fadat l-7odoud dyal l-makan; ma b9atch ghir wa7ed l-madrassa ola wa7ed l-mas2oul. [S14]
+
+### Mn l-i7tijaj l-l7adita
+
+Le Monde kayqol belli f l-bidaya tlaba kaydouro b nizam. Mn b3d, l-mowj kaytwas3: l-matjar kaytsed b 7jar, buses kayt7r9o, w t9a3at mowajaha m3a l-9owat l-3omomiya. Had ta9rir khaso ytb9a mansoub l-source: howa kay3ti riwaya dyal wa7ed sakin f Casablanca, w kayn ta3li9 3la ma kan kayqol l-police. Ma n9drosh nkhdmo kol detail b7al law kan camera f kol zan9a. Walakin l-mashhad l-3am kaytla9a m3a chronology dyal Miller: March 1965 kan episode dyal talaba w 3mal, ma-shi khbar m3azal 3la l-madani. [S13] [S15]
+
+Aham l-bab howa l-mowt. Wa7ed statement dyal wizarat l-i3lam, li na9loh IER, 7seb 7 dyal l-mwatin li matou, w 45 policemen w 24 mn l-forces l-mosa3ida tsabou, m3a i3ti9al 168 wa7ed. Ila wa9fna hna ghadi n3awdou ra9m rasmi bla ma nsawlou 3la tari9a dyal l-7sab. L-IER, mn b3d b-snin, ma3tamad-sh ghir 3la communiqué: qra registre dyal l-morgue, d-dawazem dyal l-mostašfa, registre dyal l-9bor, w sowl l-3amilin w l-motaba3in. F registre Ain Chock l9at 31 wa7ed matou b jrou7 dyal rsas; f Ibn Rushd kaynin 9 7alat mowt mn b3d dkhoul l-mostašfa; w registre dyal Chouhada Cemetery kaybayen 50 jthta, m3a tda5ol bin l-ma3loumat. [S12]
+
+Hna l-7e9i9a ma hiyach ra9m kbir howa s7i7 w ra9m sghir howa kdab. L-a3dad katjawb 3la as2ila mokhtalfa: communiqué kay3ti l-7esab li kan m3lan f wa9to; morgue kay3ti mowt li tsjjel b sabab jrou7; l-9bor kay3ti jthta li t3rafat f wa7ed l-makan. IER 7ta hiya katnabbah l-moshkil dyal l-ma3loumat na9sa. Donc l-kholasa l-mas2oula hiya belli l-9owwa l-3omomiya khllat athar kbir f l-mowt, walakin ma khasnach n7etto total wa7ed bla attribution. L-report rasmi kayhder 3la disproportionate public force, w had l-7okm khaso yb9a mansoub l-commission w l-evidence li jma3at. [S12]
+
+### Natija siyasiya w ikhtilaf f l-qra2a
+
+M3a June, t3alla9at constitution w t3lanat 7alat isti3jal. Miller kat7et had l-khotwa f nafs chronology, w Omnia El Shakry katqra 1960s w 1970s dyal North Africa b7al wa9t t9at3at fih wa3oud ta3lim w tanmiya m3a ta9wiya dyal qowat l-9am3 w t3atol dyal l-moshrou3 l-watani. Had l-qra2a ma katgol-sh belli Casablanca bo7dha sababat kolchi; katgol belli l-event wa7ed mn l-mofata7 li kay3awnna nfhmou kifach l-isti9lal ma kan-sh nihayat l-siyasa, bel bidayat niza3 3la l-mas2ouliya, l-3adala, w l-7odoud dyal l-malik w l-mo3arada. [S15] [S16]
+
+Kayna wa7ed l-mochkila f l-memory: wa7ed l-jiha t9der t7ki 3la talaba l-batal li bdaou i7tijaj 3adel w tsdamou b dawla; jiha okhra t9der t7ki 3la émeute b7al ila nass khrej mn l-3a9l bla sabab. Jouj l-7kayat na9sin. L-madrassa w ta3lim kay3tiw sabab m3ayan; l-far9 l-3omrani w l-i9tisadi kay3tiw l-ardiya; l-3onf dyal l-midan kay3ti l-7adith; w l-9owwa dyal dawla w l-mowt kay3tiw l-athar. Ila 7yedna chi wa7ed mn had l-4, kanwliw propaganda, ma-shi tarikh.
+
+### 3lach 1965 ba9ya kathemmna?
+
+L-event kat3awed tsowelna: ila wa3dat dawla jdida b ta3lim w karama, chno kayw9e3 mlli l-mowatin kay7ess belli l-wa3d ma wasel-sh lih? W ila t9admat l-9owwa b7al jawb, chkon kayktb l-archive? L-IER 3tana dars mohim: l-memory ma khas-hach tb9a ghir riwayat, t9der ttraja3 registre, hospital, morgue, 9bor, w shahada. W l-archive 7ta howa ma kay3tich kolchi; khas l-9ari y3raf fin kayn l-overlap, fin kayn n9s, w fin l-interpretation.
+
+Casablanca 1965 ma hiyach qissa sahl dyal talaba contre dawla, w ma hiyach ghir footnote f Years of Lead. Hya wa7ed l-l7da fin t9at3at l-madrassa, l-madina, l-3amal, l-mo3arada, w l-9owwa. Ila 9rinaha b had l-7der, kan9dro n3tiw l-madi 7e9o: ma n9dsoh-sh, ma nms7oh-sh, w ma nst3mloh-sh bach n7smo niza3 l-youm b ra9m ma mt2akked-sh. [S12] [S14] [S16]
+
+Wa7ed l-lesson akhor kayji mn tari9a dyal l-ba7th: l-wa9e3a katb9a a9wa mlli kan9arno ma bayn l-wati9a w l-riwaya bla ma n3tiw l-wa7da l-7a9 kamel. L-IER ma katm7ich l-memory dyal l-3a2ilat, w Le Monde ma kay3awd-sh l-archive b wa7do. L-historien kaykhdem f had l-masafa: kay9ol chno tsjjel, chno t3awd, chno kaytla9a, w chno ba9i ma kaynach lih ijaba. Haka l-feature katwli tarikh, ma-shi mraja3a dyal slogans.
+
+W kayb9a so2al dyal l-actors: chkon kan kayqarrar, chkon kan kayt3ared, w chkon kan kayt3alla9 b l-midan? Sources lli 3ndna kay3tiw fragments, ma-shi daftar dyal kol voice. Hadi sabab 3lach l-feature kat7et l-7odoud dyalha b sra7a: kat9dar tshrah l-structure dyal l-event w l-athar dyalo, walakin ma katd3ich belli 3ndha kol l-asami w kol l-qararat. [S12] [S14]
+
+## Adab w Culture - Le Passe simple: riwaya kat9ra l-Mghreb mn dakhel l-3a2ila w l-isti3mar
+
+F 1954, tkhrej wa7ed r-roman mn l-Mghreb li ma bghach ykoun decor folklorique wla zine dyal l-exotisme. *Le Passe simple* dyal Driss Chraibi kaydkhol l-3a2ila, l-madrassa, d-din, l-isti3mar w l-7okm mn bab wa7ed chab kaychouf s-sulta f daro 9bel ma ychoufha f l-bled. BnF katthbet l-hwiya dyal l-roman, smit l-katib, w l-edition l-oula dyal 1954 3nd Denoel, m3a editions mn b3d 3nd Gallimard. Had l-m3louma bibliographique ma katshrah-sh l-roman, walakin kat7ett l-asas: hadchi khdma adabiya m3ayyana, ma-shi quote m3alla9 f l-hwa. [S17]
+
+### Zman dyal l-kitab
+
+L-roman tktb w tnsher w l-Mghreb ba9i ta7t l-Protectorat français. L-katib kayktb b français, w hna kaybda wa7ed l-mochkil: wach l-lougha katkhlli l-kitab colonial b darora? Wla wach kat9der twlli tool dyal wa7ed chab mghribi kayna9ch l-authority li katsift l-isti3mar w l-3ada b juj wajh? L-bahth l-adabi kaybayen belli l-adab maghribi francophone ma kaytchrah-sh b wa7ed l-khot: howa m3alla9 bin publishing f Paris, tajriba dyal l-Mghreb, l-elite li 9rat b français, w l-bahth 3la sawt kaymthel rasso. [S18] [S21]
+
+Had l-context kayhemm 7it l-roman ma kayhder-sh 3la tradition b7al chi 7aja sakna. Kayhder 3la wa7ed l-wa9t fin l-walad, l-ab, l-faqih, l-madrassa, l-malik, l-isti3mar w l-mithal dyal l-7orriya kaytdaf3o f nafs l-masra7. L-9ari y9der yqra l-gharad anti-colonial, walakin y9der ychouf 7ta na9d qassi l-mo3tad w l-mos2assasa l-diniya. L-9ima dyal l-roman hya belli ma kay3tik-sh jawb wa7ed m3ah label sahl.
+
+### Chkon howa Driss, w fin kayban l-sulta?
+
+L-batal smito Driss Ferdi, w l-ab dyalo kayban b wa7ed l-hodour li kayj3loh aktar mn walid 3adi: howa centre dyal nizam f dar, w m3ah katban l-hierarchy dyal l-mjtama3. Ellen McLarney katqra had l-3ala9a bin l-walad w l-ab b7al family conflict li kaychil m3ah niza3 siyassi. L-mochkil ma kaynach f tashbih l-ab b malik b tari9a mechanique; l-mochkil f kifach l-roman kaykhlli l-9ari ychouf l-politics mn dakhel l-jasad, l-khof, t-ta3lim w l-3adab. L-mamlaka ma katbanch ghir f palace; katbanch f dar li kay9oul chkon yskot w chkon yhdr. [S20]
+
+F l-form, l-roman kaykhdem b pressure dyal l-voice, l-ironie w t-tawattor. McLarney katshir l-t2tir dyal family novels w images dyal French Revolution f l-bina2 dyal l-kitab. Had l-influence ma katna9ess-sh mn mghribiyat l-roman; katbayan kifach katib mghribi kaysta3mel forms katdour bin Europe w North Africa bach y3awed yktb l-history dyal l-omma. L-form hna ma hiyach zwinat: hya 7orba dyal ta3rif. Chkon kayktb l-ab? Chkon kay3ti l-ism l-walad? Chkon kayqder y7awwel l-3a2ila l-masra7 dyal l-politics?
+
+### L-fikra ma-shi ghir i7tijaj
+
+L-roman kaydour 3la l-7orria, l-morot, d-din, l-3ilm, w l-7e9 dyal chab ykoun subject ma-shi ghir warith. Walakin l-9ari khaso y7der mn wa7ed l-interpretation li katkhlli Driss y9der yhdr b smit kol chabab Mghribi. Hna katji l-critique: l-batal mhem, walakin ma-shi l-bled kamla; l-roman kay3ti tajriba m7doda dyal wa7ed chab mn wa7ed milieu, ma-shi survey dyal l-Mghreb.
+
+Hoda El Shakry kat9tar7 qra2a m3a9da: *Le Passe simple* kayna9ed juj teleologies f nafs l-wa9t, wa7ed colonial li kay9ol belli Europe hiya l-mosta9bal, w wa7ed nationalist li kay9ol belli l-omma katmchi f khatt wa7ed msta9im. F had l-qra2a, l-roman ma kayt7awel-sh l-propaganda dyal chi taraf; kayb9a kaytsowel kifach l-history katsjjel l-ansab, l-authority w l-9odousiya. L-symbols diniya li kaybanou f l-roman ma khas-hom-sh ytfahmou b7al statement wa7ed 3la l-Islam; homa wa7ed l-midan li fih l-batal kayjreb l-3ala9a bin l-iman, l-9owwa w l-akhlaq. [S21]
+
+### Mlli l-adab wla wa9e3a siyasiya
+
+L-uproar li dar l-roman ma kan-sh 7it l-kitab kayhder 3la family bo7dha. McLarney katqol belli climate siyassi dyal 1954 3awed wjjeh reception: nass qraw l-roman b7al allegory dyal revolt, w had l-qra2a 9dert tghleb 3la l-form l-adabi. Hna kayban far9 bin text w event: l-katib kaybni scenes, voices, irony w rythme; l-9ari w l-journal kay7awlo y3tiwh wa9e3a wa7da. [S20]
+
+L-bahth l-jdid dyal Salome Paule kay3awed yqra had l-mochkil mn zawya l-present: l-3onwan rasso kaykhlli l-past yban simple ghir f smiya, machi f l-ma3na. L-madi hna ma howa-sh sandou9 tsed; kayrj3 f l-3ala9a bin l-walad w l-ab, bin l-lougha w l-hwiya, w bin wa3d l-modernite w l-7e9 dyal l-morot. Had l-qra2a ma katgol-sh belli l-roman ma kayn-sh fih siyasa; katgol belli siyasa dyalo katdouz mn l-adab, ma-shi kat3wdo. [S22]
+
+### Niza3 3la colonialisme w l-na9d
+
+Szonja Hollosi kat7ett l-roman f 3ala9a colonise/colonisateur. Ila 9rina kol na9d dyal l-mjtama3 l-mghribi b7al ta2tir français, kanms7o l-ijra2a dyal l-katib. W ila 9rinah b7al sawt watani khales, kanms7o l-lougha w l-form li t3allmo mn 3alam akhor. L-roman kayb9a m3alla9 bin l-jouj, w had l-3ala9a ma hiyach na9s; hya l-mawdo3. [S18]
+
+Mn hna kayji l-ikhtilaf bin l-9orra2. Wa7ed y9der ychouf Driss Ferdi rebel against a patriarchal order; wa7ed akhor y9der ychouf l-batal kay3awed yproduci wa7ed l-9owwa elitiste; wa7ed talet y9der yqol belli l-roman kayna9ed l-colonial w l-nationalist f nafs l-wa9t. Ma khasnach nkhtaro wa7ed mn had l-qra2at b7al ila l-akhorin ghaltin kamlin. Na9d li kayqol political allegory kayzid l-ma3na, walakin y9der ydi3 style. Na9d li kayqol literary complexity kay7mi l-form, walakin y9der ykhlli l-siyasa tkhfa. Feature zwina katkhlli l-jouj ybano.
+
+### L-wsoul w l-m3na l-youm
+
+BnF kay3ti l-work trace dyal l-editions, walakin ma kay3tich l-9issa kamla dyal reception f l-Mghreb. Donc ma khasnach n9olo belli kol Mghribi t3amel m3ah b nafs tari9a, wla belli l-roman kan ma3rouf b nafs l-qowa f kol l-madaris w l-3a2ilat. L-li 3ndna howa bahth akademi kayt3awed yqra l-roman, w had l-isti3ada bo7dha katbayan belli l-text ba9i kay7ell niza3.
+
+L-youm, *Le Passe simple* kayhemm 7it l-as2ila dyalo ma salawsh: chno kayw9e3 mlli l-modernite katji b lougha ma-shi hiya l-lougha dyal dar? Wach na9d l-ab kay3ni na9d l-omma, wla na9d wa7ed nizam dyal s-sulta? Wach l-memory dyal l-isti3mar t9der t3ich m3a na9d l-dakhel bla ma twlli tbrir l-colonisateur? Had l-roman ma kay3tich formula. Kay3ti wa7ed l-masra7 fin l-3a2ila, l-madrassa, d-din, l-lougha w l-politics kaydkhlo f ba3diyathom.
+
+L-kitab ma khasoch ytb9a qissa dyal roman jari2 w safi. Hwa tjaroba f l-form, wa9e3a f reception, w wa7ed l-mir2at li katbayen belli l-Mghreb ma kaytktb-sh mn sawt wa7ed. Ila bghina n9rawh b mas2ouliya, n7afdo 3la jouj l-7wayj: ma n3awdouch passages m9tobsa bzzaf, w ma n9tlouch l-ikhtilaf bin l-qorra2 b slogan. L-adab kayb9a 7ay mlli kaykhelli l-ma3na mftou7, walakin ma-shi mlli kaykhlli l-evidence mftou7 bla 7doud. [S17] [S18] [S19] [S20] [S21] [S22]
+
+W ila l-roman ba9i kayt9ra, ma-shi 7it l-madi t7bes f wa7ed l-version. Kol qra2a katjib so2al jdid 3la l-lougha, l-walad, l-ab, l-din, w l-madina. Walakin l-7orriya dyal l-qra2a ma kat3nich l-7orriya dyal l-i3ti9ad: l-claim 3la reception khaso source, w l-claim 3la influence khaso trace. Had l-mizan bin imagination w evidence howa li kaykhelli culture section 3ndha 3om9, w ma twllish la fan-page la tribunal.
 
 ## Investigations - RESEARCHING: mn CPI l-so2al, ma-shi l-ittiham
 
@@ -172,7 +240,7 @@ Had note ma howa-sh investigation published, donc ma kaytleb-sh minimum dyal 600
 
 ## Mola7adat Fact-check w Darija QA
 
-Fact-check: PASS mn ba3d corrections. Kol ra9m CPI mansoub l-HCP; MWN m3awd coverage mn nafs origin. Meknes item m7doud l-deadline. Palestine split l-FACT, ALLEGATION/DISPUTED_CLAIM, CLAIM, w UNKNOWN. Sudan ma fih 7ta attacker attribution. DeepMind announcement/report COMPANY_CLAIM. ArXiv science PREPRINT / ABSTRACT_ONLY. History w Culture HOLD. Investigation RESEARCHING bla accusation.
+Fact-check: PASS mn ba3d corrections. Kol ra9m CPI mansoub l-HCP; MWN m3awd coverage mn nafs origin. Meknes item m7doud l-deadline. Palestine split l-FACT, ALLEGATION/DISPUTED_CLAIM, CLAIM, w UNKNOWN. Sudan ma fih 7ta attacker attribution. DeepMind announcement/report COMPANY_CLAIM. ArXiv science PREPRINT / ABSTRACT_ONLY. History mortality records separated mn press reporting, w Literature publication facts separated mn interpretations. Investigation RESEARCHING bla accusation.
 
 Darija Latin QA: PASS. Zero Arabic-script characters f master. English baqi ghir f technical labels, titles, official names, models/methods, w proper nouns. QA ma bdel la ra9m la attribution la confidence.
 
@@ -198,6 +266,24 @@ Cover note: cover.webp illustration t-ta7ririya abstracta, ma-shi tswira documen
 
 [S9] arXiv abstract page 2609.01603. Same preprint origin as S8, not a second validation source.
 
-[S10] UNESCO World Heritage Centre, Historic City of Meknes, List 793. Stable heritage record; feature held.
+[S12] Equity and Reconciliation Commission (IER), Kingdom of Morocco, final report volume 2, 2005. Casablanca 1965 records, methods, and disproportionate public force.
 
-[S11] UNESCO Intangible Cultural Heritage, "Malhun, a popular poetic and musical art", item 01592. Stable heritage record; feature held.
+[S13] Le Monde, "Un recit et un bilan des emeutes de Casablanca", 1965-03-31. Contemporaneous attributed account.
+
+[S14] Persee / Abderrahmane Rachik, "Peripherie, emeutes et politique urbaine : Le cas de Casablanca", 1994. Academic interpretation.
+
+[S15] Cambridge University Press / Susan Gilson Miller, A History of Modern Morocco chronology, 2013. Dating and historical context.
+
+[S16] Cambridge University Press / Omnia El Shakry, Leaping Decolonization introduction, 2025. Scholarly context for the 1965 hinge date.
+
+[S17] Bibliotheque nationale de France, Le Passe simple record, 1954 first edition / 1986 record. Bibliographic fact.
+
+[S18] L'IMPACT / Salome Paule, "La difficulte d'etre au present : Une lecture du Passe simple", 2025-12-27. Academic interpretation.
+
+[S19] Persee / Marie-Therese Bet, "La Litterature maghrebine francophone", 1992. Academic literary history.
+
+[S20] Duke University / Ellen McLarney, "Politics of Le passe simple", 2003. Academic interpretation.
+
+[S21] Cambridge repository / Hoda El Shakry, "Tense Eruptions in Driss Chraibi's Le passe simple", 2019. Academic interpretation.
+
+[S22] Universite de Szeged / Szonja Hollosi, "Colonise et colonisateur dans Le Passe Simple de Driss Chraibi", 1998. Academic interpretation.

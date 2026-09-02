@@ -4,7 +4,10 @@
   "language": "darija-latin",
   "arabic_script_characters": 0,
   "meaning_changes": 0,
+  "scope": "corrected edition including regenerated History and Literature/Culture features",
   "notes": [
-    "Technical proper names retained; prose edited in Darija Latin."
+    "Technical proper names, source titles and evidence labels retained where precision requires English or French.",
+    "The long-form sections were expanded without changing source attribution, confidence or uncertainty labels.",
+    "No Arabic-script characters remain in edition.md."
   ]
 }

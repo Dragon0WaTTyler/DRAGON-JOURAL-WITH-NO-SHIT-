@@ -43,6 +43,30 @@ class EditorialDepthTests(unittest.TestCase):
         report = evaluate(markdown(literature=799), POLICY)
         self.assertTrue(any("literature_culture section has" in item for item in report["chief_editor_regeneration_requests"]))
 
+    def test_history_hold_cannot_override_hard_minimum(self):
+        text = markdown(history=56).replace("## Tarikh l-Mghreb — dossier", "## Tarikh l-Mghreb — HOLD")
+        report = evaluate(text, POLICY)
+        self.assertFalse(report["per_section_word_counts"]["history"]["pass"])
+        self.assertFalse(report["allowed_exceptions"]["history"]["used"])
+        self.assertTrue(any("history section has 56 words" in item for item in report["chief_editor_regeneration_requests"]))
+
+    def test_literature_hold_cannot_override_hard_minimum(self):
+        text = markdown(literature=144).replace("## Adab w Culture — dossier", "## Adab w Culture — HOLD")
+        report = evaluate(text, POLICY)
+        self.assertFalse(report["per_section_word_counts"]["literature_culture"]["pass"])
+        self.assertFalse(report["allowed_exceptions"]["literature_culture"]["used"])
+        self.assertTrue(any("literature_culture section has 144 words" in item for item in report["chief_editor_regeneration_requests"]))
+
+    def test_history_800_useful_words_passes_without_exception(self):
+        report = evaluate(markdown(history=800), POLICY)
+        self.assertTrue(report["per_section_word_counts"]["history"]["pass"])
+        self.assertFalse(report["allowed_exceptions"]["history"]["used"])
+
+    def test_literature_800_useful_words_passes_without_exception(self):
+        report = evaluate(markdown(literature=800), POLICY)
+        self.assertTrue(report["per_section_word_counts"]["literature_culture"]["pass"])
+        self.assertFalse(report["allowed_exceptions"]["literature_culture"]["used"])
+
     def test_arabic_script_is_hard_failure_signal(self):
         self.assertTrue(language_has_arabic_script("Had l-jملة فيها كتاب b-script 3arabi"))
         self.assertFalse(language_has_arabic_script("Had l-jomla kamla b-Darija Latin"))

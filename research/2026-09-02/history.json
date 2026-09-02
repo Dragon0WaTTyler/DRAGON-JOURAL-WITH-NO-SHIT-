@@ -1,34 +1,83 @@
 {
-  "story_id": "history-meknes-unesco-record-2026-09-02",
-  "proposed_title": "Historic Meknes: an institutional record, not a complete historiography",
-  "importance_score": 6.0,
-  "what_happened": "A fresh Cloud GET retrieved UNESCO's exact Historic City of Meknes record. It documents the site's 1996 inscription and UNESCO's account of Meknes's development from an Almoravid settlement to Moulay Ismail's capital; this stable record is historical evidence, not current news.",
+  "story_id": "history-casablanca-1965-uprising-2026-09-03",
+  "proposed_title": "Casablanca 1965: mlli l-madrassa khrejat l-zan9a w l-dawla jawbat b l-9owwa",
+  "importance_score": 8.5,
+  "what_happened": "Fresh research traced the March 1965 Casablanca disturbances through the Moroccan Equity and Reconciliation Commission's final report, a contemporaneous Le Monde account, and later urban-history and modern-Morocco scholarship. The evidence supports a student protest that widened into a city-wide social explosion, followed by disproportionate public force; the exact death toll remains source-dependent and must not be reduced to one unqualified number.",
   "key_facts": [
-    "FACT: UNESCO's exact record lists the Historic City of Meknes as inscribed in 1996.",
-    "INTERPRETATION: UNESCO characterizes the city as combining Islamic and European elements in seventeenth-century Maghreb architecture and planning.",
-    "UNKNOWN: this retrieval did not establish competing Moroccan scholarly interpretations, conservation outcomes or a current event."
+    "FACT: Susan Gilson Miller's chronology dates the Casablanca uprising of students and workers to 22 March 1965 and the suspension of the constitution and declaration of a state of emergency to 7 June 1965.",
+    "FACT: Le Monde's contemporaneous account describes a student strike becoming an afternoon riot on 23 March, with buses and other property damaged and deaths reported by police and eyewitness testimony.",
+    "FACT: The IER report says its investigation used mortuary, hospital, cemetery and prosecutor records, and identified 31 gunshot deaths in the Ain Chock mortuary register, nine deaths after admission to Ibn Rushd Hospital, and 50 deaths in the Chouhada Cemetery register, with overlap between records.",
+    "INTERPRETATION: Abderrahmane Rachik treats the 1965 and 1981 Casablanca events as urban uprisings that spread beyond a local incident, while later scholarship places 1965 inside the post-independence struggle over development, opposition and state power.",
+    "UNKNOWN: the retrieved sources do not provide a single undisputed total for all deaths, nor a complete reconstruction of every neighbourhood, organizer and command decision."
   ],
   "primary_sources": [
     {
-      "url": "https://whc.unesco.org/en/list/793/",
-      "publisher": "UNESCO World Heritage Centre",
-      "publication_date": "1996 inscription; stable record retrieved 2026-09-02",
-      "retrieved_at": "2026-09-02T20:44:05+01:00",
-      "source_type": "catalogue",
-      "attribution": "UNESCO World Heritage Centre property record",
-      "claim_supported": "Inscription identity, date and UNESCO's description of the site's significance",
+      "url": "https://truthcommissions.humanities.mcmaster.ca/wp-content/uploads/2021/02/Report_TRC_Morocco-Equity-and-Reconciliation-Commission_IER_-English_volume_2.pdf",
+      "publisher": "Equity and Reconciliation Commission (IER), Kingdom of Morocco",
+      "publication_date": "2005 final report, English volume 2",
+      "retrieved_at": "2026-09-03T10:15:00+01:00",
+      "source_type": "official_truth_commission_report_mirror",
+      "attribution": "IER final report, chapter on deaths during civil disturbances",
+      "claim_supported": "Investigation method, registers consulted, recorded deaths, overlapping counts and official finding of disproportionate public force",
       "evidence_label": "FACT",
-      "independence": "Multilateral heritage catalogue; not an independent historiographical debate"
+      "independence": "Official Moroccan truth commission report; its method and evidentiary limits are stated rather than treated as a complete census"
+    },
+    {
+      "url": "https://www.lemonde.fr/archives/article/1965/03/31/un-recit-et-un-bilan-des-emeutes-de-casablanca_2174948_1819218.html",
+      "publisher": "Le Monde",
+      "publication_date": "1965-03-31",
+      "retrieved_at": "2026-09-03T10:15:00+01:00",
+      "source_type": "contemporaneous_reportage",
+      "attribution": "Le Monde account based on a Casablanca resident's report and quoted police account",
+      "claim_supported": "Sequence of the 23 March student protest, escalation, damage and contemporaneous death reporting",
+      "evidence_label": "FACT",
+      "independence": "Contemporaneous newspaper account with explicit attribution; not a later archival census"
     }
   ],
-  "independent_sources": [],
-  "contradictory_evidence": [
-    "A World Heritage statement of significance is an institutional heritage assessment, not a complete account of political, social or conservation history."
+  "independent_sources": [
+    {
+      "url": "https://www.persee.fr/doc/horma_0984-2616_1994_num_25_1_1257?pageId=T1_226",
+      "publisher": "Persée / Abderrahmane Rachik",
+      "publication_date": "1994",
+      "retrieved_at": "2026-09-03T10:15:00+01:00",
+      "source_type": "peer_reviewed_social_science_article",
+      "attribution": "Rachik's analysis of Casablanca's periphery, riots and urban politics",
+      "claim_supported": "Analytical distinction between organized social movements and spontaneous urban uprisings, and the spread of the 1965 event beyond one locality",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent academic analysis, separate from the IER and contemporaneous press"
+    },
+    {
+      "url": "https://assets.cambridge.org/97805218/10708/frontmatter/9780521810708_frontmatter.pdf",
+      "publisher": "Cambridge University Press / Susan Gilson Miller",
+      "publication_date": "2013 book front matter",
+      "retrieved_at": "2026-09-03T10:15:00+01:00",
+      "source_type": "scholarly_book_chronology",
+      "attribution": "A History of Modern Morocco chronology",
+      "claim_supported": "Dating of the March uprising and the June 1965 constitutional suspension and emergency declaration",
+      "evidence_label": "FACT",
+      "independence": "Scholarly synthesis independent of the IER report"
+    },
+    {
+      "url": "https://www.cambridge.org/core/books/leaping-decolonization/introduction/D4F575E0C7AD9843F48DB219F46657B2",
+      "publisher": "Cambridge University Press / Omnia El Shakry",
+      "publication_date": "2025",
+      "retrieved_at": "2026-09-03T10:15:00+01:00",
+      "source_type": "scholarly_book_introduction",
+      "attribution": "Leaping Decolonization introduction",
+      "claim_supported": "Post-independence development, opposition, intellectual decolonization and the importance of 1965 as a North African hinge date",
+      "evidence_label": "INTERPRETATION",
+      "independence": "Independent scholarly framing with a stated transnational method"
+    }
   ],
-  "uncertainty": "Catalogue facts are well supported; interpretation remains incomplete without Moroccan archives and multiple historians.",
-  "context": "Stable historical research may seed a later feature, but it must not be presented as a development occurring on 2 September 2026.",
-  "why_it_matters": "The record offers a traceable starting point for separating documented chronology from later heritage framing.",
-  "strategic_angle": "HOLD until archival and scholarly sources provide depth and disagreement.",
+  "contradictory_evidence": [
+    "The Ministry statement reported by the IER gave seven deaths, while the IER's later record-based investigation identified substantially more bodies; the figures answer different evidentiary questions and cannot be silently averaged.",
+    "Le Monde's account foregrounds the visible sequence of protest and riot, while the IER report foregrounds mortality records and the use of public force; neither source alone reconstructs the whole city.",
+    "Calling the event a coordinated movement risks overstating organization; calling it spontaneous chaos erases the education grievance and the social conditions that allowed the disturbance to spread."
+  ],
+  "uncertainty": "High confidence in the date, the student-origin sequence, the later state-of-emergency context and the existence of record-based deaths. Medium confidence in any aggregate death total because the IER records overlap and the retrieved material does not provide a complete reconciled list of every victim.",
+  "context": "The episode belongs to the first decade after independence, when the promise of national development met unequal urban growth, education pressure, opposition politics and a monarchy consolidating executive power. It should not be collapsed into the later 1981 bread riots or the broader undifferentiated Years of Lead.",
+  "why_it_matters": "1965 shows how a narrow education dispute can become a test of who owns the city, who gets heard after independence and how official memory is built from competing records. It also gives today's debates about youth, schooling, inequality and public force a documented historical case without pretending that history supplies a simple moral slogan.",
+  "strategic_angle": "PUBLISH as a long-form historical feature with an evidence-versus-memory structure: begin with 23 March, move through the post-independence setting and actors, compare the death counts and methods, then explain what later scholarship disputes. No single death total should be used without attribution.",
   "confidence": "high",
-  "recommendation": "HOLD"
+  "recommendation": "PUBLISH"
 }

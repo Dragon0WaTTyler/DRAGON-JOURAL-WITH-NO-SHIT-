@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render a validated pre-production master into PDF, EPUB, cover, and manifest."""
 from __future__ import annotations
-import argparse, html, json, re, zipfile
+import argparse, html, json, re, unicodedata, zipfile
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.colors import HexColor
@@ -61,12 +61,20 @@ def pdf(path:Path,md:str,date:str):
  def footer(c,doc):
   c.saveState(); c.setFont(regular_font,7); c.setFillColor(HexColor('#555555')); c.drawString(18*mm,10*mm,f'DRAGON - {LABEL.replace("—", " - ")} - {date}'); c.drawRightString(192*mm,10*mm,str(doc.page)); c.restoreState()
  story=[]
+ in_sources=False
  for line in md.splitlines():
   line=line.strip().replace('—',' - ')
-  if not line: story.append(Spacer(1,3)); continue
+  if not line:
+   if not in_sources: story.append(Spacer(1,3))
+   continue
   if line.startswith('# '): story.append(Paragraph(html.escape(line[2:]),h1)); continue
-  if line.startswith('## '): story.append(Paragraph(html.escape(line[3:]),h2)); continue
+  if line.startswith('## '):
+   in_sources=line[3:].strip() == 'Sources'
+   story.append(Paragraph(html.escape(line[3:]),h2)); continue
   if line.startswith('- '): line='• '+line[2:]
+  # Keep the master text Unicode-correct while avoiding broken accented glyphs
+  # in PDF consumers that mishandle the embedded font encoding.
+  line=unicodedata.normalize('NFKD', line).encode('ascii','ignore').decode('ascii')
   safe=html.escape(line).replace('**','')
   story.append(Paragraph(safe,body))
  doc=SimpleDocTemplate(str(path),pagesize=A4,rightMargin=18*mm,leftMargin=18*mm,topMargin=17*mm,bottomMargin=17*mm,title=f'DRAGON {date}',author='DRAGON Editorial Desk',subject=LABEL)
