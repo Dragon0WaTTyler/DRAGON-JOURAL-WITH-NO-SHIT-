@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Daily Newspaper Story Packet",
+  "type": "object",
+  "required": ["story_id", "title", "importance", "what_happened", "key_facts", "primary_sources", "independent_sources", "contradictory_evidence", "uncertainty", "context", "why_it_matters", "confidence", "recommendation"],
+  "properties": {
+    "story_id": {"type": "string"},
+    "title": {"type": "string"},
+    "importance": {"type": "number", "minimum": 0, "maximum": 10},
+    "what_happened": {"type": "string"},
+    "key_facts": {"type": "array", "items": {"type": "string"}},
+    "primary_sources": {"type": "array", "items": {"type": "string"}},
+    "independent_sources": {"type": "array", "items": {"type": "string"}},
+    "contradictory_evidence": {"type": "array", "items": {"type": "string"}},
+    "uncertainty": {"type": "string"},
+    "context": {"type": "string"},
+    "why_it_matters": {"type": "string"},
+    "confidence": {"enum": ["high", "medium", "low"]},
+    "recommendation": {"enum": ["lead", "publish", "brief", "hold", "reject"]}
+  },
+  "additionalProperties": false
+}

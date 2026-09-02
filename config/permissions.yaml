@@ -1,0 +1,17 @@
+default:
+  execution: cloud-only
+  network: allowlisted-read
+  filesystem: repository-only
+  external_writes: github-push-after-gates
+chief-editor:
+  can_spawn: [morocco, meknes, palestine, world, ai, science, history, literature-culture, investigations]
+  can_write: [research, editions, memory, investigations]
+fact-check:
+  can_spawn: []
+  can_write: [research, editions]
+darija-editor:
+  can_spawn: []
+  can_write: [editions]
+publishing:
+  can_spawn: []
+  can_write: [editions, README.md]

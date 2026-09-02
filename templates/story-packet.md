@@ -1,0 +1,15 @@
+# Story packet
+
+- STORY_ID:
+- TITLE:
+- IMPORTANCE: 0–10
+- CHNO W9E3:
+- KEY FACTS:
+- PRIMARY SOURCES:
+- INDEPENDENT SOURCES:
+- CONTRADICTORY EVIDENCE:
+- UNCERTAINTY:
+- CONTEXT:
+- WHY IT MATTERS:
+- CONFIDENCE: high / medium / low
+- RECOMMENDATION: lead / publish / brief / hold / reject

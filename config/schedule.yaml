@@ -1,0 +1,6 @@
+enabled: false
+mode: manual-until-cloud-pilot-passes
+timezone: Africa/Casablanca
+local_time: "10:00"
+hard_requirement: cloud-only
+note: Do not activate recurring production runs before the PC-off test passes.
