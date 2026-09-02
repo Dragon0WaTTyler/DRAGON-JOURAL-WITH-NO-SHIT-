@@ -3,24 +3,58 @@
   "execution_status": "NOT COMPLETE",
   "date": "2026-09-03",
   "mode": "preproduction",
-  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "label": "PRE-PRODUCTION \u2014 NOT YET DAILY PRODUCTION",
   "validation_result": "PASS",
-  "artifacts": ["edition.md", "edition.pdf", "edition.epub", "cover.webp", "sources.json", "manifest.json"],
+  "artifacts": [
+    "edition.md",
+    "edition.pdf",
+    "edition.epub",
+    "cover.webp",
+    "sources.json",
+    "manifest.json"
+  ],
   "source_count": 34,
   "citations_count": 36,
-  "commit_sha": "PENDING_COMMIT",
+  "commit_sha": "84fb204581d34fab376e89aa2e4422fba9b32f9f",
   "remote_sha": null,
   "persistence_status": "NOT COMPLETE: origin remote is not configured in this hosted checkout",
   "desk_quality_scorecard": {
-    "morocco": {"score": 7, "note": "structural water brief; current hydrology unknown"},
-    "meknes": {"score": 7, "note": "honest Radar; project status held"},
-    "palestine_middle_east": {"score": 8, "note": "five-way evidence labels; current ticker held"},
-    "world": {"score": 7, "note": "legal-process explainer; 2026 PABS status unknown"},
-    "ai_technology": {"score": 8, "note": "current statutory 2026 application; company claims separated"},
-    "science": {"score": 8, "note": "method, denominator and ABSTRACT ONLY caveat present"},
-    "tarikh_l_mghreb": {"score": 8, "note": "substantive context, disagreement and present relevance"},
-    "adab_culture": {"score": 8, "note": "2026 programme analyzed as cultural infrastructure"},
-    "investigations_accountability": {"score": 8, "note": "schema-valid dossier; no unsupported accusation"}
+    "morocco": {
+      "score": 7,
+      "note": "structural water brief; current hydrology unknown"
+    },
+    "meknes": {
+      "score": 7,
+      "note": "honest Radar; project status held"
+    },
+    "palestine_middle_east": {
+      "score": 8,
+      "note": "five-way evidence labels; current ticker held"
+    },
+    "world": {
+      "score": 7,
+      "note": "legal-process explainer; 2026 PABS status unknown"
+    },
+    "ai_technology": {
+      "score": 8,
+      "note": "current statutory 2026 application; company claims separated"
+    },
+    "science": {
+      "score": 8,
+      "note": "method, denominator and ABSTRACT ONLY caveat present"
+    },
+    "tarikh_l_mghreb": {
+      "score": 8,
+      "note": "substantive context, disagreement and present relevance"
+    },
+    "adab_culture": {
+      "score": 8,
+      "note": "2026 programme analyzed as cultural infrastructure"
+    },
+    "investigations_accountability": {
+      "score": 8,
+      "note": "schema-valid dossier; no unsupported accusation"
+    }
   },
   "schedule_enabled": false,
   "smoke_fixture_preserved": "editions/2026/09/2026-09-02"
