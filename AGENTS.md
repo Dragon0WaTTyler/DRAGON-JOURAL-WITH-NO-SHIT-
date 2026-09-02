@@ -54,6 +54,18 @@ Arabic-script characters in `edition.md` are a hard failure. Ordinary prose
 must not become full English or French paragraphs. The language editor may
 change style only, never factual meaning.
 
+## Cloud runtime dependencies
+
+Hosted Cloud setup must install the pinned publishing dependencies before
+running the pre-production publisher:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+This is a Cloud setup step only; the workflow must not depend on a local
+machine or a local virtual environment.
+
 History and Culture are substantial features when their topics justify it;
 they must include context, analysis, evidence, disagreement, and present
 relevance. Meknes must use local and institutional sources and may publish an

@@ -25,8 +25,8 @@
     "publishing": {"score": 10, "note": "six artifacts inspected; PDF, EPUB and WebP checks passed"}
   },
   "edition_commit_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
-  "final_persistence_commit_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
-  "final_remote_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
+  "final_persistence_commit_sha": "67173bb0388df866855fd1bef93de01cbef32fbf",
+  "final_remote_sha": "67173bb0388df866855fd1bef93de01cbef32fbf",
   "persistence_status": "COMPLETE: edition commit pushed to origin/main and exact remote SHA verified before receipt archival",
   "schedule_enabled": false,
   "preserved_editions": ["editions/2026/09/2026-09-02", "editions/2026/09/2026-09-03"]
