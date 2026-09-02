@@ -165,5 +165,69 @@
   "language": {
     "arabic_script_characters": 0,
     "pass": true
+  },
+  "source_audit": {
+    "primary_source_trails_count": 18,
+    "independently_cross_checked_material_claims_count": 5,
+    "counting_rule": "Count a material claim group once only when edition citation mapping links that same substantive claim to at least one primary/original source trail and at least one independent source trail in sources.json. Citation occurrences and source records are not claims. Complementary sources that do not independently check the same claim, institutional routes with no published current claim, and UNKNOWN statements are excluded.",
+    "primary_source_trail_rule": "Count source-ledger records whose source_type explicitly identifies a primary source or an original research article; do not include independent, authoritative-explainer, or expert-review records.",
+    "cross_checked_claim_groups": [
+      {
+        "claim_group": "Morocco labour-measurement definitions and comparability",
+        "primary_source_ids": [
+          "S01"
+        ],
+        "independent_source_ids": [
+          "S03",
+          "S04"
+        ]
+      },
+      {
+        "claim_group": "Paris Agreement NDC process versus the emissions-gap assessment",
+        "primary_source_ids": [
+          "S14"
+        ],
+        "independent_source_ids": [
+          "S15"
+        ]
+      },
+      {
+        "claim_group": "CD19 CAR-T autoimmune-disease case-series signal and evidentiary limits",
+        "primary_source_ids": [
+          "S18"
+        ],
+        "independent_source_ids": [
+          "S19"
+        ]
+      },
+      {
+        "claim_group": "Mohammed V exile/return chronology and historical interpretation",
+        "primary_source_ids": [
+          "S20",
+          "S21"
+        ],
+        "independent_source_ids": [
+          "S22"
+        ]
+      },
+      {
+        "claim_group": "Mohammed Choukri biography, publication, and translation history",
+        "primary_source_ids": [
+          "S25"
+        ],
+        "independent_source_ids": [
+          "S23",
+          "S24"
+        ]
+      }
+    ],
+    "excluded_from_cross_checked_claim_count": [
+      "Raw citation occurrences",
+      "Source-record count",
+      "Meknes institutional retrieval routes without a current material claim",
+      "Palestine independent news route explicitly marked as supporting no current claim",
+      "AI sources that provide complementary frameworks rather than independent verification of one claim",
+      "UNKNOWN statements"
+    ]
   }
 }

@@ -25,5 +25,7 @@
     "Sources"
   ],
   "smoke_test": false,
-  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION"
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "primary_source_trails_count": 18,
+  "independently_cross_checked_material_claims_count": 5
 }
