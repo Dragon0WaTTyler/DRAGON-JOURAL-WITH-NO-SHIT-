@@ -1,47 +1,48 @@
 {
-  "story_id": "morocco-cloud-drycheck-2026-09-02",
-  "proposed_title": "Water policy: official priority versus measured resilience",
+  "story_id": "morocco-cpi-july-2026",
+  "proposed_title": "HCP reports July consumer prices down month-on-month and year-on-year",
   "importance_score": 8.0,
-  "what_happened": "Fresh raw HTTPS GET retrieved an official 2025 policy speech and the World Bank Morocco CCDR exact report page. This is dated context, not proof of a new event on 2 September 2026.",
+  "what_happened": "A fresh Cloud HTTPS GET retrieved HCP's exact 19 August 2026 release. HCP reports that Morocco's consumer price index fell 1.0% from June to July 2026 and 0.6% from July 2025; these are official statistical results, not an independent assessment of household welfare.",
   "key_facts": [
-    "OFFICIAL_CLAIM: the speech places water among strategic priorities.",
-    "ESTIMATE: the CCDR describes structural climate and water risks; projections are scenarios, not observations for today.",
-    "UNKNOWN: no same-day output, household-access, reservoir or project-delivery dataset was established in this dry check."
+    "OFFICIAL_CLAIM: HCP reports a 1.0% month-on-month CPI decrease in July 2026, comprising a 1.9% food-index decrease and a 0.3% non-food decrease.",
+    "OFFICIAL_CLAIM: HCP reports a 0.6% year-on-year CPI decrease, with food down 3.7% and non-food up 1.9%.",
+    "OFFICIAL_CLAIM: HCP reports that Meknes CPI fell 1.0% month-on-month.",
+    "UNKNOWN: the release alone does not establish changes in household purchasing power, incomes or living standards."
   ],
   "primary_sources": [
     {
-      "url": "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
-      "publisher": "Maroc.ma",
-      "publication_date": "2025-07-29",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "url": "https://www.hcp.ma/L-Indice-des-prix-a-la-consommation-IPC-du-mois-de-Juillet-2026_a4344.html",
+      "publisher": "Haut-Commissariat au Plan",
+      "publication_date": "2026-08-19",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "official",
-      "attribution": "King Mohammed VI speech as published by official portal",
-      "claim_supported": "Official policy priorities and claims in the Throne Day speech",
+      "attribution": "HCP July 2026 consumer-price release",
+      "claim_supported": "HCP's national, category and city CPI changes for July 2026",
       "evidence_label": "OFFICIAL_CLAIM",
-      "independence": "Official state source; requires an outside outcome check"
+      "independence": "Official national statistical producer; no independent household-outcome inference is made"
     }
   ],
   "independent_sources": [
     {
-      "url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report",
-      "publisher": "World Bank",
-      "publication_date": "2022-11-03",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "institutional-analysis",
-      "attribution": "World Bank CCDR authors",
-      "claim_supported": "Morocco climate and water-risk baseline",
-      "evidence_label": "ESTIMATE",
-      "independence": "Multilateral analysis independent of Moroccan government announcements"
+      "url": "https://www.moroccoworldnews.com/2026/08/335265/moroccos-consumer-price-index-falls-1-in-july-2026/",
+      "publisher": "Morocco World News",
+      "publication_date": "2026-08-19",
+      "retrieved_at": "2026-09-02T20:49:41+01:00",
+      "source_type": "independent-reporting",
+      "attribution": "Morocco World News report tracing the figures to HCP",
+      "claim_supported": "Independent publication trail for the reported July CPI movements",
+      "evidence_label": "FACT",
+      "independence": "Editorially separate report, but it relies on the same HCP release and is not an independent statistical estimate"
     }
   ],
   "contradictory_evidence": [
-    "An announced priority is not a measured result.",
-    "A multilateral scenario cannot establish the operational state of a named project today."
+    "A falling aggregate CPI does not mean every price fell or that every household experienced the same change.",
+    "The same release reports non-food prices 1.9% higher year-on-year even while the overall index fell."
   ],
-  "uncertainty": "Medium: both exact pages were retrieved, but no current outcome series was retrieved. Any current-performance verdict remains UNKNOWN.",
-  "context": "The desk separates official intent from independent risk context and observed delivery.",
-  "why_it_matters": "Water allocation and delivery affect households, agriculture and public finance.",
-  "strategic_angle": "BRIEF only as a research lead; require original same-day datasets and independent outcome reporting before synthesis.",
-  "confidence": "medium",
+  "uncertainty": "High confidence in what the retrieved HCP release reports; household-level effects and causal explanations were not established.",
+  "context": "This packet stays narrowly within the official release. Any broader cost-of-living story requires independent distributional and income evidence.",
+  "why_it_matters": "The release provides a current, dated inflation indicator and shows materially different food and non-food movements.",
+  "strategic_angle": "BRIEF with explicit HCP attribution; do not generalize the index into a welfare claim.",
+  "confidence": "high",
   "recommendation": "BRIEF"
 }

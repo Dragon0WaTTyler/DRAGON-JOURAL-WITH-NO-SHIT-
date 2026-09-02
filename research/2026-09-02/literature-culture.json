@@ -1,47 +1,36 @@
 {
-  "story_id": "culture-world-book-capital-framework-2026-09-02",
-  "proposed_title": "World Book Capital: programme framework is not an outcome audit",
+  "story_id": "culture-malhun-unesco-record-2026-09-02",
+  "proposed_title": "Malhun's UNESCO record as a starting point for cultural research",
   "importance_score": 6.5,
-  "what_happened": "Fresh retrieval reached UNESCO’s exact World Book Capital programme page and Morocco country page. These establish institutional context but not current Rabat attendance, access or impact.",
+  "what_happened": "A fresh Cloud GET retrieved UNESCO's exact Malhun item page. The record describes a Moroccan sung poetic form, its languages, instruments, themes and transmission, and records its 2023 inscription. This is stable cultural documentation, not a claim of a current event.",
   "key_facts": [
-    "FACT: UNESCO describes an annual World Book Capital framework.",
-    "UNKNOWN: the dry check established no exact current Rabat event, budget, attendance, library-loan or accessibility record.",
-    "INTERPRETATION: programme prestige should be separated from measurable reading access."
+    "FACT: UNESCO's exact item page records Malhun on the Representative List in 2023.",
+    "FACT: the record describes sung verse in dialectical Arabic and sometimes Hebrew, accompanied by instruments including lute, violin, rebab and small drums.",
+    "INTERPRETATION: UNESCO's safeguarding framework is one institutional perspective and does not by itself document the form's full literary evolution or regional disagreements.",
+    "UNKNOWN: no current performance, funding, audience or practitioner-impact record was retrieved."
   ],
   "primary_sources": [
     {
-      "url": "https://www.unesco.org/en/world-book-capital",
-      "publisher": "UNESCO",
-      "publication_date": "page current at retrieval",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "official",
-      "attribution": "UNESCO programme page",
-      "claim_supported": "World Book Capital programme purpose and annual framework",
-      "evidence_label": "FACT",
-      "independence": "Programme owner; not evidence of Rabat programme outcomes"
-    }
-  ],
-  "independent_sources": [
-    {
-      "url": "https://www.unesco.org/en/countries/ma",
-      "publisher": "UNESCO",
-      "publication_date": "page current at retrieval",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "url": "https://ich.unesco.org/en/RL/malhun-a-popular-poetic-and-musical-art-01592",
+      "publisher": "UNESCO Intangible Cultural Heritage",
+      "publication_date": "2023 inscription; stable record retrieved 2026-09-02",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "catalogue",
-      "attribution": "UNESCO Morocco country page",
-      "claim_supported": "UNESCO programme and country context for Morocco",
+      "attribution": "UNESCO Intangible Cultural Heritage item record",
+      "claim_supported": "Inscription status and UNESCO's description of Malhun practice and transmission",
       "evidence_label": "FACT",
-      "independence": "Same institution as programme page; not an independent outcome audit"
+      "independence": "Multilateral catalogue based on a nomination process; not independent literary criticism"
     }
   ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Both records originate with UNESCO and therefore do not constitute independent verification.",
-    "Event counts would not by themselves demonstrate durable reading access."
+    "UNESCO recognition does not establish current vitality, access or funding.",
+    "One institutional record cannot sustain a complete literary and social history."
   ],
-  "uncertainty": "High on the programme framework; high uncertainty on current Moroccan outcomes.",
-  "context": "The previous-topic check remains required before a feature; a single programme page cannot sustain the 800-word gate.",
-  "why_it_matters": "Keeps cultural analysis tied to access, institutions and evidence rather than ceremonial branding.",
-  "strategic_angle": "HOLD pending exact Rabat programme documents and independent library/publishing evidence.",
+  "uncertainty": "The inscription and catalogue description are supported; present practice and interpretive disagreements remain unresearched.",
+  "context": "A later feature should compare practitioners, Moroccan scholarship and archival texts rather than equate listing with cultural health.",
+  "why_it_matters": "Malhun connects poetry, music, language, craft and transmission across Moroccan communities.",
+  "strategic_angle": "HOLD for a substantial feature until exact Moroccan archival and scholarly sources are retrieved.",
   "confidence": "high",
   "recommendation": "HOLD"
 }

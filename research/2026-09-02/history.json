@@ -1,47 +1,34 @@
 {
-  "story_id": "history-meknes-unesco-baseline-2026-09-02",
-  "proposed_title": "Historic Meknes: inscription evidence versus present-day interpretation",
-  "importance_score": 6.5,
-  "what_happened": "Fresh retrieval of UNESCO’s exact Historic City of Meknes record provides a documented heritage baseline. This is a historical research lead, not current news.",
+  "story_id": "history-meknes-unesco-record-2026-09-02",
+  "proposed_title": "Historic Meknes: an institutional record, not a complete historiography",
+  "importance_score": 6.0,
+  "what_happened": "A fresh Cloud GET retrieved UNESCO's exact Historic City of Meknes record. It documents the site's 1996 inscription and UNESCO's account of Meknes's development from an Almoravid settlement to Moulay Ismail's capital; this stable record is historical evidence, not current news.",
   "key_facts": [
-    "FACT: UNESCO’s record dates the World Heritage inscription to 1996.",
-    "INTERPRETATION: catalogue descriptions frame significance but are not a complete historiography.",
-    "UNKNOWN: contested conservation history and Moroccan scholarly interpretations were not independently assembled."
+    "FACT: UNESCO's exact record lists the Historic City of Meknes as inscribed in 1996.",
+    "INTERPRETATION: UNESCO characterizes the city as combining Islamic and European elements in seventeenth-century Maghreb architecture and planning.",
+    "UNKNOWN: this retrieval did not establish competing Moroccan scholarly interpretations, conservation outcomes or a current event."
   ],
   "primary_sources": [
     {
       "url": "https://whc.unesco.org/en/list/793/",
       "publisher": "UNESCO World Heritage Centre",
-      "publication_date": "1996 inscription; page current at retrieval",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "publication_date": "1996 inscription; stable record retrieved 2026-09-02",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "catalogue",
-      "attribution": "UNESCO World Heritage Centre",
-      "claim_supported": "Inscription record and description of Historic City of Meknes",
+      "attribution": "UNESCO World Heritage Centre property record",
+      "claim_supported": "Inscription identity, date and UNESCO's description of the site's significance",
       "evidence_label": "FACT",
-      "independence": "UN multilateral heritage record, separate from municipal claims"
+      "independence": "Multilateral heritage catalogue; not an independent historiographical debate"
     }
   ],
-  "independent_sources": [
-    {
-      "url": "https://ich.unesco.org/en/RL/taskiwin-martial-dance-of-the-western-high-atlas-01256",
-      "publisher": "UNESCO Intangible Cultural Heritage",
-      "publication_date": "2017",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "catalogue",
-      "attribution": "UNESCO ICH Committee record",
-      "claim_supported": "Taskiwin inscription, safeguarding context and community description",
-      "evidence_label": "FACT",
-      "independence": "Separate UNESCO programme and record; not independent journalism"
-    }
-  ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Two UNESCO programmes share an institutional origin and are not independent historical scholarship.",
-    "A heritage inscription does not settle debates about periodization, power or preservation."
+    "A World Heritage statement of significance is an institutional heritage assessment, not a complete account of political, social or conservation history."
   ],
-  "uncertainty": "High on catalogue facts, medium-to-low on interpretation because scholarly comparison is incomplete.",
-  "context": "The previous-topic check must be completed against memory before any long-form selection; no edition feature is authorized here.",
-  "why_it_matters": "A careful feature can distinguish monument description, imperial history and later heritage governance.",
-  "strategic_angle": "HOLD until Moroccan archival/academic sources and multiple historians are retrieved.",
-  "confidence": "medium",
+  "uncertainty": "Catalogue facts are well supported; interpretation remains incomplete without Moroccan archives and multiple historians.",
+  "context": "Stable historical research may seed a later feature, but it must not be presented as a development occurring on 2 September 2026.",
+  "why_it_matters": "The record offers a traceable starting point for separating documented chronology from later heritage framing.",
+  "strategic_angle": "HOLD until archival and scholarly sources provide depth and disagreement.",
+  "confidence": "high",
   "recommendation": "HOLD"
 }

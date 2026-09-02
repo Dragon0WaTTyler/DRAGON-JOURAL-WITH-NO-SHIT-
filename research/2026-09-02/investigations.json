@@ -1,24 +1,25 @@
 {
-  "story_id": "investigation-water-accountability-drycheck-2026-09-02",
-  "proposed_title": "Water accountability dossier remains researching",
-  "importance_score": 8.0,
-  "what_happened": "Fresh retrieval reopened the World Bank Morocco CCDR and an official policy speech. They support a risk-and-intent baseline but do not establish spending, contracts, deadlines or measured delivery for a publishable investigation.",
+  "story_id": "investigation-price-transmission-lead-2026-09-02",
+  "proposed_title": "Price transmission dossier: official CPI movement is a lead, not proof of household relief",
+  "importance_score": 7.0,
+  "what_happened": "A fresh Cloud GET retrieved HCP's current July 2026 CPI release and a separate GET retrieved the World Bank's exact Morocco climate-and-development report page. The current official data supports a possible research lead on uneven price transmission, while the older independent report supplies structural risk context only. Neither source supports misconduct or a publishable investigation.",
   "key_facts": [
-    "ESTIMATE: the CCDR supplies modeled climate-risk context.",
-    "OFFICIAL_CLAIM: the official speech states policy priority.",
-    "UNKNOWN: contracts, amendments, plant output, household delivery, tariffs and environmental monitoring were not retrieved."
+    "OFFICIAL_CLAIM: HCP reports overall CPI down 0.6% year-on-year, with food down 3.7% and non-food up 1.9% in July 2026.",
+    "ESTIMATE: the World Bank report frames water scarcity and climate exposure as structural development risks; its scenarios are not present price observations.",
+    "UNKNOWN: household microdata, wages, retail margins, regional supply conditions and causal links were not retrieved.",
+    "FACT: no accusation against a public or private actor is supported by this packet."
   ],
   "primary_sources": [
     {
-      "url": "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
-      "publisher": "Maroc.ma",
-      "publication_date": "2025-07-29",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "url": "https://www.hcp.ma/L-Indice-des-prix-a-la-consommation-IPC-du-mois-de-Juillet-2026_a4344.html",
+      "publisher": "Haut-Commissariat au Plan",
+      "publication_date": "2026-08-19",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "official",
-      "attribution": "King Mohammed VI speech as published by official portal",
-      "claim_supported": "Official policy priorities and claims in the Throne Day speech",
+      "attribution": "HCP July 2026 consumer-price release",
+      "claim_supported": "Current aggregate and category CPI changes",
       "evidence_label": "OFFICIAL_CLAIM",
-      "independence": "Official state source; requires an outside outcome check"
+      "independence": "Official statistical producer; requires household and market evidence for an investigation"
     }
   ],
   "independent_sources": [
@@ -26,22 +27,22 @@
       "url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report",
       "publisher": "World Bank",
       "publication_date": "2022-11-03",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "institutional-analysis",
-      "attribution": "World Bank CCDR authors",
-      "claim_supported": "Morocco climate and water-risk baseline",
+      "attribution": "World Bank Morocco Country Climate and Development Report page",
+      "claim_supported": "Dated independent structural context on climate, water and development risk",
       "evidence_label": "ESTIMATE",
-      "independence": "Multilateral analysis independent of Moroccan government announcements"
+      "independence": "Multilateral analysis separate from HCP, but dated and not evidence of July 2026 price causation"
     }
   ],
   "contradictory_evidence": [
-    "Priority language is not procurement or delivery evidence.",
-    "Projected scarcity does not prove misconduct by any actor."
+    "Food CPI fell while non-food CPI rose year-on-year, warning against a single household-relief narrative.",
+    "Structural water-risk scenarios do not establish causation for a monthly price movement and do not imply wrongdoing."
   ],
-  "uncertainty": "RESEARCHING / NEEDS_VERIFICATION: medium on baseline, no accusation supported and publication readiness is HOLD.",
-  "context": "Dossier work must seek disconfirming evidence and compare promised capacity with measured outcomes.",
-  "why_it_matters": "Water investment has large fiscal, distributional and environmental consequences.",
-  "strategic_angle": "HOLD; next retrieval must target contracts, acceptance records, output series, tariffs and independent audits.",
+  "uncertainty": "RESEARCHING / NEEDS_VERIFICATION: the current aggregate signal is real, but distribution, causation and accountability are unresolved.",
+  "context": "A responsible dossier would compare CPI micro-components with household expenditure, wages, wholesale and retail series, and seek disconfirming explanations.",
+  "why_it_matters": "Aggregate inflation can mask divergent pressures across products, places and household budgets.",
+  "strategic_angle": "HOLD; request current microdata and independent market evidence. Make no accusation.",
   "confidence": "medium",
   "recommendation": "HOLD"
 }

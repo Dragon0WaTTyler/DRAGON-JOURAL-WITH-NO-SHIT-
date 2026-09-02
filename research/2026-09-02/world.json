@@ -1,47 +1,36 @@
 {
-  "story_id": "world-cloud-drycheck-2026-09-02",
-  "proposed_title": "Humanitarian operations need dated, country-specific evidence",
-  "importance_score": 5.5,
-  "what_happened": "Fresh GETs retrieved an exact UN News Haiti field report and an exact WHO Gaza statement. They demonstrate useful source-page retrieval but do not support one combined current world-news claim.",
+  "story_id": "world-sudan-wfp-aid-trucks-2026-09-02",
+  "proposed_title": "WFP says an aerial attack destroyed food aid in South Kordofan",
+  "importance_score": 8.0,
+  "what_happened": "A fresh Cloud GET retrieved UN News's exact 2 September 2026 report. It attributes to WFP the claim that an aerial attack on 30 August outside Dilling destroyed two marked trucks carrying 50 tonnes of food; the retrieved report does not identify the attacker.",
   "key_facts": [
-    "FACT: UN News published a dated first-person Haiti operational report.",
-    "OFFICIAL_CLAIM: WHO published its attributed Gaza warning in 2025.",
-    "UNKNOWN: neither page establishes a new development on 2 September 2026."
+    "OFFICIAL_CLAIM: WFP, as reported by UN News, says two trucks and 50 metric tonnes of food were destroyed.",
+    "ESTIMATE: WFP says the load was sufficient to assist 5,800 people for one month.",
+    "OFFICIAL_CLAIM: WFP says it has recorded eight aerial attacks since January that damaged its premises and disrupted operations.",
+    "UNKNOWN: the retrieved report does not assign responsibility for the 30 August attack."
   ],
   "primary_sources": [
     {
-      "url": "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
-      "publisher": "World Health Organization",
-      "publication_date": "2025-08-22",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "official",
-      "attribution": "WHO statement citing IPC analysis",
-      "claim_supported": "WHO/IPC famine classification and health warning for Gaza at publication date",
-      "evidence_label": "OFFICIAL_CLAIM",
-      "independence": "UN health body statement; attribution retained, not treated as same-day 2026 status"
-    }
-  ],
-  "independent_sources": [
-    {
-      "url": "https://news.un.org/en/story/2025/08/1165676",
+      "url": "https://news.un.org/en/story/2026/09/1168251",
       "publisher": "UN News",
-      "publication_date": "2025-08",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "independent-reporting",
-      "attribution": "UN News first-person report",
-      "claim_supported": "Humanitarian operational account from Haiti at publication date",
-      "evidence_label": "FACT",
-      "independence": "UN editorial report from a different operation and interview trail"
+      "publication_date": "2026-09-02",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
+      "source_type": "official",
+      "attribution": "UN News report relaying World Food Programme statements",
+      "claim_supported": "WFP's account of the destroyed shipment, quantities, intended beneficiaries and operational context",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "UN-system reporting of a UN-agency claim; not independent forensic confirmation"
     }
   ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Different crises cannot corroborate each other.",
-    "Institutional testimony needs country-specific independent evidence."
+    "The retrieved source documents damage but does not identify a responsible party.",
+    "WFP's linked exact release could not be retrieved through the allowlisted Cloud tunnel, so it is not entered as evidence."
   ],
-  "uncertainty": "High on retrieval and page identity, low on any current synthesis; therefore HOLD.",
-  "context": "The world desk tests source diversity without conflating unrelated evidence.",
-  "why_it_matters": "A disciplined desk rejects a headline list when sources do not converge on a current material story.",
-  "strategic_angle": "HOLD and conduct focused current retrieval on one event.",
-  "confidence": "high",
+  "uncertainty": "High confidence in what UN News attributes to WFP; perpetrator, weapon and independent damage verification remain unknown.",
+  "context": "The conflict involves the Sudanese Armed Forces and Rapid Support Forces, but that context does not support attributing this specific attack to either side.",
+  "why_it_matters": "Destruction of a relief shipment can reduce assistance in an area facing severe food insecurity.",
+  "strategic_angle": "HOLD for synthesis until an independent trail is retrieved; preserve WFP attribution and make no responsibility claim.",
+  "confidence": "medium",
   "recommendation": "HOLD"
 }

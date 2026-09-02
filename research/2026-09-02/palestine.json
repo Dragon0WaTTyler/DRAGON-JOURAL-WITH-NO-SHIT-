@@ -1,35 +1,36 @@
 {
-  "story_id": "palestine-cloud-drycheck-2026-09-02",
-  "proposed_title": "Gaza humanitarian classification: dated WHO claim, current state unverified",
-  "importance_score": 8.5,
-  "what_happened": "WHO exact statement dated 22 August 2025 was freshly retrieved. It is retained as a dated official humanitarian claim, not misrepresented as a 2026 situation update.",
+  "story_id": "palestine-flotilla-tunisia-detention-claim-2026-09-02",
+  "proposed_title": "Activist calls for Tunisia to release four flotilla organisers",
+  "importance_score": 7.0,
+  "what_happened": "A fresh Cloud GET retrieved Al Jazeera's exact 2 September 2026 report. It reports Brazilian activist Thiago Avila's demand for four Tunisian flotilla organisers to be released and attributes detention and health assertions to activists, relatives and earlier reporting; the Tunisian government had not publicly commented according to the article.",
   "key_facts": [
-    "OFFICIAL_CLAIM: WHO reported an IPC famine confirmation for specified Gaza areas at publication time.",
-    "UNKNOWN: casualty totals, territorial coverage, aid access and classification on 2 September 2026 were not verified.",
-    "FACT: the source date is 2025-08-22, not today."
+    "FACT: Al Jazeera published the current report on 2026-09-02 and attributes the release demand to Thiago Avila.",
+    "DISPUTED_CLAIM: detention duration, case allegations and a hunger striker's medical condition are attributed claims, not independently established by this packet.",
+    "FACT: the article says the earlier reported allegations were money laundering, fraud and misuse of campaign donations; it does not report a conviction.",
+    "UNKNOWN: the packet retrieved no court order, charge sheet, medical record or current Tunisian government response."
   ],
-  "primary_sources": [
+  "primary_sources": [],
+  "independent_sources": [
     {
-      "url": "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
-      "publisher": "World Health Organization",
-      "publication_date": "2025-08-22",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "official",
-      "attribution": "WHO statement citing IPC analysis",
-      "claim_supported": "WHO/IPC famine classification and health warning for Gaza at publication date",
-      "evidence_label": "OFFICIAL_CLAIM",
-      "independence": "UN health body statement; attribution retained, not treated as same-day 2026 status"
+      "url": "https://www.aljazeera.com/news/2026/9/2/brazilian-activist-demands-tunisia-release-sumud-flotilla-organisers",
+      "publisher": "Al Jazeera English",
+      "publication_date": "2026-09-02",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
+      "source_type": "independent-reporting",
+      "attribution": "Al Jazeera Staff report citing Thiago Avila, fellow activists, relatives and an earlier Morning Star report",
+      "claim_supported": "That the release demand was made and the precise attribution trail for detention-related assertions",
+      "evidence_label": "DISPUTED_CLAIM",
+      "independence": "Editorial report independent of the activists, but this single retrieved page is not independent confirmation of each underlying allegation"
     }
   ],
-  "independent_sources": [],
   "contradictory_evidence": [
-    "Humanitarian classifications are time- and area-specific.",
-    "No opposing or independent current source was retrieved in this narrow check."
+    "The report records alleged financial offences as the reported basis for detention, while activists characterize the case as suppression of Palestine solidarity.",
+    "No current Tunisian government or judicial response was retrieved, so neither framing is adopted as fact."
   ],
-  "uncertainty": "High for what WHO published in 2025; no confidence assigned to a 2026 status.",
-  "context": "Palestine rules require fact/claim/disputed/estimate/unknown separation and explicit provenance.",
-  "why_it_matters": "Prevents a dated humanitarian statement from becoming a false current ticker.",
-  "strategic_angle": "HOLD until a current OCHA/IPC document plus independent reporting and relevant party claims are retrieved.",
-  "confidence": "high",
+  "uncertainty": "The public demand is verified as a reported event; the legal basis, detention chronology and health claims need primary Tunisian records and a second independently retrieved report.",
+  "context": "This is a current Palestine-solidarity development in Tunisia. It is not evidence about conditions inside Gaza, and the packet preserves claim/status distinctions.",
+  "why_it_matters": "The case concerns the legal treatment of organisers of a Gaza aid flotilla and includes an alleged urgent health issue.",
+  "strategic_angle": "HOLD a substantive story; the current report is a usable lead, but retrieve judicial records, a Tunisian response and an independent medical or legal trail before publication.",
+  "confidence": "medium",
   "recommendation": "HOLD"
 }

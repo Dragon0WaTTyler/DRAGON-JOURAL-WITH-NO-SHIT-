@@ -1,34 +1,46 @@
 {
-  "story_id": "science-cloud-drycheck-2026-09-02",
-  "proposed_title": "Adaptive LLM routing paper: abstract-only research lead",
-  "importance_score": 5.5,
-  "what_happened": "The exact arXiv abstract page was freshly retrieved. Full text, peer-review status, code, data and replication were not evaluated in this dry check.",
+  "story_id": "science-trajectory-aware-agent-benchmarking-2609-01603",
+  "proposed_title": "Preprint proposes trajectory-aware estimation for software-agent benchmarks",
+  "importance_score": 6.0,
+  "what_happened": "Fresh Cloud GETs retrieved the exact arXiv API record and abstract page for preprint 2609.01603, submitted 1 September 2026. The authors propose PTA-IRT, which uses historical execution trajectories when selecting calibration tasks and estimating agent ability.",
   "key_facts": [
-    "ABSTRACT_ONLY: the authors report an adaptive routing approach under budget constraints.",
-    "UNKNOWN: effect robustness, external validity, conflicts, replication and peer-review outcome were not established."
+    "ABSTRACT_ONLY: the authors report better score and ranking recovery than prior IRT baselines under low calibration budgets across four software-engineering benchmarks.",
+    "FACT: the arXiv record labels the manuscript under review and links code and data.",
+    "UNKNOWN: full methods, effect sizes, benchmark leakage, code, data, conflicts and replication were not inspected."
   ],
   "primary_sources": [
     {
-      "url": "https://arxiv.org/abs/2508.21141",
+      "url": "https://export.arxiv.org/api/query?id_list=2609.01603",
       "publisher": "arXiv",
-      "publication_date": "2025-08-28",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "publication_date": "2026-09-01",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "research-paper",
-      "attribution": "Paper authors via arXiv abstract record",
-      "claim_supported": "Abstract claims about adaptive LLM routing under budget constraints",
+      "attribution": "Duan et al. arXiv abstract record",
+      "claim_supported": "Bibliographic status and the authors' abstract-level method and performance claims",
       "evidence_label": "ABSTRACT_ONLY",
-      "independence": "Author manuscript, not peer review or independent product evaluation"
+      "independence": "Author-submitted preprint record; not peer review or replication"
+    },
+    {
+      "url": "https://arxiv.org/abs/2609.01603",
+      "publisher": "arXiv",
+      "publication_date": "2026-09-01",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
+      "source_type": "research-paper",
+      "attribution": "arXiv abstract page for Efficient SWE Agent Benchmarking via Trajectory-Aware Evaluation",
+      "claim_supported": "Exact paper identity and abstract",
+      "evidence_label": "ABSTRACT_ONLY",
+      "independence": "Second representation of the same preprint, not an independent source"
     }
   ],
   "independent_sources": [],
   "contradictory_evidence": [
-    "Abstract claims may weaken after methods and baselines are inspected.",
-    "One manuscript is not a replicated body of evidence."
+    "The claims come from one under-review preprint and have not been independently replicated.",
+    "Abstract-level comparisons cannot establish robustness outside the four reported benchmarks."
   ],
-  "uncertainty": "Medium for bibliographic identity, low for scientific conclusions.",
-  "context": "Science contract requires method, sample, effects, limitations and replication; those gates are not met.",
-  "why_it_matters": "Demonstrates that successful retrieval alone is not publishability.",
-  "strategic_angle": "HOLD until full text and independent context are reviewed.",
+  "uncertainty": "High confidence in identity and status; low confidence in scientific conclusions until full-text and replication review.",
+  "context": "This is current computer-science research, not a peer-reviewed result. Efficient benchmark estimation may trade evaluation cost against accuracy.",
+  "why_it_matters": "Agent evaluations are expensive, so reliable lower-cost estimation would be useful if the result survives scrutiny.",
+  "strategic_angle": "HOLD pending full-text methods, code/data inspection and independent context.",
   "confidence": "medium",
   "recommendation": "HOLD"
 }

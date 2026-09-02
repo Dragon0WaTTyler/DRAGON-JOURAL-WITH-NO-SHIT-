@@ -1,33 +1,34 @@
 {
-  "story_id": "meknes-cloud-drycheck-2026-09-02",
-  "proposed_title": "Meknes heritage radar: verified baseline, no fresh municipal project claim",
-  "importance_score": 5.0,
-  "what_happened": "The exact UNESCO Historic City of Meknes record was freshly retrieved. No exact current municipal tender or completion document was established, so the desk returns HOLD rather than converting a heritage catalogue into local news.",
+  "story_id": "meknes-umi-excellence-licence-2026",
+  "proposed_title": "UMI application window for 2026-27 excellence-track licences remains open",
+  "importance_score": 5.5,
+  "what_happened": "After a fresh GET of UMI's listing exposed a concrete 2026-27 notice, a second Cloud GET retrieved that exact notice. Universite Moulay Ismail says applications for Licence Parcours d'Excellence programmes at open-access institutions run from 1 August through 8 September 2026.",
   "key_facts": [
-    "FACT: UNESCO record identifies the Historic City of Meknes inscription.",
-    "UNKNOWN: current works, budget, contractor, deadline and acceptance status were not established."
+    "OFFICIAL_CLAIM: UMI announces applications for its Licence Parcours d'Excellence for the 2026-27 academic year.",
+    "FACT: the retrieved notice gives an application window from 2026-08-01 through 2026-09-08.",
+    "UNKNOWN: applicant totals, admission capacity and selection outcomes are not stated on the retrieved page."
   ],
   "primary_sources": [
     {
-      "url": "https://whc.unesco.org/en/list/793/",
-      "publisher": "UNESCO World Heritage Centre",
-      "publication_date": "1996 inscription; page current at retrieval",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
-      "source_type": "catalogue",
-      "attribution": "UNESCO World Heritage Centre",
-      "claim_supported": "Inscription record and description of Historic City of Meknes",
-      "evidence_label": "FACT",
-      "independence": "UN multilateral heritage record, separate from municipal claims"
+      "url": "https://www.umi.ac.ma/%d8%a5%d8%b9%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%84%d8%a7%d9%86-%d8%b9%d9%86-%d9%81%d8%aa%d8%ad-%d8%a8%d8%a7%d8%a8-%d8%a7%d9%84%d8%aa%d8%b1%d8%b4%d8%ad-2/",
+      "publisher": "Universite Moulay Ismail",
+      "publication_date": "application window 2026-08-01 to 2026-09-08; page does not display a separate publication date",
+      "retrieved_at": "2026-09-02T20:45:57+01:00",
+      "source_type": "official",
+      "attribution": "Universite Moulay Ismail admissions notice",
+      "claim_supported": "The programme, academic year and stated application dates",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "Programme owner; authoritative for its application window, not for outcomes"
     }
   ],
   "independent_sources": [],
   "contradictory_evidence": [
-    "A heritage designation does not prove restoration quality or project completion."
+    "An open application window does not establish programme capacity, access or educational results."
   ],
-  "uncertainty": "High for the dated UNESCO record; high uncertainty for all current municipal activity. Search evidence is retained without filler.",
-  "context": "THIN-NEWS EXCEPTION: one institutional exact page passed, but the local primary trail did not yield a publishable current item.",
-  "why_it_matters": "Avoids manufacturing local news while retaining a valid starting document.",
-  "strategic_angle": "HOLD pending Commune/Region/procurement exact project records and an independent local check.",
+  "uncertainty": "High confidence in the dates displayed by UMI; capacity, demand and outcomes remain unknown.",
+  "context": "This is a current local institutional service item discovered from an allowlisted UMI listing and verified on the concrete notice, not a heritage-homepage substitute.",
+  "why_it_matters": "The deadline is actionable for eligible students in Meknes and UMI's wider university community.",
+  "strategic_angle": "HOLD for synthesis because no independent source was retrieved; retain as a verified Meknes Radar research lead.",
   "confidence": "high",
   "recommendation": "HOLD"
 }

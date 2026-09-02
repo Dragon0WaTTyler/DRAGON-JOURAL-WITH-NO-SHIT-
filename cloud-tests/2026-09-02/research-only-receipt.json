@@ -1,32 +1,72 @@
 {
-  "stage": "research-only-dry-check",
+  "stage": "stage-6-targeted-correction",
   "date": "2026-09-02",
   "environment": "dragon-live-research",
-  "transport": "Cloud Internet Access On + allowlist raw HTTPS GET",
+  "transport": "Hosted Codex Cloud Internet Access On + allowlist HTTPS GET",
   "native_web_search": "not used; known HTTP 401",
-  "retrieved_at": "2026-09-02T20:34:00+01:00",
-  "desk_statuses": {
-    "morocco": "BRIEF",
-    "meknes": "HOLD",
-    "palestine": "HOLD",
-    "world": "HOLD",
-    "ai": "HOLD",
-    "science": "HOLD",
-    "history": "HOLD",
-    "literature-culture": "HOLD",
-    "investigations": "HOLD"
+  "run_window_africa_casablanca": {
+    "started_at": "2026-09-02T20:44:05+01:00",
+    "completed_at": "2026-09-02T20:49:41+01:00"
   },
-  "source_pages": [
-    "https://arxiv.org/abs/2508.21141",
-    "https://ich.unesco.org/en/RL/taskiwin-martial-dance-of-the-western-high-atlas-01256",
-    "https://news.un.org/en/story/2025/08/1165676",
-    "https://whc.unesco.org/en/list/793/",
-    "https://www.anthropic.com/news/claude-opus-4-1",
-    "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
-    "https://www.unesco.org/en/countries/ma",
-    "https://www.unesco.org/en/world-book-capital",
-    "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
-    "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report"
+  "desk_retrievals": {
+    "morocco": {
+      "status": "BRIEF",
+      "pages": [
+        {"url": "https://www.hcp.ma/L-Indice-des-prix-a-la-consommation-IPC-du-mois-de-Juillet-2026_a4344.html", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"},
+        {"url": "https://www.moroccoworldnews.com/2026/08/335265/moroccos-consumer-price-index-falls-1-in-july-2026/", "http_status": 200, "retrieved_at": "2026-09-02T20:49:41+01:00"}
+      ]
+    },
+    "meknes": {
+      "status": "HOLD",
+      "discovered_from": {"url": "https://www.umi.ac.ma/", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"},
+      "pages": [{"url": "https://www.umi.ac.ma/%d8%a5%d8%b9%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%80%d9%84%d8%a7%d9%86-%d8%b9%d9%86-%d9%81%d8%aa%d8%ad-%d8%a8%d8%a7%d8%a8-%d8%a7%d9%84%d8%aa%d8%b1%d8%b4%d8%ad-2/", "http_status": 200, "retrieved_at": "2026-09-02T20:45:57+01:00"}]
+    },
+    "palestine": {
+      "status": "HOLD",
+      "pages": [{"url": "https://www.aljazeera.com/news/2026/9/2/brazilian-activist-demands-tunisia-release-sumud-flotilla-organisers", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}]
+    },
+    "world": {
+      "status": "HOLD",
+      "pages": [{"url": "https://news.un.org/en/story/2026/09/1168251", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}]
+    },
+    "ai": {
+      "status": "BRIEF",
+      "pages": [
+        {"url": "https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"},
+        {"url": "https://storage.googleapis.com/deepmind-media/DeepMind.com/Blog/piloting-the-worlds-first-double-blind-ai-evaluations/double-blind-evaluations-technical-report.pdf", "http_status": 200, "retrieved_at": "2026-09-02T20:45:57+01:00"},
+        {"url": "https://export.arxiv.org/api/query?id_list=2609.01603", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}
+      ]
+    },
+    "science": {
+      "status": "HOLD",
+      "pages": [
+        {"url": "https://export.arxiv.org/api/query?id_list=2609.01603", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"},
+        {"url": "https://arxiv.org/abs/2609.01603", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}
+      ]
+    },
+    "history": {
+      "status": "HOLD",
+      "pages": [{"url": "https://whc.unesco.org/en/list/793/", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}]
+    },
+    "literature-culture": {
+      "status": "HOLD",
+      "pages": [{"url": "https://ich.unesco.org/en/RL/malhun-a-popular-poetic-and-musical-art-01592", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}]
+    },
+    "investigations": {
+      "status": "HOLD",
+      "pages": [
+        {"url": "https://www.hcp.ma/L-Indice-des-prix-a-la-consommation-IPC-du-mois-de-Juillet-2026_a4344.html", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"},
+        {"url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report", "http_status": 200, "retrieved_at": "2026-09-02T20:44:05+01:00"}
+      ]
+    }
+  },
+  "failed_retrievals_not_used_as_evidence": [
+    {
+      "url": "https://www.wfp.org/news/wfp-strongly-condemns-aerial-attack-trucks-carrying-food-families-south-kordofan",
+      "http_status": 403,
+      "retrieved_at": "2026-09-02T20:45:57+01:00",
+      "result": "Cloud CONNECT tunnel denied; omitted from every packet source record"
+    }
   ],
   "edition_generated": false,
   "schedule_changed": false

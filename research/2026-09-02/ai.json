@@ -1,47 +1,59 @@
 {
-  "story_id": "ai-cloud-drycheck-2026-09-02",
-  "proposed_title": "Claude Opus 4.1 claim lacks a fresh independent evaluation",
-  "importance_score": 6.0,
-  "what_happened": "Fresh GET retrieved Anthropic’s exact product announcement and an arXiv abstract about adaptive LLM routing. The paper is not an independent evaluation of Claude Opus 4.1, so the packet does not use it as corroboration.",
+  "story_id": "ai-double-blind-evaluation-pilot-2026-08-27",
+  "proposed_title": "DeepMind describes a double-blind proprietary-model evaluation pilot",
+  "importance_score": 7.5,
+  "what_happened": "Fresh Cloud GETs retrieved Google DeepMind's exact 27 August 2026 announcement and its linked technical report. DeepMind says its pilot uses cryptographically secured environments so model providers and evaluators do not see each other's protected assets. A separate current arXiv record supplies an independent technical trail about efficient software-agent evaluation, but does not validate DeepMind's system.",
   "key_facts": [
-    "COMPANY_CLAIM: Anthropic announced Claude Opus 4.1 and reported benchmark results.",
-    "ABSTRACT_ONLY: arXiv 2508.21141 concerns adaptive routing under budgets.",
-    "UNKNOWN: no independent replication of the company benchmark was retrieved."
+    "COMPANY_CLAIM: DeepMind calls the pilot the first double-blind AI evaluation approach and says it can protect proprietary models and evaluation data.",
+    "FACT: the announcement links a technical report that was retrieved in this run.",
+    "ABSTRACT_ONLY: arXiv 2609.01603 proposes trajectory-aware sampling and ability estimation for software-agent benchmarks and reports results across four benchmarks; this packet inspected only its abstract record.",
+    "UNKNOWN: no independent replication, security audit or deployed evaluation result for DeepMind's pilot was retrieved."
   ],
   "primary_sources": [
     {
-      "url": "https://www.anthropic.com/news/claude-opus-4-1",
-      "publisher": "Anthropic",
-      "publication_date": "2025-08-05",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "url": "https://deepmind.google/blog/piloting-the-worlds-first-double-blind-ai-evaluations/",
+      "publisher": "Google DeepMind",
+      "publication_date": "2026-08-27",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "official",
-      "attribution": "Anthropic product announcement",
-      "claim_supported": "What Anthropic claimed about Claude Opus 4.1 and its benchmark",
+      "attribution": "Google DeepMind announcement by William Isaac, Sol Messing and Kristian Lum",
+      "claim_supported": "DeepMind's description, novelty claim and intended safeguards for its pilot",
       "evidence_label": "COMPANY_CLAIM",
-      "independence": "Company source; explicitly not independent verification"
+      "independence": "Company-authored announcement; not independent validation"
+    },
+    {
+      "url": "https://storage.googleapis.com/deepmind-media/DeepMind.com/Blog/piloting-the-worlds-first-double-blind-ai-evaluations/double-blind-evaluations-technical-report.pdf",
+      "publisher": "Google DeepMind",
+      "publication_date": "2026-08-27",
+      "retrieved_at": "2026-09-02T20:45:57+01:00",
+      "source_type": "primary-document",
+      "attribution": "Technical report linked by Google DeepMind",
+      "claim_supported": "The company's documented methodology and findings for the pilot",
+      "evidence_label": "COMPANY_CLAIM",
+      "independence": "Company technical document; separate detail, not independent corroboration"
     }
   ],
   "independent_sources": [
     {
-      "url": "https://arxiv.org/abs/2508.21141",
+      "url": "https://export.arxiv.org/api/query?id_list=2609.01603",
       "publisher": "arXiv",
-      "publication_date": "2025-08-28",
-      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "publication_date": "2026-09-01",
+      "retrieved_at": "2026-09-02T20:44:05+01:00",
       "source_type": "research-paper",
-      "attribution": "Paper authors via arXiv abstract record",
-      "claim_supported": "Abstract claims about adaptive LLM routing under budget constraints",
+      "attribution": "Duan et al. abstract record for Efficient SWE Agent Benchmarking via Trajectory-Aware Evaluation",
+      "claim_supported": "A current independent technical approach to estimating software-agent benchmark performance",
       "evidence_label": "ABSTRACT_ONLY",
-      "independence": "Author manuscript, not peer review or independent product evaluation"
+      "independence": "Independent author team and different method; not peer reviewed and not a test of DeepMind's pilot"
     }
   ],
   "contradictory_evidence": [
-    "The routing paper studies another question and cannot verify product performance.",
-    "Self-reported benchmark performance is not real-world reliability."
+    "A company-defined security design is not evidence that an independent evaluator has audited the implementation.",
+    "The arXiv paper addresses evaluation efficiency, not double-blind confidentiality, so it cannot corroborate DeepMind's claims."
   ],
-  "uncertainty": "High about the announcement; low about comparative performance; independent verification is missing.",
-  "context": "Company announcement, technical evidence and independent testing are separate source trails.",
-  "why_it_matters": "Stops marketing claims from being promoted to established evidence.",
-  "strategic_angle": "HOLD pending exact model documentation and genuinely independent tests.",
-  "confidence": "high",
-  "recommendation": "HOLD"
+  "uncertainty": "The announcement and linked report establish what DeepMind describes; novelty, security and performance remain unverified independently.",
+  "context": "Proprietary-model evaluations can expose model weights or secret tests; this packet separates the proposed mechanism from proof that it works.",
+  "why_it_matters": "If independently validated, protected evaluation infrastructure could let outside evaluators test closed models without either side disclosing sensitive assets.",
+  "strategic_angle": "BRIEF the pilot as a COMPANY_CLAIM; do not publish an evaluation verdict.",
+  "confidence": "medium",
+  "recommendation": "BRIEF"
 }
