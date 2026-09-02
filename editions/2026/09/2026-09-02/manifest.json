@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-02",
+  "status": "published",
+  "language": "darija-latin",
+  "pdf": "edition.pdf",
+  "epub": "edition.epub",
+  "cover": "cover.webp",
+  "fact_check": "passed",
+  "language_check": "passed",
+  "sources_count": 1,
+  "smoke_test": true
+}

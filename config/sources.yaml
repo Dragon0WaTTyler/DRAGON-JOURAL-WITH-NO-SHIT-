@@ -1,0 +1,8 @@
+smoke_test:
+  - id: synthetic-fixture
+    type: test-fixture
+    note: Not a news source; used only to test archive and publication mechanics.
+production:
+  morocco_primary: []
+  meknes_primary: []
+  palestine_cross_check: []

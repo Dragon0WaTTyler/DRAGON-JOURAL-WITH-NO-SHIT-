@@ -1,0 +1,7 @@
+project: daily-newspaper
+language: darija-latin
+smoke_test: true
+publication_status_requires:
+  - artifact_validation
+  - git_commit
+  - git_push

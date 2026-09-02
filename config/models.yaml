@@ -1,0 +1,5 @@
+chief_editor: gpt-5.6
+investigations: gpt-5.6
+research_default: gpt-5.6-terra
+high_volume_discovery: gpt-5.6-luna
+smoke_test: configured-task-model
