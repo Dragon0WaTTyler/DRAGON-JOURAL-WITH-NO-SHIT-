@@ -1,0 +1,33 @@
+{
+  "execution_environment": "hosted Codex Cloud task; no local PC, localhost, desktop files, local process, desktop files, or local credentials used",
+  "execution_status": "COMPLETE",
+  "date": "2026-09-04",
+  "mode": "preproduction",
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "live_retrieval": "UNAVAILABLE: hosted search returned HTTP 401 and direct HTTPS returned proxy HTTP 403; only dated context was published and all current status was labeled UNKNOWN",
+  "validation_result": "PASS",
+  "packet_validation": "PASS: nine of nine",
+  "artifacts": ["edition.md", "edition.pdf", "edition.epub", "cover.webp", "sources.json", "manifest.json"],
+  "source_count": 25,
+  "citations_count": 27,
+  "quality_scorecard": {
+    "morocco": {"score": 8, "note": "dated reconstruction baseline; current delivery UNKNOWN"},
+    "meknes": {"score": 8, "note": "institutional and expert context; honest Radar limitation"},
+    "palestine_middle_east": {"score": 9, "note": "FACT, CLAIM, DISPUTED, ESTIMATE and UNKNOWN separated"},
+    "world": {"score": 8, "note": "primary legal context; procedural effect qualified"},
+    "ai_technology": {"score": 8, "note": "guidance separated from vendor claims and certification"},
+    "science": {"score": 8, "note": "ABSTRACT ONLY, design, effect and access limits explicit"},
+    "tarikh_l_mghreb": {"score": 8, "note": "substantial context, disagreement and present relevance"},
+    "adab_culture": {"score": 8, "note": "heritage recognition separated from living transmission"},
+    "investigations_accountability": {"score": 8, "note": "support and contradiction retained; dossier remains RESEARCHING"},
+    "fact_check": {"score": 10, "note": "PASS with no blocking FIX or REMOVE"},
+    "darija_qa": {"score": 10, "note": "PASS; zero Arabic-script characters"},
+    "publishing": {"score": 10, "note": "six artifacts inspected; PDF, EPUB and WebP checks passed"}
+  },
+  "edition_commit_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
+  "final_persistence_commit_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
+  "final_remote_sha": "057a42adff7bd98dde76f92c16c9a4f28b03bbcd",
+  "persistence_status": "COMPLETE: edition commit pushed to origin/main and exact remote SHA verified before receipt archival",
+  "schedule_enabled": false,
+  "preserved_editions": ["editions/2026/09/2026-09-02", "editions/2026/09/2026-09-03"]
+}
