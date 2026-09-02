@@ -43,5 +43,21 @@
     "date": "2026-09-03",
     "story_id": "world",
     "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-05",
+    "story_id": "pilot-day-1",
+    "mode": "preproduction",
+    "topics": [
+      "RGPH 2024",
+      "Volubilis",
+      "Palestine IHL labels",
+      "SDGs 2024",
+      "EU AI Act",
+      "SELECT trial",
+      "Green March",
+      "Gnawa",
+      "Al Haouz accountability"
+    ]
   }
 ]

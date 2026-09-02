@@ -1,0 +1,27 @@
+{
+  "story_id": "ai-eu-act-timeline",
+  "proposed_title": "AI: EU AI Act howa masar tanfid, ma-shi sticker dyal aman",
+  "importance_score": 8.2,
+  "what_happened": "EU ncher Regulation 2024/1689 f-Official Journal; dkhoul l-9owa w dates dyal application mtfar9in. Compliance claim ma kat3nich product safe aw approved.",
+  "key_facts": [
+    "FACT mwarrekh: EU ncher Regulation 2024/1689 f-Official Journal; dkhoul l-9owa w dates dyal application mtfar9in. Compliance claim ma kat3nich product safe aw approved.",
+    "UNKNOWN: hosted live search rje3 HTTP 401 f-2 Shtanbir 2026; ma kayn 7tta claim dyal 5 Shtanbir 2026.",
+    "CLAIM: ay ta2wil aw tasri7 dyal jiha khaso attribution w cross-check."
+  ],
+  "primary_sources": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+  ],
+  "independent_sources": [
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  ],
+  "contradictory_evidence": [
+    "L-masdar l-awwali kaythbet record aw i3lan, ma kaythbetch bo7do natija maydaniya.",
+    "Retrieval failure kaymna3 current verification; dated context ma ytsamma-sh live news."
+  ],
+  "uncertainty": "Current status for 2026-09-05 is UNKNOWN; only dated context is used.",
+  "context": "Had packet mosta9ill dyal pilot day 1, mabni 3la masadir mwarrekha w masar follow-up.",
+  "why_it_matters": "Kayfrreq bin dalil, claim w l-faragh lli khaso ta79i9.",
+  "strategic_angle": "Nchro b-tarikh w label sarih; n7bso ay current claim 7tta retrieval w cross-check ynj7o.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

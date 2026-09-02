@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-05",
+  "status": "PASS",
+  "issues": [
+    {
+      "status": "PASS",
+      "issue": "Future edition date and retrieval failure disclosed; all current status UNKNOWN."
+    },
+    {
+      "status": "PASS",
+      "issue": "FACT, CLAIM, DISPUTED, ESTIMATE, UNKNOWN, COMPANY CLAIM and ABSTRACT ONLY separated."
+    },
+    {
+      "status": "PASS",
+      "issue": "Supporting and contradictory evidence retained."
+    }
+  ],
+  "blocking_findings": []
+}

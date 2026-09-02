@@ -1,0 +1,90 @@
+{
+  "execution_environment": "hosted Codex Cloud task; no local PC, localhost, desktop files, local process, local credentials, or schedule used",
+  "execution_status": "COMPLETE",
+  "date": "2026-09-05",
+  "pilot_day": 1,
+  "mode": "preproduction",
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "live_retrieval": "UNAVAILABLE: hosted web search returned HTTP 401 on 2026-09-02; the edition uses dated context, labels 2026-09-05 status UNKNOWN, and invents no future/current claim",
+  "dependency_install": "PASS: python -m pip install -r requirements.txt",
+  "validation_result": "PASS",
+  "packet_validation": "PASS: nine of nine",
+  "artifact_inspection": {
+    "pypdf": "PASS: 3 pages and label extracted",
+    "pdfinfo": "PASS: 3 pages, A4, PDF 1.4, unencrypted, required title and pre-production subject",
+    "epub": "PASS: mimetype first, OPF XML parsed, navigation and 18 members inspected",
+    "webp": "PASS: 1200x1600 WEBP",
+    "manifest_citations_language_schedule": "PASS: 20 sources, 22 citations, zero Arabic-script characters, schedule disabled",
+    "secret_scan": "PASS"
+  },
+  "artifacts": [
+    "edition.md",
+    "edition.pdf",
+    "edition.epub",
+    "cover.webp",
+    "sources.json",
+    "manifest.json"
+  ],
+  "source_count": 20,
+  "citations_count": 22,
+  "quality_scorecard": {
+    "morocco": {
+      "score": 8,
+      "note": "dated RGPH baseline; 2026 status UNKNOWN"
+    },
+    "meknes": {
+      "score": 8,
+      "note": "institutional Volubilis context and honest Radar gap"
+    },
+    "palestine_middle_east": {
+      "score": 9,
+      "note": "FACT, CLAIM, DISPUTED, ESTIMATE and UNKNOWN separated"
+    },
+    "world": {
+      "score": 8,
+      "note": "dated SDG baseline qualified"
+    },
+    "ai_technology": {
+      "score": 8,
+      "note": "law separated from company safety claims"
+    },
+    "science": {
+      "score": 8,
+      "note": "ABSTRACT ONLY with design and access limits"
+    },
+    "tarikh_l_mghreb": {
+      "score": 9,
+      "note": "primary records, disagreement and present relevance"
+    },
+    "adab_culture": {
+      "score": 8,
+      "note": "recognition separated from living transmission"
+    },
+    "investigations_accountability": {
+      "score": 8,
+      "note": "support and contradiction retained; dossier RESEARCHING"
+    },
+    "fact_check": {
+      "score": 10,
+      "note": "PASS; no blocking FIX or REMOVE"
+    },
+    "darija_qa": {
+      "score": 10,
+      "note": "PASS; zero Arabic-script characters"
+    },
+    "publishing": {
+      "score": 10,
+      "note": "six artifacts passed; pypdf and pdfinfo inspections passed"
+    }
+  },
+  "edition_commit_sha": "91bbc0d799219a7e7f66dddd3321c77b69c3c724",
+  "final_persistence_commit_sha": "91bbc0d799219a7e7f66dddd3321c77b69c3c724",
+  "final_remote_sha": "91bbc0d799219a7e7f66dddd3321c77b69c3c724",
+  "persistence_status": "COMPLETE: edition commit pushed without force to origin/main and git ls-remote exactly matched the local SHA before this receipt correction was committed.",
+  "schedule_enabled": false,
+  "preserved_editions": [
+    "editions/2026/09/2026-09-02",
+    "editions/2026/09/2026-09-03",
+    "editions/2026/09/2026-09-04"
+  ]
+}

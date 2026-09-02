@@ -1,0 +1,27 @@
+{
+  "story_id": "morocco-rgph-2024",
+  "proposed_title": "RGPH 2024: ra9m s-sokkan khaso ywalli so2al 3la l-khadamat",
+  "importance_score": 8.3,
+  "what_happened": "HCP ncher nata2ij RGPH 2024: population legale dyal l-Mghreb 36,828,330 f-1 Shtanbir 2024. Hadchi baseline mwarrekh, ma-shi update dyal 2026.",
+  "key_facts": [
+    "FACT mwarrekh: HCP ncher nata2ij RGPH 2024: population legale dyal l-Mghreb 36,828,330 f-1 Shtanbir 2024. Hadchi baseline mwarrekh, ma-shi update dyal 2026.",
+    "UNKNOWN: hosted live search rje3 HTTP 401 f-2 Shtanbir 2026; ma kayn 7tta claim dyal 5 Shtanbir 2026.",
+    "CLAIM: ay ta2wil aw tasri7 dyal jiha khaso attribution w cross-check."
+  ],
+  "primary_sources": [
+    "https://www.hcp.ma/Recensement-General-de-la-Population-et-de-l-Habitat-2024_a3927.html"
+  ],
+  "independent_sources": [
+    "https://data.worldbank.org/country/morocco"
+  ],
+  "contradictory_evidence": [
+    "L-masdar l-awwali kaythbet record aw i3lan, ma kaythbetch bo7do natija maydaniya.",
+    "Retrieval failure kaymna3 current verification; dated context ma ytsamma-sh live news."
+  ],
+  "uncertainty": "Current status for 2026-09-05 is UNKNOWN; only dated context is used.",
+  "context": "Had packet mosta9ill dyal pilot day 1, mabni 3la masadir mwarrekha w masar follow-up.",
+  "why_it_matters": "Kayfrreq bin dalil, claim w l-faragh lli khaso ta79i9.",
+  "strategic_angle": "Nchro b-tarikh w label sarih; n7bso ay current claim 7tta retrieval w cross-check ynj7o.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}
