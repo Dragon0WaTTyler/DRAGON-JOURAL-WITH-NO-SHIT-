@@ -1,0 +1,33 @@
+{
+  "stage": "research-only-dry-check",
+  "date": "2026-09-02",
+  "environment": "dragon-live-research",
+  "transport": "Cloud Internet Access On + allowlist raw HTTPS GET",
+  "native_web_search": "not used; known HTTP 401",
+  "retrieved_at": "2026-09-02T20:34:00+01:00",
+  "desk_statuses": {
+    "morocco": "BRIEF",
+    "meknes": "HOLD",
+    "palestine": "HOLD",
+    "world": "HOLD",
+    "ai": "HOLD",
+    "science": "HOLD",
+    "history": "HOLD",
+    "literature-culture": "HOLD",
+    "investigations": "HOLD"
+  },
+  "source_pages": [
+    "https://arxiv.org/abs/2508.21141",
+    "https://ich.unesco.org/en/RL/taskiwin-martial-dance-of-the-western-high-atlas-01256",
+    "https://news.un.org/en/story/2025/08/1165676",
+    "https://whc.unesco.org/en/list/793/",
+    "https://www.anthropic.com/news/claude-opus-4-1",
+    "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
+    "https://www.unesco.org/en/countries/ma",
+    "https://www.unesco.org/en/world-book-capital",
+    "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
+    "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report"
+  ],
+  "edition_generated": false,
+  "schedule_changed": false
+}

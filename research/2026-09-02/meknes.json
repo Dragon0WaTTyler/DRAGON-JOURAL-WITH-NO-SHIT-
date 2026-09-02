@@ -1,28 +1,33 @@
 {
-  "story_id": "meknes-2026-09-02",
-  "proposed_title": "Daftar l-ma men l-7awd l-7ouma",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "meknes-cloud-drycheck-2026-09-02",
+  "proposed_title": "Meknes heritage radar: verified baseline, no fresh municipal project claim",
+  "importance_score": 5.0,
+  "what_happened": "The exact UNESCO Historic City of Meknes record was freshly retrieved. No exact current municipal tender or completion document was established, so the desk returns HOLD rather than converting a heritage catalogue into local news.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S05, S06, S07, S08."
+    "FACT: UNESCO record identifies the Historic City of Meknes inscription.",
+    "UNKNOWN: current works, budget, contractor, deadline and acceptance status were not established."
   ],
   "primary_sources": [
-    "https://www.abhsebou.ma/",
-    "https://www.region-fes-meknes.ma/",
-    "https://www.meknes.ma/"
+    {
+      "url": "https://whc.unesco.org/en/list/793/",
+      "publisher": "UNESCO World Heritage Centre",
+      "publication_date": "1996 inscription; page current at retrieval",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "catalogue",
+      "attribution": "UNESCO World Heritage Centre",
+      "claim_supported": "Inscription record and description of Historic City of Meknes",
+      "evidence_label": "FACT",
+      "independence": "UN multilateral heritage record, separate from municipal claims"
+    }
   ],
-  "independent_sources": [
-    "https://www.umi.ac.ma/"
-  ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "A heritage designation does not prove restoration quality or project completion."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "uncertainty": "High for the dated UNESCO record; high uncertainty for all current municipal activity. Search evidence is retained without filler.",
+  "context": "THIN-NEWS EXCEPTION: one institutional exact page passed, but the local primary trail did not yield a publishable current item.",
+  "why_it_matters": "Avoids manufacturing local news while retaining a valid starting document.",
+  "strategic_angle": "HOLD pending Commune/Region/procurement exact project records and an independent local check.",
+  "confidence": "high",
+  "recommendation": "HOLD"
 }

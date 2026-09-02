@@ -1,26 +1,47 @@
 {
-  "story_id": "world-2026-09-02",
-  "proposed_title": "NDC: wa3d ma-shi inventory",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "world-cloud-drycheck-2026-09-02",
+  "proposed_title": "Humanitarian operations need dated, country-specific evidence",
+  "importance_score": 5.5,
+  "what_happened": "Fresh GETs retrieved an exact UN News Haiti field report and an exact WHO Gaza statement. They demonstrate useful source-page retrieval but do not support one combined current world-news claim.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S14, S15."
+    "FACT: UN News published a dated first-person Haiti operational report.",
+    "OFFICIAL_CLAIM: WHO published its attributed Gaza warning in 2025.",
+    "UNKNOWN: neither page establishes a new development on 2 September 2026."
   ],
   "primary_sources": [
-    "https://unfccc.int/process-and-meetings/the-paris-agreement"
+    {
+      "url": "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
+      "publisher": "World Health Organization",
+      "publication_date": "2025-08-22",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "WHO statement citing IPC analysis",
+      "claim_supported": "WHO/IPC famine classification and health warning for Gaza at publication date",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "UN health body statement; attribution retained, not treated as same-day 2026 status"
+    }
   ],
   "independent_sources": [
-    "https://www.unep.org/resources/emissions-gap-report-2024"
+    {
+      "url": "https://news.un.org/en/story/2025/08/1165676",
+      "publisher": "UN News",
+      "publication_date": "2025-08",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "independent-reporting",
+      "attribution": "UN News first-person report",
+      "claim_supported": "Humanitarian operational account from Haiti at publication date",
+      "evidence_label": "FACT",
+      "independence": "UN editorial report from a different operation and interview trail"
+    }
   ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Different crises cannot corroborate each other.",
+    "Institutional testimony needs country-specific independent evidence."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "medium",
-  "recommendation": "BRIEF"
+  "uncertainty": "High on retrieval and page identity, low on any current synthesis; therefore HOLD.",
+  "context": "The world desk tests source diversity without conflating unrelated evidence.",
+  "why_it_matters": "A disciplined desk rejects a headline list when sources do not converge on a current material story.",
+  "strategic_angle": "HOLD and conduct focused current retrieval on one event.",
+  "confidence": "high",
+  "recommendation": "HOLD"
 }

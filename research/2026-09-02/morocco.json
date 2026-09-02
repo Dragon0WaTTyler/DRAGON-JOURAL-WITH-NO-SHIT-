@@ -1,28 +1,47 @@
 {
-  "story_id": "morocco-2026-09-02",
-  "proposed_title": "Sou9 choghl ta7t L7OKM DYAL L2ADILLA",
-  "importance_score": 8.2,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "morocco-cloud-drycheck-2026-09-02",
+  "proposed_title": "Water policy: official priority versus measured resilience",
+  "importance_score": 8.0,
+  "what_happened": "Fresh raw HTTPS GET retrieved an official 2025 policy speech and the World Bank Morocco CCDR exact report page. This is dated context, not proof of a new event on 2 September 2026.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S01, S02, S03, S04."
+    "OFFICIAL_CLAIM: the speech places water among strategic priorities.",
+    "ESTIMATE: the CCDR describes structural climate and water risks; projections are scenarios, not observations for today.",
+    "UNKNOWN: no same-day output, household-access, reservoir or project-delivery dataset was established in this dry check."
   ],
   "primary_sources": [
-    "https://www.hcp.ma/Emploi_r41.html",
-    "https://www.bkam.ma/en/Monetary-Policy"
+    {
+      "url": "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
+      "publisher": "Maroc.ma",
+      "publication_date": "2025-07-29",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "King Mohammed VI speech as published by official portal",
+      "claim_supported": "Official policy priorities and claims in the Throne Day speech",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "Official state source; requires an outside outcome check"
+    }
   ],
   "independent_sources": [
-    "https://ilostat.ilo.org/topics/unemployment-and-labour-underutilization/",
-    "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=MA"
+    {
+      "url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report",
+      "publisher": "World Bank",
+      "publication_date": "2022-11-03",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "institutional-analysis",
+      "attribution": "World Bank CCDR authors",
+      "claim_supported": "Morocco climate and water-risk baseline",
+      "evidence_label": "ESTIMATE",
+      "independence": "Multilateral analysis independent of Moroccan government announcements"
+    }
   ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "An announced priority is not a measured result.",
+    "A multilateral scenario cannot establish the operational state of a named project today."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
+  "uncertainty": "Medium: both exact pages were retrieved, but no current outcome series was retrieved. Any current-performance verdict remains UNKNOWN.",
+  "context": "The desk separates official intent from independent risk context and observed delivery.",
+  "why_it_matters": "Water allocation and delivery affect households, agriculture and public finance.",
+  "strategic_angle": "BRIEF only as a research lead; require original same-day datasets and independent outcome reporting before synthesis.",
   "confidence": "medium",
-  "recommendation": "LEAD"
+  "recommendation": "BRIEF"
 }
