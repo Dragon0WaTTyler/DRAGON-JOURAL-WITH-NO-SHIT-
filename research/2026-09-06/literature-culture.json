@@ -1,0 +1,27 @@
+{
+  "story_id": "literature-culture-pilot-2026-09-06",
+  "proposed_title": "Gnawa: heritage kay7taj nas lli kay7mlouh",
+  "importance_score": 8.0,
+  "what_happened": "FACT — UNESCO inscribed Gnawa on the Representative List of Intangible Cultural Heritage in 2019. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — UNESCO inscribed Gnawa on the Representative List of Intangible Cultural Heritage in 2019.",
+    "FACT — UNESCO describes musical performances, fraternal practices and therapeutic rituals, with transmission through masters and groups.",
+    "UNKNOWN — Artist income, teaching access, ownership and 2026 safeguarding outcomes were not verified."
+  ],
+  "primary_sources": [
+    "url=https://ich.unesco.org/en/RL/gnawa-01170 ; publisher=UNESCO Intangible Cultural Heritage ; publication_date=2019 ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary institutional record"
+  ],
+  "independent_sources": [
+    "url=https://ich.unesco.org/en/convention ; publisher=UNESCO ; publication_date=2003/live ; accessed_at=2026-09-02 retrieval attempted ; source_type=normative context"
+  ],
+  "contradictory_evidence": [
+    "Inscription is recognition, not evidence that practitioners receive fair pay or control recordings.",
+    "Festival visibility can support transmission but can also flatten ritual and regional differences."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Gnawa carries histories of displacement, spirituality, craft and performance; it is living practice, not museum decor.",
+  "why_it_matters": "Culture policy should measure who teaches, earns, archives and decides.",
+  "strategic_angle": "Publish a rights-and-transmission lens, without claiming one pure origin.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

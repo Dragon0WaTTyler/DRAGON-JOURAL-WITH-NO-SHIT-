@@ -1,0 +1,31 @@
+{
+  "story_id": "palestine-pilot-2026-09-06",
+  "proposed_title": "Filastin: l-qanoun w claims khas-hom labels",
+  "importance_score": 9,
+  "what_happened": "FACT — The ICJ issued provisional-measures orders in South Africa v. Israel on 26 January, 28 March and 24 May 2024; provisional measures are not a final merits judgment. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — The ICJ issued provisional-measures orders in South Africa v. Israel on 26 January, 28 March and 24 May 2024; provisional measures are not a final merits judgment.",
+    "CLAIM — Statements by belligerents about targets or responsibility remain attributed claims until independently corroborated.",
+    "DISPUTED — Strike attribution, military use and proportionality may be contested and require evidence from all available sides.",
+    "ESTIMATE — Casualty, displacement and hunger numbers require publisher, geography, method and cutoff.",
+    "UNKNOWN — Events, negotiations, aid flow and casualties on 2026-09-06 cannot be known from this 2026-09-02 run."
+  ],
+  "primary_sources": [
+    "url=https://www.icj-cij.org/case/192 ; publisher=International Court of Justice ; publication_date=2023-present ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary judicial docket",
+    "url=https://www.ochaopt.org/ ; publisher=UN OCHA oPt ; publication_date=continuously updated ; accessed_at=2026-09-02 retrieval attempted ; source_type=UN humanitarian reporting"
+  ],
+  "independent_sources": [
+    "url=https://www.icrc.org/en/war-and-law ; publisher=ICRC ; publication_date=live explainer ; accessed_at=2026-09-02 retrieval attempted ; source_type=authoritative legal context",
+    "url=https://apnews.com/hub/israel-hamas-war ; publisher=Associated Press ; publication_date=continuously updated ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent reporting route"
+  ],
+  "contradictory_evidence": [
+    "An ICJ provisional order does not establish every alleged act, perpetrator or final legal responsibility.",
+    "Official casualty records can be indispensable yet incomplete in war; uncertainty is not proof that recorded deaths did not occur."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Legal procedure, humanitarian measurement and battlefield claims are different evidence lanes.",
+  "why_it_matters": "Bad labels turn uncertainty into propaganda; disciplined labels protect readers and victims.",
+  "strategic_angle": "Publish framework and UNKNOWN; never fabricate the future day's ticker.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

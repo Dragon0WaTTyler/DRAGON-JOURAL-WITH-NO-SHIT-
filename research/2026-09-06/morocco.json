@@ -1,0 +1,25 @@
+{
+  "story_id": "morocco-pilot-2026-09-06",
+  "proposed_title": "Taqa nadifa: target ma-shi natija",
+  "importance_score": 8.0,
+  "what_happened": "FACT — Morocco's 2021 NDC describes a 52% installed-electricity-capacity renewable target for 2030; this is a policy target, not measured generation. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — Morocco's 2021 NDC describes a 52% installed-electricity-capacity renewable target for 2030; this is a policy target, not measured generation.",
+    "UNKNOWN — Capacity, generation, curtailment, grid readiness and household-price effects on 2026-09-06 were not retrievable."
+  ],
+  "primary_sources": [
+    "url=https://unfccc.int/sites/default/files/NDC/2022-06/Moroccan%20updated%20NDC%202021%20_Fr.pdf ; publisher=Kingdom of Morocco/UNFCCC ; publication_date=2021-06 ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary policy filing"
+  ],
+  "independent_sources": [
+    "url=https://www.iea.org/countries/morocco ; publisher=IEA ; publication_date=live profile ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent intergovernmental analysis"
+  ],
+  "contradictory_evidence": [
+    "Installed capacity does not equal electricity generated; drought can constrain hydro and demand or grid bottlenecks can change outcomes."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "L-mix dyal taqa khaso qiyas b-MWh, reliability, grid w cost, ma-shi ghir MW m3lna.",
+  "why_it_matters": "Energy choices affect imports, emissions, bills and industrial policy.",
+  "strategic_angle": "Publish dated baseline only and demand a current capacity-versus-generation scorecard.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

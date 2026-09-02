@@ -1,0 +1,26 @@
+{
+  "story_id": "world-pilot-2026-09-06",
+  "proposed_title": "Pandemic Agreement: adoption ma-shi tanfid",
+  "importance_score": 8.0,
+  "what_happened": "FACT — The World Health Assembly adopted the WHO Pandemic Agreement on 20 May 2025. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — The World Health Assembly adopted the WHO Pandemic Agreement on 20 May 2025.",
+    "FACT — WHO said adoption followed more than three years of negotiations; implementation steps and the Pathogen Access and Benefit-Sharing annex remained distinct work.",
+    "UNKNOWN — Ratification, annex negotiations and national implementation status on 2026-09-06 were not verified."
+  ],
+  "primary_sources": [
+    "url=https://www.who.int/news/item/20-05-2025-world-health-assembly-adopts-historic-pandemic-agreement-to-make-the-world-more-equitable-and-safer-from-future-pandemics ; publisher=WHO ; publication_date=2025-05-20 ; accessed_at=2026-09-02 direct retrieval attempted ; source_type=primary multilateral announcement"
+  ],
+  "independent_sources": [
+    "url=https://apps.who.int/gb/ebwha/pdf_files/WHA78/A78_R1-en.pdf ; publisher=World Health Assembly ; publication_date=2025-05 ; accessed_at=2026-09-02 retrieval attempted ; source_type=adopted legal text"
+  ],
+  "contradictory_evidence": [
+    "Adoption does not by itself prove national readiness, financing, equitable access or implementation."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "After COVID-19, states negotiated rules around prevention, preparedness, response and equity.",
+  "why_it_matters": "Morocco needs to distinguish diplomatic adoption from hospitals, surveillance, workforce and supply readiness.",
+  "strategic_angle": "Track the annex and domestic implementation with dated official records.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

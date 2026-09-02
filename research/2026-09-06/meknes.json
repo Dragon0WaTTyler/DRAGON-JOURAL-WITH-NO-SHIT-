@@ -1,0 +1,25 @@
+{
+  "story_id": "meknes-pilot-2026-09-06",
+  "proposed_title": "Meknes Radar: Volubilis bin l-7imaya w l-isti3mal",
+  "importance_score": 8.0,
+  "what_happened": "FACT — UNESCO inscribed the Archaeological Site of Volubilis in 1997 under criteria (ii), (iii), (iv) and (vi). Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — UNESCO inscribed the Archaeological Site of Volubilis in 1997 under criteria (ii), (iii), (iv) and (vi).",
+    "UNKNOWN — Visitor load, conservation works, procurement and site condition in September 2026 were not verified."
+  ],
+  "primary_sources": [
+    "url=https://whc.unesco.org/en/list/836/ ; publisher=UNESCO World Heritage Centre ; publication_date=1997/live record ; accessed_at=2026-09-02 retrieval attempted ; source_type=institutional heritage record"
+  ],
+  "independent_sources": [
+    "url=https://www.icomos.org/en/what-we-do/focus/world-heritage ; publisher=ICOMOS ; publication_date=live explainer ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent expert context"
+  ],
+  "contradictory_evidence": [
+    "World Heritage status recognizes value but does not certify current conservation quality or local economic benefit."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Volubilis qriba l-Meknes w kat7mel taba9at Mauretanian, Roman w Islamic; conservation khas-ha documentation, not spectacle.",
+  "why_it_matters": "Tourism, research and local livelihoods depend on conservation choices.",
+  "strategic_angle": "Radar requests dated condition reports, contracts, visitor data and local voices.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

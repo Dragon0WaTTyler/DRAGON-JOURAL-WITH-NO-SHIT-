@@ -9,9 +9,8 @@ must run in hosted Codex Cloud and must not depend on the user's PC.
 The repository has passed the infrastructure smoke test. The archived fixture
 is **not journalism**. The recurring production schedule remains disabled.
 
-Two real `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` editions are archived
-for quality review. The next milestone is a three-day pilot; neither edition
-is recurring production.
+Pilot day 2 and all prior `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` editions
+are archived for quality review. The pilot is not recurring production.
 
 ## Repository contract
 
@@ -68,14 +67,14 @@ See [AGENTS.md](AGENTS.md), [SPEC-v1.md](SPEC-v1.md), and
 
 
 ## Latest pre-production edition
-2026-09-04 — **PRE-PRODUCTION — NOT YET DAILY PRODUCTION**
+2026-09-06 — **PRE-PRODUCTION — NOT YET DAILY PRODUCTION** — pilot day 2
 
-- [Markdown](editions/2026/09/2026-09-04/edition.md)
-- [PDF](editions/2026/09/2026-09-04/edition.pdf)
-- [EPUB](editions/2026/09/2026-09-04/edition.epub)
-- [Sources](editions/2026/09/2026-09-04/sources.json)
-- [Manifest](editions/2026/09/2026-09-04/manifest.json)
+- [Markdown](editions/2026/09/2026-09-06/edition.md)
+- [PDF](editions/2026/09/2026-09-06/edition.pdf)
+- [EPUB](editions/2026/09/2026-09-06/edition.epub)
+- [Sources](editions/2026/09/2026-09-06/sources.json)
+- [Manifest](editions/2026/09/2026-09-06/manifest.json)
 
-Previous real pre-production edition: [2026-09-03](editions/2026/09/2026-09-03/edition.md).
+Prior real pre-production editions remain archived: [2026-09-04](editions/2026/09/2026-09-04/edition.md) and [2026-09-03](editions/2026/09/2026-09-03/edition.md).
 
 The [2026-09-02 smoke fixture](editions/2026/09/2026-09-02/edition.md) remains archived separately and is not journalism.
