@@ -86,6 +86,29 @@ relevance. Meknes must use local and institutional sources and may publish an
 honest `Meknes Radar` item when conventional news is thin. Palestine must
 separate fact, claim, disputed claim, estimate, and unknown.
 
+## Editorial depth gate
+
+Technical validity is necessary but is not sufficient for a real edition.
+The pre-production validator reads all word-count thresholds from
+`config/editorial-depth.yaml`; it does not use hidden hardcoded quotas. It
+extracts Markdown H2 sections, counts narrative words, excludes Sources and
+QA/metadata filler, and writes the machine-readable report to
+`research/YYYY-MM-DD/editorial-quality-report.json`.
+
+The edition hard minimum is 4,000 words. History and Literature/Culture each
+require 800 words, Morocco 700, Palestine 500, and Science 500. Meknes
+requires 300 unless the section contains the explicit `THIN-NEWS EXCEPTION`
+marker and an honest explanation. Investigations require 600 words only when
+the dossier is being published; an explicit `RESEARCHING`,
+`NEEDS_VERIFICATION`, or `HOLD` status may document a dossier update without
+publication. The configured target ranges guide the Chief Editor but are not
+substitutes for hard minima.
+
+The Chief Editor must regenerate or remove a weak section rather than pad it.
+An old edition may therefore fail the strengthened gate and must not be
+rewritten merely to make the historical pilot pass. Publication requires both
+the technical artifact gates and the editorial-depth report to pass.
+
 ## Required artifacts
 
 Every real edition directory must contain:

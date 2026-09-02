@@ -1,0 +1,176 @@
+{
+  "date": "2026-09-04",
+  "validation_status": "FAIL",
+  "total_word_count": 1146,
+  "total": {
+    "hard_min_words": 4000,
+    "target_range": [
+      6000,
+      9000
+    ],
+    "pass": false
+  },
+  "per_section_word_counts": {
+    "history": {
+      "heading": "Tarikh l-Mghreb — Wadi l-Makhazin, wa9i3a w dakira",
+      "word_count": 124,
+      "hard_min_words": 800,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1500
+      ],
+      "pass": false
+    },
+    "literature_culture": {
+      "heading": "Adab w Culture — Mal7oun kay3ich b-n-na9l, ma-shi b-label bo7do",
+      "word_count": 119,
+      "hard_min_words": 800,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1500
+      ],
+      "pass": false
+    },
+    "morocco": {
+      "heading": "L-Mghreb — i3mar l-Houz khaso scorecard dyal natija",
+      "word_count": 114,
+      "hard_min_words": 700,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1800
+      ],
+      "pass": false
+    },
+    "palestine": {
+      "heading": "Filastin w Sharq l-Awsat — khamsa dyal labels qbel ay ticker",
+      "word_count": 138,
+      "hard_min_words": 500,
+      "publication_min_words": null,
+      "target_range": [
+        700,
+        1400
+      ],
+      "pass": false
+    },
+    "meknes": {
+      "heading": "Meknes Radar — label UNESCO ma-shi certificat dyal l-7ala",
+      "word_count": 102,
+      "hard_min_words": 300,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": false
+    },
+    "world": {
+      "heading": "L-3alam — ra2y ICJ 3la l-mnakh, qowa 9anouniya bla 7okm f-da3wa",
+      "word_count": 104,
+      "hard_min_words": null,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": true
+    },
+    "ai": {
+      "heading": "AI w Technology — NIST ma kay3tich certificat s-salama",
+      "word_count": 117,
+      "hard_min_words": null,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": true
+    },
+    "science": {
+      "heading": "Science — semaglutide w l-kla: ABSTRACT ONLY",
+      "word_count": 133,
+      "hard_min_words": 500,
+      "publication_min_words": null,
+      "target_range": [
+        700,
+        1200
+      ],
+      "pass": false
+    },
+    "investigations": {
+      "heading": "Investigations w Accountability — dossier l-Houz ba9i RESEARCHING",
+      "word_count": 121,
+      "hard_min_words": null,
+      "publication_min_words": 600,
+      "target_range": null,
+      "pass": true
+    }
+  },
+  "allowed_exceptions": {
+    "history": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "literature_culture": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "morocco": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "palestine": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "meknes": {
+      "allowed": true,
+      "used": false,
+      "reason": null
+    },
+    "world": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "ai": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "science": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "investigations": {
+      "allowed": true,
+      "used": true,
+      "reason": "dossier is explicitly not publication-ready"
+    }
+  },
+  "repeated_topic_check": {
+    "pass": true,
+    "duplicate_headings": [],
+    "memory_matches": [],
+    "memory_review_required": false
+  },
+  "chief_editor_regeneration_requests": [
+    "history section has 124 words; hard minimum is 800",
+    "literature_culture section has 119 words; hard minimum is 800",
+    "morocco section has 114 words; hard minimum is 700",
+    "palestine section has 138 words; hard minimum is 500",
+    "meknes section has 102 words; hard minimum is 300",
+    "science section has 133 words; hard minimum is 500"
+  ],
+  "language": {
+    "arabic_script_characters": 0,
+    "pass": true
+  }
+}

@@ -1,0 +1,43 @@
+version: 1
+
+# These are safeguards against superficial copy, not filler quotas.
+edition:
+  hard_min_words: 4000
+  target_words: "6000-9000"
+history:
+  hard_min_words: 800
+  target_words: "1000-1500"
+literature_culture:
+  hard_min_words: 800
+  target_words: "1000-1500"
+morocco:
+  hard_min_words: 700
+  target_words: "1000-1800"
+palestine:
+  hard_min_words: 500
+  target_words: "700-1400"
+meknes:
+  hard_min_words: 300
+  target_words: "500-1000"
+  allow_thin_news_exception: true
+world:
+  target_words: "500-1000"
+ai:
+  target_words: "500-1000"
+science:
+  hard_min_words: 500
+  target_words: "700-1200"
+investigations:
+  publication_min_words: 600
+  allow_dossier_update_without_publication: true
+
+section_aliases:
+  history: ["tarikh l-mghreb", "history"]
+  literature_culture: ["adab", "literature", "culture"]
+  morocco: ["l-mghreb", "morocco"]
+  palestine: ["filastin", "palestine"]
+  meknes: ["meknes"]
+  world: ["l-3alam", "world"]
+  ai: ["ai w technology", "ai", "technology"]
+  science: ["science"]
+  investigations: ["investigations"]

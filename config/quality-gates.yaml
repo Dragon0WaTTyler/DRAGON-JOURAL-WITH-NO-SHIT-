@@ -7,7 +7,7 @@ gates:
   accountability:
     required: [evidence_for_accusations, evidence_against_hypothesis_review]
   depth:
-    required: [history_context_and_analysis, culture_context_and_analysis]
+    required: [editorial_depth_policy, total_word_minimum, history_hard_minimum, literature_culture_hard_minimum, morocco_hard_minimum, science_hard_minimum, meknes_exception_or_minimum]
   language:
     required: [darija_latin, zero_arabic_script, no_unnecessary_full_english_or_french]
   citations:
@@ -16,4 +16,6 @@ gates:
     required: [markdown, pdf, epub, webp_cover, sources_json, manifest_json]
   archive:
     required: [validator_pass, git_commit, git_push, remote_sha_match]
+  editorial_quality_report:
+    required: [total_word_count, per_section_word_counts, hard_minimums, target_ranges, allowed_exceptions, repeated_topic_check, regeneration_requests]
 blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE]

@@ -6,6 +6,13 @@
 - can_spawn: none
 - writes: edition copy and language gate report
 
-Keep narrative in Darija Latin. Reject Arabic-script narrative and unnecessary
-full English paragraphs. Preserve facts, citations, names, official titles,
-technical terms, and proper nouns; change language and style only.
+Keep all final narrative in Moroccan Darija written in Latin characters.
+Arabic script is a hard failure. Reject full English or French narrative
+sentences when they can naturally be written in Darija. English/French may
+remain mainly for official names, study and journal titles, companies/models,
+benchmarks/datasets, technical terms, and proper nouns; headings and ordinary
+labels should normally be Darija Latin.
+
+Do not alter factual meaning, confidence, attribution, uncertainty, or
+citations. Change language and style only, then report Arabic-script count,
+full English/French paragraph count, and whether meaning changed.

@@ -65,14 +65,33 @@ must record supporting and contradictory evidence and may only move to
 1. research packets and source records exist;
 2. major claims are verified and attributed;
 3. unsupported accusations are held or removed;
-4. History and Culture meet justified long-form depth;
+4. editorial-depth gates pass using the thresholds in
+   `config/editorial-depth.yaml`;
 5. Darija Latin language gate passes with zero Arabic-script characters;
 6. citations support the relevant claims;
 7. PDF, EPUB, cover, manifest, and Markdown validate;
-8. commit, push, and exact remote SHA verification pass.
+8. the quality report is saved at
+   `research/YYYY-MM-DD/editorial-quality-report.json`;
+9. commit, push, and exact remote SHA verification pass.
 
 Each fact-check issue is `PASS`, `FIX`, or `REMOVE`. A required `FIX` or
 `REMOVE` blocks publication until resolved.
+
+### Editorial depth policy
+
+The validator parses Markdown H2 sections and counts narrative words only;
+source lists, QA notes, metadata, preproduction labels, and citation IDs do
+not satisfy depth. The edition hard minimum is 4,000 words. Hard section
+minimums are History 800, Literature/Culture 800, Morocco 700, Palestine 500,
+and Science 500. Meknes has a 300-word minimum with a narrowly-scoped,
+explicit `THIN-NEWS EXCEPTION`; Investigations have a 600-word publication
+minimum but may record a marked non-publication dossier update. World and AI
+have configured target ranges. The report records counts, thresholds,
+exceptions, repeated-topic review, and Chief Editor regeneration requests.
+
+Technical validity alone cannot publish an edition. Existing pilot editions
+are historical evidence and may fail this stronger policy; they must not be
+edited solely to make the validator pass.
 
 ## Artifact and manifest contract
 

@@ -47,6 +47,8 @@ def main() -> int:
         permissions = load_yaml(ROOT / "config/permissions.yaml")
         pipeline = load_yaml(ROOT / "config/pipeline.yaml")
         constraints = load_yaml(ROOT / "config/execution-constraints.yaml")
+        depth = load_yaml(ROOT / "config/editorial-depth.yaml")
+        quality_gates = load_yaml(ROOT / "config/quality-gates.yaml")
         editorial = load_yaml(ROOT / "config/editorial.yaml")
         schedule = load_yaml(ROOT / "config/schedule.yaml")
         output_schema = json.loads((ROOT / "config/output-schema.json").read_text(encoding="utf-8"))
@@ -104,6 +106,30 @@ def main() -> int:
         errors.append("production execution environment must be hosted-codex-cloud")
     if constraints.get("scheduling", {}).get("until_native_recurring_cloud_scheduler") != "manual-cloud-run-only":
         errors.append("schedule fallback must remain manual-cloud-run-only")
+
+    expected_depth = {
+        "edition": 4000,
+        "history": 800,
+        "literature_culture": 800,
+        "morocco": 700,
+        "palestine": 500,
+        "meknes": 300,
+        "science": 500,
+    }
+    for key, minimum in expected_depth.items():
+        if depth.get(key, {}).get("hard_min_words") != minimum:
+            errors.append(f"editorial depth {key}.hard_min_words must be {minimum}")
+        target = depth.get(key, {}).get("target_words")
+        if not isinstance(target, str) or not re.fullmatch(r"\d+\s*-\s*\d+", target):
+            errors.append(f"editorial depth {key}.target_words must be a numeric range")
+    if depth.get("investigations", {}).get("publication_min_words") != 600:
+        errors.append("editorial depth investigations.publication_min_words must be 600")
+    if depth.get("meknes", {}).get("allow_thin_news_exception") is not True:
+        errors.append("editorial depth must allow the documented Meknes thin-news exception")
+    if depth.get("investigations", {}).get("allow_dossier_update_without_publication") is not True:
+        errors.append("editorial depth must allow explicit non-publication dossier updates")
+    if "depth" not in quality_gates.get("gates", {}) or "editorial_quality_report" not in quality_gates.get("gates", {}):
+        errors.append("quality gates must include depth and editorial_quality_report gates")
 
     required_persistence = ["artifact_validation", "git_commit", "git_push", "remote_sha_match"]
     if editorial.get("publication_status_requires") != required_persistence:

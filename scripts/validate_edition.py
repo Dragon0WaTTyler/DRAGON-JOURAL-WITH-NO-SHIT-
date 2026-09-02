@@ -16,6 +16,13 @@ from pathlib import Path
 from urllib.parse import urlparse
 from xml.etree import ElementTree
 
+import yaml
+
+try:
+    from editorial_depth import evaluate, language_has_arabic_script, load_policy
+except ImportError:  # imports also work when tests load scripts as a package
+    from scripts.editorial_depth import evaluate, language_has_arabic_script, load_policy
+
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = ("edition.md", "edition.pdf", "edition.epub", "cover.webp", "sources.json", "manifest.json")
@@ -115,7 +122,7 @@ def validate_real(target: Path, manifest: dict, sources: list, edition_text: str
             errors.append(f"manifest {key} != {value!r}")
     if "PRE-PRODUCTION" not in edition_text or "NOT YET DAILY PRODUCTION" not in edition_text:
         errors.append("pre-production edition is not clearly labeled")
-    if ARABIC_SCRIPT.search(edition_text):
+    if language_has_arabic_script(edition_text):
         errors.append("edition.md contains Arabic-script characters")
     if not sources:
         errors.append("pre-production edition has no source records")
@@ -152,10 +159,55 @@ def validate_real(target: Path, manifest: dict, sources: list, edition_text: str
         errors.append("manifest citations_count does not match edition citations")
 
 
+def validate_editorial_depth(edition_date: str, edition_text: str, errors: list[str], report_path: Path) -> None:
+    try:
+        policy = load_policy(ROOT / "config/editorial-depth.yaml")
+        previous_topics: list[str] = []
+        for memory_name in ("covered-stories.json", "history-used.json", "literature-used.json"):
+            memory_path = ROOT / "memory" / memory_name
+            if not memory_path.is_file():
+                continue
+            memory = json.loads(memory_path.read_text(encoding="utf-8"))
+            if isinstance(memory, list):
+                for item in memory:
+                    if isinstance(item, dict) and isinstance(item.get("topic"), str):
+                        previous_topics.append(item["topic"])
+                    if isinstance(item, dict) and isinstance(item.get("topics"), list):
+                        previous_topics.extend(topic for topic in item["topics"] if isinstance(topic, str))
+        report = evaluate(
+            edition_text,
+            policy,
+            edition_date=edition_date,
+            previous_topics=previous_topics,
+        )
+        language_pass = not language_has_arabic_script(edition_text)
+        report["language"] = {
+            "arabic_script_characters": 0 if language_pass else 1,
+            "pass": language_pass,
+        }
+        if not language_pass:
+            report["validation_status"] = "FAIL"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
+        errors.append(f"editorial-depth policy/report failed: {exc}")
+        return
+    if report["total"]["pass"] is False:
+        errors.append(
+            f"edition has {report['total_word_count']} words; hard minimum is {report['total']['hard_min_words']}"
+        )
+    errors.extend(report["chief_editor_regeneration_requests"])
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", required=True, help="Edition date in YYYY-MM-DD format")
     parser.add_argument("--mode", choices=("smoke", "preproduction"), default="smoke")
+    parser.add_argument(
+        "--quality-report-path",
+        type=Path,
+        help="override the default research/YYYY-MM-DD/editorial-quality-report.json path",
+    )
     args = parser.parse_args()
     parsed = date.fromisoformat(args.date)
     target = edition_dir(args.date)
@@ -188,6 +240,8 @@ def main() -> int:
         validate_smoke(target, manifest, sources, edition_text, errors)
     else:
         validate_real(target, manifest, sources, edition_text, errors)
+        report_path = args.quality_report_path or ROOT / "research" / args.date / "editorial-quality-report.json"
+        validate_editorial_depth(args.date, edition_text, errors, report_path)
 
     validate_pdf(target / "edition.pdf", errors)
     cover = (target / "cover.webp").read_bytes()

@@ -42,6 +42,15 @@ scripts/                 generation and validation tools
 templates/               human-readable packet templates
 ```
 
+An edition must pass two kinds of gates: technical validity (artifacts,
+manifest, citations, and persistence) and editorial depth. The depth policy is
+centralized in [config/editorial-depth.yaml](config/editorial-depth.yaml),
+and every real-edition validation writes
+`research/YYYY-MM-DD/editorial-quality-report.json`. Source lists, metadata,
+QA notes, and citation IDs do not count as article depth. Weak historical pilot
+editions are intentionally rejected by the stronger validator and are not
+rewritten to manufacture a pass.
+
 Each edition contains:
 
 ```text
@@ -68,6 +77,11 @@ work is complete):
 ```bash
 python scripts/validate_edition.py --date YYYY-MM-DD --mode preproduction
 ```
+
+The pre-production validator enforces the configured 4,000-word edition
+minimum plus section minimums, the explicit Meknes thin-news exception, and
+the investigations non-publication status rule. It also reports repeated-topic
+matches and Chief Editor regeneration requests.
 
 The archive gate is not complete until validation, commit, push, and remote
 SHA verification all pass. An unpushed cloud commit is `NOT COMPLETE`.
