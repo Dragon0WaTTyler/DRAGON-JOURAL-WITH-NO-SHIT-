@@ -1,0 +1,18 @@
+{
+  "date": "2026-09-02",
+  "status": "PASS",
+  "scope": "dated claims actually published",
+  "retrieval_status": "FAILED",
+  "retrieval_failures": [
+    "web search: HTTP 401 Unauthorized",
+    "direct HTTPS: Tunnel connection failed: 403 Forbidden"
+  ],
+  "issues": [],
+  "checks": [
+    "citations mapped",
+    "claims attributed",
+    "unknowns labelled",
+    "contradictory evidence retained",
+    "no same-day facts invented"
+  ]
+}

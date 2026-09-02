@@ -1,0 +1,169 @@
+{
+  "date": "2026-09-02",
+  "validation_status": "PASS",
+  "total_word_count": 4806,
+  "total": {
+    "hard_min_words": 4000,
+    "target_range": [
+      6000,
+      9000
+    ],
+    "pass": true
+  },
+  "per_section_word_counts": {
+    "history": {
+      "heading": "Tarikh l-Mghreb — nfi Mohammed V bin symbol w ta3addod l-mo9awama",
+      "word_count": 836,
+      "hard_min_words": 800,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1500
+      ],
+      "pass": true
+    },
+    "literature_culture": {
+      "heading": "Adab w Culture — Mohammed Choukri, sawt l-hamich w sou9 tarjama",
+      "word_count": 825,
+      "hard_min_words": 800,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1500
+      ],
+      "pass": true
+    },
+    "morocco": {
+      "heading": "L-Mghreb — sou9 choghl ta7t L7OKM DYAL L2ADILLA",
+      "word_count": 743,
+      "hard_min_words": 700,
+      "publication_min_words": null,
+      "target_range": [
+        1000,
+        1800
+      ],
+      "pass": true
+    },
+    "palestine": {
+      "heading": "Filastin w Sharq l-Awsat — l-kelma 9bel r-ra9m",
+      "word_count": 555,
+      "hard_min_words": 500,
+      "publication_min_words": null,
+      "target_range": [
+        700,
+        1400
+      ],
+      "pass": true
+    },
+    "meknes": {
+      "heading": "Meknes — daftar l-ma bin l-7awd w l-7ouma",
+      "word_count": 413,
+      "hard_min_words": 300,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": true
+    },
+    "world": {
+      "heading": "L-3alam — ta3ahodat l-mnakh w imti7an l-j",
+      "word_count": 140,
+      "hard_min_words": null,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": true
+    },
+    "ai": {
+      "heading": "AI w Technology — UNESCO ethics ma-shi cachet dyal aman",
+      "word_count": 209,
+      "hard_min_words": null,
+      "publication_min_words": null,
+      "target_range": [
+        500,
+        1000
+      ],
+      "pass": true
+    },
+    "science": {
+      "heading": "Science — CAR-T f-lupus: signal 9wi, sample sghir",
+      "word_count": 560,
+      "hard_min_words": 500,
+      "publication_min_words": null,
+      "target_range": [
+        700,
+        1200
+      ],
+      "pass": true
+    },
+    "investigations": {
+      "heading": "Investigations w Accountability — l-ma: dossier ba9i RESEARCHING",
+      "word_count": 189,
+      "hard_min_words": null,
+      "publication_min_words": 600,
+      "target_range": null,
+      "pass": true
+    }
+  },
+  "allowed_exceptions": {
+    "history": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "literature_culture": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "morocco": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "palestine": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "meknes": {
+      "allowed": true,
+      "used": false,
+      "reason": null
+    },
+    "world": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "ai": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "science": {
+      "allowed": false,
+      "used": false,
+      "reason": null
+    },
+    "investigations": {
+      "allowed": true,
+      "used": true,
+      "reason": "dossier is explicitly not publication-ready"
+    }
+  },
+  "repeated_topic_check": {
+    "pass": true,
+    "duplicate_headings": [],
+    "memory_matches": [],
+    "memory_review_required": false
+  },
+  "chief_editor_regeneration_requests": [],
+  "language": {
+    "arabic_script_characters": 0,
+    "pass": true
+  }
+}

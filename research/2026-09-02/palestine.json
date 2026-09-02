@@ -1,0 +1,29 @@
+{
+  "story_id": "palestine-2026-09-02",
+  "proposed_title": "FACT, CLAIM, DISPUTED, ESTIMATE, UNKNOWN",
+  "importance_score": 7.4,
+  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "key_facts": [
+    "No same-day factual claim was retrievable; exact failure retained.",
+    "Dated claims selected for synthesis are tied to source IDs S09, S10, S11, S12, S13."
+  ],
+  "primary_sources": [
+    "https://www.icj-cij.org/case/186",
+    "https://www.icrc.org/en/war-and-law",
+    "https://www.ochaopt.org/",
+    "https://www.who.int/emergencies/situations/conflict-in-Israel-and-oPt"
+  ],
+  "independent_sources": [
+    "https://apnews.com/hub/israel-hamas-war"
+  ],
+  "contradictory_evidence": [
+    "Commitment is not measured result.",
+    "Evidence against the working hypothesis must be collected before a verdict."
+  ],
+  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
+  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
+  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
+  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

@@ -1,6 +1,245 @@
 [
   {
-    "id": "synthetic-fixture",
-    "type": "test-fixture"
+    "id": "S01",
+    "url": "https://www.hcp.ma/Emploi_r41.html",
+    "publisher": "Haut-Commissariat au Plan",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary national statistics",
+    "claim_supported": "labour force survey methods and releases"
+  },
+  {
+    "id": "S02",
+    "url": "https://www.bkam.ma/en/Monetary-Policy",
+    "publisher": "Bank Al-Maghrib",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary central bank",
+    "claim_supported": "macroeconomic context"
+  },
+  {
+    "id": "S03",
+    "url": "https://ilostat.ilo.org/topics/unemployment-and-labour-underutilization/",
+    "publisher": "ILOSTAT",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary multilateral statistics",
+    "claim_supported": "international labour definitions"
+  },
+  {
+    "id": "S04",
+    "url": "https://data.worldbank.org/indicator/SL.UEM.TOTL.ZS?locations=MA",
+    "publisher": "World Bank Data",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent data republisher",
+    "claim_supported": "modelled comparative unemployment series"
+  },
+  {
+    "id": "S05",
+    "url": "https://www.abhsebou.ma/",
+    "publisher": "Agence du Bassin Hydraulique du Sebou",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary local water institution",
+    "claim_supported": "Sebou basin institutional trail"
+  },
+  {
+    "id": "S06",
+    "url": "https://www.region-fes-meknes.ma/",
+    "publisher": "Region Fes-Meknes",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary regional institution",
+    "claim_supported": "regional project and governance trail"
+  },
+  {
+    "id": "S07",
+    "url": "https://www.meknes.ma/",
+    "publisher": "Commune de Meknes",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary municipal institution",
+    "claim_supported": "municipal decisions and service trail"
+  },
+  {
+    "id": "S08",
+    "url": "https://www.umi.ac.ma/",
+    "publisher": "Universite Moulay Ismail",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary academic institution",
+    "claim_supported": "local independent research trail"
+  },
+  {
+    "id": "S09",
+    "url": "https://www.icj-cij.org/case/186",
+    "publisher": "International Court of Justice",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary judicial record",
+    "claim_supported": "2024 advisory opinion record"
+  },
+  {
+    "id": "S10",
+    "url": "https://www.icrc.org/en/war-and-law",
+    "publisher": "ICRC",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "authoritative legal explainer",
+    "claim_supported": "international humanitarian law duties"
+  },
+  {
+    "id": "S11",
+    "url": "https://www.ochaopt.org/",
+    "publisher": "UN OCHA oPt",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary humanitarian portal",
+    "claim_supported": "humanitarian reporting and methodology trail"
+  },
+  {
+    "id": "S12",
+    "url": "https://www.who.int/emergencies/situations/conflict-in-Israel-and-oPt",
+    "publisher": "WHO",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary health institution",
+    "claim_supported": "health emergency reporting trail"
+  },
+  {
+    "id": "S13",
+    "url": "https://apnews.com/hub/israel-hamas-war",
+    "publisher": "Associated Press",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent reporting",
+    "claim_supported": "independent cross-check trail; no current claim used"
+  },
+  {
+    "id": "S14",
+    "url": "https://unfccc.int/process-and-meetings/the-paris-agreement",
+    "publisher": "UNFCCC",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary treaty institution",
+    "claim_supported": "Paris Agreement and NDC process"
+  },
+  {
+    "id": "S15",
+    "url": "https://www.unep.org/resources/emissions-gap-report-2024",
+    "publisher": "UNEP",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent multilateral analysis",
+    "claim_supported": "independent synthesis of pledge/emissions gap"
+  },
+  {
+    "id": "S16",
+    "url": "https://unesdoc.unesco.org/ark:/48223/pf0000381137",
+    "publisher": "UNESCO",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary normative text",
+    "claim_supported": "2021 AI ethics recommendation"
+  },
+  {
+    "id": "S17",
+    "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+    "publisher": "NIST",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent public technical framework",
+    "claim_supported": "AI risk management framework"
+  },
+  {
+    "id": "S18",
+    "url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2308917",
+    "publisher": "New England Journal of Medicine",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "peer-reviewed original article",
+    "claim_supported": "15-patient CD19 CAR-T autoimmune disease study"
+  },
+  {
+    "id": "S19",
+    "url": "https://www.nature.com/articles/s41584-024-01097-y",
+    "publisher": "Nature Reviews Rheumatology",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "peer-reviewed expert review",
+    "claim_supported": "independent expert context on CAR-T and autoimmunity"
+  },
+  {
+    "id": "S20",
+    "url": "https://www.archivesdumaroc.ma/",
+    "publisher": "Archives du Maroc",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary national archive",
+    "claim_supported": "1953-1955 documentary trail"
+  },
+  {
+    "id": "S21",
+    "url": "https://archivesdiplomatiques.diplomatie.gouv.fr/",
+    "publisher": "France Diplomatie Archives",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary colonial archive",
+    "claim_supported": "protectorate diplomatic documentary trail"
+  },
+  {
+    "id": "S22",
+    "url": "https://nyupress.org/9780814766774/morocco-since-1830/",
+    "publisher": "NYU Press",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "university press scholarship",
+    "claim_supported": "independent scholarly synthesis of modern Morocco"
+  },
+  {
+    "id": "S23",
+    "url": "https://www.britannica.com/biography/Mohammed-Choukri",
+    "publisher": "Encyclopaedia Britannica",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent reference",
+    "claim_supported": "Choukri biographical record"
+  },
+  {
+    "id": "S24",
+    "url": "https://search.worldcat.org/title/For-bread-alone/oclc/4495457",
+    "publisher": "WorldCat",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "independent library catalogue",
+    "claim_supported": "bibliographic publication and translation trail"
+  },
+  {
+    "id": "S25",
+    "url": "https://aucpress.com/9789774247340/for-bread-alone/",
+    "publisher": "American University in Cairo Press",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "publisher primary record",
+    "claim_supported": "publisher record for English edition"
+  },
+  {
+    "id": "S26",
+    "url": "https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security",
+    "publisher": "World Bank",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary multilateral financing decision",
+    "claim_supported": "water-security financing decision"
+  },
+  {
+    "id": "S27",
+    "url": "https://projects.worldbank.org/en/projects-operations/project-detail/P179192",
+    "publisher": "World Bank Projects",
+    "publication_date": "dated record or live institutional page; see claim metadata",
+    "accessed_at": "2026-09-02T09:00:00+01:00 (retrieval attempted; 401/403 where noted)",
+    "source_type": "primary project record",
+    "claim_supported": "P179192 results and implementation trail"
   }
 ]

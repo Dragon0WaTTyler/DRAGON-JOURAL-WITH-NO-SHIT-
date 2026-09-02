@@ -1,12 +1,29 @@
 {
   "date": "2026-09-02",
-  "status": "published",
+  "mode": "preproduction",
+  "status": "pre-production",
   "language": "darija-latin",
   "pdf": "edition.pdf",
   "epub": "edition.epub",
   "cover": "cover.webp",
   "fact_check": "passed",
   "language_check": "passed",
-  "sources_count": 1,
-  "smoke_test": true
+  "sources_count": 27,
+  "citations_count": 36,
+  "sections": [
+    "Front Page — l-khedma ma kattsawash b-l-wa3d",
+    "L-Mghreb — sou9 choghl ta7t L7OKM DYAL L2ADILLA",
+    "Meknes — daftar l-ma bin l-7awd w l-7ouma",
+    "Filastin w Sharq l-Awsat — l-kelma 9bel r-ra9m",
+    "L-3alam — ta3ahodat l-mnakh w imti7an l-j",
+    "AI w Technology — UNESCO ethics ma-shi cachet dyal aman",
+    "Science — CAR-T f-lupus: signal 9wi, sample sghir",
+    "Tarikh l-Mghreb — nfi Mohammed V bin symbol w ta3addod l-mo9awama",
+    "Adab w Culture — Mohammed Choukri, sawt l-hamich w sou9 tarjama",
+    "Investigations w Accountability — l-ma: dossier ba9i RESEARCHING",
+    "Fact-check, Darija QA w Quality Scorecard",
+    "Sources"
+  ],
+  "smoke_test": false,
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION"
 }
