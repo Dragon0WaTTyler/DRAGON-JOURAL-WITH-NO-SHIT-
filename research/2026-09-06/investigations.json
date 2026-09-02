@@ -1,0 +1,29 @@
+{
+  "story_id": "investigations-pilot-2026-09-06",
+  "proposed_title": "Ta79i9 l-ma: mn programme l-robinet",
+  "importance_score": 8.5,
+  "what_happened": "FACT — The World Bank approved US$350 million in 2023 for Morocco's National Program for Drinking Water Supply and Irrigation 2020-2027. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — The World Bank approved US$350 million in 2023 for Morocco's National Program for Drinking Water Supply and Irrigation 2020-2027.",
+    "CLAIM — Programme financing and targets show institutional commitment, not proof of water delivered equitably.",
+    "UNKNOWN — 2026 disbursement, dam storage, leakage, aquifer extraction and household continuity were not retrievable."
+  ],
+  "primary_sources": [
+    "url=https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security ; publisher=World Bank ; publication_date=2023-07-18 ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary lender decision",
+    "url=https://projects.worldbank.org/en/projects-operations/project-detail/P179192 ; publisher=World Bank Projects ; publication_date=live project record ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary monitoring route"
+  ],
+  "independent_sources": [
+    "url=https://www.fao.org/aquastat/en/ ; publisher=FAO AQUASTAT ; publication_date=live database ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent multilateral data route",
+    "url=https://climateknowledgeportal.worldbank.org/country/morocco ; publisher=World Bank Climate Knowledge Portal ; publication_date=live ; accessed_at=2026-09-02 retrieval attempted ; source_type=climate context"
+  ],
+  "contradictory_evidence": [
+    "New supply can improve resilience, while leakage, pricing, unequal access and groundwater depletion can undercut outcomes.",
+    "A national aggregate may hide rural interruptions and basin-level stress."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Water security combines supply, demand, governance, ecology and affordability.",
+  "why_it_matters": "It touches homes, farms, cities and public trust.",
+  "strategic_angle": "Dossier needs basin-level inputs, contracts, audits and household service evidence; retain evidence for and against effectiveness.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

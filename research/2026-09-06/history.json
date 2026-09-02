@@ -1,0 +1,28 @@
+{
+  "story_id": "history-pilot-2026-09-06",
+  "proposed_title": "Tarikh l-Mghreb: Wati9at Fes w ta3addod l-qra2at",
+  "importance_score": 8.0,
+  "what_happened": "FACT — The Treaty of Fez was signed on 30 March 1912 and established the French protectorate framework in Morocco. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — The Treaty of Fez was signed on 30 March 1912 and established the French protectorate framework in Morocco.",
+    "FACT — The treaty text and later nationalist memory are different source types.",
+    "DISAGREEMENT — Historians debate the balance among coercion, debt, diplomacy, imperial rivalry, makhzen crisis and Moroccan resistance."
+  ],
+  "primary_sources": [
+    "url=https://gallica.bnf.fr/ark:/12148/bpt6k5612303j ; publisher=Bibliotheque nationale de France/Gallica ; publication_date=1912 digitized record ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary historical print route"
+  ],
+  "independent_sources": [
+    "url=https://doi.org/10.1017/CBO9780511583285 ; publisher=Cambridge University Press/C.R. Pennell ; publication_date=2000 ; accessed_at=2026-09-02 retrieval attempted ; source_type=scholarly synthesis",
+    "url=https://www.britannica.com/place/Morocco/The-French-Zone ; publisher=Encyclopaedia Britannica ; publication_date=live reference ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent reference"
+  ],
+  "contradictory_evidence": [
+    "A signed treaty alone cannot reveal popular consent or the full coercive setting.",
+    "A single colonial archive cannot represent Moroccan resistance or everyday experience."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "The protectorate reshaped sovereignty, administration, land and resistance; the 1956 end date does not erase institutional legacies.",
+  "why_it_matters": "Present debates over archives and memory require evidence rather than slogans.",
+  "strategic_angle": "Read treaty wording against Moroccan voices and modern scholarship; state disagreements.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

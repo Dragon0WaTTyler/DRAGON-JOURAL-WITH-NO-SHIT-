@@ -1,0 +1,13 @@
+{
+  "dossier_id":"morocco-water-security-2020-2027",
+  "question":"Wash financement w targets dyal programme l-ma kaywslou l-service 3adil, mostadim w qabel l-qiyas basin b basin?",
+  "status":"RESEARCHING",
+  "claims":["World Bank approved US$350 million in July 2023 for a Morocco water-security Program-for-Results.","Financing and indicators establish commitments, not household delivery.","September 2026 delivery remains UNKNOWN because hosted retrieval failed."],
+  "supporting_evidence":["World Bank approval release dated 2023-07-18 identifies amount and programme.","Project P179192 is the primary monitoring route."],
+  "contradictory_evidence":["Infrastructure milestones could contradict a claim that nothing was achieved.","Leakage, interruptions, unequal access or aquifer depletion could contradict a claim of success.","National aggregates can improve while a basin or household has worse service."],
+  "timeline":["2020: national programme period begins.","2023-07-18: World Bank announces approval.","2026-09-02: retrieval attempted; search returned 401 and HTTPS returned proxy 403.","2026-09-06: edition date; no future event asserted."],
+  "sources":["https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security","https://projects.worldbank.org/en/projects-operations/project-detail/P179192","https://www.fao.org/aquastat/en/","https://climateknowledgeportal.worldbank.org/country/morocco"],
+  "missing_evidence":["Latest disbursement and results report.","Basin-level storage, extraction and recharge.","Leakage, interruption, tariff and affordability data.","Contracts, audits and independent household sample."],
+  "unanswered_questions":["Ch7al t3ahdo bih, tsref, w t-verifa ka-result?","Fin kayban l-far9 bin l-mdina, l-qarya w l-basin?","Wash supply jdida katna9s groundwater depletion?","Ashmen evidence t9dar tna9ed hypothesis dyal unequal delivery?"],
+  "confidence":"medium"
+}

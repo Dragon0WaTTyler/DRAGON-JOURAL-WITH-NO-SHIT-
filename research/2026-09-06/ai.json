@@ -1,0 +1,28 @@
+{
+  "story_id": "ai-pilot-2026-09-06",
+  "proposed_title": "AI Act: timeline ma-shi safety badge",
+  "importance_score": 8.0,
+  "what_happened": "FACT — EU Regulation 2024/1689 entered into force on 1 August 2024 and applies in stages. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "FACT — EU Regulation 2024/1689 entered into force on 1 August 2024 and applies in stages.",
+    "FACT — The regulation uses risk categories and includes obligations for providers and deployers; applicability depends on role and use.",
+    "UNKNOWN — Enforcement actions, later guidance and any Moroccan deployment's compliance on 2026-09-06 were not verified."
+  ],
+  "primary_sources": [
+    "url=https://eur-lex.europa.eu/eli/reg/2024/1689/oj ; publisher=Official Journal of the European Union ; publication_date=2024-07-12 ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary law",
+    "url=https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai ; publisher=European Commission ; publication_date=live explainer ; accessed_at=2026-09-02 retrieval attempted ; source_type=official implementation explainer"
+  ],
+  "independent_sources": [
+    "url=https://www.nist.gov/itl/ai-risk-management-framework ; publisher=NIST ; publication_date=2023/live ; accessed_at=2026-09-02 retrieval attempted ; source_type=independent technical framework"
+  ],
+  "contradictory_evidence": [
+    "Legal compliance is not proof of accuracy, fairness, cybersecurity or fitness for a specific Darija-speaking population.",
+    "A vendor's 'AI Act ready' statement is a COMPANY CLAIM unless scope, evidence and assessor are disclosed."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Rules can reach actors beyond Europe depending on market and use, but exact legal scope needs counsel.",
+  "why_it_matters": "Procurement can affect rights, privacy and public money.",
+  "strategic_angle": "Demand local-language tests, incident logs, appeal, data governance and an exit plan.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

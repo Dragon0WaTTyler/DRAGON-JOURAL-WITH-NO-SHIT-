@@ -1,0 +1,28 @@
+{
+  "story_id": "science-pilot-2026-09-06",
+  "proposed_title": "Malaria vaccine: recommendation ma-shi wa9aya kamla",
+  "importance_score": 8.0,
+  "what_happened": "ABSTRACT ONLY — A phase 3 R21/Matrix-M trial abstract reported efficacy over 12 months in African children, with results varying by seasonal versus standard administration. Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted.",
+  "key_facts": [
+    "ABSTRACT ONLY — A phase 3 R21/Matrix-M trial abstract reported efficacy over 12 months in African children, with results varying by seasonal versus standard administration.",
+    "FACT — WHO recommended R21/Matrix-M in October 2023 as the second malaria vaccine, alongside RTS,S.",
+    "UNKNOWN — Full-text details were not retrieved in this run; September 2026 supply, rollout and effectiveness are UNKNOWN."
+  ],
+  "primary_sources": [
+    "url=https://www.who.int/news/item/02-10-2023-who-recommends-r21-matrix-m-vaccine-for-malaria-prevention-in-updated-advice-on-immunization ; publisher=WHO ; publication_date=2023-10-02 ; accessed_at=2026-09-02 retrieval attempted ; source_type=primary recommendation"
+  ],
+  "independent_sources": [
+    "url=https://doi.org/10.1016/S0140-6736(23)02511-4 ; publisher=The Lancet ; publication_date=2024-02-01 ; accessed_at=2026-09-02 abstract route attempted ; source_type=peer-reviewed trial ABSTRACT ONLY",
+    "url=https://clinicaltrials.gov/study/NCT04704830 ; publisher=ClinicalTrials.gov ; publication_date=2021/live record ; accessed_at=2026-09-02 retrieval attempted ; source_type=trial registry"
+  ],
+  "contradictory_evidence": [
+    "Trial efficacy is not identical to field effectiveness; follow-up, transmission season, dosing and access matter.",
+    "A recommendation complements nets, diagnosis, treatment and vector control rather than replacing them."
+  ],
+  "uncertainty": "Live search was attempted on 2026-09-02 in the hosted task and returned HTTP 401; direct HTTPS returned proxy 403. No 2026-09-06 event is asserted. Current status is UNKNOWN.",
+  "context": "Malaria remains a major African public-health burden; evidence must be translated without miracle language.",
+  "why_it_matters": "Readers need absolute outcomes, safety and implementation evidence, not a headline percentage.",
+  "strategic_angle": "Hold exact efficacy numbers until full text is available; publish ABSTRACT ONLY limitations.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

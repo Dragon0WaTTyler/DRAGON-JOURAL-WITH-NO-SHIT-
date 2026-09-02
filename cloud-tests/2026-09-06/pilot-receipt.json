@@ -1,0 +1,93 @@
+{
+  "execution_environment": "hosted Codex Cloud task; no local PC, localhost, desktop files, local process, local credentials, or schedule used",
+  "execution_status": "COMPLETE",
+  "date": "2026-09-06",
+  "pilot_day": 2,
+  "mode": "preproduction",
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "research_cutoff": "2026-09-02",
+  "live_retrieval": "UNAVAILABLE: hosted web search returned HTTP 401 and direct HTTPS returned proxy HTTP 403; dated context only, with current and future status labeled UNKNOWN",
+  "validation": {
+    "edition": "PASS",
+    "packets": "PASS: nine of nine",
+    "fact_check": "PASS",
+    "darija_latin": "PASS: zero Arabic-script characters",
+    "pypdf": "PASS: 4 pages and label extracted",
+    "pdfinfo": "PASS: 4-page A4 PDF, correct title and required subject label, unencrypted, no JavaScript",
+    "epub": "PASS: mimetype, package and 18 archive members inspected",
+    "webp": "PASS: WEBP 1200x1600",
+    "manifest_citations": "PASS: 25 source IDs exactly match citations",
+    "secret_inspection": "PASS",
+    "schedule": "PASS: enabled false"
+  },
+  "artifacts": [
+    "edition.md",
+    "edition.pdf",
+    "edition.epub",
+    "cover.webp",
+    "sources.json",
+    "manifest.json"
+  ],
+  "source_count": 25,
+  "citations_count": 27,
+  "scorecard": {
+    "morocco": {
+      "score": 8,
+      "note": "capacity target separated from generation"
+    },
+    "meknes": {
+      "score": 8,
+      "note": "institutional heritage baseline and honest Radar"
+    },
+    "palestine_middle_east": {
+      "score": 9,
+      "note": "five evidence labels explicit"
+    },
+    "world": {
+      "score": 8,
+      "note": "adoption separated from implementation"
+    },
+    "ai_technology": {
+      "score": 8,
+      "note": "law and company claim separated from safety"
+    },
+    "science": {
+      "score": 8,
+      "note": "ABSTRACT ONLY and exact effect withheld"
+    },
+    "tarikh_l_mghreb": {
+      "score": 8,
+      "note": "substantial context and disagreement"
+    },
+    "adab_culture": {
+      "score": 8,
+      "note": "recognition separated from practitioner outcomes"
+    },
+    "investigations": {
+      "score": 8,
+      "note": "supporting and contradictory evidence retained"
+    },
+    "fact_check": {
+      "score": 10,
+      "note": "no blocking findings"
+    },
+    "darija_qa": {
+      "score": 10,
+      "note": "Latin script gate passed"
+    },
+    "publishing": {
+      "score": 10,
+      "note": "six artifacts passed; pypdf and pdfinfo inspections passed"
+    }
+  },
+  "edition_commit_sha": "598afe09f7c6ef3d45b2411b4c0055f8fe007784",
+  "final_persistence_commit_sha": "2c04e8c4b3e07ca19b34feb5282bbd394e19b8ec",
+  "final_remote_sha": "2c04e8c4b3e07ca19b34feb5282bbd394e19b8ec",
+  "persistence_status": "COMPLETE: day-2 commit was integrated with origin/main without force; merge commit 2c04e8c4b3e07ca19b34feb5282bbd394e19b8ec was pushed and git ls-remote exactly matched before this receipt correction.",
+  "schedule_enabled": false,
+  "preserved_editions": [
+    "editions/2026/09/2026-09-02",
+    "editions/2026/09/2026-09-03",
+    "editions/2026/09/2026-09-04"
+  ]
+}
