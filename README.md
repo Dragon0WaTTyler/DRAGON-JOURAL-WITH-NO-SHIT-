@@ -58,6 +58,25 @@ python scripts/validate_edition.py --date YYYY-MM-DD --mode preproduction
 The archive gate is not complete until validation, commit, push, and remote
 SHA verification all pass. An unpushed cloud commit is `NOT COMPLETE`.
 
+## Pipeline runner
+
+After Cloud editorial roles have written the nine packets, fact-check report,
+and Darija gate report, run the deterministic pipeline wrapper:
+
+```bash
+python scripts/run_pipeline.py --date YYYY-MM-DD --dry-run
+python scripts/run_pipeline.py --date YYYY-MM-DD
+```
+
+The dry run performs all configuration, packet, sequential-gate, and edition
+checks. The normal run renders the six artifacts, stages only the dated
+research/archive outputs plus `README.md`, commits, pushes `HEAD` to
+`origin/main` without force, and requires an exact `git ls-remote` SHA match.
+It refuses a dirty worktree, a non-cloud schedule, failed gates, or a missing
+research packet. Use `--stage-path memory/...` or
+`--stage-path investigations/...` when the Chief Editor changed persistent
+editorial state during the same run.
+
 See [AGENTS.md](AGENTS.md), [SPEC-v1.md](SPEC-v1.md), and
 [PREPRODUCTION.md](PREPRODUCTION.md) for the operating contract.
 

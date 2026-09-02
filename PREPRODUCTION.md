@@ -30,13 +30,21 @@ This runbook is for the first real edition. It is not the production schedule.
 8. Run:
 
    ```bash
-   python scripts/validate_edition.py --date YYYY-MM-DD --mode preproduction
+   python scripts/run_pipeline.py --date YYYY-MM-DD --dry-run
    ```
 
-9. Inspect the actual Markdown, rendered PDF, EPUB structure, cover, sources,
+9. After the dry run passes, run the persistence wrapper from hosted Cloud:
+
+   ```bash
+   python scripts/run_pipeline.py --date YYYY-MM-DD
+   ```
+
+   Add each changed durable memory or investigation path with a repeated
+   `--stage-path` option. The wrapper renders the derivatives, validates the
+   actual Markdown, PDF, EPUB structure, cover, sources,
    and manifest. Do not trust filenames alone.
-10. Commit with subject `preproduction: YYYY-MM-DD`, push `origin/main`, and
-    verify:
+10. The wrapper commits with subject `preproduction: YYYY-MM-DD`, pushes
+    `origin/main`, and verifies:
 
     ```bash
     git ls-remote origin refs/heads/main
