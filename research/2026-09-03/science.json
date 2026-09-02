@@ -1,0 +1,37 @@
+{
+  "story_id": "science-lenacapavir-purpose1-prevention",
+  "proposed_title": "Wa7d l-7o9na kol 6 shhor l-wi9aya men HIV: natija 9wiya, walakin l-wosol w-l-mo9awama homa l-imti7an",
+  "importance_score": 8.0,
+  "what_happened": "A randomized phase 3 trial among adolescent girls and young women in South Africa and Uganda reported zero HIV infections in the twice-yearly lenacapavir group during the primary analysis, compared with background incidence and with infections in the daily oral-PrEP groups. This packet read the PubMed abstract and public trial reports, not the full NEJM article: ABSTRACT ONLY.",
+  "key_facts": [
+    "PUBLICATION STATUS — Peer-reviewed New England Journal of Medicine article published in 2024; ClinicalTrials.gov registration NCT04994509.",
+    "ACCESS LEVEL — ABSTRACT ONLY. The full article was not read in this run.",
+    "QUESTION/METHOD — Double-blind randomized phase 3 trial tested twice-yearly subcutaneous lenacapavir versus daily oral emtricitabine-tenofovir regimens; HIV incidence was compared with estimated background incidence.",
+    "SAMPLE — 5,338 participants were randomized; 2,134 received lenacapavir, as reported in the abstract.",
+    "FINDING/EFFECT — 0 infections among 2,134 lenacapavir recipients (100% efficacy versus estimated background incidence in the analysis); infections occurred in the oral-PrEP groups, where adherence was reported as low.",
+    "LIMITATIONS — Comparison with estimated background incidence is not the same as a placebo arm; trial population and delivery conditions limit generalization; injections require services; longer-term safety, resistance, pregnancy considerations, price and access remain material.",
+    "CAUSATION — Randomization supports a causal efficacy inference for the studied regimen and population, but comparative interpretation is complicated by adherence differences.",
+    "REPLICATION — A separate phase 3 study, PURPOSE 2, reported high efficacy in a broader population, but this packet did not read that full paper. Treat as supportive, not a substitute for full appraisal.",
+    "COMPANY CLAIM — Gilead's access, pricing and rollout statements are company claims and must not be reported as delivered access without procurement and country-level evidence."
+  ],
+  "primary_sources": [
+    "https://pubmed.ncbi.nlm.nih.gov/39046157/ — Bekker et al., New England Journal of Medicine, 2024, accessed 2026-09-02, peer-reviewed abstract (ABSTRACT ONLY), supports design, sample and primary efficacy result",
+    "https://clinicaltrials.gov/study/NCT04994509 — ClinicalTrials.gov, PURPOSE 1 record, accessed 2026-09-02, primary registry, supports prespecified design, arms and outcomes",
+    "https://www.gilead.com/news/news-details/2024/gileads-twice-yearly-lenacapavir-demonstrated-100-efficacy-and-superiority-to-daily-truvada-for-hiv-prevention — Gilead Sciences, 2024-06-20, accessed 2026-09-02, sponsor release; COMPANY CLAIM source only for sponsor framing and access commitments"
+  ],
+  "independent_sources": [
+    "https://www.who.int/news/item/26-07-2024-who-welcomes-new-trial-results-for-lenacapavir-for-hiv-prevention — WHO, 2024-07-26, accessed 2026-09-02, independent public-health assessment, supports significance and access caveats",
+    "https://www.iasociety.org/news-release/ias-calls-urgent-access-lenacapavir-following-presentation-full-purpose-1-data-aids-2024 — International AIDS Society, 2024-07-24, accessed 2026-09-02, independent professional-society response, supports equity and implementation concerns"
+  ],
+  "contradictory_evidence": [
+    "The striking zero-infection result does not prove population-level elimination: effectiveness outside a trial depends on uptake, injection timing, service capacity and affordability.",
+    "Daily oral PrEP is already highly effective when taken as prescribed; poorer trial outcomes in oral groups should not be translated into biological inferiority without accounting for low adherence.",
+    "The sponsor's access commitments do not establish affordable availability in Morocco or elsewhere."
+  ],
+  "uncertainty": "Medium. The primary endpoint is clear in the peer-reviewed abstract, but this desk did not read the full text and could not verify post-2024 regulatory status, Morocco availability, price, updated safety or resistance findings as of 2 September 2026.",
+  "context": "Long-acting prevention may reduce the daily-pill adherence burden, especially where stigma, privacy and continuity complicate oral PrEP. It can also shift burdens toward clinic capacity and reliable six-month delivery.",
+  "why_it_matters": "For Morocco and Africa, scientific efficacy becomes public-health impact only if approval, procurement, testing, trained services, pharmacovigilance and equitable pricing arrive together.",
+  "strategic_angle": "Publish as a science-method and access explainer, not as breaking 2026 approval news. Keep the headline result beside denominators, comparator design, adherence, ABSTRACT ONLY status and unverified Morocco access.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

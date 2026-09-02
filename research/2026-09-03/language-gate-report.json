@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-03",
+  "gate": "darija-language",
+  "status": "passed",
+  "master": "editions/2026/09/2026-09-03/edition.md",
+  "checks": {
+    "darija_latin": "PASS",
+    "arabic_script_characters": 0,
+    "unnecessary_full_english_or_french_paragraphs": 0,
+    "factual_meaning_preserved": "PASS"
+  }
+}

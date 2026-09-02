@@ -1,0 +1,14 @@
+{
+  "date": "2026-09-03",
+  "gate": "fact-check",
+  "status": "passed",
+  "issues": [
+    {"status": "PASS", "issue": "All material claims retained in edition.md carry source IDs."},
+    {"status": "PASS", "issue": "Day-specific September 2026 developments not verified live are labeled UNKNOWN or omitted."},
+    {"status": "PASS", "issue": "Palestine material separates FACT, CLAIM, DISPUTED, ESTIMATE and UNKNOWN."},
+    {"status": "PASS", "issue": "Lenacapavir story says ABSTRACT ONLY and labels sponsor access statements COMPANY CLAIM."},
+    {"status": "PASS", "issue": "Budgets and financing decisions are not represented as completed spending or outcomes."},
+    {"status": "PASS", "issue": "Al Haouz dossier contains no unsupported accusation and retains contradictory evidence."}
+  ],
+  "blocking_findings": []
+}

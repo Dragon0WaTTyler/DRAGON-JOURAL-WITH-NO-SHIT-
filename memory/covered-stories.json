@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "date": "2026-09-03",
+    "story_id": "ai",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "history",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "investigations",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "literature-culture",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "meknes",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "morocco",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "palestine",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "science",
+    "mode": "preproduction"
+  },
+  {
+    "date": "2026-09-03",
+    "story_id": "world",
+    "mode": "preproduction"
+  }
+]

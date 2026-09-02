@@ -1,0 +1,53 @@
+{
+  "dossier_id": "al-haouz-reconstruction-2023-2028",
+  "question": "Wash wa3d, sarf, w-nata2ij dyal programme i3mar l-Houz 2024-2028 kaytla9aw b-wodo7 men l-budget l-dar w-l-khadma li wslat l-kol qarya?",
+  "status": "RESEARCHING",
+  "claims": [
+    "Official programme claim: envelope dyal 120 milyar dirham 3la 2024-2028 kayghatti 4.2 million sakn f-6 a9alim; had ra9m programme multi-sector, ma-shi sarf monjaz.",
+    "World Bank financing claim: $1 billion Program-for-Results kaysaned recovery/resilience w-kayrbet financing b-results; exact disbursement and verified indicators khas-hom extract men implementation reports.",
+    "Residents' claim reported independently: ba3d l-motaḍarririn f-High Atlas chtkaw men ta2akhkhur w-sokon mo2aqqat ba3d 3am; ma ymknsh n3emmo had tajriba 3la kol l-qora.",
+    "Government progress claim: official updates kay3ddo permits, construction starts, completed housing, aid and infrastructure; definitions, cut-off date and village distribution khas independent check."
+  ],
+  "supporting_evidence": [
+    "Head of Government announcement dated 2023-09-20 sets 120bn MAD, 2024-2028 and 4.2m-person/6-province scope: https://www.cg.gov.ma/en/node/11397",
+    "World Bank approval dated 2023-12-14 documents $1bn Program-for-Results and resilience objectives: https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
+    "World Bank project P178542 provides a durable place to follow results documents and implementation status: https://projects.worldbank.org/en/projects-operations/project-detail/P178542",
+    "USGS event record independently establishes M6.8 event on 2023-09-08: https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive"
+  ],
+  "contradictory_evidence": [
+    "Official milestones showing homes and infrastructure progressing contradict any blanket claim that nothing was rebuilt.",
+    "Independent field reporting of protests, delays and difficult interim shelter contradicts any blanket claim that reconstruction was complete or even across all villages.",
+    "The 120bn MAD envelope includes multiple sectors and five years; it contradicts a simplistic comparison treating all 120bn as housing money already spent.",
+    "A permit, a construction start, a completed structure and an occupied safe home are different outcomes; totals using different definitions can look contradictory without either being fabricated."
+  ],
+  "timeline": [
+    "2023-09-08: M6.8 earthquake strikes Al Haouz region (USGS event us7000kufc).",
+    "2023-09-20: government announces integrated 2024-2028 programme, 120bn MAD, aimed at 4.2m residents in six provinces/prefectures.",
+    "2023-12-14: World Bank approves $1bn recovery and resilience Program-for-Results.",
+    "2024-09: independent reporting records both official progress figures and complaints/protests by some survivors one year after the quake.",
+    "2026-09-02: dossier opened; current village-level completion, spending and appeals datasets still to be collected."
+  ],
+  "sources": [
+    "Head of Government of Morocco, programme announcement, 2023-09-20, primary government, accessed 2026-09-02, https://www.cg.gov.ma/en/node/11397",
+    "World Bank, approval release, 2023-12-14, primary multilateral, accessed 2026-09-02, https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
+    "World Bank Projects & Operations, P178542, project documents, accessed 2026-09-02, https://projects.worldbank.org/en/projects-operations/project-detail/P178542",
+    "USGS, M6.8 Al Haouz event page, event 2023-09-08, scientific event data, accessed 2026-09-02, https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive",
+    "Reuters, field reporting on reconstruction and protests one year after quake, 2024-09, independent reporting; exact article permalink must be recovered before final citation, section index https://www.reuters.com/world/africa/"
+  ],
+  "missing_evidence": [
+    "Latest 2026 budget commitments versus cash disbursement, split by housing, roads, health, schools, water and agriculture.",
+    "Village-level table with eligible households, approvals, appeals, starts, completions, occupancy and completion definition.",
+    "Procurement notices, winning bidders, contract values, amendments, delays and beneficial-ownership information where legally public.",
+    "Inspection evidence for seismic compliance and treatment of local earthen architectural heritage.",
+    "Court of Accounts, inspectorate or lender verification findings, including adverse findings and corrective actions.",
+    "Exact Reuters article permalink and direct responses from programme officials and affected residents."
+  ],
+  "unanswered_questions": [
+    "Ch7al t3ahdo bih, ch7al tsref, w-ch7al tverifa ka-result 7tta latest cut-off?",
+    "Shno definition rasmiya dyal dar 'kamla': structure, keys, utilities, inspection, wala occupancy?",
+    "Kifach kayt7ello rejected or disputed beneficiary dossiers, w-ch7al average dyal appeal?",
+    "Wash data village-by-village manshora b-format machine-readable w-b-tawarikh tabta?",
+    "Ashno l-adilla li t9dar tna9ed hypothesis dyal ta2akhkhur: early completions, beneficiary satisfaction, independent engineering checks, or expenditure audits?"
+  ],
+  "confidence": "medium"
+}

@@ -1,0 +1,35 @@
+{
+  "story_id": "palestine-evidence-led-humanitarian-framework-2026-09-03",
+  "proposed_title": "Filastin: chno n3rfo, chkon gal, w fin katbda l-ma3loma li mazal ma t-verifat-ch",
+  "importance_score": 9.5,
+  "what_happened": "Packet dyal evidence discipline, ma-shi casualty ticker: qبل نشر أي update آني 3la Gaza aw الضفة فـ3 September 2026, desk khaso يفرق بين FACT مؤسساتي, CLAIM dyal طرف محارب, DISPUTED attribution, ESTIMATE منهجي, w UNKNOWN لي ما يمكنش يتحقق. المصادر المدرجة كتثبت الإطار القانوني والإنساني؛ ما كتثبتش أحداث نهار 2 September 2026.",
+  "key_facts": [
+    "FACT — ICJ f advisory opinion dyal 19 July 2024 قالت إن استمرار الوجود الإسرائيلي في الأرض الفلسطينية المحتلة غير قانوني؛ advisory opinion ma-shi criminal conviction w ma-shi حكم فكل واقعة ميدانية.",
+    "FACT — OCHA katجمع humanitarian updates w كتشرح القيود والحاجات؛ أرقامها كتستند لمصادر ميدانية وسلطات وكتحتاج attribution وتاريخ cutoff.",
+    "FACT — ICRC katقول إن قواعد القانون الدولي الإنساني كتفرض حماية المدنيين والتمييز والتناسب والاحتياطات على جميع أطراف النزاع.",
+    "CLAIM — أي تصريح عسكري إسرائيلي على هدف، أو تصريح فصيل فلسطيني على عملية، يبقى claim من صاحبه حتى يتقاطع مع دليل مستقل.",
+    "DISPUTED — Attribution dyal ضربة، سبب وفاة، أو استعمال موقع مدني يقدر يكون متنازع عليه؛ خاص عرض أدلة كل طرف، صور/تحقيق مستقل، وما نساويوش بين ادعاء ودليل.",
+    "ESTIMATE — Casualty, displacement, food-security and damage totals هي estimates أو administrative counts بcutoff ومنهجية؛ خاص publisher/date والمنهج وعدم تقديمها كعد نهائي.",
+    "UNKNOWN — الوقائع الميدانية والحصيلة والسياسة النافذة فـ2 September 2026 ما ت-verifatch فهاد session؛ ممنوع اختراع update أو ترحيل رقم قديم كأنه حالي."
+  ],
+  "primary_sources": [
+    "url=https://www.icj-cij.org/case/186 ; publisher=International Court of Justice ; publication_date=2024-07-19 advisory opinion ; accessed_at=2026-09-02 ; source_type=primary judicial record ; claim_supported=scope and conclusion of advisory opinion on policies and practices in the OPT",
+    "url=https://www.ochaopt.org/ ; publisher=UN Office for the Coordination of Humanitarian Affairs, occupied Palestinian territory ; publication_date=continuously updated ; accessed_at=2026-09-02 ; source_type=primary UN humanitarian reporting portal ; claim_supported=humanitarian reporting framework and dated update archive",
+    "url=https://www.icrc.org/en/war-and-law ; publisher=International Committee of the Red Cross ; publication_date=live legal explainer ; accessed_at=2026-09-02 ; source_type=authoritative IHL explainer ; claim_supported=baseline duties under international humanitarian law"
+  ],
+  "independent_sources": [
+    "url=https://apnews.com/hub/israel-hamas-war ; publisher=Associated Press ; publication_date=continuously updated topic archive ; accessed_at=2026-09-02 ; source_type=independent news archive ; claim_supported=route for event-level independent cross-check, not used here to assert an unverified current event",
+    "url=https://www.reuters.com/world/middle-east/ ; publisher=Reuters ; publication_date=continuously updated section ; accessed_at=2026-09-02 ; source_type=independent wire reporting ; claim_supported=route for cross-checking diplomatic and conflict claims, no specific 2026 claim asserted here"
+  ],
+  "contradictory_evidence": [
+    "Conflict parties regularly contest responsibility, target characterization, casualty composition, access conditions and legal interpretation; neither side's statement is self-validating.",
+    "UN humanitarian figures can be the best available but may rely on local administrative sources, delayed verification, models, or access-constrained observation; uncertainty must travel with the number.",
+    "The ICJ advisory opinion concerns state responsibility and occupation-related legal consequences; it does not adjudicate every battlefield allegation or individual criminal liability."
+  ],
+  "uncertainty": "Material current-event uncertainty is high because live web retrieval failed. Publish only this verification framework or a clearly dated background brief. HOLD all day-specific attacks, negotiations, hostage/prisoner claims, aid-flow counts and casualty totals pending OCHA plus two-sided primary attribution and an independent wire cross-check.",
+  "context": "Coverage dyal Filastin khasها ما تحولش المعاناة لأرقام بلا provenance. Date cutoff, geography, source, methodology, revision history w فرق بين legal finding وpolitical claim ضروريين. نفس المعيار يطبق على إسرائيل، حماس، السلطة الفلسطينية، حكومات، ووكالات أممية.",
+  "why_it_matters": "غلط صغير فالattribute ولا رقم بلا cutoff يقدر يضلل القارئ ويزيد نزع الإنسانية. الشفافية فحدود المعرفة هي جزء من الدقة، ماشي ضعف.",
+  "strategic_angle": "Chief Editor يا إما ينشر box منهجي فقط، يا إما يدير follow-up live: OCHA/WHO/ICRC + Israeli and Palestinian primary statements + Reuters/AP/AFP, ويعلّم كل نقطة FACT/CLAIM/DISPUTED/ESTIMATE/UNKNOWN داخل النص.",
+  "confidence": "high",
+  "recommendation": "BRIEF"
+}

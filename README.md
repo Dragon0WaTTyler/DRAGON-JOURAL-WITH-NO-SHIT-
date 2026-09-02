@@ -9,9 +9,9 @@ must run in hosted Codex Cloud and must not depend on the user's PC.
 The repository has passed the infrastructure smoke test. The archived fixture
 is **not journalism**. The recurring production schedule remains disabled.
 
-Next milestone: one real `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` edition
-in hosted Codex Cloud, followed by a quality review, a fresh second run, and
-a three-day pilot.
+The first real `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` edition is archived
+for quality review. The next milestones are fixes, a fresh second run, and a
+three-day pilot; this edition is not recurring production.
 
 ## Repository contract
 
@@ -65,3 +65,15 @@ See [AGENTS.md](AGENTS.md), [SPEC-v1.md](SPEC-v1.md), and
 - [Markdown](editions/2026/09/2026-09-02/edition.md)
 - [PDF](editions/2026/09/2026-09-02/edition.pdf)
 - [EPUB](editions/2026/09/2026-09-02/edition.epub)
+
+
+## Latest pre-production edition
+2026-09-03 — **PRE-PRODUCTION — NOT YET DAILY PRODUCTION**
+
+- [Markdown](editions/2026/09/2026-09-03/edition.md)
+- [PDF](editions/2026/09/2026-09-03/edition.pdf)
+- [EPUB](editions/2026/09/2026-09-03/edition.epub)
+- [Sources](editions/2026/09/2026-09-03/sources.json)
+- [Manifest](editions/2026/09/2026-09-03/manifest.json)
+
+The [2026-09-02 smoke fixture](editions/2026/09/2026-09-02/edition.md) remains archived separately and is not journalism.

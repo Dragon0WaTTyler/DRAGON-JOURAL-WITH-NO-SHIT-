@@ -1,0 +1,32 @@
+{
+  "story_id": "investigations-2026-09-03-al-haouz-reconstruction",
+  "proposed_title": "I3mar l-Houz: men 120 milyar dirham l-dar katsken—ashno khas yban f-dashboard l-3omomi?",
+  "importance_score": 8.4,
+  "what_happened": "Tlata snin qrib ba3d zlzal 8 Shtanbir 2023, l-mohasaba khas-ha tfsel bin programme kbir 2024-2028 b-budget 120 milyar dirham, i3anat m3lna, w-natija 3la l-ard. Packet kay9tara7 accountability feature bla ittiham: njm3o milestones rasmiya, n9ablouha b-shahadat motaḍarririn w-audits, w-nsemiw data li mazal na9sa.",
+  "key_facts": [
+    "USGS qas magnitude 6.8 l-zlzal li darb l-Houz nhar 2023-09-08; source record: USGS event page, updated event record, accessed 2026-09-02, independent scientific primary data, https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive",
+    "L-hokoma 3alnat programme 2024-2028 b-120 milyar dirham, kayhdef l-4.2 million sakn f-6 a9alim; hadchi allocation/planning figure, ma-shi dalil belli tsref kamel; source record: Head of Government of Morocco, reconstruction programme announcement, 2023-09-20, accessed 2026-09-02, primary government, https://www.cg.gov.ma/en/node/11397",
+    "World Bank wafe9at 3la $1 billion Morocco Earthquake Recovery and Resilience Program-for-Results f-December 2023; disbursement merbot b-results li ymkn yttb3o f-documents l-program; source record: World Bank, press release 2023-12-14, accessed 2026-09-02, primary multilateral, https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
+    "Reuters n9lat f-September 2024 i7tijaj ba3d s-sokkan 3la ta2akhkhur l-i3mar, m3a radd rasmi 3la ta9addom l-permits w-construction; hadi shahadat w-claims khas-ha cross-check, ma-shi preuve dyal ta3mim 3la ga3 l-qora; source record: Reuters, reporting on High Atlas reconstruction one year after quake, 2024-09, accessed 2026-09-02, independent reporting, https://www.reuters.com/world/africa/"
+  ],
+  "primary_sources": [
+    "Head of Government of Morocco, integrated reconstruction programme announcement, published 2023-09-20, accessed 2026-09-02, https://www.cg.gov.ma/en/node/11397",
+    "World Bank, $1bn Earthquake Recovery and Resilience Program-for-Results approval, published 2023-12-14, accessed 2026-09-02, https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
+    "World Bank Projects & Operations, Morocco Earthquake Recovery and Resilience Program (P178542), project documents/results, accessed 2026-09-02, https://projects.worldbank.org/en/projects-operations/project-detail/P178542"
+  ],
+  "independent_sources": [
+    "USGS, M6.8 Al Haouz earthquake event page, event 2023-09-08, accessed 2026-09-02, https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive",
+    "Reuters, independent field reporting on reconstruction and residents' protests one year after the earthquake, published 2024-09, accessed 2026-09-02, https://www.reuters.com/world/africa/"
+  ],
+  "contradictory_evidence": [
+    "Official updates report permits, starts, completed homes, roads and aid; had milestones katna9ed ay da3wa motla9a belli ma tdar walo.",
+    "Field reports and survivor protests indicate delays, eligibility disputes and harsh interim housing in some places; hadchi kayna9ed ay da3wa motla9a belli reconstruction kamlat b-nafs s-sor3a f-kol qarya.",
+    "120 milyar dirham howa multi-sector envelope 3la khams snin, ma-shi spending total 3la dyor; comparing it directly with house counts would be misleading."
+  ],
+  "uncertainty": "Ma 3ndnach f-had packet extract m7ayyen ila 2026 dyal disbursement b-line item, village-level completion, rejected-beneficiary appeals, aw audit findings. Ma n9drosh nthbto sou2 tadbir aw ta7wil flous bla procurement/audit evidence. Reuters URL hna section-level 7it article permalink khas verification qbl citation final.",
+  "context": "Reconstruction f-jbal ma-shi ghir bni dar: normes anti-sismiques, heritage dyal l-mi3mar t-tini, masalik, ma w-s7a, title/eligibility, w-shita kay2atro 3la s-sor3a. Programme-for-Results dyal World Bank kay3ti framework dyal indicators w-independent verification. L-mohasaba l-mzyana katqaren baseline, target, deadline, sarf, w-result; ma kat7awwelch shakayat f-qarya wa7da l-7okm 3la programme kamel.",
+  "why_it_matters": "Nas motaḍarririn 3andhom 7a9 f-ma3louma 3la dossier, appeal w-deadline; taxpayers 3andhom 7a9 y3rfo fin msha kol component; w-l-Mghreb mo7taj yt3ellem l-resilience qbl ay catastrophe jaya. Dashboard village-by-village y9dar y9lls l-isha3a w-ybayyen ta2akhkhur b-dalil.",
+  "strategic_angle": "Nshro explainer accountability m3a table: wa3d, target, latest official result, independent check, missing datum. Su2al l-hokoma 3la disbursement vs commitment, completion definition, appeals, winterization, audit, procurement w-open data. Ma nsemiw 7tta fard aw sharika b-ittiham bla wathiqa.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

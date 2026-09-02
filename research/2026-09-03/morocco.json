@@ -1,0 +1,31 @@
+{
+  "story_id": "morocco-water-resilience-2026-09-03",
+  "proposed_title": "Lma ma bqach dossier dyal chtta: kifach l-Mghreb kaybni siyasat dyal l-amn l-ma2i",
+  "importance_score": 8.4,
+  "what_happened": "Packet ta7lili, ma-shi khbar 3ajel: l-programme الوطني dyal lma 2020-2027, m3a financement jdida men World Bank, kay7ett desalination, rbatt l-a7wad, w ta9lil diya3 f-shabakat f qalb siyasat l-amn l-ma2i. Had l-packet kayqترح نشر context piece, ma kayda3ich blli kayn tatwwor wa9e3 nhar 2 September 2026.",
+  "key_facts": [
+    "FACT — World Bank qarrat f 18 July 2023 qarḍ b 350 million dollar bach tsaned National Program for Potable Water Supply and Irrigation 2020-2027, b التركيز 3la governance, efficiency w access.",
+    "FACT — World Bank climate report kaygol blli nadra dyal lma hiya wa7ed men akbar l-mخاطر l-iqtisadiya 3la l-Mghreb, w kayrbat adaptation b ta7sin allocation w infrastructure.",
+    "FACT — IMF Article IV 2024, li tseddqat f 1 April 2025, kaynبه b استمرار l-jفاف w kay7ett water stress ضمن risks 3la النمو.",
+    "UNKNOWN — Ma t-verifach f had hosted session ay milestone jdida aw numbers dyal September 2026; ay صياغة b7al 'lyom tdar' khas-ha source mؤرخ w live verification."
+  ],
+  "primary_sources": [
+    "url=https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security-and-resilience ; publisher=World Bank ; publication_date=2023-07-18 ; accessed_at=2026-09-02 ; source_type=multilateral financing decision/press release ; claim_supported=$350m program, objectives and national-program linkage",
+    "url=https://www.imf.org/en/News/Articles/2025/04/03/pr25100-morocco-imf-exec-board-concludes-2024-art-iv-consult ; publisher=International Monetary Fund ; publication_date=2025-04-03 ; accessed_at=2026-09-02 ; source_type=multilateral official Article IV summary ; claim_supported=2024 consultation completion, drought and macro-risk context"
+  ],
+  "independent_sources": [
+    "url=https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report ; publisher=World Bank ; publication_date=2022-11-03 ; accessed_at=2026-09-02 ; source_type=independent analytical report ; claim_supported=water scarcity as structural climate-development constraint",
+    "url=https://climateknowledgeportal.worldbank.org/country/morocco ; publisher=World Bank Climate Knowledge Portal ; publication_date=unknown/live dataset ; accessed_at=2026-09-02 ; source_type=independent climate data portal ; claim_supported=long-run climate and water-risk context"
+  ],
+  "contradictory_evidence": [
+    "Infrastructure finance and announced capacity do not by themselves prove household-level reliability, affordability, groundwater recovery, or equitable rural access.",
+    "The cited documents predate September 2026 and cannot establish completion rates or present reservoir conditions.",
+    "World Bank is both financier and evaluator of its program; its implementation claims require Moroccan audit/data and independent field reporting before being treated as outcomes."
+  ],
+  "uncertainty": "High uncertainty on present-day implementation and hydrological conditions because live web retrieval was unavailable in this session. Use only the dated structural facts above; do not attach 2026 completion, rainfall, dam-fill, or access figures without verification.",
+  "context": "L-Mghreb 3ando climate semi-arid, agriculture 7ssasa l-chtwa, w talab kaytزاد men المدن, السياحة w الصناعة. Siyasat lma katجمع supply (desalination, dams, transfer) m3a demand management; l-adلة khas-ha tفرق bin budget/announcement, infrastructure delivered, w outcomes 3nd nass.",
+  "why_it_matters": "Lma kaymss taman lmakla, khdma f-lfلاحة, صحة, الاستثمار w l-3adala bin lmdina w lqروية. Ta7lil mzyan y7اسب النتائج, ma-shi ghir l-mليارات المعلنة.",
+  "strategic_angle": "Nshro explainer b scorecard: ch7al tsarf, shno tبنى, ch7al tنقص loss, w wach l-usar w الفلاحة الصغيرة استفدو. اطلب follow-up live من HCP/وزارة التجهيز/وكالات الأحواض وreporting مستقل qبل أي headline آني.",
+  "confidence": "medium",
+  "recommendation": "BRIEF"
+}

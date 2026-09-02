@@ -1,0 +1,34 @@
+{
+  "story_id": "ai-eu-ai-act-2026-deadline",
+  "proposed_title": "EU AI Act dkhel l-mar7ala l-kbira dyal tatbi9: chno kay3ni l-mosaddirine w-startups f l-Mghreb",
+  "importance_score": 8.5,
+  "what_happened": "Under the European Commission's official implementation timeline, most EU AI Act provisions were scheduled to become applicable on 2 August 2026, with exceptions and transitional rules. This is a regulation story with direct relevance to Moroccan firms serving EU clients; it is not a claim that every AI system became regulated in the same way on that date.",
+  "key_facts": [
+    "FACT — Regulation (EU) 2024/1689 entered into force on 1 August 2024 and uses staggered application dates.",
+    "FACT — Prohibitions and AI-literacy duties applied from 2 February 2025; governance and general-purpose AI obligations applied from 2 August 2025; most remaining provisions apply from 2 August 2026, subject to listed exceptions.",
+    "FACT — The law uses different duties for providers, deployers, importers and distributors and a risk-based framework; applicability depends on role, system and market connection.",
+    "FACT — The regulation has an extraterritorial hook where output produced by an AI system is used in the EU, so some non-EU businesses can fall within scope.",
+    "COMPANY CLAIM — Vendor statements that their models or services are 'EU AI Act compliant' are self-claims unless tied to auditable documentation or an independent conformity process.",
+    "UNKNOWN — Same-day Commission guidance, standards readiness, enforcement action and any legislative amendment on 2 September 2026 were not verifiable because live browsing failed in this hosted session."
+  ],
+  "primary_sources": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj — Official Journal of the European Union, Regulation (EU) 2024/1689, 2024-07-12, accessed 2026-09-02, primary law, supports scope, actors, staggered dates and obligations",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai — European Commission, updated implementation overview, accessed 2026-09-02, primary regulator guidance, supports timeline summary",
+    "https://digital-strategy.ec.europa.eu/en/policies/guidelines-gpai-providers — European Commission, GPAI guidance page, accessed 2026-09-02, primary regulator material, supports separation of GPAI obligations from the broader 2026 application date"
+  ],
+  "independent_sources": [
+    "https://www.europarl.europa.eu/thinktank/en/document/EPRS_BRI(2021)698792 — European Parliamentary Research Service briefing, updated 2024, institutional analysis separate from the Commission, explains risk tiers and legislative development",
+    "https://artificialintelligenceact.eu/implementation-timeline/ — Future of Life Institute AI Act tracker, accessed 2026-09-02, independent civil-society timeline, cross-checks staged application while warning that standards and guidance continue to evolve"
+  ],
+  "contradictory_evidence": [
+    "The shorthand 'AI Act starts in August 2026' is misleading because several duties already applied in 2025 and some high-risk-system provisions have later transition dates.",
+    "A Moroccan company's EU customer base does not automatically settle its legal role or duties; product facts and contractual position can change the analysis.",
+    "Compliance marketing by AI suppliers is not independent evidence of legal compliance."
+  ],
+  "uncertainty": "Medium. The enacted regulation and statutory timeline are high-confidence. Current guidance, harmonised-standard availability and actual enforcement practice require a fresh 2026 check; this packet is not legal advice.",
+  "context": "The EU chose a horizontal risk-based AI law. Moroccan exporters, outsourcing firms and startups may encounter it through EU market access, customer procurement, data governance and documentation demands even when they have no office in the Union.",
+  "why_it_matters": "Firms that map systems, roles, training data governance, human oversight and incident processes early can treat compliance as market access; vague promises create legal and commercial risk.",
+  "strategic_angle": "Build a practical Morocco-facing explainer around an obligations matrix and questions to ask vendors. Keep regulation facts separate from vendor claims, and obtain current EU/Moroccan counsel before making categorical scope claims.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

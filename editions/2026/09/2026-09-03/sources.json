@@ -1,0 +1,308 @@
+[
+  {
+    "id": "S01",
+    "url": "https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security-and-resilience",
+    "publisher": "World Bank",
+    "publication_date": "2023-07-18",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary multilateral financing decision",
+    "claim_supported": "Morocco water-security programme amount and objectives"
+  },
+  {
+    "id": "S02",
+    "url": "https://www.imf.org/en/News/Articles/2025/04/03/pr25100-morocco-imf-exec-board-concludes-2024-art-iv-consult",
+    "publisher": "International Monetary Fund",
+    "publication_date": "2025-04-03",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary multilateral assessment",
+    "claim_supported": "Drought and macroeconomic risk context"
+  },
+  {
+    "id": "S03",
+    "url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report",
+    "publisher": "World Bank",
+    "publication_date": "2022-11-03",
+    "accessed_at": "2026-09-02",
+    "source_type": "analytical report",
+    "claim_supported": "Structural water-scarcity and climate context"
+  },
+  {
+    "id": "S04",
+    "url": "https://whc.unesco.org/en/list/793/",
+    "publisher": "UNESCO World Heritage Centre",
+    "publication_date": "1996; live record",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary institutional heritage record",
+    "claim_supported": "Meknes inscription, criterion and description"
+  },
+  {
+    "id": "S05",
+    "url": "https://www.icomos.org/en/what-we-do/focus/world-heritage",
+    "publisher": "ICOMOS",
+    "publication_date": "live institutional page",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent expert context",
+    "claim_supported": "Heritage evaluation and monitoring"
+  },
+  {
+    "id": "S06",
+    "url": "https://www.archnet.org/sites/3775",
+    "publisher": "Archnet",
+    "publication_date": "live documentation page",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent architectural documentation",
+    "claim_supported": "Meknes architectural context"
+  },
+  {
+    "id": "S07",
+    "url": "https://www.icj-cij.org/case/186",
+    "publisher": "International Court of Justice",
+    "publication_date": "2024-07-19",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary judicial record",
+    "claim_supported": "Scope and conclusion of advisory opinion"
+  },
+  {
+    "id": "S08",
+    "url": "https://www.ochaopt.org/",
+    "publisher": "UN OCHA occupied Palestinian territory",
+    "publication_date": "continuously updated",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary humanitarian portal",
+    "claim_supported": "Humanitarian reporting framework and dated archive"
+  },
+  {
+    "id": "S09",
+    "url": "https://www.icrc.org/en/war-and-law",
+    "publisher": "International Committee of the Red Cross",
+    "publication_date": "live legal explainer",
+    "accessed_at": "2026-09-02",
+    "source_type": "authoritative legal explainer",
+    "claim_supported": "Baseline IHL duties"
+  },
+  {
+    "id": "S10",
+    "url": "https://apnews.com/hub/israel-hamas-war",
+    "publisher": "Associated Press",
+    "publication_date": "continuously updated",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent news archive",
+    "claim_supported": "Cross-check route; no current claim derived"
+  },
+  {
+    "id": "S11",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "publisher": "Reuters",
+    "publication_date": "continuously updated",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent news section",
+    "claim_supported": "Cross-check route; no current claim derived"
+  },
+  {
+    "id": "S12",
+    "url": "https://www.who.int/news/item/20-05-2025-world-health-assembly-adopts-historic-pandemic-agreement",
+    "publisher": "World Health Organization",
+    "publication_date": "2025-05-20",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary institutional release",
+    "claim_supported": "Agreement adoption date and consensus"
+  },
+  {
+    "id": "S13",
+    "url": "https://apps.who.int/gb/ebwha/pdf_files/WHA78/A78_R1-en.pdf",
+    "publisher": "World Health Assembly",
+    "publication_date": "2025-05-20",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary legal text",
+    "claim_supported": "Annex, signature sequence and provisions"
+  },
+  {
+    "id": "S14",
+    "url": "https://www.reuters.com/business/healthcare-pharmaceuticals/who-members-adopt-pandemic-agreement-after-three-years-talks-2025-05-20/",
+    "publisher": "Reuters",
+    "publication_date": "2025-05-20",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent reporting",
+    "claim_supported": "Adoption and unresolved PABS work"
+  },
+  {
+    "id": "S15",
+    "url": "https://www.chathamhouse.org/2025/05/who-pandemic-agreement-historic-deal-important-details-remain-unresolved",
+    "publisher": "Chatham House",
+    "publication_date": "2025-05",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent expert analysis",
+    "claim_supported": "Unresolved implementation details"
+  },
+  {
+    "id": "S16",
+    "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+    "publisher": "Official Journal of the European Union",
+    "publication_date": "2024-07-12",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary law",
+    "claim_supported": "EU AI Act scope, actors and dates"
+  },
+  {
+    "id": "S17",
+    "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "publisher": "European Commission",
+    "publication_date": "live implementation overview",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary regulator guidance",
+    "claim_supported": "Staggered implementation timeline"
+  },
+  {
+    "id": "S18",
+    "url": "https://artificialintelligenceact.eu/implementation-timeline/",
+    "publisher": "Future of Life Institute",
+    "publication_date": "accessed 2026-09-02",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent civil-society tracker",
+    "claim_supported": "Cross-check of implementation timeline"
+  },
+  {
+    "id": "S19",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/39046157/",
+    "publisher": "PubMed / New England Journal of Medicine",
+    "publication_date": "2024",
+    "accessed_at": "2026-09-02",
+    "source_type": "peer-reviewed abstract; ABSTRACT ONLY",
+    "claim_supported": "PURPOSE 1 design, sample and efficacy result"
+  },
+  {
+    "id": "S20",
+    "url": "https://clinicaltrials.gov/study/NCT04994509",
+    "publisher": "ClinicalTrials.gov",
+    "publication_date": "live trial record",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary trial registry",
+    "claim_supported": "PURPOSE 1 arms and outcomes"
+  },
+  {
+    "id": "S21",
+    "url": "https://www.gilead.com/news/news-details/2024/gileads-twice-yearly-lenacapavir-demonstrated-100-efficacy-and-superiority-to-daily-truvada-for-hiv-prevention",
+    "publisher": "Gilead Sciences",
+    "publication_date": "2024-06-20",
+    "accessed_at": "2026-09-02",
+    "source_type": "sponsor release; COMPANY CLAIM",
+    "claim_supported": "Sponsor framing and access commitments"
+  },
+  {
+    "id": "S22",
+    "url": "https://www.who.int/news/item/26-07-2024-who-welcomes-new-trial-results-for-lenacapavir-for-hiv-prevention",
+    "publisher": "World Health Organization",
+    "publication_date": "2024-07-26",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent public-health assessment",
+    "claim_supported": "Significance and access caveats"
+  },
+  {
+    "id": "S23",
+    "url": "https://www.iasociety.org/news-release/ias-calls-urgent-access-lenacapavir-following-presentation-full-purpose-1-data-aids-2024",
+    "publisher": "International AIDS Society",
+    "publication_date": "2024-07-24",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent professional-society response",
+    "claim_supported": "Equity and implementation concerns"
+  },
+  {
+    "id": "S24",
+    "url": "https://www.irmh.ma/",
+    "publisher": "Institut Royal pour la Recherche sur l Histoire du Maroc",
+    "publication_date": "accessed 2026-09-02",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary historical-document portal",
+    "claim_supported": "Independence Manifesto documentary context"
+  },
+  {
+    "id": "S25",
+    "url": "https://basedoc.diplomatie.gouv.fr/",
+    "publisher": "France Diplomatie",
+    "publication_date": "1912-03-30 treaty archive",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary treaty archive",
+    "claim_supported": "Treaty of Fez context"
+  },
+  {
+    "id": "S26",
+    "url": "https://countrystudies.us/morocco/18.htm",
+    "publisher": "US Library of Congress Country Studies",
+    "publication_date": "1988",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent scholarly synthesis",
+    "claim_supported": "Protectorate and independence chronology"
+  },
+  {
+    "id": "S27",
+    "url": "https://nyupress.org/9780814766774/morocco-since-1830/",
+    "publisher": "New York University Press / C. R. Pennell",
+    "publication_date": "2000",
+    "accessed_at": "2026-09-02",
+    "source_type": "university-press scholarship",
+    "claim_supported": "Long historical context and multiple actors"
+  },
+  {
+    "id": "S28",
+    "url": "https://www.unesco.org/en/articles/rabat-named-world-book-capital-2026",
+    "publisher": "UNESCO",
+    "publication_date": "2024-10-08",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary institutional announcement",
+    "claim_supported": "Rabat designation and stated objectives"
+  },
+  {
+    "id": "S29",
+    "url": "https://www.unesco.org/en/world-book-capital",
+    "publisher": "UNESCO",
+    "publication_date": "live programme page",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary institutional programme",
+    "claim_supported": "World Book Capital programme mechanics"
+  },
+  {
+    "id": "S30",
+    "url": "https://www.bnrm.ma/",
+    "publisher": "Bibliotheque Nationale du Royaume du Maroc",
+    "publication_date": "live institutional page",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary cultural institution",
+    "claim_supported": "Library missions and services"
+  },
+  {
+    "id": "S31",
+    "url": "https://data.worldbank.org/indicator/SE.ADT.LITR.ZS?locations=MA",
+    "publisher": "World Bank Data / UNESCO UIS",
+    "publication_date": "latest observation varies",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent data series",
+    "claim_supported": "Literacy context and limitations"
+  },
+  {
+    "id": "S32",
+    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive",
+    "publisher": "US Geological Survey",
+    "publication_date": "2023-09-08 event",
+    "accessed_at": "2026-09-02",
+    "source_type": "independent scientific primary data",
+    "claim_supported": "Al Haouz earthquake magnitude and date"
+  },
+  {
+    "id": "S33",
+    "url": "https://www.cg.gov.ma/en/node/11397",
+    "publisher": "Head of Government of Morocco",
+    "publication_date": "2023-09-20",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary government announcement",
+    "claim_supported": "Programme envelope, period and scope"
+  },
+  {
+    "id": "S34",
+    "url": "https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
+    "publisher": "World Bank",
+    "publication_date": "2023-12-14",
+    "accessed_at": "2026-09-02",
+    "source_type": "primary multilateral financing decision",
+    "claim_supported": "Recovery programme amount and design"
+  }
+]
