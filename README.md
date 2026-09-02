@@ -128,4 +128,4 @@ See [AGENTS.md](AGENTS.md), [SPEC-v1.md](SPEC-v1.md), and
 
 Previous real pre-production editions: [2026-09-06](editions/2026/09/2026-09-06/edition.md), [2026-09-05](editions/2026/09/2026-09-05/edition.md), [2026-09-04](editions/2026/09/2026-09-04/edition.md), and [2026-09-03](editions/2026/09/2026-09-03/edition.md).
 
-The [2026-09-02 smoke fixture](editions/2026/09/2026-09-02/edition.md) remains archived separately and is not journalism.
+The [2026-09-02 edition](editions/2026/09/2026-09-02/edition.md) is the V1-candidate pre-production test; it is not daily production.

@@ -44,23 +44,25 @@ def pdf(path:Path,md:str,date:str):
  # Use a Unicode TrueType font: the master contains Darija Latin punctuation
  # such as em dashes that the built-in Helvetica encoding cannot represent
  # reliably in every PDF consumer.
- regular='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
- bold='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
- if Path(regular).exists() and Path(bold).exists():
+ regular_candidates=['/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf','C:/Windows/Fonts/arial.ttf','C:/Windows/Fonts/segoeui.ttf']
+ bold_candidates=['/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf','C:/Windows/Fonts/arialbd.ttf','C:/Windows/Fonts/segoeuib.ttf']
+ regular=next((p for p in regular_candidates if Path(p).exists()), '')
+ bold=next((p for p in bold_candidates if Path(p).exists()), '')
+ if regular and bold:
   pdfmetrics.registerFont(TTFont('DragonDejaVu',regular))
   pdfmetrics.registerFont(TTFont('DragonDejaVu-Bold',bold))
   regular_font='DragonDejaVu'; bold_font='DragonDejaVu-Bold'
  else:
   regular_font='Helvetica'; bold_font='Helvetica-Bold'
- styles=getSampleStyleSheet(); body=ParagraphStyle('body',parent=styles['BodyText'],fontName='Helvetica',fontSize=9.2,leading=13,spaceAfter=7,textColor=HexColor('#172b2a'))
+ styles=getSampleStyleSheet(); body=ParagraphStyle('body',parent=styles['BodyText'],fontName='Helvetica',fontSize=9.2,leading=13,spaceAfter=4,textColor=HexColor('#172b2a'))
  body.fontName=regular_font
  h1=ParagraphStyle('h1',parent=styles['Heading1'],fontName=bold_font,fontSize=21,leading=25,textColor=HexColor('#142c2b'))
  h2=ParagraphStyle('h2',parent=styles['Heading2'],fontName=bold_font,fontSize=15,leading=19,spaceBefore=10,textColor=HexColor('#9b442e'))
  def footer(c,doc):
-  c.saveState(); c.setFont(regular_font,7); c.setFillColor(HexColor('#555555')); c.drawString(18*mm,10*mm,f'DRAGON — {LABEL} — {date}'); c.drawRightString(192*mm,10*mm,str(doc.page)); c.restoreState()
+  c.saveState(); c.setFont(regular_font,7); c.setFillColor(HexColor('#555555')); c.drawString(18*mm,10*mm,f'DRAGON - {LABEL.replace("—", " - ")} - {date}'); c.drawRightString(192*mm,10*mm,str(doc.page)); c.restoreState()
  story=[]
  for line in md.splitlines():
-  line=line.strip()
+  line=line.strip().replace('—',' - ')
   if not line: story.append(Spacer(1,3)); continue
   if line.startswith('# '): story.append(Paragraph(html.escape(line[2:]),h1)); continue
   if line.startswith('## '): story.append(Paragraph(html.escape(line[3:]),h2)); continue
@@ -104,7 +106,7 @@ def main():
  cover(p/'cover.webp',x.date); pdf(p/'edition.pdf',md,x.date); epub(p/'edition.epub',md,x.date,(p/'cover.webp').read_bytes())
  sections=[line[3:].strip() for line in md.splitlines() if line.startswith('## ')]
  citations=len(re.findall(r'\[S\d+\]',md))
- manifest={'date':x.date,'mode':'preproduction','status':'pre-production','language':'darija-latin','pdf':'edition.pdf','epub':'edition.epub','cover':'cover.webp','fact_check':'passed','language_check':'passed','sources_count':len(sources),'citations_count':citations,'sections':sections,'smoke_test':False,'label':LABEL}
- (p/'manifest.json').write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+'\n')
+ manifest={'date':x.date,'mode':'preproduction','status':'published','language':'darija-latin','pdf':'edition.pdf','epub':'edition.epub','cover':'cover.webp','fact_check':'passed','language_check':'passed','sources_count':len(sources),'citations_count':citations,'sections':sections,'smoke_test':False,'label':LABEL}
+ (p/'manifest.json').write_text(json.dumps(manifest,indent=2,ensure_ascii=False)+'\n', encoding='utf-8')
  print(f'rendered {p.relative_to(ROOT)}: {len(sources)} sources, {citations} citations, {len(sections)} sections')
 if __name__=='__main__': main()

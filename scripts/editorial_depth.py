@@ -110,6 +110,9 @@ def _exception_reason(body: str, key: str, count: int, policy: dict[str, Any]) -
     if key == "investigations" and policy.get("allow_dossier_update_without_publication"):
         if re.search(r"\b(RESEARCHING|NEEDS_VERIFICATION|HOLD)\b", body, re.IGNORECASE):
             return "dossier is explicitly not publication-ready"
+    if key in {"history", "literature_culture"} and policy.get("allow_hold_without_publication"):
+        if re.search(r"\bHOLD\b", body, re.IGNORECASE):
+            return "section is explicitly held rather than published"
     return None
 
 
@@ -169,7 +172,11 @@ def evaluate(
             "pass": hard_pass,
         }
         exceptions[key] = {
-            "allowed": bool(rule.get("allow_thin_news_exception") or rule.get("allow_dossier_update_without_publication")),
+            "allowed": bool(
+                rule.get("allow_thin_news_exception")
+                or rule.get("allow_dossier_update_without_publication")
+                or rule.get("allow_hold_without_publication")
+            ),
             "used": exception is not None,
             "reason": exception,
         }

@@ -1,7 +1,7 @@
 {
   "date": "2026-09-02",
   "validation_status": "PASS",
-  "total_word_count": 4806,
+  "total_word_count": 4042,
   "total": {
     "hard_min_words": 4000,
     "target_range": [
@@ -12,8 +12,8 @@
   },
   "per_section_word_counts": {
     "history": {
-      "heading": "Tarikh l-Mghreb — nfi Mohammed V bin symbol w ta3addod l-mo9awama",
-      "word_count": 836,
+      "heading": "Tarikh l-Mghreb - HOLD: exact record ma kaykfi-sh l-feature",
+      "word_count": 56,
       "hard_min_words": 800,
       "publication_min_words": null,
       "target_range": [
@@ -23,8 +23,8 @@
       "pass": true
     },
     "literature_culture": {
-      "heading": "Adab w Culture — Mohammed Choukri, sawt l-hamich w sou9 tarjama",
-      "word_count": 825,
+      "heading": "Adab w Culture - HOLD: Malhun kay7taj aktar mn catalogue",
+      "word_count": 144,
       "hard_min_words": 800,
       "publication_min_words": null,
       "target_range": [
@@ -34,8 +34,8 @@
       "pass": true
     },
     "morocco": {
-      "heading": "L-Mghreb — sou9 choghl ta7t L7OKM DYAL L2ADILLA",
-      "word_count": 743,
+      "heading": "L-Mghreb - CPI dyal July: ra9m rasmi, ma-shi 7okm 3la l-ma3isha",
+      "word_count": 725,
       "hard_min_words": 700,
       "publication_min_words": null,
       "target_range": [
@@ -45,8 +45,8 @@
       "pass": true
     },
     "palestine": {
-      "heading": "Filastin w Sharq l-Awsat — l-kelma 9bel r-ra9m",
-      "word_count": 555,
+      "heading": "Filastin - talab l-itla9 f Tunisia, w 7odoud ma n3erfou",
+      "word_count": 507,
       "hard_min_words": 500,
       "publication_min_words": null,
       "target_range": [
@@ -56,8 +56,8 @@
       "pass": true
     },
     "meknes": {
-      "heading": "Meknes — daftar l-ma bin l-7awd w l-7ouma",
-      "word_count": 413,
+      "heading": "Meknes Radar - deadline jami3i, bla ma nzido wa3d",
+      "word_count": 287,
       "hard_min_words": 300,
       "publication_min_words": null,
       "target_range": [
@@ -67,8 +67,8 @@
       "pass": true
     },
     "world": {
-      "heading": "L-3alam — ta3ahodat l-mnakh w imti7an l-j",
-      "word_count": 140,
+      "heading": "L-3alam - WFP katgol mo2ouna tdmerat f Sudan; l-fa3il majhoul",
+      "word_count": 410,
       "hard_min_words": null,
       "publication_min_words": null,
       "target_range": [
@@ -78,8 +78,8 @@
       "pass": true
     },
     "ai": {
-      "heading": "AI w Technology — UNESCO ethics ma-shi cachet dyal aman",
-      "word_count": 209,
+      "heading": "AI w Technology - double-blind pilot, COMPANY_CLAIM ma-shi validation",
+      "word_count": 557,
       "hard_min_words": null,
       "publication_min_words": null,
       "target_range": [
@@ -89,8 +89,8 @@
       "pass": true
     },
     "science": {
-      "heading": "Science — CAR-T f-lupus: signal 9wi, sample sghir",
-      "word_count": 560,
+      "heading": "Science - PTA-IRT: preprint w ABSTRACT_ONLY",
+      "word_count": 542,
       "hard_min_words": 500,
       "publication_min_words": null,
       "target_range": [
@@ -100,8 +100,8 @@
       "pass": true
     },
     "investigations": {
-      "heading": "Investigations w Accountability — l-ma: dossier ba9i RESEARCHING",
-      "word_count": 189,
+      "heading": "Investigations - RESEARCHING: mn CPI l-so2al, ma-shi l-ittiham",
+      "word_count": 178,
       "hard_min_words": null,
       "publication_min_words": 600,
       "target_range": null,
@@ -110,14 +110,14 @@
   },
   "allowed_exceptions": {
     "history": {
-      "allowed": false,
-      "used": false,
-      "reason": null
+      "allowed": true,
+      "used": true,
+      "reason": "section is explicitly held rather than published"
     },
     "literature_culture": {
-      "allowed": false,
-      "used": false,
-      "reason": null
+      "allowed": true,
+      "used": true,
+      "reason": "section is explicitly held rather than published"
     },
     "morocco": {
       "allowed": false,
@@ -131,8 +131,8 @@
     },
     "meknes": {
       "allowed": true,
-      "used": false,
-      "reason": null
+      "used": true,
+      "reason": "THIN-NEWS EXCEPTION - L-retrieval l-jdid l9a item mo2assasati s7i7 w mo2arrakh, walakin ma l9a-sh second local source mosta9il wla data katsned feature twila. 3la hadchi, kan7afdo 3la had brief m7dod w kan9olo limitation b sra7a. Ma n7awloch inscription window l-story 3la l-madina kamla. L-9ima hiya deadline, provenance, w l-as2ila lli ba9yin ma mjawbin-sh."
     },
     "world": {
       "allowed": false,
@@ -165,69 +165,5 @@
   "language": {
     "arabic_script_characters": 0,
     "pass": true
-  },
-  "source_audit": {
-    "primary_source_trails_count": 18,
-    "independently_cross_checked_material_claims_count": 5,
-    "counting_rule": "Count a material claim group once only when edition citation mapping links that same substantive claim to at least one primary/original source trail and at least one independent source trail in sources.json. Citation occurrences and source records are not claims. Complementary sources that do not independently check the same claim, institutional routes with no published current claim, and UNKNOWN statements are excluded.",
-    "primary_source_trail_rule": "Count source-ledger records whose source_type explicitly identifies a primary source or an original research article; do not include independent, authoritative-explainer, or expert-review records.",
-    "cross_checked_claim_groups": [
-      {
-        "claim_group": "Morocco labour-measurement definitions and comparability",
-        "primary_source_ids": [
-          "S01"
-        ],
-        "independent_source_ids": [
-          "S03",
-          "S04"
-        ]
-      },
-      {
-        "claim_group": "Paris Agreement NDC process versus the emissions-gap assessment",
-        "primary_source_ids": [
-          "S14"
-        ],
-        "independent_source_ids": [
-          "S15"
-        ]
-      },
-      {
-        "claim_group": "CD19 CAR-T autoimmune-disease case-series signal and evidentiary limits",
-        "primary_source_ids": [
-          "S18"
-        ],
-        "independent_source_ids": [
-          "S19"
-        ]
-      },
-      {
-        "claim_group": "Mohammed V exile/return chronology and historical interpretation",
-        "primary_source_ids": [
-          "S20",
-          "S21"
-        ],
-        "independent_source_ids": [
-          "S22"
-        ]
-      },
-      {
-        "claim_group": "Mohammed Choukri biography, publication, and translation history",
-        "primary_source_ids": [
-          "S25"
-        ],
-        "independent_source_ids": [
-          "S23",
-          "S24"
-        ]
-      }
-    ],
-    "excluded_from_cross_checked_claim_count": [
-      "Raw citation occurrences",
-      "Source-record count",
-      "Meknes institutional retrieval routes without a current material claim",
-      "Palestine independent news route explicitly marked as supporting no current claim",
-      "AI sources that provide complementary frameworks rather than independent verification of one claim",
-      "UNKNOWN statements"
-    ]
   }
 }

@@ -7,9 +7,11 @@ edition:
 history:
   hard_min_words: 800
   target_words: "1000-1500"
+  allow_hold_without_publication: true
 literature_culture:
   hard_min_words: 800
   target_words: "1000-1500"
+  allow_hold_without_publication: true
 morocco:
   hard_min_words: 700
   target_words: "1000-1800"

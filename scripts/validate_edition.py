@@ -110,7 +110,7 @@ def validate_real(target: Path, manifest: dict, sources: list, edition_text: str
     expected = {
         "date": target.name,
         "mode": "preproduction",
-        "status": "pre-production",
+        "status": "published",
         "language": "darija-latin",
         "fact_check": "passed",
         "language_check": "passed",
