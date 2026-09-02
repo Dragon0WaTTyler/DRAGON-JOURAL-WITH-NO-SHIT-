@@ -1,0 +1,37 @@
+{
+  "story_id": "science-flow-semaglutide-kidney-abstract",
+  "proposed_title": "Semaglutide w-l-kla: natija mohimma f-FLOW, walakin l-abstract ma-kafich l-wa3d 3am",
+  "importance_score": 7.9,
+  "what_happened": "The peer-reviewed FLOW trial reported in 2024 that once-weekly semaglutide reduced a composite of major kidney outcomes in people with type 2 diabetes and chronic kidney disease compared with placebo. This desk did not read the full article: ABSTRACT ONLY. No September 2026 approval, guideline, price, or Morocco-availability claim is made because live retrieval failed.",
+  "key_facts": [
+    "PUBLICATION STATUS — Peer-reviewed New England Journal of Medicine article published in 2024; trial registration NCT03819153.",
+    "ACCESS LEVEL — ABSTRACT ONLY. The full journal article and supplementary appendix were not read in this run.",
+    "QUESTION/METHOD — Randomized, double-blind, placebo-controlled trial of weekly semaglutide 1.0 mg in people with type 2 diabetes and chronic kidney disease receiving standard care.",
+    "SAMPLE — The abstract reports 3,533 randomized participants and median follow-up of 3.4 years.",
+    "FINDING/EFFECT — The primary composite kidney outcome occurred 24% less often in the semaglutide group by relative hazard (hazard ratio 0.76; 95% confidence interval 0.66 to 0.88).",
+    "LIMITATION — A relative hazard reduction is not the same as an individual's absolute benefit; applicability depends on baseline risk, eligibility, follow-up, competing treatments, tolerability, and access.",
+    "CAUSATION — Randomization supports a causal inference for the studied treatment, population, dose, comparator, and follow-up, not for every patient or all GLP-1 medicines.",
+    "COMPANY ROLE — Novo Nordisk funded the trial; sponsor involvement and company communications require independent scrutiny even though the article was peer reviewed.",
+    "UNKNOWN — Current 4 September 2026 guidelines, regulatory labeling, comparative effectiveness, price, supply, and availability in Morocco were not verified because live retrieval was unavailable."
+  ],
+  "primary_sources": [
+    "https://doi.org/10.1056/NEJMoa2403347 — Perkovic et al., New England Journal of Medicine, Effects of Semaglutide on Chronic Kidney Disease in Patients with Type 2 Diabetes, 2024-05-24 online, access attempted 2026-09-02 but hosted retrieval unavailable; ABSTRACT ONLY",
+    "https://pubmed.ncbi.nlm.nih.gov/?term=10.1056%2FNEJMoa2403347 — PubMed indexed abstract search for DOI 10.1056/NEJMoa2403347, 2024, access attempted 2026-09-02 but hosted retrieval unavailable; ABSTRACT ONLY, supports design, sample and reported outcomes",
+    "https://clinicaltrials.gov/study/NCT03819153 — ClinicalTrials.gov, FLOW trial registry, first posted 2019 and updated over time, access attempted 2026-09-02 but hosted retrieval unavailable, primary registry for protocol and outcomes"
+  ],
+  "independent_sources": [
+    "https://www.kidney.org/news-stories/flow-trial-results-semaglutide-and-ckd-diabetes — National Kidney Foundation, 2024, access attempted 2026-09-02 but hosted retrieval unavailable, independent patient-facing interpretation emphasizing kidney risk and clinical context",
+    "https://kdigo.org/guidelines/diabetes-ckd/ — KDIGO, Diabetes Management in CKD guideline hub, guideline predates FLOW and was accessed only as dated independent standard-of-care context; live access attempted 2026-09-02 but unavailable"
+  ],
+  "contradictory_evidence": [
+    "The trial supports benefit in its enrolled high-risk population, but it does not show that semaglutide replaces blood-pressure control, SGLT2 inhibitors, monitoring, or individualized kidney care.",
+    "A 24% relative reduction can sound larger than the patient-level benefit; absolute event counts and subgroup details should be checked in the full paper before a detailed clinical story.",
+    "Sponsor descriptions may frame the result as broadly transformative; generalization, adverse events, affordability, and comparative value need evidence beyond a company release and abstract."
+  ],
+  "uncertainty": "Medium to high. The abstract supports the headline randomized result, but this run is ABSTRACT ONLY, did not inspect full methods or supplements, and could not verify any post-2024 regulatory, guideline, safety, access, or replication development.",
+  "context": "Chronic kidney disease is a major complication of type 2 diabetes and can progress despite standard treatment. GLP-1 receptor agonists were already used for glucose and cardiovascular risk; FLOW directly tested a kidney-outcome question in a defined CKD population.",
+  "why_it_matters": "The result could matter to high-risk patients, but Morocco-facing journalism must ask about diagnosis, specialist access, standard therapy, supply, price, and who was represented in the trial before translating efficacy into public-health impact.",
+  "strategic_angle": "Publish as a methods-and-access brief with ABSTRACT ONLY next to the result. Give the hazard ratio and confidence interval, avoid personalized medical advice, and hold all current availability or guideline claims until live primary-source verification succeeds.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

@@ -1,0 +1,34 @@
+{
+  "story_id": "ai-nist-genai-risk-profile-context-2026",
+  "proposed_title": "GenAI bla l-hype: kifach NIST kay7awwel l-makhater l-as2ila li t9dar t9iss",
+  "importance_score": 7.6,
+  "what_happened": "NIST published its Generative Artificial Intelligence Profile (NIST AI 600-1) on 26 July 2024 as a companion to the voluntary AI Risk Management Framework. Because live retrieval failed in this hosted run, this packet is a dated practical explainer and makes no claim about a new September 2026 model, rule, or revision.",
+  "key_facts": [
+    "FACT — NIST AI 600-1 is a cross-sector profile for applying the AI RMF to generative AI; it is guidance, not a certification or binding law.",
+    "FACT — The profile organizes recommended actions under the AI RMF functions GOVERN, MAP, MEASURE, and MANAGE.",
+    "FACT — It identifies risks including confabulation, harmful bias, data privacy, information integrity, information security, intellectual property, and environmental impacts.",
+    "FACT — NIST says risk varies with context of use; a benchmark score alone cannot establish that a deployed system is safe for every purpose.",
+    "COMPANY CLAIM — A supplier's statement that a product is 'aligned with NIST' is not independent proof, a NIST approval, or evidence that customer-specific risks were tested.",
+    "UNKNOWN — Any revision to NIST guidance, new independent audit, major model release, or Morocco-specific adoption as of 4 September 2026 was not verified because hosted search and direct HTTPS retrieval failed on 2 September 2026."
+  ],
+  "primary_sources": [
+    "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf — NIST, Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile (NIST AI 600-1), 2024-07-26, access attempted 2026-09-02 but hosted retrieval unavailable, primary technical guidance",
+    "https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf — NIST, Artificial Intelligence Risk Management Framework 1.0 (NIST AI 100-1), 2023-01, access attempted 2026-09-02 but hosted retrieval unavailable, primary framework, supports voluntary status and four functions",
+    "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence — NIST publication record, 2024-07-26, access attempted 2026-09-02 but hosted retrieval unavailable, primary metadata and scope"
+  ],
+  "independent_sources": [
+    "https://www.gao.gov/products/gao-25-107172 — US Government Accountability Office, Artificial Intelligence: Generative AI's Environmental and Human Effects, 2025, access attempted 2026-09-02 but hosted retrieval unavailable, independent public audit perspective on evidence gaps and impacts",
+    "https://www.oecd.org/en/publications/ai-principles-overview_1b7f21d9-en.html — OECD, AI Principles overview, updated 2024, access attempted 2026-09-02 but hosted retrieval unavailable, separate international framework used only to cross-check the emphasis on lifecycle risk and accountability"
+  ],
+  "contradictory_evidence": [
+    "Marketing language can imply that framework alignment equals safety certification; NIST's AI RMF is voluntary and does not certify products.",
+    "A generic risk checklist can create false confidence if teams do not test the actual language, users, data, and harms in a Moroccan deployment.",
+    "Some harms and benefits are difficult to quantify, so a neat scorecard should not erase qualitative evidence, affected-user reports, or unresolved uncertainty."
+  ],
+  "uncertainty": "Medium. The 2023 framework and 2024 profile are stable dated documents, but the desk could not perform the required live check. Current revisions, vendor behavior, independent evaluations, and local adoption are UNKNOWN.",
+  "context": "Organizations buying generative AI often receive broad capability and safety claims without deployment-specific evidence. The NIST documents offer a common vocabulary for inventories, testing, incident response, human oversight, and supplier questions, while leaving organizations responsible for choices and evidence.",
+  "why_it_matters": "Moroccan newsrooms, administrations, schools, and firms can use the framework to demand traceable tests in Darija, Arabic, Amazigh, and French rather than importing English-only benchmark claims as proof.",
+  "strategic_angle": "Turn the dated guidance into a procurement checklist: intended use, affected people, language tests, privacy, red-teaming, human appeal, incident logs, energy measurement, and exit plans. Never describe NIST alignment as approval.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

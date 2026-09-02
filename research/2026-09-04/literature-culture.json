@@ -1,0 +1,33 @@
+{
+  "story_id": "culture-malhun-unesco-context",
+  "proposed_title": "L-Mal7oun ma-shi ghir ghna: shi3r, 7erfa, w-dakira kat3ich b-na9l",
+  "importance_score": 8.2,
+  "what_happened": "Had feature ta9afi kayfesser l-Mal7oun b7al fann shi3ri-mousi9i cha3bi mghribi, w-kaybni 3la l-idraj f-UNESCO Representative List f-dowrat 2023. Ma kayn 7tta claim belli wa9e3 jadid nhar 2026-09-04: live web retrieval f-hosted environment fchel (401/403), donc l-edition khas t3ti tarikh 2023 w-twasem ay 7ala 7aliya UNKNOWN.",
+  "key_facts": [
+    "FACT (dated 2023): UNESCO Intergovernmental Committee dar 'Malhun, a popular poetic and musical art' f-Representative List of the Intangible Cultural Heritage of Humanity.",
+    "FACT (nomination description): l-fann kayjme3 qasida b-Darija, l7en, adaa, w-ma3rifa katnt9el bin nass w-jmou3; inscription ma kat3nich belli UNESCO katmlek l-fann aw katjmedo.",
+    "CONTEXT: l-Mal7oun mrtabt tarikhiya b-mdon w-awsaṭ dyal l-7erfiyin, w-Meknes katdkhol f-joghrafiyat had t-ta9lid m3a mdon okhra; claims dyal 'l-asl l-wa7id' khas-ha ihtiyat.",
+    "ANALYSIS: l-qasida t9dr tkon mad7, ghazal, hikma, diniya aw wasf; l-forma hiya archive ijtima3i, walakin shi3r ma-shi sijill wa9i3i mobachir. Final edition must transliterate/delete Arabic script.",
+    "UNKNOWN: bla live interviews aw programme institutional mftou7 nhar l-run, ma na3rfo-sh chkon kaytkhlles b-insaf, ch7al mn talmid kayt3ellem, aw wash ay initiative 2026 khddama daba."
+  ],
+  "primary_sources": [
+    "UNESCO Intangible Cultural Heritage, 'Malhun, a popular poetic and musical art', element 01976, inscription 2023, https://ich.unesco.org/en/RL/malhun-a-popular-poetic-and-musical-art-01976 (primary institutional record; live retrieval attempted 2026-09-04, tunnel 403)",
+    "UNESCO nomination file 01976 submitted by Morocco, decision cycle 2023, linked from the element record (primary dossier; full file not retrieved in this hosted run)"
+  ],
+  "independent_sources": [
+    "Encyclopaedia of Islam, entries and scholarly bibliography on malhun/Moroccan sung poetry (reference context; exact entry access unavailable in hosted run)",
+    "Aomar Boum and Thomas K. Park, Historical Dictionary of Morocco, Rowman & Littlefield, 2016, ISBN 9781442262966 (reference work; not full-text read in this run)",
+    "Ruth Finnegan, Oral Poetry: Its Nature, Significance and Social Context, Cambridge University Press, 1977, https://doi.org/10.1017/CBO9780511620337 (comparative method, not Morocco-specific proof; full text not retrieved)"
+  ],
+  "contradictory_evidence": [
+    "UNESCO inscription supports recognition and safeguarding, but it is not evidence that practitioners have stable income, that transmission is secure, or that every local school survived.",
+    "Calling Mal7oun exclusively urban or tying it to one city can erase circulation among Meknes, Fes, Marrakech, Salé and other communities; a single-origin claim needs manuscript and performance evidence.",
+    "Official heritage language may emphasize continuity, while living performers may report change, hybrid instruments or pressures; no current practitioner interviews were retrieved for this run."
+  ],
+  "uncertainty": "Low on the 2023 UNESCO inscription; medium on broad historical genealogy; high on the present 2026 condition of transmission and livelihoods because live retrieval and interviews failed.",
+  "context": "L-Mal7oun kay3ich f-l-kelma, l-mizan, l7en w-jelsa dyal l-ada. Qimto ma katjich ghir mn label UNESCO: katji mn nass li kay7fdo, kaychre7o, kayghenniw, kaysn3o l-alat, w-kay3lmo jil jdid. L-idraj d-dawli y9der y3awn visibility, walakin safeguarding khaso documentation, access, fair pay, w-space l-taghyir.",
+  "why_it_matters": "Had l-feature kay3ti Adab wa-Ta9afa wa7d l-ma3na mghribi 7ayy: Darija hna lugha dyal poetry w-fikr, ma-shi ghir wasila dyal khbar. Kayrbet l-qari b-su2al dyal chkon kay7fed turat w-chkon kaystafed mno.",
+  "strategic_angle": "Nqraw qasida k-bina2: matl3, a9sam, lazma w-performance, bla ma nn9lo nosos me7miya. Ndir box wad7: FACT 2023 / UNKNOWN 2026, w-ntlbo mn l-mo2assasat w-l-fnana a3dad transmission w-compensation f-run jay.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

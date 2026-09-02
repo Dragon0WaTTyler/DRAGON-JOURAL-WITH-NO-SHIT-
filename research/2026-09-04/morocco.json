@@ -1,0 +1,31 @@
+{
+  "story_id": "morocco-reconstruction-accountability-2026-09-04",
+  "proposed_title": "I3mar Al Haouz: mn l-iltizam l dalil 3la natija",
+  "importance_score": 8.2,
+  "what_happened": "Had packet howa context mwarrekh, ma-shi khbar dyal 4 September 2026. L-7okoma 3elnat f 20 September 2023 programme khamssi 2024-2028 b 120 milliard dirham l jiha li t2etterat b zelzal Al Haouz. World Bank qarrat f 14 December 2023 programme b 1 milliard dollar l recovery w resilience. F had hosted run, live retrieval t3ettel; donc ma kan3tiw la nisbat injaz 2026 la wa3d jdida.",
+  "key_facts": [
+    "FACT — Balagh Ra2is l-7okoma dyal 20 September 2023 7edded programme 2024-2028 b budget 120 milliard dirham w population mostahdafa taqriban 4.2 million.",
+    "FACT — World Bank 3elnat f 14 December 2023 3la programme b 1 milliard dollar kayhdef l recovery w resilience, m3a mar7ala owla katghatti 18 chher.",
+    "CLAIM — L-ahdaf, budgets w jadwal li f balaghat homa iltizamat dyal l-mo2assasat, ma-shi bo7dhom dalil belli ddar, triq, madrasa aw markaz si77i tsellem b jawda.",
+    "UNKNOWN — Ma t-verifatch f had session ay nisba dyal injaz, ta2khir, ta3widat, aw wad3 s-sokkan f September 2026; khas records m7ayyena w cross-check maydani qbel ay current claim."
+  ],
+  "primary_sources": [
+    "url=https://www.cg.gov.ma/en/node/11397 ; publisher=Head of Government of Morocco ; publication_date=2023-09-20 ; accessed_at=2026-09-02 ; source_type=official government announcement ; claim_supported=programme period, announced envelope and target population",
+    "url=https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience ; publisher=World Bank ; publication_date=2023-12-14 ; accessed_at=2026-09-02 ; source_type=multilateral financing decision ; claim_supported=financing amount, programme design and initial phase"
+  ],
+  "independent_sources": [
+    "url=https://www.reuters.com/world/africa/morocco-plans-spend-12-bln-earthquake-reconstruction-over-five-years-2023-09-20/ ; publisher=Reuters ; publication_date=2023-09-20 ; accessed_at=2026-09-02 ; source_type=independent wire report ; claim_supported=contemporaneous cross-check of announced reconstruction plan",
+    "url=https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report ; publisher=World Bank ; publication_date=2022-11-03 ; accessed_at=2026-09-02 ; source_type=analytical report ; claim_supported=pre-disaster resilience and territorial vulnerability context"
+  ],
+  "contradictory_evidence": [
+    "Budget announced aw loan approved ma kay3nich automatically flous tsreft, dar tsellmat, aw mostafid wsel lih ta3wid.",
+    "L-7okoma w World Bank 3andhom dawr f programme; reporting dyalhom khaso audit, open procurement data w testimony mostaqilla bach n9isso outcomes.",
+    "Live retrieval failed for this desk: web tool returned HTTP 401 and direct HTTPS returned proxy HTTP 403, donc ma kayn 7tta verification dyal current milestones."
+  ],
+  "uncertainty": "High 3la l-wad3 l-7ali. Sources li 3andna mwarrekha 2023 w katkaythbet ghir programme w financing. Current housing delivery, complaints, costs and deadlines remain UNKNOWN.",
+  "context": "Ba3d zelzal 8 September 2023, reconstruction katjma3 s-sakan, toroq, madaris, si77a w i7ya2 iqtisadi. L-farq l-editorial l-mohim howa bin input, output w outcome: budget, bina2 mosellem, w wach l-osra rj3at l 7ayat amna.",
+  "why_it_matters": "Had dossier kaymss l-karama, s-salama w thiqat n-nas f l-mo2assasat. Scorecard b dalil a7san mn headline kay3awed raqam budget qadim.",
+  "strategic_angle": "Nchro ghir brief context b label UNKNOWN 3la l-injaz l-7ali. Follow-up khaso data commune-par-commune, marches, reception records, chchikayat mostafidin, audit w reporting maydani mostaqill.",
+  "confidence": "medium",
+  "recommendation": "BRIEF"
+}

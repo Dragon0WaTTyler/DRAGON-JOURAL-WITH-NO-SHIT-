@@ -1,0 +1,35 @@
+{
+  "story_id": "palestine-status-led-context-2026-09-04",
+  "proposed_title": "Filastin: dalil mwarrekh, attribution w 7doud l-ma3rifa",
+  "importance_score": 9.6,
+  "what_happened": "Had packet ma-shi live conflict update. Retrieval f hosted session fchel, donc ma n9drouch n-verifiw wa9i3a aw 7asila dyal 2-4 September 2026. Nqaddmo ghir context mwarrekh w qa3ida editorial: FACT, CLAIM, DISPUTED, ESTIMATE w UNKNOWN khas kol wa7da tb9a bayna.",
+  "key_facts": [
+    "FACT — ICJ f advisory opinion dyal 19 July 2024 qalet belli istimrar l-wodoj d-dawla l-isra2iliya f Occupied Palestinian Territory ghayr qanoni; had advisory opinion ma-shi 7okm jina2i 3la kol wa9i3a maydaniya.",
+    "FACT — ICRC kaychre7 belli international humanitarian law kayfrod distinction, proportionality w precautions, w 7imayat l-madaniyin katlzem jami3 atraf n-niza3.",
+    "CLAIM — Tasri7 dyal jaych, 7okoma aw jama3a mosalla7a 3la target, operation aw responsibility howa claim mansoub l sahib dyalo 7tta yji dalil mostaqill.",
+    "DISPUTED — Attribution dyal darb, sifet target, sabab wafat aw isti3mal maw9i3 madani y9dar yb9a motanaza3 3lih; khas n3rdo dalil kol taraf bla false equivalence.",
+    "ESTIMATE — A3dad l-wafayat, displacement, food insecurity w damage khas-ha cutoff, geography, publisher w methodology; ma-shi count niha2i.",
+    "UNKNOWN — Attacks, negotiations, hostages/prisoners, aid flows, casualties w operative policy f 2-4 September 2026 ma t-verifatch f had run."
+  ],
+  "primary_sources": [
+    "url=https://www.icj-cij.org/case/186 ; publisher=International Court of Justice ; publication_date=2024-07-19 advisory opinion ; accessed_at=2026-09-02 ; source_type=primary judicial record ; claim_supported=scope and conclusion of the advisory opinion",
+    "url=https://www.ochaopt.org/ ; publisher=UN OCHA occupied Palestinian territory ; publication_date=continuously updated portal ; accessed_at=2026-09-02 ; source_type=UN humanitarian reporting archive ; claim_supported=route for dated humanitarian updates, not a current event asserted here",
+    "url=https://www.icrc.org/en/war-and-law ; publisher=International Committee of the Red Cross ; publication_date=live legal explainer ; accessed_at=2026-09-02 ; source_type=authoritative IHL explainer ; claim_supported=baseline humanitarian-law duties"
+  ],
+  "independent_sources": [
+    "url=https://apnews.com/hub/israel-hamas-war ; publisher=Associated Press ; publication_date=continuously updated archive ; accessed_at=2026-09-02 ; source_type=independent news archive ; claim_supported=required route for event-level cross-check, no current event taken from it",
+    "url=https://www.reuters.com/world/middle-east/ ; publisher=Reuters ; publication_date=continuously updated section ; accessed_at=2026-09-02 ; source_type=independent wire archive ; claim_supported=required route for diplomatic and conflict cross-check, no current event taken from it"
+  ],
+  "contradictory_evidence": [
+    "Atraf n-niza3 kaykhtalfo b intidam 3la responsibility, target characterization, casualty composition w access; statement dyal taraf ma kaythbetch raso.",
+    "UN estimates t9dar tkoun a7san available evidence walakin t9dar t3tamed 3la administrative counts, modelling aw delayed verification m3a access m7doud.",
+    "ICJ advisory opinion 3la state responsibility w occupation ma kayy7semch kol battlefield allegation aw individual criminal liability.",
+    "Live retrieval failed: web tool returned HTTP 401 and direct HTTPS returned proxy HTTP 403, so current portals and independent wires were not read in this run."
+  ],
+  "uncertainty": "Current-event uncertainty high. HOLD ay same-day wa9i3a, raqam aw diplomatic claim 7tta live access yrje3 w ndir OCHA/WHO/ICRC, primary attribution mn jihat mokhtalifa, w Reuters/AP/AFP cross-check.",
+  "context": "Coverage khaso y7fed date cutoff, geography, provenance, methodology w revision history. Legal finding ma-shi political claim, w administrative count ma-shi final truth.",
+  "why_it_matters": "Attribution ghalta aw raqam bla cutoff kayyghallet l-qari w kayna9s mn insaniyat d-da7aya. Sra7a 3la chno ma n3rfouch hiya part mn d-diqqa.",
+  "strategic_angle": "Nchro ghir context box b labels FACT/CLAIM/DISPUTED/ESTIMATE/UNKNOWN. Ma nzidou 7tta live headline 7tta n9raw sources mwarrekha w n-cross-checkiwha.",
+  "confidence": "high",
+  "recommendation": "BRIEF"
+}

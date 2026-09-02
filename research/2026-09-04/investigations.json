@@ -1,0 +1,36 @@
+{
+  "story_id": "investigation-al-haouz-reconstruction-retrieval-gap",
+  "proposed_title": "I3mar l-7ouz: fin kaytsali wa3d w-fin katbda natija mverifiya?",
+  "importance_score": 9.1,
+  "what_happened": "Dossier mustamir kayfr9 bin l-envelope rasmi dyal 120 milyar dirham l-programme 2024-2028, financing World Bank dyal $1bn, w-nata2ij li khas-ha verification village-by-village. F-run 2026-09-04, live retrieval ma khdemch: web search rje3 401 Unauthorized w-direct HTTPS l-mraji3 rje3 CONNECT tunnel 403. Donc ma zedna 7tta same-day progress claim; latest status ba9i UNKNOWN, w-had l-7ad msjjel b-wodo7.",
+  "key_facts": [
+    "FACT (official announcement 2023-09-20): programme 2024-2028 t9ddem b-envelope 120bn MAD w-scope 4.2m sakn f-6 a9alim/prefectures; hadi envelope multi-sector, ma-shi cash spent w-ma-shi housing-only.",
+    "FACT (World Bank 2023-12-14): Bank wafe9 3la $1bn Program-for-Results l-recovery w-resilience; approval ma howash dalil belli kol indicators t7e99o.",
+    "FACT (USGS event record): zelzal magnitude 6.8 w9e3 2023-09-08; had event fact ma kay7semsh performance dyal reconstruction.",
+    "CLAIM: official updates historically 3ddat permits, starts, completed houses w-infrastructure; definitions w-cut-off dates khas-hom comparison 9bel publication.",
+    "CONTRADICTORY EVIDENCE: independent field reports f-2024 sjjlat delays/protests w-sokon mo2aqqat l-ba3d; hadi katna9ed completion blanket, walakin ma tbetsh belli ma tdar walo.",
+    "UNKNOWN (2026-09-04): committed vs disbursed money, occupied safe homes, rejected appeals, village distribution, seismic inspections, and latest verified completion rate could not be retrieved live."
+  ],
+  "primary_sources": [
+    "Head of Government of Morocco, integrated reconstruction programme announcement, 2023-09-20, https://www.cg.gov.ma/en/node/11397 (primary; live retry 2026-09-04 failed with tunnel 403)",
+    "World Bank, $1bn recovery and resilience approval, 2023-12-14, https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience (primary multilateral; live retry unavailable)",
+    "World Bank Projects & Operations, P178542 documents/results portal, https://projects.worldbank.org/en/projects-operations/project-detail/P178542 (primary monitoring starting point; live retry 2026-09-04 failed with tunnel 403)",
+    "USGS, M6.8 Al Haouz event us7000kufc, 2023-09-08, https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive (primary scientific event data; not a reconstruction source)"
+  ],
+  "independent_sources": [
+    "Reuters, Morocco earthquake survivors protest reconstruction delays, reporting around first anniversary in September 2024, Reuters Africa index https://www.reuters.com/world/africa/ (exact permalink remains missing; do not cite as final hyperlink until recovered)",
+    "Dossier-held independent resident reports from 2024 are context only; no live 2026 independent field report was retrieved in this run."
+  ],
+  "contradictory_evidence": [
+    "Official milestones contradict a claim that nothing was rebuilt, but permits, starts, completed structures and occupied homes are not interchangeable.",
+    "Resident complaints and interim-shelter reports contradict a claim of even or complete recovery, but cannot be generalized to every village without sampling data.",
+    "The 120bn MAD five-year, multi-sector envelope contradicts any graphic that labels the whole sum housing cash already spent.",
+    "A results-based loan can document indicator-linked disbursement, but loan approval alone contradicts neither delays nor uneven local delivery."
+  ],
+  "uncertainty": "High for every 2026 status metric because hosted live retrieval failed. Medium for 2024 field context until exact Reuters permalink is recovered. Low for the dated 2023 government, World Bank and USGS baseline claims.",
+  "context": "L-mohim f-tahqiq ma-shi njm3o ra9m kbir; khas data table b-qarya: eligible, approved, appealed, start, completed, inspected, utilities, occupied. Khas 7tta budget lifecycle: authorized, committed, contracted, paid, independently verified. Bla had definitions, juj ar9am ybano mtna9din w-homa kay9iso 7wayj mkhtalfin.",
+  "why_it_matters": "Sokon amin, tari9, ma, madrasa w-se77a homa 7o9o9 w-nata2ij malmosa. Transparency kat7mi l-motaḍarrir w-7tta l-mas2oul mn ta3mim ghalet, w-katkhlli l-flous l-3amma 9abla l-mohasaba.",
+  "strategic_angle": "Nnchro ghir baseline dated w-box kbira UNKNOWN/RETRIEVAL LIMITATION. Follow-up: download latest P178542 ISR/results, budget execution, procurement, beneficiary/appeal table, w-independent village sample; compare support and contradiction before any verdict.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

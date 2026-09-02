@@ -1,0 +1,33 @@
+{
+  "story_id": "history-wadi-al-makhazin-1578",
+  "proposed_title": "Wadi l-Makhazin: ma3raka li bddlat tawazon l-Mghreb w-l-Atlantique",
+  "importance_score": 8.4,
+  "what_happened": "Had packet howa feature tarikhi, ma-shi khbar dyal nhar. Kayrje3 l-ma3rakat Wadi l-Makhazin (Alcazarquivir/Battle of the Three Kings) nhar 4 ghusht 1578: jaysh s-Saadi 3la 9iyadat Abd al-Malik wa9ef tadakhkhul l-Portughali li sanad l-malik l-ma3zoul al-Mutawakkil. Tlat dyal l-molouk mato f-aw ba3d l-ma3raka, w-Ahmad al-Mansur tla3 l-3arsh. Live retrieval f-had hosted run fchel (web tool 401; direct HTTPS tunnel 403), donc ma kayn 7tta same-day claim w-kolchi hna dated context khas final editor ywasmo CONTEXT/UNKNOWN 3la retrieval.",
+  "key_facts": [
+    "FACT (dated context): l-ma3raka w9e3at 4 ghusht 1578 7da al-Qasr al-Kbir; l-asma l-mosta3mala f-l-mraji3 katdkhol fiha Wadi l-Makhazin, Alcazarquivir, w-Battle of the Three Kings.",
+    "FACT (dated context): Sebastian I dyal Portugal, Abd al-Malik s-Saadi, w-al-Mutawakkil mato f-l-ma3raka aw mn taba3atha l-mobachira; Ahmad al-Mansur warat l-7okm s-Saadi.",
+    "ANALYSIS: l-hazima z3z3at l-khilafa f-Portugal; Sebastian ma khlla-sh warit mobachir, w-ba3d l-azma d-dynastiya wlat Portugal ta7t l-Iberian Union f-1580. Ma khasnach nkhtazlo had l-masar f-sabab wa7ed bla ta7lil akbar.",
+    "ANALYSIS: n-nasr 9wwa dawlat Saadiya w-sm3at Ahmad al-Mansur, walakin l-9owwa dyal dawla bnat 7tta 3la tijara, d-dariba, d-diplomasiya, w-ba3d dakchi 7amlat Songhay; sababiyat basita mam9bolash.",
+    "UNKNOWN: ma t9drat-sh l-edition t3awed tfta7 l-mraji3 live nhar 2026-09-04; tafasil l-a3dad, l-khasa2ir, w-niyat l-fa3ilin ma khas-homsh yt9ddmo k-ya9in bla retrieval w-page-level verification."
+  ],
+  "primary_sources": [
+    "Biblioteca Nacional de Portugal, digital collections/search for D. Sebastiao and Alcacer Quibir, historical primary materials, https://purl.pt/ (dated collection; live retrieval attempted 2026-09-04 but hosted network returned 403)",
+    "Bibliotheque nationale du Royaume du Maroc, catalogue/manuscript collections, https://bnrm.ma/ (institutional archive; live retrieval not completed 2026-09-04)"
+  ],
+  "independent_sources": [
+    "Encyclopaedia Britannica, Battle of the Three Kings, reference overview, https://www.britannica.com/event/Battle-of-the-Three-Kings (live retrieval attempted 2026-09-04; HTTPS tunnel returned 403)",
+    "Jamil M. Abun-Nasr, A History of the Maghrib in the Islamic Period, Cambridge University Press, 1987, https://doi.org/10.1017/CBO9780511608100 (scholarly synthesis; book full text not retrieved in this run)",
+    "Mercedes Garcia-Arenal, Ahmad al-Mansur: The Beginnings of Modern Morocco, Oneworld, 2009, ISBN 9781851686100 (scholarly monograph; bibliographic context, full text not retrieved in this run)"
+  ],
+  "contradictory_evidence": [
+    "Popular heroic retellings can present one clean civilizational clash; the succession dispute inside Morocco and Abd al-Malik's prior Ottoman support make the alignments more complex.",
+    "A nationalist reading can describe 1578 as the sole cause of Portuguese decline; Portugal's succession, finance, empire, and the 1580 dynastic union require separate evidence.",
+    "Numbers for army size and casualties vary across later narratives; none should enter the edition as FACT until a citable edition of a source and modern scholarly comparison are checked."
+  ],
+  "uncertainty": "High on disputed troop/casualty numbers and motives; medium on causal interpretation; low on date, place, principal rulers and succession. Hosted live retrieval failed, so publication must explicitly call this dated context and leave unverified details UNKNOWN.",
+  "context": "L-ma3raka jat mn sira3 3la l-3arsh s-Saadi w-mashrou3 Sebastian I bach ydkhol l-Mghreb m3a al-Mutawakkil. N-natija ma b9atsh mahdouda f-midan l-7arb: 7ellat azmat khilafa Portughaliya w-3tat Ahmad al-Mansur ra2smal siyasi. Feature mzyan khas y9aren riwayat Portughaliya, Maghribiya, w-dirasa 7adita, bla anachronisme dyal dawla-wataniya l-7adita.",
+  "why_it_matters": "Kaybayan belli Tarikh l-Mghreb kan mrbot b-siyasat l-Mutawassit, l-Atlantique, w-dowal Islamiya w-Orobbia; w-kay3llm l-9ari kifach yfre9 bin wa9i3a mowatta9a, ra9m mkhtalaf 3lih, w-tafsir watani ja mn ba3d.",
+  "strategic_angle": "Nbniw feature 3la 'chno na3rfo / chno mkhtalaf 3lih / kifach tsn3at d-dakira'. Nrfdo ar9am l-jiyouch w-l-khasa2ir unless verified; final editor must render every phrase Latin-only and delete this parenthetical warning before use.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}
