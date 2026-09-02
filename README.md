@@ -9,7 +9,7 @@ must run in hosted Codex Cloud and must not depend on the user's PC.
 The repository has passed the infrastructure smoke test. The archived fixture
 is **not journalism**. The recurring production schedule remains disabled.
 
-Pilot day 2 and all prior `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` editions
+Pilot days 1 and 2 and all prior `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` editions
 are archived for quality review. The pilot is not recurring production.
 
 ## Repository contract
@@ -75,6 +75,6 @@ See [AGENTS.md](AGENTS.md), [SPEC-v1.md](SPEC-v1.md), and
 - [Sources](editions/2026/09/2026-09-06/sources.json)
 - [Manifest](editions/2026/09/2026-09-06/manifest.json)
 
-Prior real pre-production editions remain archived: [2026-09-04](editions/2026/09/2026-09-04/edition.md) and [2026-09-03](editions/2026/09/2026-09-03/edition.md).
+Prior real pre-production editions remain archived: [2026-09-05](editions/2026/09/2026-09-05/edition.md), [2026-09-04](editions/2026/09/2026-09-04/edition.md), and [2026-09-03](editions/2026/09/2026-09-03/edition.md).
 
 The [2026-09-02 smoke fixture](editions/2026/09/2026-09-02/edition.md) remains archived separately and is not journalism.

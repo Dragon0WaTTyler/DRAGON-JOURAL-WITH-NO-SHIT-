@@ -26,7 +26,8 @@
     "2023-12-14: World Bank approves $1bn recovery and resilience Program-for-Results.",
     "2024-09: independent reporting records both official progress figures and complaints/protests by some survivors one year after the quake.",
     "2026-09-02: dossier opened; current village-level completion, spending and appeals datasets still to be collected.",
-    "2026-09-04: second preproduction run attempted live search and direct retrieval; hosted web search returned 401 and HTTPS tunnel returned 403. No same-day progress claim was added; latest status remains UNKNOWN pending retrieval."
+    "2026-09-04: second preproduction run attempted live search and direct retrieval; hosted web search returned 401 and HTTPS tunnel returned 403. No same-day progress claim was added; latest status remains UNKNOWN pending retrieval.",
+    "2026-09-02: pilot day 1 for edition date 2026-09-05 attempted hosted live search; HTTP 401 prevented fresh verification. No future/current progress claim was added and dossier remains RESEARCHING."
   ],
   "sources": [
     "Head of Government of Morocco, programme announcement, 2023-09-20, primary government, accessed 2026-09-02, https://www.cg.gov.ma/en/node/11397",
@@ -42,7 +43,8 @@
     "Inspection evidence for seismic compliance and treatment of local earthen architectural heritage.",
     "Court of Accounts, inspectorate or lender verification findings, including adverse findings and corrective actions.",
     "Exact Reuters article permalink and direct responses from programme officials and affected residents.",
-    "Fresh retrieval of the latest World Bank P178542 implementation-status/results documents and 2026 official budget-execution records; hosted retrieval was unavailable on 2026-09-04."
+    "Fresh retrieval of the latest World Bank P178542 implementation-status/results documents and 2026 official budget-execution records; hosted retrieval was unavailable on 2026-09-04.",
+    "Pilot day 1 could not retrieve current records because hosted search returned HTTP 401; retry the same focused records without regenerating dated editorial context."
   ],
   "unanswered_questions": [
     "Ch7al t3ahdo bih, ch7al tsref, w-ch7al tverifa ka-result 7tta latest cut-off?",

@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-05",
+  "mode": "preproduction",
+  "status": "pre-production",
+  "language": "darija-latin",
+  "pdf": "edition.pdf",
+  "epub": "edition.epub",
+  "cover": "cover.webp",
+  "fact_check": "passed",
+  "language_check": "passed",
+  "sources_count": 20,
+  "citations_count": 22,
+  "sections": [
+    "Kalmat Ra2is t-Ta7rir — l-most9bal ma kaytktbch b-sighat l-khbar",
+    "L-Mghreb — RGPH kay3tina baseline, ma-shi 7okm 3la l-khadamat",
+    "Meknes Radar — Volubilis: label 3alami, mas2ouliya ma7alliya",
+    "Filastin w Sharq l-Awsat — FACT, CLAIM, DISPUTED, ESTIMATE, UNKNOWN",
+    "L-3alam — SDGs: 17% on track kan warning dyal 2024",
+    "AI w Technology — EU AI Act ma-shi cachet s-salama",
+    "Science — SELECT w semaglutide: ABSTRACT ONLY",
+    "Tarikh l-Mghreb — l-Masira l-Khadra w l-archive lli ma khas-sh ytskt",
+    "Adab w Culture — Gnawa torat 7ayy, ma-shi plaque",
+    "Investigations w Accountability — l-Houz: l-result howa dar maskouna b-aman",
+    "Mola7adat Fact-check w Darija QA",
+    "Sources"
+  ],
+  "smoke_test": false,
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION"
+}
