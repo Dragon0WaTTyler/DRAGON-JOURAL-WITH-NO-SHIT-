@@ -16,8 +16,8 @@
   "source_count": 34,
   "citations_count": 36,
   "commit_sha": "84fb204581d34fab376e89aa2e4422fba9b32f9f",
-  "remote_sha": "f430ac225418e27adb67cd41b1bcce9537463fbf",
-  "persistence_status": "COMPLETE: initial push and exact remote SHA verification passed; receipt update pending final commit/push verification",
+  "remote_sha": "5ed34938d579a8b68148c215ee59995e9d13b17e",
+  "persistence_status": "COMPLETE: final persistence commit was pushed to origin/main and its remote SHA exactly matched the local HEAD",
   "desk_quality_scorecard": {
     "morocco": {
       "score": 7,
@@ -57,5 +57,8 @@
     }
   },
   "schedule_enabled": false,
-  "smoke_fixture_preserved": "editions/2026/09/2026-09-02"
+  "smoke_fixture_preserved": "editions/2026/09/2026-09-02",
+  "edition_commit_sha": "84fb204581d34fab376e89aa2e4422fba9b32f9f",
+  "intermediate_persistence_commit_sha": "f430ac225418e27adb67cd41b1bcce9537463fbf",
+  "final_persistence_commit_sha": "5ed34938d579a8b68148c215ee59995e9d13b17e"
 }
