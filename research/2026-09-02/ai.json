@@ -1,26 +1,47 @@
 {
-  "story_id": "ai-2026-09-02",
-  "proposed_title": "AI procurement b-7o9o9 w appeal",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "ai-cloud-drycheck-2026-09-02",
+  "proposed_title": "Claude Opus 4.1 claim lacks a fresh independent evaluation",
+  "importance_score": 6.0,
+  "what_happened": "Fresh GET retrieved Anthropic’s exact product announcement and an arXiv abstract about adaptive LLM routing. The paper is not an independent evaluation of Claude Opus 4.1, so the packet does not use it as corroboration.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S16, S17."
+    "COMPANY_CLAIM: Anthropic announced Claude Opus 4.1 and reported benchmark results.",
+    "ABSTRACT_ONLY: arXiv 2508.21141 concerns adaptive routing under budgets.",
+    "UNKNOWN: no independent replication of the company benchmark was retrieved."
   ],
   "primary_sources": [
-    "https://unesdoc.unesco.org/ark:/48223/pf0000381137"
+    {
+      "url": "https://www.anthropic.com/news/claude-opus-4-1",
+      "publisher": "Anthropic",
+      "publication_date": "2025-08-05",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "Anthropic product announcement",
+      "claim_supported": "What Anthropic claimed about Claude Opus 4.1 and its benchmark",
+      "evidence_label": "COMPANY_CLAIM",
+      "independence": "Company source; explicitly not independent verification"
+    }
   ],
   "independent_sources": [
-    "https://www.nist.gov/itl/ai-risk-management-framework"
+    {
+      "url": "https://arxiv.org/abs/2508.21141",
+      "publisher": "arXiv",
+      "publication_date": "2025-08-28",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "research-paper",
+      "attribution": "Paper authors via arXiv abstract record",
+      "claim_supported": "Abstract claims about adaptive LLM routing under budget constraints",
+      "evidence_label": "ABSTRACT_ONLY",
+      "independence": "Author manuscript, not peer review or independent product evaluation"
+    }
   ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "The routing paper studies another question and cannot verify product performance.",
+    "Self-reported benchmark performance is not real-world reliability."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "uncertainty": "High about the announcement; low about comparative performance; independent verification is missing.",
+  "context": "Company announcement, technical evidence and independent testing are separate source trails.",
+  "why_it_matters": "Stops marketing claims from being promoted to established evidence.",
+  "strategic_angle": "HOLD pending exact model documentation and genuinely independent tests.",
+  "confidence": "high",
+  "recommendation": "HOLD"
 }

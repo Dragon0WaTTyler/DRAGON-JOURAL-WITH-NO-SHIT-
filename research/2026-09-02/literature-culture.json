@@ -1,27 +1,47 @@
 {
-  "story_id": "literature-culture-2026-09-02",
-  "proposed_title": "Mohammed Choukri bin tarjama w man3",
-  "importance_score": 8.2,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "culture-world-book-capital-framework-2026-09-02",
+  "proposed_title": "World Book Capital: programme framework is not an outcome audit",
+  "importance_score": 6.5,
+  "what_happened": "Fresh retrieval reached UNESCO’s exact World Book Capital programme page and Morocco country page. These establish institutional context but not current Rabat attendance, access or impact.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S25, S23, S24."
+    "FACT: UNESCO describes an annual World Book Capital framework.",
+    "UNKNOWN: the dry check established no exact current Rabat event, budget, attendance, library-loan or accessibility record.",
+    "INTERPRETATION: programme prestige should be separated from measurable reading access."
   ],
   "primary_sources": [
-    "https://aucpress.com/9789774247340/for-bread-alone/"
+    {
+      "url": "https://www.unesco.org/en/world-book-capital",
+      "publisher": "UNESCO",
+      "publication_date": "page current at retrieval",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "UNESCO programme page",
+      "claim_supported": "World Book Capital programme purpose and annual framework",
+      "evidence_label": "FACT",
+      "independence": "Programme owner; not evidence of Rabat programme outcomes"
+    }
   ],
   "independent_sources": [
-    "https://www.britannica.com/biography/Mohammed-Choukri",
-    "https://search.worldcat.org/title/For-bread-alone/oclc/4495457"
+    {
+      "url": "https://www.unesco.org/en/countries/ma",
+      "publisher": "UNESCO",
+      "publication_date": "page current at retrieval",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "catalogue",
+      "attribution": "UNESCO Morocco country page",
+      "claim_supported": "UNESCO programme and country context for Morocco",
+      "evidence_label": "FACT",
+      "independence": "Same institution as programme page; not an independent outcome audit"
+    }
   ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Both records originate with UNESCO and therefore do not constitute independent verification.",
+    "Event counts would not by themselves demonstrate durable reading access."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "uncertainty": "High on the programme framework; high uncertainty on current Moroccan outcomes.",
+  "context": "The previous-topic check remains required before a feature; a single programme page cannot sustain the 800-word gate.",
+  "why_it_matters": "Keeps cultural analysis tied to access, institutions and evidence rather than ceremonial branding.",
+  "strategic_angle": "HOLD pending exact Rabat programme documents and independent library/publishing evidence.",
+  "confidence": "high",
+  "recommendation": "HOLD"
 }

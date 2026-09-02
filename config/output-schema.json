@@ -14,8 +14,8 @@
     "importance_score": {"type": "number", "minimum": 0, "maximum": 10},
     "what_happened": {"type": "string", "minLength": 1},
     "key_facts": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-    "primary_sources": {"type": "array", "items": {"type": "string"}},
-    "independent_sources": {"type": "array", "items": {"type": "string"}},
+    "primary_sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
+    "independent_sources": {"type": "array", "items": {"$ref": "#/$defs/source"}},
     "contradictory_evidence": {"type": "array", "items": {"type": "string"}},
     "uncertainty": {"type": "string", "minLength": 1},
     "context": {"type": "string", "minLength": 1},
@@ -24,5 +24,23 @@
     "confidence": {"enum": ["high", "medium", "low"]},
     "recommendation": {"enum": ["LEAD", "PUBLISH", "BRIEF", "HOLD", "REJECT"]}
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["url", "publisher", "publication_date", "retrieved_at", "source_type", "attribution", "claim_supported", "evidence_label", "independence"],
+      "properties": {
+        "url": {"type": "string", "pattern": "^https://"},
+        "publisher": {"type": "string", "minLength": 1},
+        "publication_date": {"type": "string", "minLength": 1},
+        "retrieved_at": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\+01:00|Z)$"},
+        "source_type": {"enum": ["official", "primary-document", "research-paper", "independent-reporting", "institutional-analysis", "archive", "catalogue"]},
+        "attribution": {"type": "string", "minLength": 1},
+        "claim_supported": {"type": "string", "minLength": 1},
+        "evidence_label": {"enum": ["FACT", "OFFICIAL_CLAIM", "COMPANY_CLAIM", "DISPUTED_CLAIM", "ESTIMATE", "ABSTRACT_ONLY", "INTERPRETATION", "UNKNOWN"]},
+        "independence": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
 }

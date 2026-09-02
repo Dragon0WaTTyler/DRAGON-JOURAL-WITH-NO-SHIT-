@@ -5,6 +5,8 @@ source_of_truth: github-origin-main
 stages:
   - id: research
     mode: parallel-where-supported
+    transport: cloud-internet-access-on-allowlisted-https-get
+    forbidden_transport: native-web-search-while-http-401
     roles: [morocco, meknes, palestine, world, ai, science, history, literature-culture, investigations]
     output: research/YYYY-MM-DD/*.json
   - id: synthesis
@@ -32,6 +34,7 @@ stages:
     required_checks: [validation, commit, push, remote-sha-match]
 
 failure_policy:
+  retrieval: hold-or-reject-with-search-evidence-never-filler
   research_role: retry-only-failed-role
   fact_check: block-publication
   publishing_artifact: retry-only-failed-artifact

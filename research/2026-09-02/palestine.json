@@ -1,29 +1,35 @@
 {
-  "story_id": "palestine-2026-09-02",
-  "proposed_title": "FACT, CLAIM, DISPUTED, ESTIMATE, UNKNOWN",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "palestine-cloud-drycheck-2026-09-02",
+  "proposed_title": "Gaza humanitarian classification: dated WHO claim, current state unverified",
+  "importance_score": 8.5,
+  "what_happened": "WHO exact statement dated 22 August 2025 was freshly retrieved. It is retained as a dated official humanitarian claim, not misrepresented as a 2026 situation update.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S09, S10, S11, S12, S13."
+    "OFFICIAL_CLAIM: WHO reported an IPC famine confirmation for specified Gaza areas at publication time.",
+    "UNKNOWN: casualty totals, territorial coverage, aid access and classification on 2 September 2026 were not verified.",
+    "FACT: the source date is 2025-08-22, not today."
   ],
   "primary_sources": [
-    "https://www.icj-cij.org/case/186",
-    "https://www.icrc.org/en/war-and-law",
-    "https://www.ochaopt.org/",
-    "https://www.who.int/emergencies/situations/conflict-in-Israel-and-oPt"
+    {
+      "url": "https://www.who.int/news/item/22-08-2025-famine-confirmed-for-first-time-in-gaza",
+      "publisher": "World Health Organization",
+      "publication_date": "2025-08-22",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "WHO statement citing IPC analysis",
+      "claim_supported": "WHO/IPC famine classification and health warning for Gaza at publication date",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "UN health body statement; attribution retained, not treated as same-day 2026 status"
+    }
   ],
-  "independent_sources": [
-    "https://apnews.com/hub/israel-hamas-war"
-  ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Humanitarian classifications are time- and area-specific.",
+    "No opposing or independent current source was retrieved in this narrow check."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "uncertainty": "High for what WHO published in 2025; no confidence assigned to a 2026 status.",
+  "context": "Palestine rules require fact/claim/disputed/estimate/unknown separation and explicit provenance.",
+  "why_it_matters": "Prevents a dated humanitarian statement from becoming a false current ticker.",
+  "strategic_angle": "HOLD until a current OCHA/IPC document plus independent reporting and relevant party claims are retrieved.",
+  "confidence": "high",
+  "recommendation": "HOLD"
 }

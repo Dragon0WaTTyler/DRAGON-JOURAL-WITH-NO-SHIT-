@@ -1,27 +1,47 @@
 {
-  "story_id": "history-2026-09-02",
-  "proposed_title": "Nfi Mohammed V w ta3addod l-mo9awama",
-  "importance_score": 8.2,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "history-meknes-unesco-baseline-2026-09-02",
+  "proposed_title": "Historic Meknes: inscription evidence versus present-day interpretation",
+  "importance_score": 6.5,
+  "what_happened": "Fresh retrieval of UNESCO’s exact Historic City of Meknes record provides a documented heritage baseline. This is a historical research lead, not current news.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S20, S21, S22."
+    "FACT: UNESCO’s record dates the World Heritage inscription to 1996.",
+    "INTERPRETATION: catalogue descriptions frame significance but are not a complete historiography.",
+    "UNKNOWN: contested conservation history and Moroccan scholarly interpretations were not independently assembled."
   ],
   "primary_sources": [
-    "https://www.archivesdumaroc.ma/",
-    "https://archivesdiplomatiques.diplomatie.gouv.fr/"
+    {
+      "url": "https://whc.unesco.org/en/list/793/",
+      "publisher": "UNESCO World Heritage Centre",
+      "publication_date": "1996 inscription; page current at retrieval",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "catalogue",
+      "attribution": "UNESCO World Heritage Centre",
+      "claim_supported": "Inscription record and description of Historic City of Meknes",
+      "evidence_label": "FACT",
+      "independence": "UN multilateral heritage record, separate from municipal claims"
+    }
   ],
   "independent_sources": [
-    "https://nyupress.org/9780814766774/morocco-since-1830/"
+    {
+      "url": "https://ich.unesco.org/en/RL/taskiwin-martial-dance-of-the-western-high-atlas-01256",
+      "publisher": "UNESCO Intangible Cultural Heritage",
+      "publication_date": "2017",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "catalogue",
+      "attribution": "UNESCO ICH Committee record",
+      "claim_supported": "Taskiwin inscription, safeguarding context and community description",
+      "evidence_label": "FACT",
+      "independence": "Separate UNESCO programme and record; not independent journalism"
+    }
   ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Two UNESCO programmes share an institutional origin and are not independent historical scholarship.",
+    "A heritage inscription does not settle debates about periodization, power or preservation."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
+  "uncertainty": "High on catalogue facts, medium-to-low on interpretation because scholarly comparison is incomplete.",
+  "context": "The previous-topic check must be completed against memory before any long-form selection; no edition feature is authorized here.",
+  "why_it_matters": "A careful feature can distinguish monument description, imperial history and later heritage governance.",
+  "strategic_angle": "HOLD until Moroccan archival/academic sources and multiple historians are retrieved.",
   "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "recommendation": "HOLD"
 }

@@ -1,25 +1,47 @@
 {
-  "story_id": "investigations-2026-09-02",
-  "proposed_title": "Water-security ledger ba9i na9es",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "investigation-water-accountability-drycheck-2026-09-02",
+  "proposed_title": "Water accountability dossier remains researching",
+  "importance_score": 8.0,
+  "what_happened": "Fresh retrieval reopened the World Bank Morocco CCDR and an official policy speech. They support a risk-and-intent baseline but do not establish spending, contracts, deadlines or measured delivery for a publishable investigation.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S26, S27."
+    "ESTIMATE: the CCDR supplies modeled climate-risk context.",
+    "OFFICIAL_CLAIM: the official speech states policy priority.",
+    "UNKNOWN: contracts, amendments, plant output, household delivery, tariffs and environmental monitoring were not retrieved."
   ],
   "primary_sources": [
-    "https://www.worldbank.org/en/news/press-release/2023/07/18/morocco-world-bank-approves-350-million-program-to-support-water-security",
-    "https://projects.worldbank.org/en/projects-operations/project-detail/P179192"
+    {
+      "url": "https://www.maroc.ma/en/news/his-majesty-king-mohammed-vi-delivers-speech-nation-occasion-throne-day-full-text",
+      "publisher": "Maroc.ma",
+      "publication_date": "2025-07-29",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "official",
+      "attribution": "King Mohammed VI speech as published by official portal",
+      "claim_supported": "Official policy priorities and claims in the Throne Day speech",
+      "evidence_label": "OFFICIAL_CLAIM",
+      "independence": "Official state source; requires an outside outcome check"
+    }
   ],
-  "independent_sources": [],
+  "independent_sources": [
+    {
+      "url": "https://www.worldbank.org/en/country/morocco/publication/morocco-country-climate-and-development-report",
+      "publisher": "World Bank",
+      "publication_date": "2022-11-03",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "institutional-analysis",
+      "attribution": "World Bank CCDR authors",
+      "claim_supported": "Morocco climate and water-risk baseline",
+      "evidence_label": "ESTIMATE",
+      "independence": "Multilateral analysis independent of Moroccan government announcements"
+    }
+  ],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Priority language is not procurement or delivery evidence.",
+    "Projected scarcity does not prove misconduct by any actor."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
-  "confidence": "low",
+  "uncertainty": "RESEARCHING / NEEDS_VERIFICATION: medium on baseline, no accusation supported and publication readiness is HOLD.",
+  "context": "Dossier work must seek disconfirming evidence and compare promised capacity with measured outcomes.",
+  "why_it_matters": "Water investment has large fiscal, distributional and environmental consequences.",
+  "strategic_angle": "HOLD; next retrieval must target contracts, acceptance records, output series, tariffs and independent audits.",
+  "confidence": "medium",
   "recommendation": "HOLD"
 }

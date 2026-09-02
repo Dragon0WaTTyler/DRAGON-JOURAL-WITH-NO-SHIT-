@@ -1,26 +1,34 @@
 {
-  "story_id": "science-2026-09-02",
-  "proposed_title": "CAR-T f-autoimmune disease: signal sghir",
-  "importance_score": 7.4,
-  "what_happened": "Live research attempted in hosted Codex Cloud; web search failed HTTP 401 Unauthorized and direct HTTPS failed Tunnel connection failed: 403 Forbidden. Packet uses dated source trails only and makes current status UNKNOWN.",
+  "story_id": "science-cloud-drycheck-2026-09-02",
+  "proposed_title": "Adaptive LLM routing paper: abstract-only research lead",
+  "importance_score": 5.5,
+  "what_happened": "The exact arXiv abstract page was freshly retrieved. Full text, peer-review status, code, data and replication were not evaluated in this dry check.",
   "key_facts": [
-    "No same-day factual claim was retrievable; exact failure retained.",
-    "Dated claims selected for synthesis are tied to source IDs S18, S19."
+    "ABSTRACT_ONLY: the authors report an adaptive routing approach under budget constraints.",
+    "UNKNOWN: effect robustness, external validity, conflicts, replication and peer-review outcome were not established."
   ],
   "primary_sources": [
-    "https://www.nejm.org/doi/full/10.1056/NEJMoa2308917"
+    {
+      "url": "https://arxiv.org/abs/2508.21141",
+      "publisher": "arXiv",
+      "publication_date": "2025-08-28",
+      "retrieved_at": "2026-09-02T20:34:00+01:00",
+      "source_type": "research-paper",
+      "attribution": "Paper authors via arXiv abstract record",
+      "claim_supported": "Abstract claims about adaptive LLM routing under budget constraints",
+      "evidence_label": "ABSTRACT_ONLY",
+      "independence": "Author manuscript, not peer review or independent product evaluation"
+    }
   ],
-  "independent_sources": [
-    "https://www.nature.com/articles/s41584-024-01097-y"
-  ],
+  "independent_sources": [],
   "contradictory_evidence": [
-    "Commitment is not measured result.",
-    "Evidence against the working hypothesis must be collected before a verdict."
+    "Abstract claims may weaken after methods and baselines are inspected.",
+    "One manuscript is not a replicated body of evidence."
   ],
-  "uncertainty": "All 2026-09-02 current developments are UNKNOWN because retrieval failed; no invention permitted.",
-  "context": "Chief Editor read memory and active investigations first and selected a topic not copied from pilot feature subjects.",
-  "why_it_matters": "The packet preserves an auditable research trail and prevents fresh-looking fabrication.",
-  "strategic_angle": "Publish only dated context; isolate and retry this desk when retrieval returns.",
+  "uncertainty": "Medium for bibliographic identity, low for scientific conclusions.",
+  "context": "Science contract requires method, sample, effects, limitations and replication; those gates are not met.",
+  "why_it_matters": "Demonstrates that successful retrieval alone is not publishability.",
+  "strategic_angle": "HOLD until full text and independent context are reviewed.",
   "confidence": "medium",
-  "recommendation": "PUBLISH"
+  "recommendation": "HOLD"
 }
