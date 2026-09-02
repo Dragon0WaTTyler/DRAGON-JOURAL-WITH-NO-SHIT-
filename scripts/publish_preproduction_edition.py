@@ -8,6 +8,8 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -39,11 +41,23 @@ def cover(path:Path,date:str):
  im.save(path,'WEBP',quality=92,method=6)
 
 def pdf(path:Path,md:str,date:str):
+ # Use a Unicode TrueType font: the master contains Darija Latin punctuation
+ # such as em dashes that the built-in Helvetica encoding cannot represent
+ # reliably in every PDF consumer.
+ regular='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+ bold='/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+ if Path(regular).exists() and Path(bold).exists():
+  pdfmetrics.registerFont(TTFont('DragonDejaVu',regular))
+  pdfmetrics.registerFont(TTFont('DragonDejaVu-Bold',bold))
+  regular_font='DragonDejaVu'; bold_font='DragonDejaVu-Bold'
+ else:
+  regular_font='Helvetica'; bold_font='Helvetica-Bold'
  styles=getSampleStyleSheet(); body=ParagraphStyle('body',parent=styles['BodyText'],fontName='Helvetica',fontSize=9.2,leading=13,spaceAfter=7,textColor=HexColor('#172b2a'))
- h1=ParagraphStyle('h1',parent=styles['Heading1'],fontName='Helvetica-Bold',fontSize=21,leading=25,textColor=HexColor('#142c2b'))
- h2=ParagraphStyle('h2',parent=styles['Heading2'],fontName='Helvetica-Bold',fontSize=15,leading=19,spaceBefore=10,textColor=HexColor('#9b442e'))
+ body.fontName=regular_font
+ h1=ParagraphStyle('h1',parent=styles['Heading1'],fontName=bold_font,fontSize=21,leading=25,textColor=HexColor('#142c2b'))
+ h2=ParagraphStyle('h2',parent=styles['Heading2'],fontName=bold_font,fontSize=15,leading=19,spaceBefore=10,textColor=HexColor('#9b442e'))
  def footer(c,doc):
-  c.saveState(); c.setFont('Helvetica',7); c.setFillColor(HexColor('#555555')); c.drawString(18*mm,10*mm,f'DRAGON — {LABEL} — {date}'); c.drawRightString(192*mm,10*mm,str(doc.page)); c.restoreState()
+  c.saveState(); c.setFont(regular_font,7); c.setFillColor(HexColor('#555555')); c.drawString(18*mm,10*mm,f'DRAGON — {LABEL} — {date}'); c.drawRightString(192*mm,10*mm,str(doc.page)); c.restoreState()
  story=[]
  for line in md.splitlines():
   line=line.strip()
