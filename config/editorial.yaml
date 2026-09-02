@@ -6,4 +6,4 @@ publication_status_requires:
   - artifact_validation
   - git_commit
   - git_push
-   - remote_sha_match
+  - remote_sha_match

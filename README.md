@@ -4,6 +4,9 @@ Cloud-first newspaper workflow. GitHub is the permanent source of truth for
 code, editorial memory, investigations, and archived editions. Production
 must run in hosted Codex Cloud and must not depend on the user's PC.
 
+The stage contract is in [config/pipeline.yaml](config/pipeline.yaml), and
+Cloud credential rotation is documented in [SECURITY.md](SECURITY.md).
+
 ## Current state
 
 The repository has passed the infrastructure smoke test. The archived fixture

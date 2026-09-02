@@ -1,0 +1,39 @@
+version: 1
+execution: hosted-codex-cloud
+source_of_truth: github-origin-main
+
+stages:
+  - id: research
+    mode: parallel-where-supported
+    roles: [morocco, meknes, palestine, world, ai, science, history, literature-culture, investigations]
+    output: research/YYYY-MM-DD/*.json
+  - id: synthesis
+    mode: sequential
+    owner: chief-editor
+    output: editions/YYYY/MM/YYYY-MM-DD/edition.md
+  - id: fact-check
+    mode: sequential
+    owner: fact-check
+    output: research/YYYY-MM-DD/fact-check-report.json
+    blocking_statuses: [FIX, REMOVE]
+  - id: darija-qa
+    mode: sequential
+    owner: darija-editor
+    output: research/YYYY-MM-DD/language-gate-report.json
+    hard_requirements: [darija-latin, zero-arabic-script]
+  - id: publishing
+    mode: sequential
+    owner: publishing
+    output: [edition.md, edition.pdf, edition.epub, cover.webp, sources.json, manifest.json]
+  - id: archive
+    mode: sequential
+    owner: chief-editor
+    output: github-origin-main
+    required_checks: [validation, commit, push, remote-sha-match]
+
+failure_policy:
+  research_role: retry-only-failed-role
+  fact_check: block-publication
+  publishing_artifact: retry-only-failed-artifact
+  persistence: retry-without-regenerating-content
+  force_push: forbidden

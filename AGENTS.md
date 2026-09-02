@@ -38,6 +38,11 @@ The Chief Editor must:
 - write one coherent edition rather than pasting independent essays;
 - preserve facts and citations through the language and design stages.
 
+The declarative stage order and isolated retry policy are recorded in
+`config/pipeline.yaml`. It is the implementation contract for Cloud prompts:
+research may be parallel, while synthesis, fact-check, Darija QA, publishing,
+and archive persistence remain sequential.
+
 Each research packet must conform to `config/output-schema.json`. Each
 investigation must conform to `config/investigation-schema.json` and retain
 contradictory evidence as well as supporting evidence.
@@ -122,3 +127,6 @@ may the daily Cloud schedule be configured for 10:00 Africa/Casablanca.
 The final acceptance test must run with the local desktop and PC unavailable
 and verify that the scheduled hosted run creates, validates, commits, pushes,
 and remotely verifies a complete edition.
+
+Credential rotation, including the documented 2026-10-02 expiry, is tracked in
+`SECURITY.md`. Never copy a token into the repository or a Cloud log.

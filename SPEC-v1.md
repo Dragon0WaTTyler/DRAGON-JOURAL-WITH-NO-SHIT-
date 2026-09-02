@@ -32,6 +32,10 @@ Research roles return structured packets, not disconnected final articles.
 Packets use `config/output-schema.json`. The Chief Editor owns selection,
 ranking, synthesis, rejection, and the final voice.
 
+The declarative execution order and failure isolation policy are in
+`config/pipeline.yaml`; it is a role/stage contract, not a requirement for
+thirteen permanently running processes.
+
 ## Research and continuity
 
 Each run reads and updates durable repository state:
@@ -82,6 +86,9 @@ enforces the mode-specific contract.
 Production is hosted Codex Cloud only. Network access must be explicitly
 enabled for research. GitHub credentials remain in the configured secure
 Cloud setup and never enter the repository or logs.
+
+Credential rotation and the 2026-10-02 expiry checklist are documented in
+`SECURITY.md`.
 
 The run is `NOT COMPLETE` if validation, commit, push, or remote SHA
 verification fails, even when files exist inside the temporary Cloud
