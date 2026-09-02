@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Daily Newspaper Investigation Dossier",
+  "type": "object",
+  "required": ["dossier_id", "question", "status", "claims", "supporting_evidence", "contradictory_evidence", "timeline", "sources", "missing_evidence", "unanswered_questions", "confidence"],
+  "properties": {
+    "dossier_id": {"type": "string"},
+    "question": {"type": "string"},
+    "status": {"enum": ["RESEARCHING", "NEEDS_VERIFICATION", "READY", "PUBLISHED"]},
+    "claims": {"type": "array"},
+    "supporting_evidence": {"type": "array"},
+    "contradictory_evidence": {"type": "array"},
+    "timeline": {"type": "array"},
+    "sources": {"type": "array"},
+    "missing_evidence": {"type": "array"},
+    "unanswered_questions": {"type": "array"},
+    "confidence": {"enum": ["high", "medium", "low", "unknown"]}
+  },
+  "additionalProperties": false
+}

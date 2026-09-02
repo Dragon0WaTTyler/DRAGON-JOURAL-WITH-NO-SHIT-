@@ -1,7 +1,9 @@
 project: daily-newspaper
 language: darija-latin
-smoke_test: true
+default_mode: smoke
+preproduction_mode: manual
 publication_status_requires:
   - artifact_validation
   - git_commit
   - git_push
+   - remote_sha_match

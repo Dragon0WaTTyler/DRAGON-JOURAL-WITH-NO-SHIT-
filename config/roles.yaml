@@ -1,0 +1,56 @@
+version: 1
+language: darija-latin
+roles:
+  - id: chief-editor
+    phase: orchestration-and-synthesis
+    model: gpt-5.6
+    can_spawn: [morocco, meknes, palestine, world, ai, science, history, literature-culture, investigations]
+    output: publication-plan-and-edition
+  - id: morocco
+    phase: parallel-research
+    model: gpt-5.6-terra
+    output: story-packet
+  - id: meknes
+    phase: parallel-research
+    model: gpt-5.6-luna
+    output: story-packet-and-radar
+  - id: palestine
+    phase: parallel-research
+    model: gpt-5.6
+    output: story-packet
+  - id: world
+    phase: parallel-research
+    model: gpt-5.6-terra
+    output: story-packet
+  - id: ai
+    phase: parallel-research
+    model: gpt-5.6-luna
+    output: story-packet
+  - id: science
+    phase: parallel-research
+    model: gpt-5.6
+    output: story-packet
+  - id: history
+    phase: parallel-research-and-long-form
+    model: gpt-5.6
+    output: story-packet-and-feature-draft
+  - id: literature-culture
+    phase: parallel-research-and-long-form
+    model: gpt-5.6
+    output: story-packet-and-feature-draft
+  - id: investigations
+    phase: persistent-research
+    model: gpt-5.6
+    output: dossier-update-and-story-packet
+  - id: fact-check
+    phase: sequential-gate
+    model: gpt-5.6
+    output: fact-check-report
+  - id: darija-editor
+    phase: sequential-gate
+    model: gpt-5.6-luna
+    output: language-gate-report
+  - id: publishing
+    phase: sequential-publishing
+    model: gpt-5.6-terra
+    output: six-edition-artifacts-and-archive-update

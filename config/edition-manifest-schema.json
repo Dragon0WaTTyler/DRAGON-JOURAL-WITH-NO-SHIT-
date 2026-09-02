@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Daily Newspaper Edition Manifest",
+  "type": "object",
+  "required": ["date", "mode", "status", "language", "pdf", "epub", "cover", "fact_check", "language_check", "sources_count", "citations_count", "sections", "smoke_test"],
+  "properties": {
+    "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "mode": {"enum": ["smoke", "preproduction", "production"]},
+    "status": {"enum": ["published", "pre-production", "not-complete"]},
+    "language": {"const": "darija-latin"},
+    "pdf": {"const": "edition.pdf"},
+    "epub": {"const": "edition.epub"},
+    "cover": {"const": "cover.webp"},
+    "fact_check": {"enum": ["passed", "failed"]},
+    "language_check": {"enum": ["passed", "failed"]},
+    "sources_count": {"type": "integer", "minimum": 0},
+    "citations_count": {"type": "integer", "minimum": 0},
+    "sections": {"type": "array", "items": {"type": "string"}},
+    "smoke_test": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}

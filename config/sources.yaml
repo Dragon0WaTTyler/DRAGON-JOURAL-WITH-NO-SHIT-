@@ -1,8 +1,74 @@
-smoke_test:
-  - id: synthetic-fixture
-    type: test-fixture
-    note: Not a news source; used only to test archive and publication mechanics.
-production:
-  morocco_primary: []
-  meknes_primary: []
-  palestine_cross_check: []
+version: 1
+policy:
+  default: use primary source plus independent cross-check for material claims
+  never: treat a press release, company claim, rumor, or single social post as established fact
+  record: url, publisher, publication_date, accessed_at, source_type, and claim_supported
+desks:
+  morocco:
+    primary:
+      - HCP
+      - Bank Al-Maghrib
+      - Haut-Commissariat au Plan
+      - Parliament of Morocco
+      - official ministries and public agencies
+    independent:
+      - Reuters
+      - AP
+      - AFP
+      - Le Desk
+      - TelQuel
+  meknes:
+    primary:
+      - Commune de Meknes
+      - Prefecture of Meknes
+      - Region Fes-Meknes
+      - Conseil Regional Fes-Meknes
+      - Universite Moulay Ismail
+      - public tenders and procurement records
+      - ONCF and public transport operators
+    independent:
+      - credible local reporting
+      - credible national reporting
+  palestine:
+    starting_points:
+      - Al Jazeera Arabic
+      - Al Jazeera English
+    cross_check:
+      - Reuters
+      - AP
+      - AFP
+      - UN OCHA
+      - WHO
+      - UNRWA
+      - ICRC
+      - Palestinian official sources
+      - Israeli official sources
+  world:
+    preferred:
+      - Reuters
+      - AP
+      - AFP
+      - UN
+      - official government and multilateral sources
+  ai:
+    primary:
+      - official company announcements
+      - original research papers
+      - benchmark maintainers
+    independent:
+      - independent evaluations
+      - peer-reviewed research
+      - reputable technical reporting
+  science:
+    preferred:
+      - original journal article
+      - preprint server
+      - open-access full text
+      - meta-analysis or systematic review
+      - replication study
+  history-culture:
+    preferred:
+      - primary historical sources
+      - university presses
+      - peer-reviewed scholarship
+      - museum and archive collections

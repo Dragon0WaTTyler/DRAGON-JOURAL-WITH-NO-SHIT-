@@ -1,0 +1,19 @@
+version: 1
+gates:
+  research:
+    required: [research_packets, source_records, uncertainty_labels]
+  verification:
+    required: [attributed_material_claims, contradictory_evidence_review]
+  accountability:
+    required: [evidence_for_accusations, evidence_against_hypothesis_review]
+  depth:
+    required: [history_context_and_analysis, culture_context_and_analysis]
+  language:
+    required: [darija_latin, zero_arabic_script, no_unnecessary_full_english_or_french]
+  citations:
+    required: [claim_source_traceability]
+  publishing:
+    required: [markdown, pdf, epub, webp_cover, sources_json, manifest_json]
+  archive:
+    required: [validator_pass, git_commit, git_push, remote_sha_match]
+blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE]

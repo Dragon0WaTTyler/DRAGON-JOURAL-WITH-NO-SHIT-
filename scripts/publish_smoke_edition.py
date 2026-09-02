@@ -66,7 +66,7 @@ def write_epub(path: Path, edition_date: str, markdown_text: str) -> None:
         )
         epub.writestr(
             "OEBPS/content.opf",
-            f'''<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">daily-newspaper-{edition_date}</dc:identifier><dc:title>Daily Newspaper Smoke Test</dc:title><dc:language>en</dc:language></metadata><manifest><item id="edition" href="edition.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="cover" href="cover.webp" media-type="image/webp"/></manifest><spine><itemref idref="edition"/></spine></package>''',
+            f'''<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="pub-id">daily-newspaper-{edition_date}</dc:identifier><dc:title>Daily Newspaper Smoke Test</dc:title><dc:language>darija-Latn</dc:language></metadata><manifest><item id="edition" href="edition.xhtml" media-type="application/xhtml+xml"/><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="cover" href="cover.webp" media-type="image/webp"/></manifest><spine><itemref idref="edition"/></spine></package>''',
         )
         epub.writestr(
             "OEBPS/nav.xhtml",
@@ -82,9 +82,10 @@ def write_epub(path: Path, edition_date: str, markdown_text: str) -> None:
 def update_readme(edition_date: str) -> None:
     readme = ROOT / "README.md"
     text = readme.read_text(encoding="utf-8")
-    marker = "## Latest edition\n"
+    marker = "## Latest archived fixture\n"
     start = text.index(marker) + len(marker)
-    end = text.index("\n## Cloud smoke test", start)
+    next_heading = re.search(r"\n## ", text[start:])
+    end = start + next_heading.start() if next_heading else len(text)
     replacement = f"{edition_date}\n\n- [Markdown](editions/{edition_date[:4]}/{edition_date[5:7]}/{edition_date}/edition.md)\n- [PDF](editions/{edition_date[:4]}/{edition_date[5:7]}/{edition_date}/edition.pdf)\n- [EPUB](editions/{edition_date[:4]}/{edition_date[5:7]}/{edition_date}/edition.epub)\n"
     readme.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
 
