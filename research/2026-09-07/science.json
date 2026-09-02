@@ -1,0 +1,35 @@
+{
+  "story_id": "science-bennu-organics-brines-abstract-2025",
+  "proposed_title": "3aynat Bennu: molecules dyal l-7ayat ma-kat3nich belli l-7ayat tl9at",
+  "importance_score": 7.7,
+  "what_happened": "Two peer-reviewed studies published on 29 January 2025 analyzed pristine material returned from asteroid Bennu by NASA's OSIRIS-REx mission. They reported diverse soluble organics and a sequence of salt minerals consistent with evaporation of an ancient brine. This packet is ABSTRACT ONLY because full papers and supplements could not be retrieved live in the hosted environment.",
+  "key_facts": [
+    "PUBLICATION STATUS — Two peer-reviewed Nature-family papers were published on 29 January 2025; this run inspected neither full text nor supplements: ABSTRACT ONLY.",
+    "METHOD — Researchers used laboratory mass spectrometry and mineralogical techniques on returned Bennu material; pristine sample return reduces, but does not automatically eliminate, contamination concerns.",
+    "FINDING — The organic-analysis abstract reports ammonia, amino acids and all five canonical nucleobases in the analyzed samples, with patterns used to argue for extraterrestrial origin.",
+    "FINDING — The mineral study reports sodium-rich phosphates, carbonates, sulfates, chlorides and fluorides in a sequence interpreted as precipitation during evaporation of brine on Bennu's parent body.",
+    "LIMITATION — Detecting life's molecular ingredients and evidence of ancient salty water is not detection of life, a fossil or a living organism.",
+    "CAUSATION — The mineral associations support a geochemical history interpretation; they do not establish that biology produced the compounds.",
+    "UNKNOWN — Full-method caveats, later replication, debate, corrected measurements or new findings as of 7 September 2026 could not be verified because hosted search and direct HTTPS retrieval failed on 2 September 2026."
+  ],
+  "primary_sources": [
+    "https://doi.org/10.1038/s41550-024-02472-9 — Glavin et al., Nature Astronomy, Abundant ammonia and nitrogen-rich soluble organic matter in samples from asteroid (101955) Bennu, published 2025-01-29, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; ABSTRACT ONLY",
+    "https://doi.org/10.1038/s41586-024-08495-6 — McCoy et al., Nature, An evaporite sequence from ancient brine recorded in Bennu samples, published 2025-01-29, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; ABSTRACT ONLY",
+    "https://science.nasa.gov/solar-system/asteroids/asteroid-bennu-sample-reveals-mix-of-lifes-ingredients/ — NASA, 2025-01-29, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; mission and study summary, not a substitute for papers"
+  ],
+  "independent_sources": [
+    "https://www.nature.com/articles/d41586-025-00252-9 — Nature News, 2025-01-29, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; editorial reporting separate from the research teams",
+    "https://www.science.org/content/article/asteroid-bennu-samples-contain-life-s-building-blocks — Science news coverage, 2025-01-29, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; independent contextual report"
+  ],
+  "contradictory_evidence": [
+    "Headlines about 'ingredients of life' can imply biology; the reported molecules also arise through non-biological chemistry and no life was detected.",
+    "Returned samples offer stronger provenance than meteorites exposed on Earth, but contamination controls and compound-specific isotopic evidence still matter and require the full methods.",
+    "A brine-evaporation interpretation is evidence about Bennu's parent body's chemistry, not evidence that liquid water exists on Bennu today."
+  ],
+  "uncertainty": "Medium to high. Publication identities and headline abstract findings are dated and traceable, but this run is ABSTRACT ONLY. Numerical abundances, contamination controls, isotopic details, later critiques and 2026 follow-up are UNKNOWN pending successful retrieval.",
+  "context": "OSIRIS-REx delivered Bennu material to Earth in September 2023. Sample return allows laboratories to analyze carbon-rich asteroid material with documented collection history, helping test how prebiotic compounds and water-altered minerals may have been distributed in the early Solar System.",
+  "why_it_matters": "The work sharpens a chemical question about how early Earth may have received useful molecules. It should expand curiosity without turning prebiotic chemistry into a claim that extraterrestrial life was found.",
+  "strategic_angle": "Publish as a literacy box labeled ABSTRACT ONLY: separate observation from interpretation, explicitly say 'no life detected,' and revisit after full methods and independent follow-up can be retrieved.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

@@ -1,0 +1,34 @@
+{
+  "story_id": "ai-eu-act-high-risk-timeline-2026",
+  "proposed_title": "AI Act f-2026: bin deadline mktoub w-tatbi9 li khasna nverifyiw",
+  "importance_score": 8.0,
+  "what_happened": "The EU AI Act's enacted timetable scheduled most provisions, including many obligations for high-risk systems, to apply from 2 August 2026, while some product-embedded high-risk rules have a later date. This is legal context, not confirmation of enforcement events on 7 September 2026: hosted live search returned HTTP 401 and direct official-page retrieval was blocked on 2 September 2026, so amendments, delays, guidance and actual enforcement are UNKNOWN.",
+  "key_facts": [
+    "FACT — Regulation (EU) 2024/1689 entered into force on 1 August 2024 and uses phased application dates.",
+    "FACT — Article 113 sets general application from 2 August 2026, with specified exceptions; prohibited-practice and AI-literacy provisions applied earlier, from 2 February 2025.",
+    "FACT — Governance and general-purpose AI provisions were scheduled from 2 August 2025, while Article 6(1) high-risk systems embedded in regulated products have a transition to 2 August 2027.",
+    "FACT — The Act distinguishes providers, deployers, importers and distributors; obligations depend on the actor and risk category, not simply on whether software uses AI.",
+    "FACT — The regulation has an extraterritorial reach in defined cases, including where output produced by a system is used in the EU; this does not mean every Moroccan AI use is automatically covered.",
+    "UNKNOWN — Whether EU lawmakers changed the timetable, which standards were finalized, what enforcement occurred, and which Moroccan organizations were affected by 7 September 2026 were not verified live."
+  ],
+  "primary_sources": [
+    "https://eur-lex.europa.eu/eli/reg/2024/1689/oj — Official Journal of the European Union, Regulation (EU) 2024/1689, 2024-07-12, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; primary law supporting scope, duties and dates",
+    "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai — European Commission AI Act overview and implementation timeline, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; official implementation guide",
+    "https://digital-strategy.ec.europa.eu/en/policies/ai-office — European Commission AI Office page, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; primary institutional context"
+  ],
+  "independent_sources": [
+    "https://www.europarl.europa.eu/topics/en/article/20230601STO93804/eu-ai-act-first-regulation-on-artificial-intelligence — European Parliament research explainer, updated 2025, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; institutional cross-check separate from the Commission",
+    "https://www.oecd.org/en/publications/initial-policy-considerations-for-generative-artificial-intelligence_9c9e2ace-en.html — OECD, 2023, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; independent policy context on risk-based governance, not evidence of EU compliance"
+  ],
+  "contradictory_evidence": [
+    "A simple claim that 'the whole AI Act began in August 2026' erases provisions that applied in 2025 and product-linked rules scheduled for 2027.",
+    "Vendor declarations of being 'EU AI Act compliant' are COMPANY CLAIMS unless tied to the correct role, risk classification, documentation, testing and independent evidence.",
+    "The statutory timetable is not proof that standards, national regulators or enforcement practice were fully ready by the date; those implementation facts require current records."
+  ],
+  "uncertainty": "Medium to high for current status. The enacted regulation and original staged dates are stable primary material; any 2026 simplification package, postponement, finalized standard, enforcement action or Morocco-specific impact is UNKNOWN because live retrieval failed.",
+  "context": "The Act uses risk tiers and actor-specific obligations rather than a single license for all AI. Moroccan exporters, service providers and technology buyers may encounter EU requirements through products, customers or outputs used in the EU, but applicability needs a case-specific legal assessment.",
+  "why_it_matters": "Teams can waste money either by ignoring a rule that reaches their EU-facing work or by buying vague compliance products for systems outside the relevant category. Dates, role, use and evidence all matter.",
+  "strategic_angle": "Build a verification checklist around system inventory, intended purpose, actor role, risk classification, EU nexus, documentation and human oversight. Do not announce a September 2026 enforcement milestone until EUR-Lex and regulator pages are retrieved fresh.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

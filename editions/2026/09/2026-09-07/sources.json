@@ -1,0 +1,326 @@
+[
+  {
+    "id": "S01",
+    "url": "https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+    "publisher": "eur-lex.europa.eu",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 1; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S02",
+    "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai",
+    "publisher": "digital-strategy.ec.europa.eu",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 2; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S03",
+    "url": "https://digital-strategy.ec.europa.eu/en/policies/ai-office",
+    "publisher": "digital-strategy.ec.europa.eu",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 3; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S04",
+    "url": "https://www.europarl.europa.eu/topics/en/article/20230601STO93804/eu-ai-act-first-regulation-on-artificial-intelligence",
+    "publisher": "europarl.europa.eu",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 4; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S05",
+    "url": "https://www.oecd.org/en/publications/initial-policy-considerations-for-generative-artificial-intelligence_9c9e2ace-en.html",
+    "publisher": "oecd.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 5; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S06",
+    "url": "https://avalon.law.yale.edu/20th_century/frspmor.asp",
+    "publisher": "avalon.law.yale.edu",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 6; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S07",
+    "url": "https://www.loc.gov/item/95046965/",
+    "publisher": "loc.gov",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 7; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S08",
+    "url": "https://bnrm.ma/",
+    "publisher": "bnrm.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 8; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S09",
+    "url": "https://www.britannica.com/place/Morocco/The-French-Zone",
+    "publisher": "britannica.com",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 9; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S10",
+    "url": "https://doi.org/10.1017/CBO9781139045834",
+    "publisher": "doi.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 10; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S11",
+    "url": "https://openknowledge.worldbank.org/handle/10986/38240",
+    "publisher": "openknowledge.worldbank.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 11; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S12",
+    "url": "https://www.equipement.gov.ma/eau/",
+    "publisher": "equipement.gov.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 12; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S13",
+    "url": "https://www.onep.org.ma/",
+    "publisher": "onep.org.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 13; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S14",
+    "url": "https://www.afdb.org/en/countries/north-africa/morocco",
+    "publisher": "afdb.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 14; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S15",
+    "url": "https://www.fao.org/aquastat/en/overview/methodology/water-use",
+    "publisher": "fao.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 15; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S16",
+    "url": "https://www.ipcc.ch/report/ar6/wg2/",
+    "publisher": "ipcc.ch",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 16; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S17",
+    "url": "https://www.unep.org/news-and-stories/story/towards-sustainable-desalination",
+    "publisher": "unep.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 17; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S18",
+    "url": "https://www.unesco.org/en/articles/rabat-named-world-book-capital-2026",
+    "publisher": "unesco.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 18; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S19",
+    "url": "https://www.unesco.org/en/world-book-capital",
+    "publisher": "unesco.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 19; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S20",
+    "url": "https://mjcc.gov.ma/",
+    "publisher": "mjcc.gov.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 20; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S21",
+    "url": "https://www.internationalpublishers.org/our-industry/world-book-capital",
+    "publisher": "internationalpublishers.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 21; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S22",
+    "url": "https://www.ifla.org/",
+    "publisher": "ifla.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 22; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S23",
+    "url": "https://www.meknes.ma/",
+    "publisher": "meknes.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 23; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S24",
+    "url": "https://www.region-fes-meknes.ma/",
+    "publisher": "region-fes-meknes.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 24; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S25",
+    "url": "https://www.marchespublics.gov.ma/",
+    "publisher": "marchespublics.gov.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 25; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S26",
+    "url": "https://whc.unesco.org/en/list/793/",
+    "publisher": "whc.unesco.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 26; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S27",
+    "url": "https://www.tafra.ma/",
+    "publisher": "tafra.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 27; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S28",
+    "url": "https://www.hcp.ma/Population-legale-du-Royaume-du-Maroc-repartition-spatiale-et-aspects-demographiques-et-socioeconomiques_a4027.html",
+    "publisher": "hcp.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 28; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S29",
+    "url": "https://www.hcp.ma/Recensement-general-de-la-population-et-de-l-habitat-2024_a3923.html",
+    "publisher": "hcp.ma",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 29; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S30",
+    "url": "https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS?locations=MA",
+    "publisher": "data.worldbank.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 30; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S31",
+    "url": "https://population.un.org/wup/",
+    "publisher": "population.un.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 31; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S32",
+    "url": "https://extranet.who.int/ssa/Index.aspx",
+    "publisher": "extranet.who.int",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 32; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S33",
+    "url": "https://www.icrc.org/en/document/protection-hospitals-during-armed-conflicts-what-law-says",
+    "publisher": "icrc.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 33; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S34",
+    "url": "https://www.ochaopt.org/",
+    "publisher": "ochaopt.org",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 34; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S35",
+    "url": "https://apnews.com/hub/israel-hamas-war",
+    "publisher": "apnews.com",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 35; see research/2026-09-07 packets"
+  },
+  {
+    "id": "S36",
+    "url": "https://www.reuters.com/world/middle-east/",
+    "publisher": "reuters.com",
+    "publication_date": "dated in desk packet or institutional live record",
+    "accessed_at": "2026-09-02; live retrieval attempted; hosted search HTTP 401 and HTTPS proxy HTTP 403",
+    "source_type": "primary, institutional, scholarly, or independent source as classified in research packet",
+    "claim_supported": "Context and claim trail for desk source 36; see research/2026-09-07 packets"
+  }
+]

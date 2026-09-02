@@ -1,0 +1,16 @@
+{
+  "execution_environment": "hosted Codex Cloud task; no local PC, localhost, desktop files, local process, local credentials, or schedule used",
+  "execution_status": "NOT COMPLETE",
+  "date": "2026-09-07",
+  "mode": "preproduction",
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "live_retrieval": "UNAVAILABLE: hosted search returned HTTP 401 and direct HTTPS returned proxy HTTP 403; dated context only, with September 7 status UNKNOWN",
+  "validation": {"edition":"PASS","packets":"PASS: nine of nine","pdf":"PASS","epub":"PASS","webp":"PASS","manifest_citations":"PASS","secrets":"PASS"},
+  "scorecard": {"morocco":8,"meknes_radar":8,"palestine_middle_east":9,"world":8,"ai_technology":8,"science":8,"tarikh_l_mghreb":9,"adab_culture":8,"investigations":9,"fact_check":10,"darija_qa":10,"publishing":10},
+  "edition_commit_sha": null,
+  "final_persistence_commit_sha": null,
+  "final_remote_sha": null,
+  "persistence_status": "NOT COMPLETE: repository has no origin remote, so safe push and remote-SHA verification cannot run",
+  "schedule_enabled": false,
+  "preserved_prior_editions": ["2026-09-02","2026-09-03","2026-09-04"]
+}

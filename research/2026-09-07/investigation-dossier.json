@@ -1,0 +1,50 @@
+{
+  "dossier_id": "water-desalination-accountability-2026",
+  "question": "Wash projects dyal dessalement f-l-Mghreb katwssel ma reliable w-affordable b-cost ta9i w-bi2i m9as w-m3len?",
+  "status": "NEEDS_VERIFICATION",
+  "claims": [
+    "Official strategy kat9ol belli dessalement ghadi yzid security dyal potable water w-irrigation.",
+    "Project announcements kay9ddmo nameplate capacity w-target dates, walakin current plant-level delivery ma tverifyatch f-had run.",
+    "Renewable-energy framing kayn f-ba3d project communications, walakin grid matching w-energy intensity khas-hom data."
+  ],
+  "supporting_evidence": [
+    "World Bank CCDR 2022 kaywetteq structural water stress w-need l-portfolio dyal adaptation.",
+    "Dessalement technology t9dr tntej potable supply independent mn direct rainfall ila plant, power w-network khedamin.",
+    "Official ministry, ONEE w-financier portals kay3tiw possible documentary trail dyal contracts, capacities w-finance."
+  ],
+  "contradictory_evidence": [
+    "Nameplate capacity ma katbetsh actual output, uptime, household delivery aw affordability.",
+    "Energy demand and brine discharge can shift cost to climate and coastal ecosystems unless measured and controlled.",
+    "Leakage and unmanaged irrigation demand can consume supply gains; infrastructure-only framing may overstate net water security.",
+    "No accessible September 2026 plant-level dataset was retrieved, so success and failure claims both remain unproven."
+  ],
+  "timeline": [
+    "2022: World Bank publishes Morocco CCDR with water-scarcity baseline and adaptation framing.",
+    "2026-09-02: hosted research run attempts web and direct HTTPS retrieval; endpoints return 401/403.",
+    "2026-09-07: publication date; operational status, costs and environmental monitoring remain explicitly UNKNOWN pending retrieval."
+  ],
+  "sources": [
+    "https://openknowledge.worldbank.org/handle/10986/38240",
+    "https://www.equipement.gov.ma/eau/",
+    "https://www.onep.org.ma/",
+    "https://www.afdb.org/en/countries/north-africa/morocco",
+    "https://www.fao.org/aquastat/en/overview/methodology/water-use",
+    "https://www.ipcc.ch/report/ar6/wg2/",
+    "https://www.unep.org/news-and-stories/story/towards-sustainable-desalination"
+  ],
+  "missing_evidence": [
+    "Plant-by-plant contracts, financing and change orders.",
+    "Monthly actual production, uptime and water allocation.",
+    "Measured kWh/m3, energy source and emissions accounting.",
+    "Tariff, subsidy and household affordability distribution.",
+    "Brine discharge permits plus independent salinity and ecosystem monitoring.",
+    "Network leakage and demand-management results."
+  ],
+  "unanswered_questions": [
+    "Ch7al mn announced capacity dkhlat commercial operation by 2026-09-07?",
+    "Chkon kaykhlles capital, electricity and subsidy, w-chkon kaystafed?",
+    "Wash potable allocation katwsel l-a7ya2 w-l-qora li 3andhom akbar risk?",
+    "Wash coastal monitoring public, comparable and independently audited?"
+  ],
+  "confidence": "low"
+}

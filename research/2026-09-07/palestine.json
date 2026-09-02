@@ -1,0 +1,35 @@
+{
+  "story_id": "palestine-healthcare-evidence-register-2026-09-07",
+  "proposed_title": "Filastin: kifash n-werrkho d-darar 3la s-s7a bla ma nkhllto fact b claim",
+  "importance_score": 9.3,
+  "what_happened": "Had l-packet kaybni register dyal evidence 3la s-s7a f Gaza w l-ard l-filastiniya l-mo7talla, ma-shi update midani dyal 7 September 2026. Retrieval l-live t7jeb f had Cloud run; dakshi 3lash kul wa9i3a jdida, 7asila, attribution w status dyal mostashfa katb9a UNKNOWN 7tta ttsnad b record mwarrakh w cross-check mosta9ill.",
+  "key_facts": [
+    "FACT - WHO 3andha Surveillance System for Attacks on Health Care li kaynshor incidents verified b methodology dyalha; verified f database ma kay3nich darori attribution 9anoni nihai l-fa3il.",
+    "FACT - ICRC kaychra7 belli l-mrda, l-3amilin f s-s7a, ambulances w medical facilities 3andhom 7imaya ta7t l-9anon d-dawli l-insani, m3a tafasil 9anoniya kat3tamed 3la l-wa9i3a.",
+    "CLAIM - Tasri7 dyal Israel, Hamas, aw ay taraf 3la isti3mal 3askari, target aw sabab incident khaso ytb9a mansob l-masdar, ma-shi fact mosta9ill.",
+    "DISPUTED - Attribution dyal darar l-mostachfa aw ambulance t9dar tb9a mtnaz3 3liha; imagery, weapon analysis, witness accounts w access limitations khas-hom ytbeyno.",
+    "ESTIMATE - A3dad l-marad, l-wafayat ghayr l-mobashira, bed capacity w service loss t9dar tkoun estimates aw administrative counts; khas date cutoff, geography, denominator w revisions.",
+    "UNKNOWN - Ma t-verifatch f had run 7tta wa9i3a midaniya, 7asila, ceasefire status, aid-flow number aw diplomatic move dyal 7 September 2026."
+  ],
+  "primary_sources": [
+    "url=https://extranet.who.int/ssa/Index.aspx ; publisher=World Health Organization ; publication_date=live surveillance database ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=UN verified incident database ; claim_supported=methodological route for dated attacks-on-health-care records",
+    "url=https://www.icrc.org/en/document/protection-hospitals-during-armed-conflicts-what-law-says ; publisher=International Committee of the Red Cross ; publication_date=2023-11-10 ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=authoritative IHL explainer ; claim_supported=legal protection and conditions relevant to hospitals in armed conflict",
+    "url=https://www.ochaopt.org/ ; publisher=UN OCHA occupied Palestinian territory ; publication_date=continuously updated ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=UN humanitarian reporting portal ; claim_supported=route to dated humanitarian updates and source-attributed figures"
+  ],
+  "independent_sources": [
+    "url=https://apnews.com/hub/israel-hamas-war ; publisher=Associated Press ; publication_date=continuously updated archive ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent wire archive ; claim_supported=event-level cross-check route, not support for a current claim in this packet",
+    "url=https://www.reuters.com/world/middle-east/ ; publisher=Reuters ; publication_date=continuously updated section ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent wire reporting ; claim_supported=event and diplomacy cross-check route, not support for a current claim in this packet"
+  ],
+  "contradictory_evidence": [
+    "WHO verification can confirm that an attack on health care met its incident methodology while leaving perpetrator attribution or military circumstances unverified.",
+    "Conflict parties can offer incompatible accounts of military use, warning, weapon, origin and casualties; repetition by aligned media is not an independent cross-check.",
+    "Facility status changes quickly: a hospital described as non-functional on one cutoff date can partly reopen, while a nominally functional site may lack fuel, staff or supplies.",
+    "Legal protection is strong but application to a specific strike depends on facts; a general ICRC explainer cannot decide an individual allegation."
+  ],
+  "uncertainty": "Current-event uncertainty is high and explicit. Browser search returned an authorization error and direct HTTPS retrieval hit a blocked proxy on 2026-09-02. HOLD all September 2026 incident and negotiation claims. A publishable update requires WHO or OCHA with cutoff, statements from relevant Israeli and Palestinian actors, and Reuters/AP/AFP or a documented open-source investigation.",
+  "context": "S-s7a ma kat9assch ghir b wach lbab mafto7: khas capacity, staff, fuel, medicine, referral routes w safety. Coverage khas-ha tfrreq incident verification mn attribution, administrative count mn estimate, w legal rule mn legal finding f wa9i3a mo3ayana.",
+  "why_it_matters": "Ila tkhlltat claim m3a fact, l-jarida t9dar tzid misinformation w tdi3 7o9o9 l-madaniyin. Register mwarrakh kay7fed l-insaniya w kaykhlli corrections w revisions baynin.",
+  "strategic_angle": "Ila ma kaynch retrieval 9bel deadline, nshro methodology box fa9at. Ila rje3 access, nbni table b FACT, CLAIM, DISPUTED, ESTIMATE, UNKNOWN; kul satr fih publisher, timestamp, geography, cutoff, methodology w link.",
+  "confidence": "high",
+  "recommendation": "BRIEF"
+}

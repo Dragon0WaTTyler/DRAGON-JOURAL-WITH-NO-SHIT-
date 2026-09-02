@@ -1,0 +1,33 @@
+{
+  "story_id": "culture-rabat-world-book-capital-2026",
+  "proposed_title": "Rbat 3asimat l-ktab 2026: label 3alami, walakin l-imti7an howa l-wosol",
+  "importance_score": 8.5,
+  "what_happened": "UNESCO 3aynat Rbat World Book Capital 2026, b-mandat kaybda 23 abril 2026. Hadchi current context l-edition 2026-09-07, walakin hosted retrieval t3ettel (web 401, direct HTTPS 403) nhar 2026-09-02; programme dqiq dyal simana w-a3dad l-mocharka ba9yin UNKNOWN, w-ma khasna n3mrohomch mn rasna.",
+  "key_facts": [
+    "FACT (UNESCO announcement): Rbat tkhtrat World Book Capital 2026.",
+    "FACT (programme frame): mandat s-sanawi kaybda 23 abril, World Book and Copyright Day; title kaychj3 l-qira2a, n-nachr w-wosol l-lktab, ma-shi prize 3la natija deja t7e99at.",
+    "CLAIM (official rationale): bid Rbat rkzat 3la democratization dyal l-ma3rifa, tta9afa w-lqra2a; hadi niyya/programme claim, ma-shi dalil 3la impact.",
+    "UNKNOWN (2026-09-07): exact events, attendance, library loans, neighborhood distribution, accessibility, budgets, and payments to writers/translators could not be retrieved live.",
+    "ANALYSIS: success khaso yt9as b-wosol f-l-a7ya2, schools w-l-maktabat, b-lughat mkhtalfa w-accessibility, ma-shi ghir b-ceremonies f-l-markaz."
+  ],
+  "primary_sources": [
+    "UNESCO, Rabat named World Book Capital for 2026, announcement 8 October 2024, https://www.unesco.org/en/articles/rabat-named-world-book-capital-2026 (primary designation record; live retry 2026-09-02 blocked)",
+    "UNESCO World Book Capital programme, https://www.unesco.org/en/world-book-capital (institutional framework; live retry blocked)",
+    "Ministry of Youth, Culture and Communication, Kingdom of Morocco, https://mjcc.gov.ma/ (programme verification target; relevant September calendar UNKNOWN because retrieval failed)"
+  ],
+  "independent_sources": [
+    "International Publishers Association, World Book Capital programme context, https://www.internationalpublishers.org/our-industry/world-book-capital (sector source; live retry unavailable)",
+    "International Federation of Library Associations and Institutions, literacy and library-access resources, https://www.ifla.org/ (method/context, not proof of Rabat outcomes; no current local dataset retrieved)"
+  ],
+  "contradictory_evidence": [
+    "Designation w-programme promise kayd3mo visibility, walakin bla loan, attendance w-geographic access data ma kaytbtoch democratization.",
+    "National/international prestige ma kayjawbch wash ktoba affordable, libraries accessible, aw creators paid; had outcomes khas-hom evidence independent.",
+    "Online programme listings t9dr tbayan activity kbira, walakin event count ma howash nafs l-7aja b7al participation quality aw long-term reading."
+  ],
+  "uncertainty": "Low 3la designation w-start date; medium 3la programme frame; high 3la September 2026 calendar and measurable impact because live retrieval failed.",
+  "context": "World Book Capital katdour kol 3am l-mdina wa7da. L-forsa l-Mghribiya hiya nrbto l-adab b-l-maktaba l-3omomiya, translation, Darija/Amazigh, braille/audio, n-nachr l-most9il w-7o9o9 l-mobdi3in. L-label bo7do ma kaydmen walo.",
+  "why_it_matters": "Rbat t9dr tkhlli atar yb9a mn ba3d 2026 ila t9asmo l-ma3rifa barra mn l-markaz w-nchro data. Qari f-Meknes aw qarya khaso ychof wach title watani wla ghir branding dyal l-3asima.",
+  "strategic_angle": "Nnchro explainer b-tarikh w-label FACT/CLAIM/UNKNOWN, bla programme same-day. Ntlbo dashboard: budget, events by quartier, free seats, library cards/loans, accessibility, creator pay, and post-2026 commitments.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

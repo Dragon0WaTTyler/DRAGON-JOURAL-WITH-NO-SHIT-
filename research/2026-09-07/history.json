@@ -1,0 +1,34 @@
+{
+  "story_id": "history-treaty-fez-1912-protectorate",
+  "proposed_title": "Mo3ahadat Fas 1912: kifach l-isti3mar tlebbes libas l-protectorat",
+  "importance_score": 8.6,
+  "what_happened": "Had feature tarikhi, ma-shi khbar dyal 7 September 2026. Nhar 30 mars 1912, Sultan Moulay Abd al-Hafid w-Frankrike w93o Mo3ahadat Fas li 7ettat l-Mghreb ta7t nizam protectorate Faransi. Ba3d-ha b-shhor, l-ittifaq Faransi-Isbani dyal 27 novembre 1912 rsem zone Isbaniya f-chmal w-jnoob. Live retrieval tjarreb nhar 2026-09-02 walakin web endpoint rje3 401 w-direct HTTPS proxy rje3 403; donc had l-mawdo3 dated context, bla 7tta claim 7ali.",
+  "key_facts": [
+    "FACT (dated 1912-03-30): Treaty of Fez dar framework dyal French protectorate, m3a sultan ba9i rasmi walakin l-idara w-s-sulta l-fa3liya t7wlat b-qowwa l-moqim l-3am.",
+    "FACT (dated 1912-11-27): convention Faransa-Isbaniya naddmat Spanish zone; Tangier khdat mn ba3d status dawli mkhtalef.",
+    "FACT/CONTEXT: kalmat protectorate ma kat3nich siyada kamla; l-9arar l-3askari, l-maliya w-diplomasiya wla mhaymen 3lih mn quwa isti3mariya.",
+    "ANALYSIS: l-mo3ahada ma jatsh mn faragh: dghot d-duyun, tadakhkhol l-quwa l-orobbiya, l-azmat dakhliya w-l-i7tilal l-3askari kano masar twil; ma khasnach n7mlo l-mas2ouliya l-wa7d l-wati9a bo7dha.",
+    "UNKNOWN: bla re-opening dyal scans w-scholarly editions f-had run, tarjama d-da9i9a dyal clauses w-khilafat 3la tafsirhom khas-ha verification 9bel citation verbatim."
+  ],
+  "primary_sources": [
+    "Avalon Project, text of Treaty Between France and Spain Regarding Morocco, 27 November 1912, https://avalon.law.yale.edu/20th_century/frspmor.asp (archival text; live retry 2026-09-02 blocked by hosted proxy)",
+    "Library of Congress, Morocco country study / historical collections catalogue, https://www.loc.gov/item/95046965/ (institutional catalogue; live retry blocked in this run)",
+    "Bibliotheque nationale du Royaume du Maroc, catalogue and manuscript holdings, https://bnrm.ma/ (Moroccan institutional archive; item-level retrieval UNKNOWN)"
+  ],
+  "independent_sources": [
+    "Encyclopaedia Britannica, Morocco: The French Zone, https://www.britannica.com/place/Morocco/The-French-Zone (reference synthesis; live retry blocked 2026-09-02)",
+    "C. R. Pennell, Morocco Since 1830: A History, New York University Press, 2000, ISBN 9780814766774 (scholarly synthesis; book not full-text retrieved in this run)",
+    "Susan Gilson Miller, A History of Modern Morocco, Cambridge University Press, 2013, https://doi.org/10.1017/CBO9781139045834 (scholarly synthesis; full text not retrieved)"
+  ],
+  "contradictory_evidence": [
+    "L-lugha rasmiya dyal protectorate katgol islahat w-hifd s-sultan; distribution l-fa3li dyal l-qowwa, l-jaysh w-l-maliya kayna9ed qira2a kat3tabro charaka mtakafi2a.",
+    "Riwaya katrje3 kolchi l-da3f dakhli katghfel l-dghot l-3askari w-l-imperiali; riwaya katghfel l-fa3ilin l-Mgharba katm7i mo9awama, negotiation w-khilafat dakhliya.",
+    "Ta3bir 'l-Mghreb kaml wla Faransi f-1912' ma da9i9sh: zones Isbaniya, Tangier w-moqawama f-mnati9 b9aw wa9i3 mo3a9ad."
+  ],
+  "uncertainty": "Low 3la dates w-l-structure l-3amma; medium 3la tafsir sababiyat; high 3la ay quote aw clause ma t7ellatch live f-had hosted run.",
+  "context": "Feature khaso ychre7 far9 bin siyada 3la l-wra9 w-sulta f-l-wa9e3. 1912 bda nizam jdida dyal ard, dariba, infrastructure w-amn, walakin b-ikrah isti3mari w-moqawama. L-isti9lal f-1956 ma kaytfhamsh bla had l-bidaya, w-la had l-bidaya bla dghot qbel 1912.",
+  "why_it_matters": "Kay3awn l-9ari yfhem 3lach l-wati9a l-9anuniya ma kat7kich bo7dha l-9issa, w-kifach l-lugha dyal '7imaya' t9dr tghatti tabdil 7a9i9i f-s-sulta.",
+  "strategic_angle": "Nqssmo feature l-timeline, clauses bla quote, map dyal zones, w-box 'chno katgol l-wati9a/chno tra f-l-ard'. Nwsmoh CONTEXT w-nkhelliw tafasil li ma tverifyatch UNKNOWN.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

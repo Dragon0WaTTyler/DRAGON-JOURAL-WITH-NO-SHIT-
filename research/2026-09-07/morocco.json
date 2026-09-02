@@ -1,0 +1,31 @@
+{
+  "story_id": "morocco-rgph-demographic-map-2026-09-07",
+  "proposed_title": "L-Mghreb mn b3d RGPH 2024: kharita jdida khas-ha siyasat 3omomiya jdida",
+  "importance_score": 8.1,
+  "what_happened": "Had l-packet ta7lili kayqra natayej l-i7sa2 l-3am 2024 bach ybayan fin khas l-khadamat l-3omomiya ttbeddel. Ma kayn 7tta iddi3a2 3la wa9i3a nhar 7 September 2026: l-web retrieval t7jeb f had Cloud run, donc ay update mn b3d nashr natayej RGPH ba9i UNKNOWN.",
+  "key_facts": [
+    "FACT - HCP 3len belli sokkan l-Mghreb l-9anoni f 1 September 2024 kan 36,828,330; had ra9m census b date m7addda, ma-shi ta9dir dyal September 2026.",
+    "FACT - HCP 7seb 9,275,038 osra f RGPH 2024, mo9abil 7,313,806 f 2014; hadshi kay3ni belli 7ajm w tawzi3 l-osar khaso ydkhol f takhtit s-sakan w l-khadamat.",
+    "FACT - HCP gal belli nisb l-7adariya tla3at l 62.8% f 2024 mn 60.4% f 2014; natija kat3ti context, walakin ma kat9issch bo7dha jawdat n-na9l, s-sakan aw l-khadamat.",
+    "UNKNOWN - Ma t-verifatch ay publication aw ta7yin jdid bin 2 w 7 September 2026; headline khaso yb9a 3la natayej l-census l-mwarrkha, bla ma ynseb liha wa9i3a jdida."
+  ],
+  "primary_sources": [
+    "url=https://www.hcp.ma/Population-legale-du-Royaume-du-Maroc-repartition-spatiale-et-aspects-demographiques-et-socioeconomiques_a4027.html ; publisher=Haut-Commissariat au Plan ; publication_date=2024-12-17 ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=official census results ; claim_supported=2024 legal population, household count and urban share",
+    "url=https://www.hcp.ma/Recensement-general-de-la-population-et-de-l-habitat-2024_a3923.html ; publisher=Haut-Commissariat au Plan ; publication_date=2024 census portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=official RGPH portal ; claim_supported=method and publication trail for RGPH 2024"
+  ],
+  "independent_sources": [
+    "url=https://data.worldbank.org/indicator/SP.URB.TOTL.IN.ZS?locations=MA ; publisher=World Bank Data ; publication_date=live time series ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent multilateral dataset ; claim_supported=route to cross-check long-term urbanization trend, not a substitute for the census figure",
+    "url=https://population.un.org/wup/ ; publisher=UN DESA Population Division ; publication_date=2025 revision portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent demographic estimates ; claim_supported=comparative urbanization context, whose modeled estimates can differ from census definitions"
+  ],
+  "contradictory_evidence": [
+    "A census is a dated count, while UN and World Bank series can be modeled or harmonized estimates; apparent differences do not automatically mean one series is false.",
+    "A higher urban share does not prove that every city grew, nor that service access or affordability improved.",
+    "National aggregates can hide provincial, gender, age and rural gaps; the article must not infer a Meknes-level result from the national totals."
+  ],
+  "uncertainty": "Confidence is medium because the numbers come from a dated official release remembered in the repository research context, but live retrieval was blocked on 2026-09-02. Before publication, the Chief Editor should reopen the HCP tables, preserve table titles and definitions, and HOLD any claim about 2026 conditions.",
+  "context": "RGPH huwa l-benchmark l-a9wa bach n3rfo fin kay3ich n-nas w kif dayrin l-osar. Walakin policymaking khaso yjme3 census m3a budgets, access indicators w local outcomes; count ma-shi scorecard dyal l-khadma l-3omomiya.",
+  "why_it_matters": "Tawzi3 l-madaris, s-s7a, n-na9l w s-sakan kayt2attar b tawzi3 s-sokkan w 3adad l-osar. Qira2a mzyana kat7mi l-qarar mn slogans w kat7et definitions 9bel conclusions.",
+  "strategic_angle": "Nshro explainer b tlata columns: shno 9as RGPH, shno ma 9assch, w ash mn open data khas kul wizara ynshor bach l-mowatin y9aren l-budget b natija. Ma ndiro 7tta causal claim bla series w methodology.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

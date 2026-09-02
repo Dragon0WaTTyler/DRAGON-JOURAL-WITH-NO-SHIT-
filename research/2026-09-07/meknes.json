@@ -1,0 +1,32 @@
+{
+  "story_id": "meknes-radar-open-project-ledger-2026-09-07",
+  "proposed_title": "Meknes Radar: fin howa daftar l-mashari3 li kayrbet l-wa3d b l-istilam?",
+  "importance_score": 7.0,
+  "what_happened": "Bdel ma n3awd press release aw nkhtar3 khbar local, had Radar kaydir talab ta7qiqi basit: ledger 3omomi kayjme3 l-mashari3, l-maliya, sahib s-saf9a, ajal, nisbat l-injaz w ma7dar l-istilam. Portals dyal Jama3at Meknes w Jiha Fes-Meknes ma t-retrievawsh mn Cloud f 2 September; donc status dyal ay mashro3 f 7 September 2026 huwa UNKNOWN.",
+  "key_facts": [
+    "FACT - L-boaba r-rasmiya dyal Jama3at Meknes katb9a l-masdar l-awwal l-mo7tamal l-deliberations, budgets w notices; link dyalha ttsjjel hna bach yt3awd retrieval 9bel n-nashr.",
+    "FACT - L-boaba dyal Conseil Regional Fes-Meknes hiya masdar institutional mo7tamal l-programmes w partnerships 3la mostawa jihawi; announcement ma kay3nich completion.",
+    "FACT - Portail Marocain des Marches Publics kay3ti masar rasmi l-appels d'offres w natayej li kaynashrohom l-moshtarin l-3omomiyin; record dyal tender khaso ytqaren m3a contract, amendments w acceptance.",
+    "UNKNOWN - Ma 3ndnach live evidence f had run 3la l-kolfa, l-contractant, l-injaz aw l-istilam dyal mashro3 mo3ayan f Meknes; ay smiya aw nisba tkon fabrication ila tnshrat daba."
+  ],
+  "primary_sources": [
+    "url=https://www.meknes.ma/ ; publisher=Commune de Meknes ; publication_date=live official portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=local institutional portal ; claim_supported=verification route for council decisions, budgets and local notices",
+    "url=https://www.region-fes-meknes.ma/ ; publisher=Conseil Regional Fes-Meknes ; publication_date=live official portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=regional institutional portal ; claim_supported=verification route for regional programs and partnership announcements",
+    "url=https://www.marchespublics.gov.ma/ ; publisher=TGR, Royaume du Maroc ; publication_date=live procurement portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=official public procurement database ; claim_supported=verification route for tender and award records"
+  ],
+  "independent_sources": [
+    "url=https://whc.unesco.org/en/list/793/ ; publisher=UNESCO World Heritage Centre ; publication_date=1996 inscription, live record ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent international institutional record ; claim_supported=why project transparency matters inside a World Heritage city, not proof of current works",
+    "url=https://www.tafra.ma/ ; publisher=Tafra ; publication_date=live civic-data portal ; accessed_at=2026-09-02 ; retrieval_status=blocked_by_cloud_proxy ; source_type=independent Moroccan civic-data organization ; claim_supported=possible civic cross-check for public-action data, no project fact asserted"
+  ],
+  "contradictory_evidence": [
+    "An official announcement can establish an intention or financing agreement but cannot establish that work started, met specifications or was accepted.",
+    "A procurement entry can identify a procedure yet omit later amendments, physical progress, resident disruption and final quality.",
+    "Absence of a record in a failed retrieval session is not evidence that the record or project does not exist."
+  ],
+  "uncertainty": "Project-level uncertainty is total because both browser search and direct curl retrieval were blocked. Publish only as an explicitly labeled Meknes Radar transparency request; HOLD names, costs, deadlines and progress rates until local records and an independent site check are obtained.",
+  "context": "L-mowatin kay7taj ytb3 l-mashro3 mn deliberation l budget, tender, award, amendments, physical progress w final acceptance. Had chain katfrreq communication mn accountability, khasatan f mdina fin l-ashghal kaymssou s-sokkan, t-tijara w t-torat.",
+  "why_it_matters": "Daftar wa7ed searchable y9llal rumors, y3awn s-so7afa l-ma7alliya, w ykhlli l-mowatin ysowl b dalil 3la ta2khir, ziyada f l-kolfa aw jawda.",
+  "strategic_angle": "Nshro box sghir UNKNOWN m3a checklist dyal 7 fields, w ntalbo response mktob mn Jama3a w Jiha. Follow-up khaso yjib record rasmi, jawab sahib l-mashro3, ra2y sakin aw tajir, w mo3ayana mosta9illa.",
+  "confidence": "high",
+  "recommendation": "BRIEF"
+}

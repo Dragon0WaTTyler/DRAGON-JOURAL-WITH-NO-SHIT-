@@ -1,0 +1,37 @@
+{
+  "story_id": "investigation-water-desalination-accountability",
+  "proposed_title": "Ma mn l-b7ar: wach dessalement kay7ell l-3tch bla ma ykebber l-fatoura?",
+  "importance_score": 9.2,
+  "what_happened": "Tahqiq jdida 3la l-far9 bin capacity mo3lana dyal dessalement f-l-Mghreb w-ma li wsel b-fi3l l-dyur, l-fila7a w-l-madan. L-Mghreb kaywajeh stress ma2i bniwi; state strategy katdkhol dessalement m3a dams, reuse w-tadbir talab. Live retrieval tjarreb 2026-09-02 walakin web rje3 401 w-HTTPS proxy 403, donc latest construction, cost w-output ba9yin UNKNOWN; ma kayn 7tta current number mkhtara3.",
+  "key_facts": [
+    "FACT (dated World Bank CCDR 2022): l-Mghreb kay9reb/wasel threshold dyal absolute water scarcity, w-taghyir l-manakhi kayzid risk; projection hiya scenario, ma-shi meter same-day.",
+    "FACT (policy context): dessalement wa7d l-adat m3a dams, groundwater governance, wastewater reuse w-demand management; ma-shi badil til9a2i l-had l-adawat.",
+    "CLAIM (official strategy): projects kbar, menhom Casablanca, ghadi yzido potable/irrigation supply; announced capacity, contracted capacity, commissioned output w-delivered water ma-shi nafs l-metric.",
+    "SUPPORTING EVIDENCE: dessalement t9dr t3ti source ma mrtabtch mobachara b-chta w-t9llal pressure 3la reservoirs ila khdmat b-output w-network mverifyin.",
+    "CONTRADICTORY EVIDENCE: energy cost, brine/ecosystem risk, network leakage, affordability w-incentive dyal irrigation talab y9dro yn9so l-fayda; hadchi ma kaytbitch f-ch3ar dyal capacity.",
+    "UNKNOWN (2026-09-07): plant-by-plant actual output, kWh/m3, tariff/subsidy, brine monitoring, leakage, procurement changes, and share delivered to homes versus irrigation."
+  ],
+  "primary_sources": [
+    "World Bank, Morocco Country Climate and Development Report, 2022, https://openknowledge.worldbank.org/handle/10986/38240 (primary multilateral assessment; live retry blocked 2026-09-02)",
+    "Kingdom of Morocco Ministry of Equipment and Water, https://www.equipement.gov.ma/eau/ (official water-policy and project source; current pages not retrievable in this run)",
+    "ONEE, water branch and project information, https://www.onep.org.ma/ (operator source; plant output verification UNKNOWN)",
+    "AfDB, Morocco water-security programme/project documents, https://www.afdb.org/en/countries/north-africa/morocco (financier documentation portal; current item not retrieved)"
+  ],
+  "independent_sources": [
+    "FAO AQUASTAT, Morocco country profile and water data, https://www.fao.org/aquastat/en/overview/methodology/water-use (independent methodology/context; current country download not retrieved)",
+    "IPCC AR6 WGII, Mediterranean climate-risk assessment, https://www.ipcc.ch/report/ar6/wg2/ (peer-reviewed synthesis; regional context, not plant performance)",
+    "UNEP, desalination/brine environmental context, https://www.unep.org/news-and-stories/story/towards-sustainable-desalination (general independent context; not Morocco-specific audit)"
+  ],
+  "contradictory_evidence": [
+    "Official capacity announcements support infrastructure expansion, but capacity nameplate ma katsawish actual annual production aw reliable household delivery.",
+    "Dessalement powered partly b-renewables y9dr yn9s emissions, walakin 'renewable' claim bla hourly matching, grid mix w-kWh/m3 ma kay7semsh footprint.",
+    "New supply t9dr t7mi potable water; ila subsidy w-allocation kaychj3o talab fila7i kbir, total withdrawals y9dro ma yn9soch.",
+    "Brine controls and permits can support mitigation; bla public salinity/ecology monitoring, absence dyal published harm ma-shi evidence dyal absence dyal harm."
+  ],
+  "uncertainty": "High on all September 2026 operational, price and environmental metrics because hosted retrieval failed; medium on projected scarcity and project effects; low on the dated existence of structural water stress in the World Bank baseline.",
+  "context": "Tahqiq khaso ledger wa7ed l-kol plant: owner, contractor, finance, promised/commissioned date, nameplate m3/day, actual monthly m3, energy source/intensity, tariff, subsidy, allocation, brine permit and monitoring. Bla denominator w-period, ra9m capacity kaywli publicite ma-shi accountability.",
+  "why_it_matters": "L-ma 7a9 asas, w-l-istitmar kbir kaymss l-budget, fatoura dyal l-osra, l-fila7a w-l-bi2a s-sa7liya. S-siassa l-ma2iya khas-ha t7mi l-f9ir w-t7aseb l-mostahlik l-kbir.",
+  "strategic_angle": "Nnchro ghir baseline dated w-method dyal audit, b-box UNKNOWN kbira. Follow-up: njibo contracts, monthly output, kWh/m3, tariff/subsidy, leakage, allocation, brine permit and independent coastal sampling; ma ndiro 7tta verdict 9bel support w-contradiction ytwazno.",
+  "confidence": "medium",
+  "recommendation": "PUBLISH"
+}

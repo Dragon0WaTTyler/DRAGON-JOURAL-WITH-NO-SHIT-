@@ -1,0 +1,33 @@
+{
+  "story_id": "world-who-pandemic-agreement-implementation-2026",
+  "proposed_title": "Ittifaq l-ja2i7at dyal WHO: l-qawa3ed t9blat, walakin t-tatbi9 mazal fih as2ila",
+  "importance_score": 8.2,
+  "what_happened": "On 20 May 2025, the World Health Assembly adopted the WHO Pandemic Agreement. This packet is a dated institutional explainer, not a claim about a new event on 7 September 2026: live retrieval was attempted on 2 September 2026 but the hosted search endpoint returned HTTP 401 and direct HTTPS requests were blocked by the Cloud proxy, so the status of later negotiations and ratifications is UNKNOWN.",
+  "key_facts": [
+    "FACT — The World Health Assembly adopted the WHO Pandemic Agreement on 20 May 2025 after more than three years of negotiations triggered by inequities exposed during COVID-19.",
+    "FACT — WHO's adopted text addresses prevention, preparedness and response, including research, local production, technology transfer, supply chains and a coordinating financial mechanism.",
+    "FACT — Article 12 envisages a Pathogen Access and Benefit-Sharing system, but the adopted agreement says its operational annex must be negotiated separately.",
+    "FACT — The agreement does not give the WHO Secretariat power to order national lockdowns, vaccination mandates or changes to domestic law; states retain sovereign authority under the text.",
+    "UNKNOWN — The exact status on 7 September 2026 of the PABS annex, signatures, ratifications, entry into force, and Morocco's legal position could not be freshly retrieved and must not be inferred."
+  ],
+  "primary_sources": [
+    "https://apps.who.int/gb/ebwha/pdf_files/WHA78/A78_R1-en.pdf — World Health Assembly resolution WHA78.1 and adopted Pandemic Agreement, 2025-05-20, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; primary legal text supporting adoption and provisions",
+    "https://www.who.int/news/item/20-05-2025-world-health-assembly-adopts-historic-pandemic-agreement-to-make-the-world-more-equitable-and-safer-from-future-pandemics — WHO, 2025-05-20, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; institutional announcement supporting vote and process",
+    "https://www.who.int/about/governance/world-health-assembly/seventy-eighth-world-health-assembly — WHO WHA78 records, May 2025, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; official meeting record"
+  ],
+  "independent_sources": [
+    "https://www.reuters.com/business/healthcare-pharmaceuticals/who-members-adopt-pandemic-agreement-after-three-years-talks-2025-05-20/ — Reuters, 2025-05-20, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; independent report on adoption and remaining implementation work",
+    "https://www.chathamhouse.org/2025/05/who-pandemic-agreement-historic-its-only-start — Chatham House, May 2025, live access attempted 2026-09-02 but Cloud proxy blocked retrieval; independent analysis emphasizing implementation limits"
+  ],
+  "contradictory_evidence": [
+    "Descriptions of the agreement as a completed global pandemic regime overstate the result because the PABS annex and domestic implementation remained separate work at adoption.",
+    "Claims that WHO acquired authority to impose national lockdowns or vaccine mandates conflict with the sovereignty clause and the institutional limits stated in the adopted text.",
+    "Calling adoption meaningless also goes too far: it creates agreed norms, but their practical force depends on subsequent consent, finance, annex negotiations and domestic action."
+  ],
+  "uncertainty": "Medium. Adoption and the 2025 text are stable facts, but live retrieval failed. Every post-adoption milestone, including the position as of the future edition date, is UNKNOWN and needs a successful primary-source check before publication as current news.",
+  "context": "COVID-19 exposed sharp gaps in access to vaccines, diagnostics and protective equipment. WHO members negotiated a new agreement alongside amendments to the International Health Regulations; these are distinct legal instruments and should not be conflated.",
+  "why_it_matters": "Morocco is both exposed to cross-border health risks and interested in pharmaceutical capacity. The useful question is not whether a headline treaty exists, but whether benefit-sharing, financing and regional production become operational and equitable.",
+  "strategic_angle": "Publish as a dated accountability card only. Explain what the adopted agreement does and does not do, then list the PABS annex, ratification, financing and Morocco position as questions requiring fresh verification.",
+  "confidence": "medium",
+  "recommendation": "BRIEF"
+}
