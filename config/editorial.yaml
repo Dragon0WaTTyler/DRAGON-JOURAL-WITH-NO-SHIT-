@@ -7,3 +7,10 @@ publication_status_requires:
   - git_commit
   - git_push
   - remote_sha_match
+
+language_policy:
+  standard: natural-moroccan-darija-latin
+  principle: Use natural Moroccan Darija Latin; do not force word-by-word translation.
+  allowed_natural_terms: [September, programme, budget, deadline, rapport, article, source, audit, benchmark, model, study, paper, review]
+  preserved_verification_labels: [FACT, CLAIM, DISPUTED, UNKNOWN, ESTIMATE, PREPRINT, ABSTRACT_ONLY, COMPANY_CLAIM]
+  fail_conditions: [arabic_script, unnecessary_full_english_or_french, mojibake]

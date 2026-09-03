@@ -8,11 +8,11 @@ from scripts.validate_edition import validate_epub
 
 
 CONTAINER = b'<?xml version="1.0" encoding="utf-8"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'
-OPF = b'<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">test</dc:identifier><dc:language>ary-Latn</dc:language></metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="section" href="section.xhtml" media-type="application/xhtml+xml"/><item id="sources" href="sources.xhtml" media-type="application/xhtml+xml"/><item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="image" href="cover.webp" media-type="image/webp" properties="cover-image"/></manifest><spine><itemref idref="cover"/><itemref idref="section"/><itemref idref="sources"/></spine></package>'
+OPF = b'<?xml version="1.0" encoding="utf-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id" xml:lang="ary-Latn" dir="ltr"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">test</dc:identifier><dc:language>ary-Latn</dc:language></metadata><manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="section" href="section.xhtml" media-type="application/xhtml+xml"/><item id="sources" href="sources.xhtml" media-type="application/xhtml+xml"/><item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/><item id="image" href="cover.webp" media-type="image/webp" properties="cover-image"/></manifest><spine page-progression-direction="ltr"><itemref idref="cover"/><itemref idref="section"/><itemref idref="sources"/></spine></package>'
 
 
 def xhtml(body: str) -> bytes:
-    return f'<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>Test</title></head><body>{body}</body></html>'.encode("utf-8")
+    return f'<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" lang="ary-Latn" dir="ltr"><head><title>Test</title></head><body dir="ltr">{body}</body></html>'.encode("utf-8")
 
 
 def make_epub(path: Path, *, nav: bytes | None = None, section: bytes | None = None) -> None:
@@ -64,6 +64,27 @@ class ReaderFacingPublishingTests(unittest.TestCase):
 
     def test_arabic_script_still_fails(self):
         self.assertTrue(any("Arabic-script" in error for error in lint_text("had كتاب", "fixture")))
+
+    def test_ltr_epub_passes_and_natural_terms_are_allowed(self):
+        self.assertEqual(self.validate(), [])
+        self.assertEqual(lint_text("2 September 2026: FACT CLAIM ABSTRACT_ONLY programme budget study", "fixture"), [])
+
+    def test_rtl_epub_metadata_fails(self):
+        rtl_opf = OPF.replace(b'dir="ltr"', b'dir="rtl"').replace(b'page-progression-direction="ltr"', b'page-progression-direction="rtl"')
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "rtl.epub"
+            with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("mimetype", b"application/epub+zip", compress_type=zipfile.ZIP_STORED)
+                archive.writestr("META-INF/container.xml", CONTAINER)
+                archive.writestr("OEBPS/content.opf", rtl_opf)
+                archive.writestr("OEBPS/nav.xhtml", xhtml('<nav id="toc"><h1>TOC</h1><ol><li><a href="section.xhtml">Section</a></li><li><a href="sources.xhtml">Sources</a></li></ol></nav>'))
+                archive.writestr("OEBPS/cover.xhtml", xhtml('<section id="cover"><img src="cover.webp" alt="cover" /></section>'))
+                archive.writestr("OEBPS/section.xhtml", xhtml('<article id="section"><h1>Section</h1><p>Darija Latin</p></article>'))
+                archive.writestr("OEBPS/sources.xhtml", xhtml('<section id="sources"><h1>Sources</h1><ol><li id="source-S1"><a href="https://example.com/source">source</a></li></ol></section>'))
+                archive.writestr("OEBPS/cover.webp", b"RIFF\x04\x00\x00\x00WEBP")
+            errors = []
+            validate_epub(path, errors)
+            self.assertTrue(any("RTL" in error or "LTR" in error for error in errors))
 
 
 if __name__ == "__main__":

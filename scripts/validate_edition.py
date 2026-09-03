@@ -103,6 +103,8 @@ def validate_epub(path: Path, errors: list[str]) -> tuple[str, int]:
                 errors.append("EPUB container does not point to OEBPS/content.opf")
             if "latn" not in decoded["OEBPS/content.opf"].lower():
                 errors.append("EPUB metadata does not identify Darija Latin language")
+            if re.search(r'\bdir\s*=\s*["\']rtl["\']|direction\s*:\s*rtl\b', decoded["OEBPS/content.opf"], re.IGNORECASE):
+                errors.append("EPUB OPF contains RTL direction metadata")
 
             opf_ns = "{http://www.idpf.org/2007/opf}"
             opf = xml["OEBPS/content.opf"]
@@ -112,6 +114,19 @@ def validate_epub(path: Path, errors: list[str]) -> tuple[str, int]:
             for itemref in opf.findall(f"{opf_ns}spine/{opf_ns}itemref"):
                 if itemref.attrib.get("idref") not in manifest:
                     errors.append("EPUB spine references a missing manifest item")
+            spine_element = opf.find(f"{opf_ns}spine")
+            if spine_element is None or spine_element.attrib.get("page-progression-direction") != "ltr":
+                errors.append("EPUB spine page progression is not explicitly LTR")
+
+            for name in names:
+                if name.endswith(".css"):
+                    try:
+                        css = epub.read(name).decode("utf-8", errors="strict")
+                    except UnicodeDecodeError as exc:
+                        errors.append(f"EPUB {name} is not valid UTF-8: {exc}")
+                    else:
+                        if re.search(r"direction\s*:\s*rtl\b", css, re.IGNORECASE):
+                            errors.append(f"EPUB {name} contains an RTL rule")
 
             xhtml_names = [name for name in names if name.startswith("OEBPS/") and name.endswith((".xhtml", ".html"))]
             identifiers: dict[str, set[str]] = {}
@@ -120,6 +135,13 @@ def validate_epub(path: Path, errors: list[str]) -> tuple[str, int]:
                 root = xml[name]
                 if root.tag != f"{html_ns}html":
                     errors.append(f"EPUB {name} is not an XHTML html document")
+                if root.attrib.get("dir", "").lower() != "ltr":
+                    errors.append(f"EPUB {name} html root direction is not LTR")
+                body = next((element for element in root.iter() if element.tag == f"{html_ns}body"), None)
+                if body is None or body.attrib.get("dir", "").lower() != "ltr":
+                    errors.append(f"EPUB {name} body direction is not LTR")
+                if re.search(r'\bdir\s*=\s*["\']rtl["\']', decoded[name], re.IGNORECASE):
+                    errors.append(f"EPUB {name} contains RTL direction metadata")
                 ids = [element.attrib["id"] for element in root.iter() if "id" in element.attrib]
                 if len(ids) != len(set(ids)):
                     errors.append(f"EPUB {name} has duplicate IDs")
