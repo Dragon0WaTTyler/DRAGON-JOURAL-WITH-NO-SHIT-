@@ -131,3 +131,13 @@ second-run, and pilot stages. After the pilot, configure the recurring Cloud
 run for 10:00 `Africa/Casablanca`, then perform a genuine PC-off test. Only
 after the scheduled run creates and remotely verifies a complete edition may
 the project be called `PRODUCTION CLOUD-ONLY CONFIRMED`.
+
+## Future Scheduled Work contract
+
+Future ChatGPT Scheduled Work orchestration is specified in
+`config/scheduled-workflow.yaml`. It coordinates the existing 13 editorial
+roles through five super-jobs and uses `Africa/Casablanca`; it does not replace
+the role registry or enable `config/schedule.yaml`. Cover generation follows
+`design/DRAGON-COVER-STYLE.md`. These are contracts only. Production
+activation requires tested native Scheduled Work behavior and verified text and
+binary persistence, including a successful PC-off acceptance test.

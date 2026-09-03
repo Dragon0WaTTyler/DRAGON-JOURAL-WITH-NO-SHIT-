@@ -51,6 +51,7 @@ def main() -> int:
         quality_gates = load_yaml(ROOT / "config/quality-gates.yaml")
         editorial = load_yaml(ROOT / "config/editorial.yaml")
         schedule = load_yaml(ROOT / "config/schedule.yaml")
+        scheduled_workflow = load_yaml(ROOT / "config/scheduled-workflow.yaml")
         output_schema = json.loads((ROOT / "config/output-schema.json").read_text(encoding="utf-8"))
         investigation_schema = json.loads((ROOT / "config/investigation-schema.json").read_text(encoding="utf-8"))
         manifest_schema = json.loads((ROOT / "config/edition-manifest-schema.json").read_text(encoding="utf-8"))
@@ -138,6 +139,39 @@ def main() -> int:
         errors.append("schedule must remain disabled before Cloud-only acceptance")
     if schedule.get("hard_requirement") != "cloud-only":
         errors.append("schedule hard_requirement must be cloud-only")
+
+    workflow_jobs = scheduled_workflow.get("jobs")
+    expected_workflow_jobs = {
+        "current-news-desk", "deep-features-desk", "chief-editor",
+        "publishing-desk", "cover-director",
+    }
+    if scheduled_workflow.get("enabled") is not False:
+        errors.append("scheduled-workflow contract must remain disabled")
+    if scheduled_workflow.get("timezone") != "Africa/Casablanca":
+        errors.append("scheduled-workflow timezone must be Africa/Casablanca")
+    if not isinstance(workflow_jobs, list) or len(workflow_jobs) != 5:
+        errors.append("scheduled-workflow must define exactly five super-jobs")
+    elif {job.get("id") for job in workflow_jobs} != expected_workflow_jobs:
+        errors.append("scheduled-workflow job definitions do not match the five required super-jobs")
+    for job in workflow_jobs or []:
+        if job.get("timezone") != "Africa/Casablanca":
+            errors.append(f"scheduled-workflow job {job.get('id')} has the wrong timezone")
+    workflow_constraints = scheduled_workflow.get("execution_constraints", {})
+    required_false = (
+        "openai_api_allowed", "openai_api_key_required", "pay_as_you_go_openai_allowed",
+        "github_actions_allowed", "external_paid_services_allowed",
+        "self_hosted_runner_allowed", "local_pc_dependency_allowed",
+    )
+    for key in required_false:
+        if workflow_constraints.get(key) is not False:
+            errors.append(f"scheduled-workflow constraint {key} must be false")
+    capabilities = scheduled_workflow.get("connector_capabilities", {})
+    if capabilities.get("github_binary_image_write_through_current_connector") != "UNSUPPORTED/BLOCKED":
+        errors.append("scheduled-workflow must document current binary connector limitation")
+    if capabilities.get("scheduled_image_generation") not in {"PASS", "UNSUPPORTED/BLOCKED", "UNTESTED"}:
+        errors.append("scheduled-workflow must record the actual scheduled image-generation result")
+    if not (ROOT / "design/DRAGON-COVER-STYLE.md").is_file():
+        errors.append("DRAGON cover style contract is missing")
 
     for schema, name in ((output_schema, "output"), (investigation_schema, "investigation"), (manifest_schema, "manifest")):
         schema_errors: list[str] = []

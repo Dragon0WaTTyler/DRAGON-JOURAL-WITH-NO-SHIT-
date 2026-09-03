@@ -29,6 +29,14 @@ is **not journalism**. The recurring production schedule remains disabled.
 Five real `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` editions are archived
 for quality review. Pilot editions remain non-recurring pre-production.
 
+The future ChatGPT Scheduled Work orchestration contract is documented in
+[config/scheduled-workflow.yaml](config/scheduled-workflow.yaml). It groups
+the existing 13 editorial roles into five coordinating super-jobs, but it is
+contract-only: no scheduled task is enabled. Cover generation follows the
+permanent [DRAGON cover style contract](design/DRAGON-COVER-STYLE.md).
+Activation requires tested Scheduled Work behavior, including the connector's
+real text and binary persistence capabilities.
+
 ## Repository contract
 
 ```text
