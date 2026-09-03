@@ -10,7 +10,7 @@
   "epub_generation_status": "BLOCKED_NO_EXECUTABLE_REPOSITORY_RUNTIME",
   "epub_xml_validation_status": "NOT_RUN",
   "source_link_status": "NOT_VALIDATED_IN_DERIVATIVES",
-  "github_text_persistence": "PASS_PENDING_READ_BACK",
+  "github_text_persistence": "PASS",
   "github_binary_persistence": "BLOCKED_BY_CONNECTOR",
   "binary_persistence_limitation": "The connected GitHub actions available in this execution can read and write UTF-8 text but do not expose a binary upload action for PDF/EPUB bytes. The current execution also does not expose an executable checked-out repository runtime through the connector, so the repository publishing generator and validators cannot be run against the repaired canonical edition.md. Existing edition.pdf and edition.epub are stale: their latest commit is 84fb204581d34fab376e89aa2e4422fba9b32f9f from 2026-09-02T03:24:45Z, before the canonical edition.md repair commit 18f92c4e3c0d5ae098dc6725f76ca7d0ef232f65 on 2026-09-03T02:50:44Z, so they were not accepted as today's derivatives.",
   "reader_facing_status": "PASS_SOURCE_TEXT",
