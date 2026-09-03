@@ -18,4 +18,6 @@ gates:
     required: [validator_pass, git_commit, git_push, remote_sha_match]
   editorial_quality_report:
     required: [total_word_count, per_section_word_counts, hard_minimums, target_ranges, allowed_exceptions, repeated_topic_check, regeneration_requests]
+  workflow_state:
+    required: [fresh_run_initialization, dependency_invariants, remote_read_back, report_consistency, downstream_reset_on_block]
 blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE]

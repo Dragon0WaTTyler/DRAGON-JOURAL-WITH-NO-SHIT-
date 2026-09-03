@@ -4,11 +4,20 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "BLOCKED",
-  "publishing": "COMPLETE",
-  "cover": "COMPLETE",
+  "publishing": "BLOCKED",
+  "cover": "BLOCKED",
   "overall_status": "BLOCKED",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
+  "remote_read_back": {
+    "status": "FAIL",
+    "paths": [],
+    "required_paths": [
+      "editions/2026/09/2026-09-03/edition.md",
+      "editions/2026/09/2026-09-03/sources.json",
+      "editions/2026/09/2026-09-03/manifest.json"
+    ]
+  },
   "last_updated": "2026-09-03T06:02:00+01:00",
   "blocking_reason": "GitHub persistence/read-back gate failed: editions/2026/09/2026-09-03/edition.md, sources.json, and manifest.json are absent from the connected repository. The existing editorial report cannot be treated as COMPLETE without those required remote artifacts."
 }

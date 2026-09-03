@@ -17,6 +17,11 @@ import sys
 from datetime import date
 from pathlib import Path
 
+try:
+    from workflow_state import validate_report_consistency, validate_state
+except ImportError:  # imports also work when tests load scripts as a package
+    from scripts.workflow_state import validate_report_consistency, validate_state
+
 
 ROOT = Path(__file__).resolve().parents[1]
 RESEARCH_ROLES = (
@@ -74,6 +79,35 @@ def validate_packets(edition_date: str) -> int:
 
 def validate_reports(edition_date: str) -> None:
     report_dir = ROOT / "research" / edition_date
+    status_path = ROOT / "daily-runs" / edition_date / "status.json"
+    editorial_report_path = ROOT / "daily-runs" / edition_date / "editorial-report.json"
+    publishing_report_path = ROOT / "daily-runs" / edition_date / "publishing-report.json"
+    for path in (status_path, editorial_report_path, publishing_report_path):
+        if not path.is_file():
+            raise RuntimeError(f"missing production workflow report: {path.relative_to(ROOT)}")
+    try:
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        editorial_report = json.loads(editorial_report_path.read_text(encoding="utf-8"))
+        publishing_report = json.loads(publishing_report_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"invalid production workflow report: {exc}") from exc
+    state_errors = validate_state(
+        status,
+        edition_date,
+        edition_dir=target(edition_date),
+        editorial_report=editorial_report,
+    )
+    state_errors.extend(
+        validate_report_consistency(
+            status,
+            edition_date,
+            edition_dir=target(edition_date),
+            editorial_report=editorial_report,
+            publishing_report=publishing_report,
+        )
+    )
+    if state_errors:
+        raise RuntimeError("invalid production workflow state: " + "; ".join(dict.fromkeys(state_errors)))
     fact_path = report_dir / "fact-check-report.json"
     language_path = report_dir / "language-gate-report.json"
     for path in (fact_path, language_path):
@@ -88,11 +122,18 @@ def validate_reports(edition_date: str) -> None:
         if report.get("blocking_issues"):
             raise RuntimeError(f"blocking issues remain: {path.relative_to(ROOT)}")
     language = json.loads(language_path.read_text(encoding="utf-8"))
-    if language.get("arabic_script_characters") != 0:
+    language_checks = language.get("checks", {}) if isinstance(language.get("checks"), dict) else {}
+    arabic_count = language_checks.get("arabic_script_characters", language.get("arabic_script_characters"))
+    if arabic_count != 0:
         raise RuntimeError("Darija gate reports Arabic-script characters")
-    if language.get("full_english_or_french_paragraphs") != 0:
+    full_foreign_paragraphs = language_checks.get(
+        "unnecessary_full_english_or_french_paragraphs",
+        language.get("full_english_or_french_paragraphs", 0),
+    )
+    if full_foreign_paragraphs != 0:
         raise RuntimeError("Darija gate reports full English/French paragraphs")
-    if language.get("meaning_changed") is True:
+    meaning_preserved = language_checks.get("factual_meaning_preserved")
+    if language.get("meaning_changed") is True or meaning_preserved not in (None, "PASS", "PASSED", True):
         raise RuntimeError("Darija gate reports changed meaning")
 
 

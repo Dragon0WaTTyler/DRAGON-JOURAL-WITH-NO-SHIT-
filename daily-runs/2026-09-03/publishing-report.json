@@ -1,6 +1,6 @@
 {
   "date": "2026-09-03",
-  "editorial_status": "COMPLETE",
+  "editorial_status": "BLOCKED",
   "edition_html_status": "PASS",
   "print_css_status": "PASS",
   "epub_xhtml_source_status": "PASS",
@@ -10,10 +10,19 @@
   "source_link_status": "PASS",
   "pdf_status": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary_status": "NOT_GENERATED_NO_RUNTIME",
-  "github_text_persistence": "PASS",
+  "github_text_persistence": "BLOCKED",
   "github_binary_persistence": "UNSUPPORTED",
-  "ready_for_codex_rendering": true,
+  "remote_read_back": {
+    "status": "FAIL",
+    "paths": [],
+    "required_paths": [
+      "editions/2026/09/2026-09-03/edition.md",
+      "editions/2026/09/2026-09-03/sources.json",
+      "editions/2026/09/2026-09-03/manifest.json"
+    ]
+  },
+  "ready_for_codex_rendering": false,
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
-  "blocking_reason": null,
+  "blocking_reason": "Editorial is blocked because edition.md, sources.json, and manifest.json were not read back from remote GitHub. Local or runtime files cannot establish persistence.",
   "generated_at": "2026-09-03T04:12:00+01:00"
 }

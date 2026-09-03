@@ -131,6 +131,13 @@ def main() -> int:
         errors.append("editorial depth must allow explicit non-publication dossier updates")
     if "depth" not in quality_gates.get("gates", {}) or "editorial_quality_report" not in quality_gates.get("gates", {}):
         errors.append("quality gates must include depth and editorial_quality_report gates")
+    if "workflow_state" not in quality_gates.get("gates", {}):
+        errors.append("quality gates must include the workflow_state gate")
+    state_contract = pipeline.get("state_contract", {})
+    if state_contract.get("initializer") != "scripts/workflow_state.py":
+        errors.append("pipeline must name scripts/workflow_state.py as the state initializer")
+    if state_contract.get("explicit_resume_only") is not True or state_contract.get("local_file_existence_is_not_remote_persistence") is not True:
+        errors.append("pipeline state contract must require explicit resume and remote persistence evidence")
 
     required_persistence = ["artifact_validation", "git_commit", "git_push", "remote_sha_match"]
     if editorial.get("publication_status_requires") != required_persistence:
@@ -172,6 +179,27 @@ def main() -> int:
         errors.append("scheduled-workflow must record the actual scheduled image-generation result")
     if not (ROOT / "design/DRAGON-COVER-STYLE.md").is_file():
         errors.append("DRAGON cover style contract is missing")
+    production_state = scheduled_workflow.get("production_state", {})
+    fresh = production_state.get("fresh_run_initialization", {})
+    fresh_values = fresh.get("values", {})
+    for field in ("current_research", "deep_research", "editorial", "publishing", "cover", "overall_status"):
+        if fresh_values.get(field) != "PENDING":
+            errors.append(f"fresh production initialization must reset {field} to PENDING")
+    if fresh_values.get("blocking_reason", "missing") is not None:
+        errors.append("fresh production initialization must reset blocking_reason to null")
+    if fresh.get("remove_stale_completion_fields") is not True:
+        errors.append("fresh production initialization must remove stale completion fields")
+    resume = production_state.get("resume", {})
+    if resume.get("explicit_only") is not True or resume.get("require_remote_read_back_before_retaining_complete") is not True:
+        errors.append("resume must be explicit and require remote read-back")
+    invariants = production_state.get("invariants", {})
+    if not invariants.get("editorial_complete_requires") or not invariants.get("overall_complete_requires"):
+        errors.append("scheduled-workflow must declare editorial and overall state invariants")
+    remote = scheduled_workflow.get("remote_persistence", {})
+    if remote.get("local_or_runtime_file_is_not_remote_persistence") is not True:
+        errors.append("scheduled-workflow must distinguish local existence from remote persistence")
+    if len(remote.get("chief_editor_required_read_back", [])) != 3:
+        errors.append("scheduled-workflow must require three Chief Editor canonical remote read-backs")
 
     for schema, name in ((output_schema, "output"), (investigation_schema, "investigation"), (manifest_schema, "manifest")):
         schema_errors: list[str] = []

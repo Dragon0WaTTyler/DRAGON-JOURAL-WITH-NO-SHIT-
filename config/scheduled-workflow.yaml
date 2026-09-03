@@ -28,6 +28,58 @@ execution_constraints:
   local_pc_dependency_allowed: false
   github_role: source-control-persistent-memory-edition-archive-artifacts
 
+production_state:
+  status_path: daily-runs/YYYY-MM-DD/status.json
+  fresh_run_initialization:
+    operation: reset-before-any-stage-starts
+    values:
+      current_research: PENDING
+      deep_research: PENDING
+      editorial: PENDING
+      publishing: PENDING
+      cover: PENDING
+      overall_status: PENDING
+      blocking_reason: null
+    remove_stale_completion_fields: true
+    rule: Never inherit COMPLETE from smoke, pre-production, deleted-edition, or abandoned same-date state.
+  resume:
+    explicit_only: true
+    require_remote_read_back_before_retaining_complete: true
+    required_remote_paths_must_be_exact: true
+  invariants:
+    editorial_complete_requires:
+      - current_research == COMPLETE
+      - deep_research == COMPLETE
+      - local editions/YYYY/MM/YYYY-MM-DD/edition.md exists
+      - local editions/YYYY/MM/YYYY-MM-DD/sources.json exists
+      - local editions/YYYY/MM/YYYY-MM-DD/manifest.json exists
+      - exact remote read-back of edition.md, sources.json, and manifest.json
+      - required editorial gates pass
+    publishing_running_or_complete_requires: editorial == COMPLETE
+    publishing_complete_requires:
+      - required text and binary artifacts exist
+      - artifact validation passes
+      - exact remote read-back corresponds to the current run
+    cover_complete_requires:
+      - editorial == COMPLETE
+      - cover.webp exists
+      - cover validation passes
+      - exact remote read-back corresponds to the current run
+    overall_complete_requires: every required production stage is legitimately COMPLETE
+    downstream_reset_rule: If editorial is BLOCKED or FAILED, publishing and cover must not remain COMPLETE for that attempt.
+
+remote_persistence:
+  local_or_runtime_file_is_not_remote_persistence: true
+  pass_requires:
+    - write through connected GitHub persistence path
+    - read exact canonical remote path back
+    - confirm returned content or artifact corresponds to the just-written output
+  chief_editor_required_read_back:
+    - editions/YYYY/MM/YYYY-MM-DD/edition.md
+    - editions/YYYY/MM/YYYY-MM-DD/sources.json
+    - editions/YYYY/MM/YYYY-MM-DD/manifest.json
+  report_rule: editorial-report.json and publishing-report.json must not claim PASS before the exact read-back check.
+
 # These are five coordinating super-jobs over the authoritative 13 roles in
 # config/roles.yaml. They are not five replacement editorial roles.
 jobs:

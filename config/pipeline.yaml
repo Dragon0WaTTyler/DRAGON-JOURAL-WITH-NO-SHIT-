@@ -40,3 +40,12 @@ failure_policy:
   publishing_artifact: retry-only-failed-artifact
   persistence: retry-without-regenerating-content
   force_push: forbidden
+
+state_contract:
+  initializer: scripts/workflow_state.py
+  fresh_production_run: reset-all-stage-values-to-PENDING-before-start
+  explicit_resume_only: true
+  remote_persistence_evidence: exact-connected-GitHub-write-and-read-back
+  local_file_existence_is_not_remote_persistence: true
+  downstream_complete_after_editorial_block: forbidden
+  overall_complete_requires_all_required_stages: true

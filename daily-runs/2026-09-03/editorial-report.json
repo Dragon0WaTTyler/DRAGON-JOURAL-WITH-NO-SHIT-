@@ -1,7 +1,7 @@
 {
   "date": "2026-09-03",
   "timezone": "Africa/Casablanca",
-  "status": "COMPLETE",
+  "status": "BLOCKED",
   "total_word_count": 5906,
   "section_word_counts": {
     "Front Page": 417,
@@ -89,5 +89,16 @@
   ],
   "sources_resolve_status": "PASS",
   "internal_backend_reader_facing_prose": "PASS",
-  "required_editorial_files_exist": "PASS"
+  "required_editorial_files_exist": "FAIL",
+  "remote_read_back": {
+    "status": "FAIL",
+    "paths": [],
+    "required_paths": [
+      "editions/2026/09/2026-09-03/edition.md",
+      "editions/2026/09/2026-09-03/sources.json",
+      "editions/2026/09/2026-09-03/manifest.json"
+    ],
+    "reason": "The canonical edition directory is absent from remote GitHub; local or runtime existence is not persistence."
+  },
+  "blocking_reason": "Editorial completion is blocked until the three canonical files are written through the connected GitHub path and read back exactly."
 }
