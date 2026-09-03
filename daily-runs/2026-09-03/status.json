@@ -4,9 +4,10 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "RUNNING",
+  "publishing": "COMPLETE",
   "cover": "PENDING",
   "overall_status": "RUNNING",
+  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "last_updated": "2026-09-03T04:12:00+01:00",
   "blocking_reason": null
 }
