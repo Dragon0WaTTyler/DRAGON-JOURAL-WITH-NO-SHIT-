@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import posixpath
 import re
 import zipfile
 from datetime import date
@@ -20,8 +21,10 @@ import yaml
 
 try:
     from editorial_depth import evaluate, language_has_arabic_script, load_policy
+    from reader_facing_qa import lint_markdown, lint_text, report_payload, require_reader_manifest
 except ImportError:  # imports also work when tests load scripts as a package
     from scripts.editorial_depth import evaluate, language_has_arabic_script, load_policy
+    from scripts.reader_facing_qa import lint_markdown, lint_text, report_payload, require_reader_manifest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,7 +39,7 @@ def edition_dir(edition_date: str) -> Path:
     return ROOT / "editions" / f"{parsed:%Y}" / f"{parsed:%m}" / edition_date
 
 
-def validate_pdf(path: Path, errors: list[str]) -> None:
+def validate_pdf(path: Path, errors: list[str]) -> tuple[str, int]:
     data = path.read_bytes()
     if not data.startswith(b"%PDF-"):
         errors.append("edition.pdf is not a PDF")
@@ -50,42 +53,119 @@ def validate_pdf(path: Path, errors: list[str]) -> None:
         reader = PdfReader(str(path))
         if not reader.pages:
             errors.append("edition.pdf has no readable pages")
+            return "", 0
+        return "\n".join(page.extract_text() or "" for page in reader.pages), len(reader.pages)
     except ImportError:
         errors.append("pypdf is required for PDF validation")
     except Exception as exc:  # pypdf exposes different parse exceptions by version
         errors.append(f"edition.pdf cannot be parsed by pypdf: {exc}")
+    return "", 0
 
 
-def validate_epub(path: Path, errors: list[str]) -> None:
+def validate_epub(path: Path, errors: list[str]) -> tuple[str, int]:
+    """Strict EPUB 3 validation without extracting untrusted archive members."""
+    epub_text = ""
+    document_count = 0
     try:
         with zipfile.ZipFile(path) as epub:
             names = epub.namelist()
             if epub.testzip() is not None:
                 errors.append("EPUB contains a corrupt member")
+            if any(name.startswith("/") or ".." in Path(name).parts for name in names):
+                errors.append("EPUB contains an unsafe member path")
             if not names or names[0] != "mimetype":
                 errors.append("EPUB mimetype is not first")
             if epub.read("mimetype") != b"application/epub+zip":
                 errors.append("EPUB mimetype is incorrect")
-            for required in ("META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml"):
-                if required not in names:
-                    errors.append(f"EPUB missing {required}")
-            container = ElementTree.fromstring(epub.read("META-INF/container.xml"))
+            elif epub.getinfo("mimetype").compress_type != zipfile.ZIP_STORED:
+                errors.append("EPUB mimetype must be stored without compression")
+            required = ("META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml")
+            if any(member not in names for member in required):
+                errors.extend(f"EPUB missing {member}" for member in required if member not in names)
+                return epub_text, document_count
+
+            xml, decoded = {}, {}
+            for name in names:
+                if name.endswith((".xml", ".opf", ".xhtml", ".html")):
+                    try:
+                        decoded[name] = epub.read(name).decode("utf-8", errors="strict")
+                        xml[name] = ElementTree.fromstring(decoded[name])
+                    except UnicodeDecodeError as exc:
+                        errors.append(f"EPUB {name} is not valid UTF-8: {exc}")
+                    except ElementTree.ParseError as exc:
+                        errors.append(f"EPUB {name} is malformed XML/XHTML: {exc}")
+            if errors:
+                return epub_text, document_count
+
+            container = xml["META-INF/container.xml"]
             rootfile = next(iter(container.iter("{urn:oasis:names:tc:opendocument:xmlns:container}rootfile")), None)
             if rootfile is None or rootfile.attrib.get("full-path") != "OEBPS/content.opf":
                 errors.append("EPUB container does not point to OEBPS/content.opf")
-            opf = epub.read("OEBPS/content.opf").decode("utf-8")
-            if "darija" not in opf.lower() and "latn" not in opf.lower():
+            if "latn" not in decoded["OEBPS/content.opf"].lower():
                 errors.append("EPUB metadata does not identify Darija Latin language")
-            nav = epub.read("OEBPS/nav.xhtml").decode("utf-8").lower()
-            if "toc" not in nav or "href=" not in nav:
+
+            opf_ns = "{http://www.idpf.org/2007/opf}"
+            opf = xml["OEBPS/content.opf"]
+            manifest = {item.attrib.get("id", ""): item.attrib.get("href", "") for item in opf.findall(f"{opf_ns}manifest/{opf_ns}item")}
+            if not manifest:
+                errors.append("EPUB OPF has no manifest items")
+            for itemref in opf.findall(f"{opf_ns}spine/{opf_ns}itemref"):
+                if itemref.attrib.get("idref") not in manifest:
+                    errors.append("EPUB spine references a missing manifest item")
+
+            xhtml_names = [name for name in names if name.startswith("OEBPS/") and name.endswith((".xhtml", ".html"))]
+            identifiers: dict[str, set[str]] = {}
+            html_ns = "{http://www.w3.org/1999/xhtml}"
+            for name in xhtml_names:
+                root = xml[name]
+                if root.tag != f"{html_ns}html":
+                    errors.append(f"EPUB {name} is not an XHTML html document")
+                ids = [element.attrib["id"] for element in root.iter() if "id" in element.attrib]
+                if len(ids) != len(set(ids)):
+                    errors.append(f"EPUB {name} has duplicate IDs")
+                identifiers[name] = set(ids)
+                if ARABIC_SCRIPT.search(decoded[name]):
+                    errors.append(f"EPUB {name} contains Arabic-script characters")
+                if name.endswith("cover.xhtml"):
+                    if not any(element.tag == f"{html_ns}img" for element in root.iter()):
+                        errors.append("EPUB cover page is missing its image")
+                elif name.endswith("nav.xhtml"):
+                    if not any(element.tag == f"{html_ns}nav" for element in root.iter()):
+                        errors.append("EPUB navigation has no semantic nav element")
+                else:
+                    if not any(element.tag == f"{html_ns}h1" for element in root.iter()):
+                        errors.append(f"EPUB {name} is missing an h1")
+                epub_text += decoded[name] + "\n"
+                document_count += 1
+
+            def resolve(base: str, href: str) -> tuple[str, str]:
+                target, _, fragment = href.partition("#")
+                return (base if not target else posixpath.normpath(posixpath.join(posixpath.dirname(base), target))), fragment
+
+            nav_links = 0
+            for name in xhtml_names:
+                for anchor in xml[name].iter(f"{html_ns}a"):
+                    href = anchor.attrib.get("href", "")
+                    if not href:
+                        errors.append(f"EPUB {name} has an anchor without href")
+                        continue
+                    parsed = urlparse(href)
+                    if parsed.scheme or href.startswith("//"):
+                        continue
+                    destination, fragment = resolve(name, href)
+                    if destination not in names:
+                        errors.append(f"EPUB {name} has an unresolved link: {href}")
+                    elif fragment and fragment not in identifiers.get(destination, set()):
+                        errors.append(f"EPUB {name} has an unresolved fragment: {href}")
+                    if name == "OEBPS/nav.xhtml":
+                        nav_links += 1
+            if nav_links == 0:
                 errors.append("EPUB navigation has no usable table of contents")
-            for name in names:
-                if name.startswith("OEBPS/") and name.endswith((".xhtml", ".html")):
-                    text = epub.read(name).decode("utf-8")
-                    if ARABIC_SCRIPT.search(text):
-                        errors.append(f"EPUB {name} contains Arabic-script characters")
+            if "OEBPS/sources.xhtml" not in xhtml_names:
+                errors.append("EPUB is missing a Sources document")
     except (zipfile.BadZipFile, KeyError, UnicodeDecodeError, ElementTree.ParseError) as exc:
         errors.append(f"invalid EPUB: {exc}")
+    return epub_text, document_count
 
 
 def validate_smoke(target: Path, manifest: dict, sources: list, edition_text: str, errors: list[str]) -> None:
@@ -243,7 +323,7 @@ def main() -> int:
         report_path = args.quality_report_path or ROOT / "research" / args.date / "editorial-quality-report.json"
         validate_editorial_depth(args.date, edition_text, errors, report_path)
 
-    validate_pdf(target / "edition.pdf", errors)
+    pdf_text, pdf_pages = validate_pdf(target / "edition.pdf", errors)
     cover = (target / "cover.webp").read_bytes()
     if not (cover.startswith(b"RIFF") and cover[8:12] == b"WEBP"):
         errors.append("cover.webp is not a WebP container")
@@ -260,7 +340,30 @@ def main() -> int:
             errors.append("Pillow is required for pre-production cover validation")
         except Exception as exc:
             errors.append(f"cover.webp cannot be decoded: {exc}")
-    validate_epub(target / "edition.epub", errors)
+    epub_text, epub_documents = validate_epub(target / "edition.epub", errors)
+    if args.mode == "preproduction":
+        reader_issues = []
+        reader_issues.extend(lint_markdown(edition_text))
+        reader_issues.extend(lint_text(pdf_text, "PDF-extracted text"))
+        reader_issues.extend(lint_text(re.sub(r"<[^>]+>", "\n", epub_text), "EPUB text"))
+        reader_issues.extend(require_reader_manifest(manifest))
+        try:
+            from pypdf import PdfReader
+
+            reader = PdfReader(str(target / "edition.pdf"))
+            uri_links = 0
+            for page in reader.pages:
+                for annotation in page.get("/Annots", []):
+                    action = annotation.get_object().get("/A")
+                    if action and action.get("/URI"):
+                        uri_links += 1
+            if uri_links < len(sources):
+                reader_issues.append("PDF has fewer clickable source URLs than source records")
+        except Exception as exc:
+            reader_issues.append(f"PDF source-link inspection failed: {exc}")
+        errors.extend(reader_issues)
+        qa_path = ROOT / "research" / args.date / "reader-facing-qa-report.json"
+        qa_path.write_text(json.dumps(report_payload(reader_issues, pdf_pages=pdf_pages, epub_documents=epub_documents), indent=2) + "\n", encoding="utf-8")
 
     if errors:
         print(f"VALIDATION FAIL ({args.mode})")

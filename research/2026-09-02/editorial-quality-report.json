@@ -1,7 +1,7 @@
 {
   "date": "2026-09-02",
   "validation_status": "PASS",
-  "total_word_count": 5895,
+  "total_word_count": 5031,
   "total": {
     "hard_min_words": 4000,
     "target_range": [
@@ -35,7 +35,7 @@
     },
     "morocco": {
       "heading": "L-Mghreb - CPI dyal July: ra9m rasmi, ma-shi 7okm 3la l-ma3isha",
-      "word_count": 725,
+      "word_count": 709,
       "hard_min_words": 700,
       "publication_min_words": null,
       "target_range": [
@@ -45,8 +45,8 @@
       "pass": true
     },
     "palestine": {
-      "heading": "Filastin - talab l-itla9 f Tunisia, w 7odoud ma n3erfou",
-      "word_count": 507,
+      "heading": "Filastin - ddafa l-Gharbiya w bo7ran l-ma f Gaza",
+      "word_count": 502,
       "hard_min_words": 500,
       "publication_min_words": null,
       "target_range": [
@@ -57,7 +57,7 @@
     },
     "meknes": {
       "heading": "Meknes Radar - deadline jami3i, bla ma nzido wa3d",
-      "word_count": 287,
+      "word_count": 246,
       "hard_min_words": 300,
       "publication_min_words": null,
       "target_range": [
@@ -67,8 +67,8 @@
       "pass": true
     },
     "world": {
-      "heading": "L-3alam - WFP katgol mo2ouna tdmerat f Sudan; l-fa3il majhoul",
-      "word_count": 410,
+      "heading": "L-3alam - Sudan, Ukraine, w l-3ala9at l-kobra f l-Masr",
+      "word_count": 158,
       "hard_min_words": null,
       "publication_min_words": null,
       "target_range": [
@@ -79,7 +79,7 @@
     },
     "ai": {
       "heading": "AI w Technology - double-blind pilot, COMPANY_CLAIM ma-shi validation",
-      "word_count": 557,
+      "word_count": 499,
       "hard_min_words": null,
       "publication_min_words": null,
       "target_range": [
@@ -90,7 +90,7 @@
     },
     "science": {
       "heading": "Science - PTA-IRT: preprint w ABSTRACT_ONLY",
-      "word_count": 542,
+      "word_count": 502,
       "hard_min_words": 500,
       "publication_min_words": null,
       "target_range": [
@@ -101,7 +101,7 @@
     },
     "investigations": {
       "heading": "Investigations - RESEARCHING: mn CPI l-so2al, ma-shi l-ittiham",
-      "word_count": 178,
+      "word_count": 143,
       "hard_min_words": null,
       "publication_min_words": 600,
       "target_range": null,
@@ -132,7 +132,7 @@
     "meknes": {
       "allowed": true,
       "used": true,
-      "reason": "THIN-NEWS EXCEPTION - L-retrieval l-jdid l9a item mo2assasati s7i7 w mo2arrakh, walakin ma l9a-sh second local source mosta9il wla data katsned feature twila. 3la hadchi, kan7afdo 3la had brief m7dod w kan9olo limitation b sra7a. Ma n7awloch inscription window l-story 3la l-madina kamla. L-9ima hiya deadline, provenance, w l-as2ila lli ba9yin ma mjawbin-sh."
+      "reason": "<!-- THIN-NEWS EXCEPTION: backend policy allowance for this constrained local brief. --"
     },
     "world": {
       "allowed": false,

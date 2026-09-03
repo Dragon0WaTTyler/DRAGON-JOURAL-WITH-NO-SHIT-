@@ -1,12 +1,12 @@
 {
   "date": "2026-09-02",
   "status": "PASS",
-  "scope": "all dated claims and long-form features published in the corrected edition",
+  "scope": "V1.1 reader-facing edition, including preserved reporting and focused Palestine/World additions",
   "retrieval_status": "PASS",
-  "retrieval_note": "Current exact pages were reviewed for the two regenerated features; existing current-news evidence was preserved from the prior Cloud run.",
+  "retrieval_note": "Existing validated reporting was preserved. Exact Al Jazeera, OCHA and Associated Press pages were reviewed for the focused Palestine and World additions.",
   "issues": [],
   "checks": [
-    "all 20 source IDs mapped to exact URLs",
+    "all 25 source IDs mapped to exact URLs",
     "History death figures separated by source and method; no single unqualified total published",
     "History scholarly interpretation separated from record-based fact",
     "Literature bibliographic facts separated from scholarly interpretation",
@@ -15,8 +15,8 @@
     "no copyrighted passages reproduced",
     "no unsupported accusation or causal claim added"
   ],
-  "primary_source_trails_count": 20,
-  "independently_cross_checked_material_claims_count": 2,
+  "primary_source_trails_count": 25,
+  "independently_cross_checked_material_claims_count": 3,
   "cross_checked_claim_groups": [
     {
       "claim_group": "Casablanca 1965 chronology, escalation and mortality evidence",
@@ -29,6 +29,18 @@
       "primary_source_ids": ["S17"],
       "independent_source_ids": ["S18", "S19", "S20", "S21", "S22"],
       "note": "BnF establishes the work and publication trail; academic sources provide interpretations, not new bibliographic facts."
+    },
+    {
+      "claim_group": "Focused Palestine desk update",
+      "primary_source_ids": ["S10", "S25"],
+      "independent_source_ids": ["S11"],
+      "note": "The immediate al-Mughayyer account remains attributed to Al Jazeera/Wafa; OCHA supplies separate documented West Bank context. Gaza water figures remain attributed to the UN and UNICEF material cited by Al Jazeera."
+    },
+    {
+      "claim_group": "World desk breadth",
+      "primary_source_ids": ["S5"],
+      "independent_source_ids": ["S23", "S24"],
+      "note": "Sudan remains an attributed WFP/UN account with no perpetrator named. Ukraine and Egypt/China are separate AP reports, not corroboration for Sudan."
     }
   ],
   "independence_notes": [

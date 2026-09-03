@@ -2,29 +2,15 @@
 
 **PRE-PRODUCTION - NOT YET DAILY PRODUCTION**
 
-Had n-noskha hiya V1-candidate dyal wa7ed l-execution test f hosted Codex Cloud. Ma hiya la smoke fixture la wa7d schedule. Kol khbar ta7t kayfessel bin shno kaygol l-masdar, shno t2kked b nafs l-wati9a, w shno baqi majhoul.
+Nnoskha V1.1 candidate. Kol khbar ta7t kayfessel bin shno t2kked, shno mansoub l-masdar, w shno baqi majhoul.
 
 ## Kalmat Ra2is t-Ta7rir - l-9ima f l-7odoud
 
-Nhar l-yom ma 3ndnach l-7a9 n3amro j-jarida b kalam lli kayban kbir ila dalil sghir. L-khbar l-mzyan ma-shi howa lli fih aktar dyal l-jomal; howa lli l-9ari y9der yrje3 l-wati9a dyalo, y3ref chkoun kayhder, w ychof fin katsali l-ma3louma w fin kaybda t-ta2wil. 3la had l-9a3ida, had l-edition katdir wa7ed l-khatt bayn rasmi, ta9rir sa7afi, company claim, preprint, estimate, w unknown.
+L-khabar l-mzyan ma-shi howa lli fih aktar dyal l-jomal; howa lli katb9a fih l-7odoud wad7in. F had n-nhar, CPI f l-Mghreb kaybayan n9ass f l-index, walakin ma kayjawb-sh bo7do 3la so2al l-ma3isha. F Filastin, l-3onf f ddafa w bo7ran l-ma f Gaza kayfardo 3la l-9ari yfarre9 bin report, claim, w ra9m mansoub l-masdar.
 
-F l-Mghreb, l-mo2achir l-rasmi dyal l-as3ar 3tana tswira m7doda 3la July 2026. Ma 3tana-sh 7okm 3la dakhl l-3a2ilat, l-9odra chira2iya, wala kifash kay7ess kol dar b l-ma3isha. F Meknes, kayna i3lan jami3i b deadline qrib; hadi khidma ma3loumatiya, ma-shi 9issa 3la natayej ta3limiya. F dossier Filastin, l-wa9i3 l-mot2kked howa nashr ta9rir w talab 3alani dyal wa7ed nashit; l-ittihamat, l-wa9t dyal l-i3ti9al, w l-7ala s-si7iya ba9yin claims mansoubin l-masadir dyalhom. F Sudan, UN News katna9el 3la WFP wa7ed l-hajoum jawwi li dmer mo2ouna; l-masdar ma smma-sh l-fa3il, donc 7na 7ta 7na ma nsmmiwh-sh.
+F l-3alam, Sudan kayb9a fih so2al 3la mo2ouna tdmerat w l-fa3il majhoul; Ukraine kat3ich jow dyal strikes w tahdidat mtbadla; w zyarat Xi l-Masr katbayan kifach l-3ala9at l-kobra katb9a kattharrak f sharq l-awssat. Tarikh Casablanca 1965 w Le Passe simple kayfekkrouna belli l-archive w l-adab ma kay3tiwsh qira2a wa7da.
 
-F AI, DeepMind kat9dem pilot dyal double-blind evaluation. L-announcement w technical report dyal nafs charika kaywerriwn shno kat9tar7, walakin ma kaydirouch independent validation. W f Science, paper f arXiv baqi preprint under review; 7na chofna metadata w abstract, ma chofna-sh full methods. Had l-far9 ma-shi tta9al f l-lougha: howa l-amana lli katkhlli l-9ari ma ykhlat-sh idea wa3da m3a natija t2kkdat.
-
-History w Literature/Culture rj3o features kamlin b3d fresh research: 1965 Casablanca b source recordi w scholarly disagreement, w Le Passe simple b publication trail w multiple literary readings. L-investigation ba9ya RESEARCHING; ma kayn la ittiham la kholasa. Hadchi kamel ma kayn9ess-sh mn j-jarida; kay7miha mn filler w mn thi9a ma 3ndha fin ttsned.
-
-Had edition kat9ra sources b hierarchy, ma-shi b l-3adad. Official statistics t9der tkoun authority 3la series dyalha, w tab9a m7taja independent context l-meaning social. Company report y9der ykoun primary document 3la design dyal company, w ma ykoun-sh audit. UN report y9der y3ti attribution l-agency, w ma ykoun-sh forensic responsibility. ArXiv y manuscript, w ma ykoun-sh peer review. Had distinctions homa l-bniya dyal had n-noskha.
-
-Selection 7yed stories lli ma 3ndhom-sh exact current trail, w ma 3awed-sh prose mn editions 9damin. Research packets tsta3mlo b7al leads; exact pages t3awdo tjebdo f had Cloud run. Ila wa7ed page ma kayjawb-sh 3la so2al, ma kammelnash l-faragh b l-khayal. L-qarar lli kayban na9s - HOLD, UNKNOWN, ma kaynch independent source - howa 7ta howa ma3louma l-9ari.
-
-L-archive f had test ma kay9iss-sh ghir wach files kaynin. Master khaso yb9a howa source dyal PDF w EPUB; citation IDs khas-hom ymatchiw sources records; manifest khaso y7seb nafs sources w citations; cover khas-ha tb9a illustration m3ellma. Ila derivative yf, stage publishing t3awed bo7dha bla ma tbd facts f master. Had separation katkhelli correction teknikiya ma tmsse-sh t-ta7rir.
-
-Tartib gates ma9soud: research qbel selection, draft qbel fact-check, corrections qbel language QA, w language QA qbel publishing. Ma n9dro-sh n3lno status published 7ta technical checks ydouzo, commit y, push y origin/main, w remote SHA y commit. Ila remote gate yf, n-noskha katb9a NOT COMPLETE 7ta ila PDF zwina.
-
-Had V1-candidate ma kayel 7ta recurring schedule. Config dyal schedule khaso yb9a enabled false, w trigger manual f hosted Cloud. Ma kayn la OpenAI API la API key la GitHub Actions la runner f PC. Research t b HTTPS GET l-pages allowlisted, w GitHub kayb9a source control w archive bark. Hadi ma3louma operational, walakin katzid thi9a: l-9ari w owner khas-hom y3erfo fin t l-khedma w fin ma tmatchat-sh.
-
-F n-nihaya, coherence dyal edition jay mn so2al wa7ed: ch7al men claim kay source dyalo? HCP kay CPI, UMI kat deadline, Al Jazeera kat report w attributions, UN News/WFP kay agency account, DeepMind kat company proposal, w arXiv kay preprint record. Ay 7aja zayda ttsenna source zayed.
+Ma kaynch verdict sahl f dossier l-as3ar wala f l-investigation lli mazal ma kmlatch dalil dyalha. L-qima hna hiya nkhelliw l-ra9m ra9m, l-claim claim, w l-majhou l-majhou.
 
 ## L-Mghreb - CPI dyal July: ra9m rasmi, ma-shi 7okm 3la l-ma3isha
 
@@ -42,13 +28,15 @@ Chno n9dro ngolo b confidence? N9dro ngolo: HCP reports CPI down month-on-month 
 
 L-9ari y9der ysta3mel had brief b wa7ed tari9a 3amaliya: y9ra category qbel headline, yfarre9 month-on-month mn year-on-year, w ma y7awwel-sh index l-shahada 3la tajriba shakhsia. Ila family katssref proportion kbir 3la non-food lli tla3, experience dyalha t9der tkoun mkhtalfa 3la wa7ed family okhra. Hadi inference man6i9iya 3la ikhtilaf l-panier, ma-shi natija 9asha HCP 3la households.
 
-Fact-check dyalna 7yed ay jomla katrbet had t-taghyir b ra7a ijtima3iya wala sabab siyassi. Khllina attribution f kol ra9m mohim. L-kholasa m7doda: hadchi snapshot rasmi mo2arrakh, mohim l-rassd, walakin ma-shi scorecard dyal l-ma3isha. L-masdar l-awwal howa exact HCP page, w l-report t-tani howa secondary coverage men nafs origin, ma-shi corroboration statistiques mosta9illa. [S1] [S2]
+L-kholasa m7doda: hadchi snapshot rasmi mo2arrakh, mohim l-rassd, walakin ma-shi 7okm 3la l-ma3isha. L-masdar l-awwal howa exact HCP page, w l-report t-tani kay3awed nafs l-ar9am, ma-shi qiyas mosta9il. [S1] [S2]
 
 Kayna 7ta mas2ala dyal core inflation. HCP kaygol l-indicateur d inflation sous-jacente, lli kay7yed products b volatile prices w products b public tariffs, n9es 0.2% mn June w tla3 0.3% mn July 2025. Had measure ma howa-sh nafs overall CPI, w ma khasnach nkhlto binathom. Kay3ti signal analytic akhor b definition ma; ma kay3tina-sh 7ta howa direct welfare measure. [S1]
 
 L-release kay9ol 7ta CPI average f sb3a chhor lwla dyal 2026 n9es 0.2% mo9arana m3a nafs l-moda 2025, m3a food down 1.4% w non-food up 0.7%. Had average period ma howa-sh nafs year-on-year dyal month wa7ed. Ttri9a s7i7a hiya nsmiw kol comparison b smitha, 7it mixing time windows y9der ykhl9 story ma kaynach. [S1]
 
-Mabda2na f t-ta7rir howa n9ol ra9m qbel interpretation, definition qbel slogan, w limitation qbel conclusion. Ma 3ndna-sh f had release household panels, donc ay 9issa 3la winners w losers khas-ha tb9a so2al. Ma 3ndna-sh causal analysis, donc ay nisba l-weather, policy, transport, wla margins khas-ha tb9a hypothesis. Had t-tawa9of howa natija dyal fact-check, ma-shi na9s f l-khabar.
+Ma 3ndna-sh f had release household panels, donc ay 9issa 3la winners w losers khas-ha tb9a so2al. Ma 3ndna-sh causal analysis, donc ay nisba l-weather, policy, transport, wla margins khas-ha tb9a hypothesis. L-7der hna ma-shi na9s f l-khabar; howa i7tiram l-7doud dyal l-ra9m.
+
+L-9ari lli kaybghi y9ra had l-khabar b sra7a khaso ychof date, no3 l-moqara­na, w l-panier qbel ma y7kem 3la l-ma3isha kamla.
 
 ## Meknes Radar - deadline jami3i, bla ma nzido wa3d
 
@@ -58,47 +46,43 @@ Ma 3ndnach f l-page l-capacite, 3adad candidates, criteria kamla dyal selection,
 
 Meknes Radar hna m9ssoud bih useful local brief, ma-shi fake breaking news. L-action l-wa7ed lli kayn f evidence howa: lli m3ni ychof exact notice w ykml candidature 9bel 8 September. Ma nzidouch details procedure ila ma banouch f exact record lli rje3na lih. W ila wa7ed l-9ari bgha y3ref l-capacity wala conditions, khaso yrje3 l-portail/administration rasmia; had edition ma tkhmmen-sh ljawab.
 
-THIN-NEWS EXCEPTION - L-retrieval l-jdid l9a item mo2assasati s7i7 w mo2arrakh, walakin ma l9a-sh second local source mosta9il wla data katsned feature twila. 3la hadchi, kan7afdo 3la had brief m7dod w kan9olo limitation b sra7a. Ma n7awloch inscription window l-story 3la l-madina kamla. L-9ima hiya deadline, provenance, w l-as2ila lli ba9yin ma mjawbin-sh. [S3]
+<!-- THIN-NEWS EXCEPTION: backend policy allowance for this constrained local brief. -->
 
-Nisbat confidence 3alya f dates kifma katban f notice, w mahdouda f ay claim 3la impact. Ila tbdlat page mn b3d nashr, archived source record f sources.json kayb9a kaywerri URL w wa9t access dyal run. Hadchi howa l-7edd l-mnasb l-Meknes l-yom: wa7ed radar sghir, official, actionable, w bla ta9yim ma kaynch 3lih dalil.
+L-ma3louma lli 3ndna m7doda: deadline w l-i3lan rasmi. Ma n7awloch window dyal inscription l-9issa kbira 3la l-madina, w ma nzidouch ta9yim ma kaynch 3lih dalil. [S3]
 
-## Filastin - talab l-itla9 f Tunisia, w 7odoud ma n3erfou
+Thi9a 3alya f dates kifma katban f notice, w mahdouda f ay claim 3la impact. Hadchi howa l-7edd l-mnasb l-Meknes l-yom: wa7ed radar sghir, rasmi, w naf3 lli bgha y9ddem.
 
-Al Jazeera English neshret nhar 2 September 2026 ta9rir kaygol belli nashit Brazil Thiago Avila talab mn s-soltat t-Tounsiya tl9 sra7 rb3a mn monaddimi Sumud flotilla. L-FACT lli n9dro nthabtou mn had retrieval howa kayn had report l-mo2arrakh w kayn talab mansoub l-Avila. Ma 3ndnach f packet video kamel wala transcript mosta9il dyal kalamou, donc attribution l-report daroriya. [S4]
+## Filastin - ddafa l-Gharbiya w bo7ran l-ma f Gaza
 
-Ta9rir kay3ti asami dyal Jawaher Channa, Wael Naouar, Saleh Mechri w Ali Katkout, w kaygol belli tchedou f July. Kayna 7ta riwaya 3la ittihamat money laundering, fraud, w misuse of campaign donations. Hna khas l-far9: hadchi DISPUTED_CLAIM/ALLEGATION f trail sa7afi, ma-shi conviction w ma-shi 7okm li qrinah. Ma rje3na-sh l-charge sheet, amr 9ada2i, wala dossier rasmi Tounsi. Donc ma n9olo-sh "darou"; n9olo "ta9rir kaydkor ittihamat". [S4]
+F 2 September, Al Jazeera n9lat 3la Wafa w ra2is l-majlis l-9arawi belli jouj chabab Filastiniyin, Mohammad Na'ssan w Khalil Abu Aliya, mato mn b3d raid f al-Mughayyer. Hadchi FACT 3la nashr ta9rir w riwaya mansouba l-masadir dyalha; tafasil l-wa9i3a w fa3il kol rsasa ma khas-hash twlli 7okm bla ta7qiq mosta9il. [S10]
 
-Nafs l-page katna9el 3la Avila w nas okhrin l-claim belli l-i3ti9al m3a t-tadamun m3a Filastin, w katna9el 3la family wa7ed mn l-mo3ta9alin claim 3la hunger strike w ta7awwol f s-si7a. Had l-claims ma t2kkdoch mosta9illan f had run. Ma 3ndnach medical record, statement mn tbib, visit report, wala ta9rir mn rights body tani. Urgency lli kaywerrihom l-masadir ma khas-hash ttm7a, walakin ma khas-hash tt9dem k fact mosta9il. Label s7i7 howa CLAIM mansoub l-family/activists.
+L-wa9i3a ma jat-sh f faragh. OCHA kanet watha9at qbelha attacks mtkarra 7da al-Mughayyer, w katgol belli mn bidayet 2026 79 Filastini, fihom 19 tfal, t9tlo f ddafa b yad Israeli forces wla settlers, w ta9riban 1,870 tsabo. Hadi ESTIMATE/record mansoub l-OCHA, ma-shi ra9m dyal had l-incident bo7do. [S11]
 
-Al Jazeera katgol belli l-7okouma t-Tounsiya ma 3l9at-sh 3alaniyan 7sab waqt nashr l-article. Hadi ma kat3ni-sh belli ma kayn 7ta jawab f chi canal akhor, w ma kat3ni-sh belli hadchi proof l-wa7ed riwaya. F run dyalna ma rje3na la response 7okoumi jdid la record 9ada2i. Donc current government position baqi UNKNOWN l-had edition. [S4]
+F Gaza, Al Jazeera n9lat 3la ma2loumat mn l-omam l-motta7ida w UNICEF 3la bo7ran l-ma: 90% mn nass kay3ichou qta3at mtkarra f l-ma s-salem, w 75% kay3tamdou 3la trucks f akhir July. L-ar9am mansouba l-masadir dyalha; ma n9drosh n7awlouha l-qiyas jdid l-kol 7ay wla n9olo belli katwassaf kol family b nafs tari9a. [S25]
 
-Had item 3ndo 3ala9a b Filastin 7it kayhder 3la monaddimin flotilla m l-Gaza w 3la activism dyal t-tadamun. Walakin ma howa-sh evidence 3la l-wad3 dakhel Gaza, ma kay3tina-sh aid delivery totals, w ma y3tina-sh 7aja 3la l-7arb wala operations 3askariya. Khllina scope m7dod bash ma n3ammmo-sh context kbir 3la source ma kay7mloch.
+L-qissa dyal l-ma ma hiya-sh ghir qra3a katsed wla truck kayt2kher. Mlli l-3a2ila katb9a katsenna l-ma l-chrob w t-tiyab w n-nadafa, katwli l-7araka w s-si7a w l-9odra 3la tanzim nhar kamel m3alla9in b wa7ed khadma hassa. Hadchi inference 3la ma3na l-wsoul l-ma, ma-shi ra9m jdid. L-source katdker 7ta dammar ma7atta sghira dyal desalination; ma n9drosh mn had l-wa9i3 bo7do n9olo ch7al mn wa7ed t2etter f kol jiha. [S25]
 
-L-isti9lal 7ta howa mohim: Al Jazeera editorially separate mn activists lli na9lat 3lihom, walakin article wa7ed ma howa-sh independent confirmation dyal kol underlying claim. Ta9rir kayjma3 aswat activists, qarib, w reference l-reporting sbe9; had multiple voices ma kaywalliw-sh automatic multiple origins. Bla wati9a 9ada2iya, source tibbia, w response rasmi, l-story katb9a m7doda.
+F ddafa, l-ar9am l-kobra ma khas-hash tm7i l-wa9i3at s-sghar. OCHA katwassef 7ta t-tari9 l-wa7da dyal al-Mughayyer b7al blassa kat3awed fih l-hjoumat w t-t3til dyal l-7araka. Had s-siya9 kay3awn nfahmo 3lach khbar wa7ed qariya yhemm, walakin ma kay3tina-sh l-7e9 n3tiw asbab qati3a l-kol 7adita. [S11]
 
-Fact-check pass bdlel lli momkin tban kat7. Ma nsta3mloch "prisoners without cause", ma nnsbo-sh motive dyal state, w ma n9olo-sh l-ittihamat s7a7. Nafs l-9a3ida katmna3na hom bla record. Kan7afdo 3la jouj riwayat: allegations reported as reported allegations; activists' framing reported as activists' framing. L-unknown ma howa-sh faragh khasna n3amroh b opinion.
+Siyasiyan, l-9issa katb9a mtshabkka: l-aid, l-3onf, l-7orriya dyal l-7araka, w l-qanoun kaydkhlo f ba3diyathom. Walakin l-edition ma katdirsh l-khabar l-ma7alli bdal l-mizan kamel dyal s-sira3. Kat7et l-haja lli t2kkdat f blassatha, w katkhlli l-7ajat lli mazel ma banatch b smitha: UNKNOWN.
 
-Chno khas focused follow-up? Exact Tunisian judicial document ybayen legal status w dates; public response mn ministry/niyaba; independent lawyer account with documents; w ila ghadi ttsift health claim, evidence tibbia or credible rights monitor. 7ta yji hadchi, l-item howa brief 3la public demand, ma-shi substantive verdict. [S4]
+Hna kayban far9 mohim bin talata dyal l-kalam. FACT: kayn report m3ayyan, wa9i3a m3ayyana, w records dyal OCHA kay3tiw siya9. CLAIM: chi taraf kayfasser l-motive wla l-athar b lougha dyalo. DISPUTED: chi ittiham wla tafsil ma kaynch lih record 9ada2i wla ta7qiq mosta9il. Had l-far9 ma kayn9esssh mn l-insani; kay7mi l-9ari mn jomla wa7da katjma3 l-fact w l-rai w l-ghadab.
 
-B had 7odoud, l-9ari kayakhod wa9i3 current bla ma n3tiw taraf wa7ed l-7okm. FACT: article w demand. ALLEGATION: financial case kifma reported. CLAIM: political motive w health condition kifma attributed. UNKNOWN: judicial record, current official response, independent medical confirmation. Hadi hiya s-sora lli evidence katsma7 biha nhar 2 September, la aktar la a9all.
+L-wsoul l-ma w l-amn f ddafa ma kayn9assosh l-qissa dyal Gaza l-kbira, walakin kay3tiwha wajh qreb: wach nass y9dro ywaslou l-dar, yjibou l-ma, w y3ichou nharhom bla khof? Kola source hna kat3ti qta3a mn s-sora, ma-shi s-sora kamla. Li bgha ytb3 had dossiers kayl9a l-links f akhir j-jarida, bach yrje3 l-masdar qbel ma y3ti l-khabar ma3na zayed.
 
-## L-3alam - WFP katgol mo2ouna tdmerat f Sudan; l-fa3il majhoul
+Wa7ed item akhor kayb9a m7doud: Thiago Avila talab mn s-soltat t-Tounsiya tl9 sra7 rb3a mn monaddimi Sumud flotilla. FACT howa talab l-3alani w reporting dyalo. ALLEGATION howa l-ittihamat l-maliya kifma na9laha l-article; CLAIM howa l-motive s-siyassi w l-7ala s-si7iya kifma na9lat activists w 3a2ila. UNKNOWN howa record 9ada2i kamel w jawab rasmi m7addat. [S4]
 
-UN News neshret nhar 2 September report kayna9el 3la World Food Programme belli aerial attack wa9e3 nhar 30 August barra mn Dilling f South Kordofan dmer jouj trucks m3ellmin b wadou7 w 50 metric tonnes dyal food aid. Had statement OFFICIAL_CLAIM dyal WFP men khlal UN News, ya3ni trail dakhel nizam UN. Ma 3ndnach f retrieval forensic report mosta9il mn site. [S5]
+L-kholasa: Filastin ma hiyach ghir headline wa7ed. Kayn 3onf w tadayyo9 f ddafa, w kayn bo7ran ma kaymss l-7ayat l-yawmiya f Gaza. Fin l-evidence katwqef, l-kalam dyalna kaywqef m3aha.
 
-WFP, 7sab UN News, 9alet belli l-hamoula kant kafya bach t3awn 5,800 wa7ed muddo chher. Had ra9m howa ESTIMATE mansoub l-WFP, 7it "kafya" kat3tamed 3la ration assumptions w programming. Ma n9dmouh-sh b7al measurement dyal ch7al mn wa7ed ghadi ystafed w l-akl ch7al ghadi ykfi. Trucks tdmerou 7sab l-agency; impact 3la beneficiaries kay7taj operational records okhrin.
+## L-3alam - Sudan, Ukraine, w l-3ala9at l-kobra f l-Masr
 
-Nafs ta9rir kayna9el 3la WFP belli mn January tmanya dyal aerial attacks lli drrat premises dyalha w 3r9lat operations. Hadi 7ta hiya official agency count, ma-shi independent conflict-event database lli qarnah. Source kay3ti context 3la risk l-humanitarian operations, walakin ma kay3tina-sh licence nzido attribution ma kaynach. [S5]
+F Sudan, UN News n9lat 3la WFP belli hjoom jawwi barra mn Dilling dmer jouj trucks m3allmin w 50 tonnes dyal mo2ouna. WFP kat9ol l-hamoula t9der t3awn 5,800 wa7ed moddat chher: had ra9m ESTIMATE mansoub l-WFP. L-fa3il, no3 s-sila7, w niyya dyal l-hjoom ba9yin UNKNOWN, 7it l-masdar ma smma 7ta taraf. [S5]
 
-Ahamm 7edd hna: exact UN News page ma kat3ayen-sh chkoun dar attack dyal 30 August. Sudan fih sira3 bin Sudanese Armed Forces w Rapid Support Forces, walakin had general context ma y3nich fa3il had incident. Ma n9olo la SAF la RSF, ma n9olo drone dyal taraf mo3ayan, w ma n3ayenosh weapon type. Perpetrator, munition, intention, w independent damage assessment kolhom UNKNOWN f had packet.
+F Ukraine, AP n9lat 3la mas2oulin mahalliyin belli strikes Russiya qtlou jouj civilians w jra7ou sitta f Dnipro, m3a strikes okhrin 3la Kyiv w Odesa. Hadi FACT mansouba l-reporting w l-mas2oulin lli smmahom; ma kat7ellsh bo7dha so2al fin ghadi ywasal s-sira3 wla wach l-mofawadat ghadi ttbeddel. [S23]
 
-Kayn far9 bin WFP source w UN News publisher, walakin joujhom mn UN system; hadchi ma howa-sh origin diversity kamla. UN News kayn9el shno 9alet agency w kay7et claim f context. Ma kayn-sh witness mosta9il, satellite analysis, wla verification mn newsroom barra nizam UN. Headline dyalna kaybda b "WFP katgol", ma-shi b assertion bla nisba.
+F Cairo, AP katwassef zyarat Xi Jinping l-Masr b7al 7araka d-diplomassiya w l-iqtisad bin China w wa7ed mn ahem 7olafa2 America f l-manti9a. L-ma3na ma-shi belli zyarat wa7da katqleb l-mizan kamel; hya ishara 3la sab9 l-3ala9at f waqt l-manti9a fih mutawattira. [S24]
 
-3lach neshro brief m3a had l-limit? 7it exact source current, claim dyal damage l-relief convoy kaymss humanitarian access, w absence dyal attacker itself ma3louma editorially mohimma. S-samt 3la fa3il a7san mn guess. L-9ari khaso y3ref shno t9al, chkoun 9alo, w shno baqi khas tta79i9.
-
-Fact-check 7yed ay kalma b7al "targeted by X" wla "deliberate" 7it evidence lli chofna ma kayn-sh. 7ta adjective "marked" mansoub l-WFP kifma n9lato UN News. L-quantity 50 tonnes, jouj trucks, 5,800 person-month estimate, w count dyal tmanya incidents kolha attributed. [S5]
-
-Follow-up l-mnasb howa exact WFP incident release, independent report mn ground, imagery ila kayna b methodology wad7a, w responses mn l-atraf. Ila had sources ma t9blosh, l-edition l-jaya khas-ha tb9a b nafs l-7doud. L-7arb ma kat7awel-sh l-9awl mn agency statement l-forensic conclusion.
+Had tlata ma kayjma3homsh continent wla slogan. Kayjma3hom athar l-7arb 3la l-madaniyin, l-mo2ouna, w l-qararat lli katbdel s-siyasat l-kobra.
 
 ## AI w Technology - double-blind pilot, COMPANY_CLAIM ma-shi validation
 
@@ -106,9 +90,9 @@ Google DeepMind neshret nhar 27 August 2026 announcement 3la pilot katsmmih "wor
 
 Announcement kayl9a l-mochkil: evaluators y9dro yaccess l-model weights or systems, w providers y9dro yaccess l-tests; had exchange kay7mi confidentiality w gaming risks. DeepMind katgol l-pilot kaykhdem f cryptographically secured environments bash l-computation ttra w assets yb9aw protected. 7na n9dro n9olo belli DeepMind katgol hadchi w belli l-page katlinki technical report. Ma n9dro-sh n3lno belli security guarantee bla adversarial audit.
 
-Technical report exact PDF tjbed f had run w t9ra b7al document dyal project. Kaydetail 3la design w findings lli authors/company kay3rdo. Walakin report baqi mn nafs source family: DeepMind announcement plus DeepMind-linked technical report ma kayn-sh independent replication. Jouj documents y9dro ykmlou ba3diyathom f detail, ma ykthroch origin count dyal validation. Labels f sources.json kayhom COMPANY_CLAIM. [S7]
+L-report t-tekniki kayfessel l-fekra kifma kat3redha charika. Walakin howa w l-announcement jayin mn nafs jiha; kayzido tafasil, ma kayzidouch ta2kid mosta9il. 3la hadchi kayb9aw COMPANY_CLAIM, ma-shi natija m7soma. [S7]
 
-Ma l9inash f fresh retrieval independent security audit, red-team report, evaluator result, wla deployed case lli team barra DeepMind jarrab fih system w neshret limitations. Ma l9inash 7ta standard benchmark kay9iss specifically confidentiality dyal had pilot. Donc security, novelty, scalability, w real-world performance ba9yin UNKNOWN mn jiht l-independent evidence.
+Ma ban lna 7ta audit mosta9il, natija mn evaluator barra charika, wla tajriba mnsoura katbayan fin l-pilot njah w fin wa9f. Donc security, novelty, scalability, w l-ist3mal f l-wa9i3 ba9yin UNKNOWN mn jiht dalil mosta9il.
 
 Kayn current arXiv preprint smiyto "Efficient SWE Agent Benchmarking via Trajectory-Aware Evaluation". Hada masdar mn authors mosta9illin 3la DeepMind item w kayhder 3la evaluation efficiency dyal software agents. Authors kay9olo PTA-IRT, method katsta3mel historical execution trajectories f selection dyal calibration tasks w ability estimation. [S8] [S9]
 
@@ -120,31 +104,31 @@ L-claim dyal "first" kay7taj landscape review w independent historical compariso
 
 L-9ari khaso ydir four checks qbel ma y7et chi claim f headline: chkoun bna l-system; chkoun auditah; shno threat model; w wach result reproducible. F had item, ljawab l-awwal DeepMind, t-tani ma l9inah-sh, t-talt kayna company documentation, w r-rab3 ma t2kked-sh. Had table a7san mn benchmark number bla provenance.
 
-Fact-check pass 7awwel "solution" l "pilot", 7awwel "secure" l "DeepMind says cryptographically secured", w 7yed ay claim belli arXiv paper independent validation. Darija QA ma bdel 7ta wa7ed mn had labels. Company claim bqat company claim; technical report bqa company document; preprint bqa preprint.
+L-kalimat mohimmin hna: pilot ma-shi solution m9tala9a, w "secure" kayb9a kalam dyal DeepMind 7ta yban ta7qiq barra mnha. W preprint dyal arXiv ma kay9addm-sh shahada l-had l-pilot; hadou juj mawadi3 mkhtalfin.
 
 Editorial verdict: BRIEF, ma-shi product review. Neshro l-announcement 7it current w exact, n3tiw l-technical report b URL exact, w nbayno l-limit b nafs l-wodou7 dyal l-promise. Ila ja audit mosta9il mn ba3d, dik sa3a y9der verdict yt7awwel. Daba, la success confirmed la failure confirmed. [S6] [S7]
 
 ## Science - PTA-IRT: preprint w ABSTRACT_ONLY
 
-ArXiv record 2609.01603 kay3ref paper "Efficient SWE Agent Benchmarking via Trajectory-Aware Evaluation", submitted 1 September 2026. L-record kay3ti authors, title, abstract, categories, w status/notes lli kaygolo manuscript under review. Hadchi kaythbet identity w bibliographic status, ma kaythbet-sh claims dyal performance. L-paper preprint, ma-shi peer-reviewed publication f had run. [S8] [S9]
+ArXiv record 2609.01603 kay3ref paper "Efficient SWE Agent Benchmarking via Trajectory-Aware Evaluation", submitted 1 September 2026. L-record kay3ti authors, title, abstract, categories, w status lli kaygol manuscript under review. Hadchi kaythbet l-hwiya w l-7ala bibliographiya, ma kaythbet-sh claims dyal performance. L-paper preprint, ma-shi peer-reviewed publication. [S8] [S9]
 
-Authors kaygolo f abstract belli software-engineering agent benchmarks ghalyin 7it tasks kayakhdo execution twil, w belli current item-response-theory approaches y9dro yst3mlo information f trajectories. Kay9tr7o PTA-IRT, lli kaysta3mel historical execution trajectories bash ykhtar calibration tasks w y9der ability. Hadi description ABSTRACT_ONLY: 7na qrina abstract record/page, ma qrinash full methods section. [S8]
+Authors kaygolo f abstract belli software-engineering agent benchmarks ghalyin 7it tasks kayakhdo wa9t twil, w belli item-response-theory t9der tsta3mel ma3loumat mn trajectories. Kay9tr7o PTA-IRT bash ykhtar calibration tasks w y9der ability. Hadi ABSTRACT_ONLY: l-wasf jay mn abstract, ma-shi mn qra2a kamla l-methods. [S8]
 
 Nafs abstract kaydkor better score recovery w ranking recovery mn prior IRT baselines f low calibration budgets across four software-engineering benchmarks. Hadi AUTHORS' CLAIM f preprint. Ma 3ndnach f had edition exact effect sizes, confidence intervals, full baseline configuration, compute budget, wala sensitivity analyses, 7it full methodology ma tfch. Ma n9olosh "method proven better".
 
 Four benchmarks ma kaywslosh l-generalization l-kol agent, l-kol repository, w l-kol software task. Selection dyal benchmark, task difficulty, historical trajectories, contamination, w model family y9dro y2t2ro 3la ranking recovery. Had possibilities ma-shi claims belli paper fih flaw; homa questions lli khas full review yjawb 3lihom.
 
-ArXiv API w abs page jouj representations dyal nafs preprint, donc source count epistemic howa wa7ed origin. Ma kaynach replication mosta9illa f packet, ma kaynach peer review report, w ma qrinash code/data linked. L-record kaydkor code/data, walakin existence dyal link ma kay3nich reproducibility. Reproduction khas environment, versions, tasks, seeds, w comparison protocol.
+ArXiv API w abs page jouj wjouh dyal nafs preprint, ma-shi jouj sources mosta9illin. Ma banatsh replication mosta9illa wla review 3ilmi. L-record kaydkor code/data, walakin link bo7do ma kaydman-sh belli natija t9der t3awd b nafs chourout.
 
 Kayn wa7ed temptation n9arno had preprint b DeepMind pilot 7it joujhom fihom "evaluation". Editorially had l-9raya khas-ha tb9a conceptual bark: wa7ed kay9iss efficiency dyal estimation, lakhor kayhder 3la architecture dyal confidentiality. Paper ma kayhder-sh 3la DeepMind pilot 7sab abstract lli qrina, w ma kay3tich independent validation l-security claims. [S6] [S8]
 
 Chno kayhemm l-9ari? Evaluation dyal coding agents t9der tkhlli l-khedma atwal w t7taj compute. Ila sampling/estimation t9der tn9ess cost bla ma tbdl ranking, hadi fa2ida mo7tamala. Kalmat "ila" daroriya. Low-cost estimate y9der 7ta ykchf behaviors rare, edge cases, w failures critical ila calibration set ma kay3kssch deployment. Full paper khaso ybayen trade-off, ma-shi ghir headline result.
 
-Science gate dyalna kaytaleb method, sample/tasks, effect size, limitations, preregistration ila relevant, conflicts, w replication. F had run, ghir abstract w metadata t9raw. Donc score dyal evidence ma kay-sh feature result; kay note ta3rifia m3a label kbir PREPRINT / ABSTRACT_ONLY. Had honesty ma katna9ess-sh mn authors; katwerri shno newsroom actually reviewed.
+Bash wa7ed natija 3ilmiyya t9wa, khasna nchofou l-method, tasks, effect sizes, limitations, w wach kayn replication. Hna 3ndna ghir abstract w metadata; b had sabab l-qissa katb9a ta3rif b method m9tar7a, ma-shi kholasa 3la result. PREPRINT / ABSTRACT_ONLY kaykhelli had l-7edd bayn.
 
-Focused follow-up: download full PDF through allowlisted exact URL, map all four benchmarks, record number dyal agents/tasks, inspect baselines w ablations, extract uncertainty metrics, check code/data license, w seek independent expert or replication. Ila chi wa7ed mn had l-steps ma tkmml-sh, next edition ma khas-ha tzid confidence b sabab abstract bark.
+L-mar7ala jaya hya n9raw l-paper kamla, nchofou l-benchmarks w l-ar9am b tafsil, w n9arnoha b qra2a mosta9illa. 7ta dik sa3a, l-3onwan l-mnasb howa method m9tar7a, ma-shi method mthbta.
 
-Fact-check correction 7yed "authors report" mn voice dyalna w 3awedha b attribution. 7yed 7ta ay suggestion dyal peer review. Language pass 7afed 3la technical terms b English fin precision: trajectory, calibration, benchmark, ranking recovery, w IRT. Baqi n-narrative Darija Latin.
+Had l-far9 kayhemm 7it l-coding agents kaywliw ydkhlo l-khedma dyal developers b sor3a. Ila chi tari9a t9der tqallal l-cost dyal l-qiyas bla ma tdi3 l-7e9i9a, hadi fa2ida. Walakin ila l-qiyas l-khafif kayfout failures nadra wla kay3ti tartib ghalet, l-cost lli t9llat t9der trje3 l-mochkil f blassa khra. Hadi hiya l-mizaniya lli khas l-paper ybayanha b wa9i3 w ar9am qbel ay isti3mal wassi3, 3la nass kamlin.
 
 L-kholasa: exact current preprint kay3ti method m9tar7a l-agent benchmarking. FACT howa existence, date, title, w under-review status. ABSTRACT_ONLY howa method description w results kifma kaydwhom authors. UNKNOWN howa robustness, effect sizes, leakage, reproducibility, w independent validation. [S8] [S9]
 
@@ -230,21 +214,21 @@ W ila l-roman ba9i kayt9ra, ma-shi 7it l-madi t7bes f wa7ed l-version. Kol qra2a
 
 ## Investigations - RESEARCHING: mn CPI l-so2al, ma-shi l-ittiham
 
-Status: **RESEARCHING / NEEDS_VERIFICATION / HOLD.** HCP July release kaygol overall CPI down 0.6% year-on-year, food down 3.7%, w non-food up 1.9%. Had divergence t9der t7ell so2al 3la kifash aggregate kay2etter l-budgets dyal households. Ma kayn 7ta wrongdoing, manipulation, profiteering, wla policy failure. [S1]
+<!-- RESEARCHING / NEEDS_VERIFICATION / HOLD -->
 
-Research lead kay7taj micro-components, household expenditure weights by income, wage/income series, wholesale-retail margins, regional supply data, w interviews/documentation lli t9der tbayen chno kayn qbel ma ttsawb chi conclusion. Structural report 9dim 3la climate/water y9der y3ti context bark; ma khasnach nnsbo sabab l-July movement bla chain of evidence.
+HCP July release kaygol overall CPI down 0.6% year-on-year, food down 3.7%, w non-food up 1.9%. Had divergence t9der t7ell so2al 3la kifash aggregate kay2etter l-budgets dyal households. Ma kayn 7ta wrongdoing, manipulation, profiteering, wla policy failure. [S1]
+
+Bash had so2al ywalli dossier kamel, khas micro-components, household expenditure weights by income, wage/income series, wholesale-retail margins, regional supply data, w shahadat m3a wati9a. Bla hadchi, ma nnsboch sabab l-July movement.
 
 As2ila ma mjawbin-sh: wach n9ass food kan concentrated? kifash weights katkhlt bin dar dakhloha mahdoud w dar okhra? wach city variation stable wala noise chhri? wach wages katmchi b nafs sir3a? Chkoun 3ndo data disconfirming? 7ta ljawab ma kayn-sh, dossier ma ba9i-sh ready.
 
-Had note ma howa-sh investigation published, donc ma kaytleb-sh minimum dyal 600 words dyal dossier l-manshour. Ma kayn 7ta fa3il w ma kayn 7ta verdict. Kayn lead, evidence l-awwal, w unanswered questions bash l-khedma tb9a bla ma l-memory t3ammar b-l-ittiham.
+Ma kayn 7ta fa3il w ma kayn 7ta verdict. Kayn so2al, dalil l-awwal, w as2ila ba9yin ma mjawbin-sh; hadchi a7san mn ittiham bla asas.
 
-## Mola7adat Fact-check w Darija QA
+## Kifach khdemna
 
-Fact-check: PASS mn ba3d corrections. Kol ra9m CPI mansoub l-HCP; MWN m3awd coverage mn nafs origin. Meknes item m7doud l-deadline. Palestine split l-FACT, ALLEGATION/DISPUTED_CLAIM, CLAIM, w UNKNOWN. Sudan ma fih 7ta attacker attribution. DeepMind announcement/report COMPANY_CLAIM. ArXiv science PREPRINT / ABSTRACT_ONLY. History mortality records separated mn press reporting, w Literature publication facts separated mn interpretations. Investigation RESEARCHING bla accusation.
+Kola claim mohim 3ndo masdar f akhir j-jarida. FACT kat3ni ma3louma t2kkdat mn source m3ayyan; CLAIM katb9a mansouba lli 9alha; UNKNOWN hiya l-7aja lli ma n9drosh n3amroha b l-khayal. Company claims, preprints, w ABSTRACT_ONLY kaybanou b labels sghar bach ma ytkhltoch m3a natija mosta9illa.
 
-Darija Latin QA: PASS. Zero Arabic-script characters f master. English baqi ghir f technical labels, titles, official names, models/methods, w proper nouns. QA ma bdel la ra9m la attribution la confidence.
-
-Cover note: cover.webp illustration t-ta7ririya abstracta, ma-shi tswira documentarya w ma katwerrich 7adita wa9i3iya.
+Ttswira f l-ghlaf illustration ta7ririya, ma-shi taswira wa9i3iya dyal 7adita. L-links kamlin kaynin f Sources bash l-9ari y9der yrje3 l-asl.
 
 ## Sources
 

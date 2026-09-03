@@ -8,22 +8,28 @@
   "cover": "cover.webp",
   "fact_check": "passed",
   "language_check": "passed",
-  "sources_count": 20,
-  "citations_count": 79,
+  "sources_count": 25,
+  "citations_count": 81,
   "sections": [
+    "Nazarat l-yom",
     "Kalmat Ra2is t-Ta7rir - l-9ima f l-7odoud",
     "L-Mghreb - CPI dyal July: ra9m rasmi, ma-shi 7okm 3la l-ma3isha",
     "Meknes Radar - deadline jami3i, bla ma nzido wa3d",
-    "Filastin - talab l-itla9 f Tunisia, w 7odoud ma n3erfou",
-    "L-3alam - WFP katgol mo2ouna tdmerat f Sudan; l-fa3il majhoul",
+    "Filastin - ddafa l-Gharbiya w bo7ran l-ma f Gaza",
+    "L-3alam - Sudan, Ukraine, w l-3ala9at l-kobra f l-Masr",
     "AI w Technology - double-blind pilot, COMPANY_CLAIM ma-shi validation",
     "Science - PTA-IRT: preprint w ABSTRACT_ONLY",
     "Tarikh l-Mghreb - Casablanca 1965: mlli l-madrassa khrejat l-zan9a w l-dawla jawbat b l-9owwa",
     "Adab w Culture - Le Passe simple: riwaya kat9ra l-Mghreb mn dakhel l-3a2ila w l-isti3mar",
     "Investigations - RESEARCHING: mn CPI l-so2al, ma-shi l-ittiham",
-    "Mola7adat Fact-check w Darija QA",
+    "Kifach khdemna",
     "Sources"
   ],
   "smoke_test": false,
-  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION"
+  "label": "PRE-PRODUCTION — NOT YET DAILY PRODUCTION",
+  "reader_facing": {
+    "front_page": "designed",
+    "cover_integrated": true,
+    "source_links": "generated"
+  }
 }

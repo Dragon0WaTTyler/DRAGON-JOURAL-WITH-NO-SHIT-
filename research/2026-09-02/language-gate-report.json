@@ -4,10 +4,10 @@
   "language": "darija-latin",
   "arabic_script_characters": 0,
   "meaning_changes": 0,
-  "scope": "corrected edition including regenerated History and Literature/Culture features",
+  "scope": "V1.1 reader-facing edition including the refreshed Palestine and World sections",
   "notes": [
     "Technical proper names, source titles and evidence labels retained where precision requires English or French.",
-    "The long-form sections were expanded without changing source attribution, confidence or uncertainty labels.",
-    "No Arabic-script characters remain in edition.md."
+    "Reader-facing prose was simplified while source attribution and verification labels were preserved.",
+    "No Arabic-script characters remain in edition.md, PDF-extracted text, or EPUB text."
   ]
 }

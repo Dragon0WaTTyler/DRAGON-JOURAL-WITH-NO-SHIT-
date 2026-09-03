@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "checks": {
+    "engineering_text": "PASS",
+    "mojibake": "PASS",
+    "raw_markdown": "PASS",
+    "front_page": "PASS",
+    "cover_integration": "PASS"
+  },
+  "pdf_pages": 9,
+  "epub_documents": 15,
+  "issues": []
+}
