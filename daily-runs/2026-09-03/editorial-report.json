@@ -1,7 +1,7 @@
 {
   "date": "2026-09-03",
   "timezone": "Africa/Casablanca",
-  "status": "RUNNING_READ_BACK",
+  "status": "COMPLETE",
   "total_word_count": 6186,
   "section_word_counts": {
     "Front Page": 821,
@@ -35,7 +35,7 @@
     {"story_id":"MEK-20260903-RADAR-OUISLANE","reason":"No fresh verified award or implementation result; retained only as clearly labeled radar context."}
   ],
   "stories_held": [
-    {"story_id":"investigation-al-haouz-reconstruction-2023-2028","reason":"NEEDS_VERIFICATION; dossier update only, no exposé or accusation."},
+    {"story_id":"investigation-al-haouz-reconstruction-2023-2028","reason":"NEEDS_VERIFICATION; dossier update only, no expose or accusation."},
     {"story_id":"WORLD-20260903-TAIWAN-DEFENCE","reason":"Useful brief, insufficient change for larger placement."},
     {"story_id":"AI-20260903-ANTHROPIC-RETAIL-AGENTS","reason":"Company announcement without independent production evidence; brief treatment only."}
   ],
@@ -106,16 +106,20 @@
     "Al Haouz remains NEEDS_VERIFICATION; official progress and unresolved cases are both preserved."
   ],
   "github_write": "PASS",
-  "github_read_back": "PENDING",
+  "github_read_back": "PASS",
   "remote_read_back": {
-    "status": "PENDING",
-    "paths": [],
+    "status": "PASS",
+    "paths": [
+      "editions/2026/09/2026-09-03/edition.md",
+      "editions/2026/09/2026-09-03/sources.json",
+      "editions/2026/09/2026-09-03/manifest.json",
+      "daily-runs/2026-09-03/editorial-report.json"
+    ],
     "required_paths": [
       "editions/2026/09/2026-09-03/edition.md",
       "editions/2026/09/2026-09-03/sources.json",
       "editions/2026/09/2026-09-03/manifest.json",
-      "daily-runs/2026-09-03/editorial-report.json",
-      "daily-runs/2026-09-03/status.json"
+      "daily-runs/2026-09-03/editorial-report.json"
     ]
   },
   "blocking_reason": null
