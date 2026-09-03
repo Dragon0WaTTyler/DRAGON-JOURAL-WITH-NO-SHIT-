@@ -28,9 +28,10 @@
   "visual_truth_status": "PASS_EDITORIAL_ILLUSTRATION_NO_DOCUMENTARY_FABRICATION",
   "why_this_design": "L-edition kat3ti Hormuz howa l-qelb dyal risk: ma-shi ch7al mn strike, walakin wach chokepoint dyal energy w shipping yb9a normal. Symbolic editorial mode kaywassel had l-fekra f 2-3 seconds bla ma nsawbo fake war image.",
   "arabic_script_count": 0,
-  "image_generation_status": "PENDING",
-  "visual_qa_status": "PENDING",
+  "image_generation_status": "FAIL",
+  "visual_qa_status": "NOT_RUN_NO_IMAGE",
   "github_image_persistence": "UNSUPPORTED_BY_CONNECTOR",
-  "final_headline": null,
-  "final_cover_mode": null
+  "final_headline": "Hormuz... fin ghadi y7bes l3alam?",
+  "final_cover_mode": "SYMBOLIC EDITORIAL",
+  "blocking_reason": "Built-in image generation returned no usable cover image, so visual QA could not run."
 }
