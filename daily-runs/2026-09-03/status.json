@@ -4,9 +4,9 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "BLOCKED",
+  "publishing": "RUNNING",
   "cover": "PENDING",
-  "overall_status": "BLOCKED",
-  "last_updated": "2026-09-03T04:04:53+01:00",
-  "blocking_reason": "Publishing artifact generation is blocked in this execution because the connected GitHub interface does not provide an executable/materialized repository runtime for running the repository PDF/EPUB generator and validators against the repaired canonical edition. Existing edition.pdf and edition.epub predate the final 2026-09-03 editorial repair and were not accepted. GitHub binary persistence is also blocked by the current connector."
+  "overall_status": "RUNNING",
+  "last_updated": "2026-09-03T04:12:00+01:00",
+  "blocking_reason": null
 }
