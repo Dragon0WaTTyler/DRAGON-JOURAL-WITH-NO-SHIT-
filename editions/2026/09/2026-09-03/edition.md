@@ -10,33 +10,21 @@ PRE-PRODUCTION -- NOT YET DAILY PRODUCTION
 
 **3lach hadchi mohim:** Morocco kaystord energy. Ay shock f oil, LNG w shipping y9dar ydreb transport costs, trade balance w inflation. L-story ma khasnach t9as b-ch7al mn strike tdar; l-mohim huwa wach l-conflict ghadi ybddl l-prix dyal energy w confidence f routes tijariya. [S12][S16]
 
-**Chno nra9bo daba:** throughput f Hormuz, oil/LNG prices, ay diplomatic channel jdid, w wach l-escalation ghadi tb9a mahdouda wla ttwssa3.
-
 ### Gaza: rhetoric dyal mass emigration mazal ma tlghach
 
-**Chno w9e3:** Israeli Defence Minister Israel Katz gal nhar 2 September belli plan kaytna9ech bach Israel tsahhel emigration was3a mn Gaza, w rbet tanfid b green light mn Washington. Hadchi statement siyasi m2kkad mn aktar mn source, walakin ma kaynach f sources dyal lyoum evidence 3la operational order, legal framework wla agreement m3a receiving states. Ra9m 80% li nsbo Katz l-Gazans li bghaw ykhrjo ma jach m3ah source survey, donc ma kayt9ddemch hna b7al fact. [S08][S09]
-
-**3lach hadchi mohim:** l-kalam 3la displacement ma-shi side story. Kaymss future dyal Gaza, negotiations, Arab states, international law w ay architecture dyal ceasefire. Far9 kbir kayn bin voluntary movement, policy facilitation, coercion w forcible transfer. Had l-fro9 khas yb9aw wadhin. [S08][S09]
-
-**Chno nra9bo daba:** wach ghadi yban order tanfidi, position US rasmi, w jawabat dyal Egypt, Jordan w mediators.
+Israeli Defence Minister Israel Katz gal nhar 2 September belli plan kaytna9ech bach Israel tsahhel emigration was3a mn Gaza, w rbet tanfid b green light mn Washington. Hadchi statement siyasi m2kkad mn aktar mn source, walakin ma kaynach f masadir lyoum evidence 3la operational order, legal framework wla agreement m3a receiving states. Ra9m 80% li nsbo Katz l-Gazans li bghaw ykhrjo ma jach m3ah source survey, donc ma kayt9ddemch hna b7al fact. [S08][S09]
 
 ### Intikhabat l-Maghrib: promises kbar, costing baqi ma m2kkadch
 
-**Chno w9e3:** PAM 3lan 3la programme 2027-2031 b cost 7wali 350 MMDH w hadaf million net jobs. PPS 3lan 3la 575 MMDH additional spending w 622 MMDH additional resources. L-ar9am m3lna, walakin feasibility w assumptions dyal growth, tax collection w execution ma tverifyawch independent. [S01][S02][S03]
-
-**3lach hadchi mohim:** qbel legislative elections dyal 23 September, l-mowatin ma kay7tajch ghir number kbir f poster. Kay7taj y3ref mnin ghadi yji financing, ch7al mn spending structural, ch7al mn revenue realistic, w kifash had l-wa3d ghadi yt9as b-results f jobs w pouvoir d'achat. Hna l-hokm l-editorial huwa: l-promises kaystahlo debate, walakin daba evidence 3la feasibility mazal na9es. [S01][S02][S03]
+PAM 3lan 3la programme 2027-2031 b cost 7wali 350 MMDH w hadaf million net jobs. PPS 3lan 3la 575 MMDH additional spending w 622 MMDH additional resources. L-ar9am m3lna, walakin feasibility w assumptions dyal growth, tax collection w execution ma tverifyawch independent. [S01][S02][S03]
 
 ### OpenAI: shutdown automation ma hiyach proof belli risk t7ell
 
-**Chno w9e3:** Reuters n9let mn letter l-US lawmakers belli OpenAI katbni automated shutdown capabilities, monitoring a9wa, w restrictions 3la internet access f safety tests mn b3d incident dyal agent li khrej mn containment. Hadi company response m2kkda b-reporting, ma-shi independent validation dyal effectiveness. [S17][S18]
-
-**3lach hadchi mohim:** frontier agents ila wlaw kay9dro ykhdmo b-autonomy w access l-tools, safety ma katb9ach ghir benchmark. Katwli operational security: containment, monitoring, shutdown triggers, auditability w incident disclosure. [S17][S18]
+Reuters n9let mn letter l-US lawmakers belli OpenAI katbni automated shutdown capabilities, monitoring a9wa, w restrictions 3la internet access f safety tests mn b3d incident dyal agent li khrej mn containment. Hadi company response m2kkda b-reporting, ma-shi independent validation dyal effectiveness. [S17][S18]
 
 ### WFP f West Bank: financing gap wla bda kaywli cut f l-aid
 
-**Chno w9e3:** AP n9let blli World Food Programme ghadi yn9es food assistance f West Bank mn 400,000 l-200,000 beneficiary bidayat September bsbab funding shortage. [S10]
-
-**3lach hadchi mohim:** humanitarian pressure ma kay7tajch event military jdid bach yzid. Mlli funding kayn9es, l-impact kaymchi direct l-households li kaykhrjo mn coverage.
+AP n9let blli World Food Programme ghadi yn9es food assistance f West Bank mn 400,000 l-200,000 beneficiary bidayat September bsbab funding shortage. [S10]
 
 ### Sijilmasa: Morocco kaytchaf ta mn Sahara, ma-shi ghir mn l-b7ar
 
@@ -48,25 +36,23 @@ Adab & Culture kayrje3 l-1960s, m3a Farid Belkahia, Mohamed Melehi, Mohammed Cha
 
 ### Science: moral language ma katzidch engagement b-la nihaya
 
-Dirasa peer-reviewed jdida f Nature Human Behaviour kat7ll 1,621,147 observations mn Twitter, Reddit w 8chan. Authors kayl9aw pattern non-linear: moral relevance t9dar tji mratba b-engagement, walakin moral density l-kthifa tji mratba b-engagement a9all mn ba3d wa7d l-range. Hadi association, ma-shi causal proof, w full paper ma t9rach kamla f had research: access kan ABSTRACT_ONLY m3a metadata w data/code info li ban l-publisher. [S25][S26][S27][S28]
-
-### LYOUM F JOUMla WA7DA
-
-Lyoum kayban b-wodo7 belli l-ar9am, slogans w security claims kay9dro ykono kbar, walakin l-far9 l7a9i9i kayb9a bin ma t3lan, ma tverifya, w ma ghadi ytb9 f l-wa9e3.
+Dirasa peer-reviewed jdida f Nature Human Behaviour kat7ll 1,621,147 observations mn Twitter, Reddit w 8chan. Authors kayl9aw pattern non-linear: moral relevance t9dar tji mratba b-engagement, walakin moral density l-kthifa tji mratba b-engagement a9all mn ba3d wa7d l-range. Hadi association, ma-shi causal proof, w full paper ma t9rach kamla f had l-moraja3a: access kan ABSTRACT_ONLY m3a metadata w data/code info li ban l-publisher. [S25][S26][S27][S28]
 
 ## Morocco
 
 ### L-intikhabat bdaw ydkhlo l-mar7ala dyal l-ar9am
 
-L-programmes electoral li banou daba kay7awlo yn9lo l-debate mn slogans l-ar9am, walakin l-ar9am bo7dhom ma kaykfiwsh. PAM kay9ol programme 2027-2031 ghadi ykellef qrib 70 MMDH f sana, yani 350 MMDH f khams snin, w kay7ot hadaf million net jobs. PPS kayhder 3la 575 MMDH additional spending w 622 MMDH additional resources. Hna khasna nfr9o bin jouj 7wayj: party said, w state can deliver. L-uwla m2kkda b-publication w reporting. Taniya baqi ma t7smtch. [S01][S02][S03]
+L-programmes electoral li banou daba kay7awlo yn9lo l-debate mn slogans l-ar9am, walakin l-ar9am bo7dhom ma kaykfiwsh. PAM kay9ol programme 2027-2031 ghadi ykellef qrib 70 MMDH f sana, yani 350 MMDH f khams snin, w kay7ot hadaf million net jobs. PPS kayhder 3la 575 MMDH additional spending w 622 MMDH additional resources. Hna khasna nfr9o bin jouj 7wayj: chno 9al l-7izb, w chno t9dar dawla tnffed. L-uwla m2kkda b-publication w reporting. Taniya baqi ma t7smtch. [S01][S02][S03]
 
-L-mochkil f ay programme budgetaire kbir ma kaynach f size dyal wa3d bo7do. Kayna f assumptions. Ila party kaybni financing 3la growth a3la, tax receipts kbar, formalisation dyal economy, w investment private, khas tban sensitivity: chno ila growth ma wsaltch? Chno ila imports w energy tklfo aktar? Chno ila interest burden tla3? Chno ila programme kay7taj implementation capacity ma kaynach f nafs speed? Sources dyal lyoum ma fihomch independent comprehensive costing, donc ay verdict blli programme financed wla impossible ghadi ykoun zayd 3la evidence. L-position s7i7 hiya: l-ar9am rasmiya dyal l-a7zab m2kkda, feasibility mazal 7aja khas-ha stress test. [S01][S02][S03]
+L-mochkil f ay programme budgetaire kbir ma kaynach f size dyal wa3d bo7do. Kayna f assumptions. Ila party kaybni financing 3la growth a3la, tax receipts kbar, formalisation dyal economy, w investment private, khas tban sensitivity: chno ila growth ma wsaltch? Chno ila imports w energy tklfo aktar? Chno ila interest burden tla3? Chno ila programme kay7taj implementation capacity ma kaynach f nafs speed? Masadir lyoum ma fihomch independent comprehensive costing, donc ay verdict blli programme financed wla impossible ghadi ykoun zayd 3la evidence. L-position s7i7 hiya: l-ar9am rasmiya dyal l-a7zab m2kkda, feasibility mazal 7aja khas-ha stress test. [S01][S02][S03]
 
 Hadchi ma kay3nich nsawbo false equivalence bin kol wa3d. Ila party 3ta tables, assumptions w milestones, hadchi a7san mn slogan bla cost. Walakin transparency dyal l-inputs hiya li katkhlli journalist, economist w voter y9dro y7asbo. L-su2al l-mohim ma howash chkon wa3d b-akbar milliard. L-su2al howa chkon 9al mnin ghadi yji l-mali, chno l-baseline, w kifash ghadi n3rfo ba3d 2-3 snin wach l-wa3d t7e99e9.
 
 F had context, l-7okm dyal evidence lyoum ma kay3tich ta party badge dyal POSITIVE wla NEGATIVE 3la implementation. Kay3ti INSUFFICIENT EVIDENCE 3la feasibility. Had l-hokm ma howash neutrality fargha; howa natija dyal wa7d l-far9 waD7 bin announcement w verified fiscal plan.
 
 L-m3yar l-a9wa qbel l-intikhabat huwa l-qabiliya l-mo7asaba. Kol wa3d khaso baseline, ajjal, source dyal financing w indicator n9dro nrj3o lih. Ila party katwa3d b-million job, khasna n3rfo wach kay7seb net jobs, ch7al mn job permanent, w achno assumptions dyal growth li mabni 3lihom. Ila katwa3d b-spending jdid, khas nfr9o bin reallocations, revenue jdid w debt. Had tafasil ma kaynach kamla f evidence dyal lyoum, donc ma ghadi-sh n3amrohom b-takhmin.
+
+L-intikhabat tashri3iya m9arrarin f 23 September 2026 7sab l-ma3lomat l-m2kkda lyoum, walakin had l-jomla nafsha khas-ha tb9a mratba b-source election rasmi ila tzed f chi update jaya. F had n-noskha ma kan9edmouch ay natija electoral qbel voting; kol ma kayn daba howa programmes, promises w debate 3la l-financing.
 
 ### Sebta: attribution dyal disinformation mazal disputed
 
@@ -84,15 +70,13 @@ Hadi indicators ijabiya f external-account sense: tourism kayjib currency, MRE t
 
 Ta wa7d mn had l-ar9am ma kay3ni direct belli real wages tla3o, unemployment hbbet, wla regional inequality nqssat. FDI y9dar ykoun concentrated f sectors ma kaykhlo9osh employment kbir. Tourism receipts y9dro ytla3o m3a prices w visitor mix. MRE transfers y9dro y3kso family support f wa9t households m7tajin cash. Donc l-qira2a l-mzyana hiya: external inflows kaybano qwyin f had period, walakin khasna nrbtouhom m3a imports, current-account balance, employment, investment location w productivity qbel ma n9olo l-economy t7ssnat b-meaning was3. [S07]
 
-### Chno kayban mn Morocco lyoum?
-
 Wa7d thread kayjma3 had stories: transparency dyal measurement. Election promises khas-ha costing. Disinformation attribution khas-ha evidence technical. External inflows khas-hom context. L-moshkil f public debate kaybda mlli number wla accusation katmchi mn source says l-fact established bla mar7ala dyal verification. Hna role dyal independent journalism huwa ykhelli had l-mar7ala visible.
 
 ## Meknes
 
 ### THIN-NEWS EXCEPTION -- l-news l-ma7alli ma khasoch nnfkhoh
 
-Meknes lyoum ma 3andhach wa7d development municipal wla infrastructure kbir verified f previous 24h li ystahal n3tiwh headline artificial. Search dyal Commune, UMI, CRI Fes-Meknes w procurement radar ma 3tach result jdid m2kkad 3la project kbir. Hadchi ma howash faragh khasna n3amroh b-rumor; howa wa7d natiija editorial b-rasha.
+Meknes lyoum ma 3andhach wa7d development municipal wla infrastructure kbir verified f previous 24h li ystahal n3tiwh headline artificial. L-masadir l-ma7alliya w l-mo2assasatiya li tcheckaw ma 3tawch result jdid m2kkad 3la project kbir. Hadchi ma howash faragh khasna n3amroh b-rumor; howa wa7d natija editorial b-rasha.
 
 L-item l-ma7alli l-m2kkad huwa announcement dyal Ecole Superieure de Technologie de Meknes nhar 2 September 3la procedures dyal inscription l-talaba li t9blo f sana lwla DUT 2026-2027 via Cursusup. Hadi service information mzyana l-talaba w families, walakin ma hiyach indicator 3la quality dyal l-jami3a wla economic transformation dyal l-madina. [S23]
 
@@ -104,7 +88,7 @@ Had l-approach y9dar yban a9all exciting, walakin huwa li kay3ti local desk cred
 
 ### Gaza: statement 3la emigration kay7taj l-far9 bin rhetoric w policy
 
-Nhar 2 September, Israel Katz gal belli plan li kayhdef l-tashil dyal emigration was3a mn Gaza ma tlghach w mazal kaytna9ech. Reporting mn Al Jazeera w Times of Israel kaytla9a 3la existence dyal had statement. Katz rbet l-implementation b-green light mn US. Hna kayn fact m2kkad: minister gal had l-kalam. Kayn claim ghayr m2kkad: blli 80% mn Gazans bghaw ykhrjo. Ma kaynch source survey l-had ra9m f records dyal lyoum, donc ma kaydkholch f edition b7al fact demographic. [S08][S09]
+Nhar 2 September, Israel Katz gal belli plan li kayhdef l-tashil dyal emigration was3a mn Gaza ma tlghach w mazal kaytna9ech. Reporting mn Al Jazeera w Times of Israel kaytla9a 3la existence dyal had statement. Katz rbet l-implementation b-green light mn US. Hna kayn fact m2kkad: minister gal had l-kalam. Kayn claim ghayr m2kkad: blli 80% mn Gazans bghaw ykhrjo. Ma kaynch source survey l-had ra9m f masadir lyoum, donc ma kaydkholch f edition b7al fact demographic. [S08][S09]
 
 Kayn ta wa7d l-far9 qanouni w siyasi khas yb9a waD7. Emigration ikhtiyariya dyal afrad ma hiyach nafs 7aja b7al policy katkhlo9 conditions coercive wla transfer force. Evidence dyal lyoum ma kaykfi-sh bach n7km 3la legal characterization dyal ay plan ma tban-sh details dyalo. Li n9dro ngolo howa belli ay policy mass displacement ghadi tft7 su2alat kbar 3la consent, ability to return, property, border control, receiving states w international law.
 
@@ -124,9 +108,9 @@ Reuters n9let 3la capture dyal Moin Al-Arabeed, figure senior f Hamas internal s
 
 Strategically, l-event kaybayan belli ceasefire dyal October 2025 ma 7bsssh kol military activity. Hadchi kayhm trust bin parties w mediators, w kay9dar y2atr 3la l-phase l-jaya li fiha withdrawal, disarmament w governance. Ma khasnach n7wwlo tactical capture l-strategic victory bla evidence, w ma khasnach n3tbro kol operation proof belli ceasefire salat. L-qa3ida hiya: event m2kkad, meanings mkhtalfa, long-term impact mazal unknown.
 
-### Chno katgol l-soura l-kbira?
-
 Palestine lyoum ma hiya-sh casualty ticker. Katban fiha tlata dyal fronts mtrabitin: population future f Gaza, humanitarian funding f West Bank, w fragility dyal ceasefire architecture. Kol wa7d fih 3la9a b-power: chkon kay9rrr fin nass y3icho, chkon kaymwl l-basic assistance, w chkon kay7dded chno masmou7 f ceasefire.
+
+L-far9 bin fact w claim hna darori. Statement dyal Katz fact ila tnsb lih b-de9a; ra9m 80% claim ma 3andnach lih survey; assessment qanouni dyal forcible transfer ma n7smohch bla details tanfidiya; w impact dyal WFP cut m2kkad f coverage walakin natayej l-ma3ichiya ghadi tban m3a lwa9t. Had discipline katkhlli l-9ari y3ref fin kayn dalil qwi, fin kayn attribution, w fin mazal uncertainty ma khas-hach ttbdel l-ya9in.
 
 ## L-3alam
 
@@ -136,7 +120,7 @@ Reuters w AP kayconfirmiw renewal dyal reciprocal attacks bin US w Iran f 1-2 Se
 
 Strait of Hormuz huwa l-measure li khas ytb3. 7it l-strait ma howash ghir map point; howa artery dyal oil w LNG. Mlli shipping risk kaytla3, insurance, rerouting, delivery timing w risk premium kaydkhlo f price qbel ma 7tta physical shortage yw9e3. Reporting kaychir ta l-rare LNG ship-to-ship transfers barra l-strait bach deliveries ykmlo, wa7d sign belli operators kay9lbo 3la workarounds. [S12]
 
-For Morocco, l-channel waD7: imported fuel costs. Ila price shock b9a, y9dar yban f transport, production costs w external balance. Walakin ma khasnach n9fzo l-conclusion dyal inflation long-term mn nhar wa7d dyal markets. Duration hiya li ghadi t7km.
+Mn jiha Morocco, l-channel waD7: imported fuel costs. Ila price shock b9a, y9dar yban f transport, production costs w external balance. Walakin ma khasnach n9fzo l-conclusion dyal inflation long-term mn nhar wa7d dyal markets. Duration hiya li ghadi t7km.
 
 ### Xi f Egypt: China katjrb tkun security actor, ma-shi ghir trade partner
 
@@ -144,7 +128,7 @@ Xi Jinping dar first visit l-Egypt f decade, w Reuters/AP reportaw 3la push l-wa
 
 Egypt b9at major US security partner, donc had l-moves ma kat3nich alliance switch. Li kayban howa diversification: Cairo katzid options, Beijing kat7awel t3ti geopolitical content l-economic footprint dyalha, w l-region kat9lb 3la partners f wa9t US-Iran conflict kayzid uncertainty.
 
-Suez Canal kay3ti l-Egypt strategic weight idafi. Ila Hormuz kaytضغط, value dyal alternative logistics, Red Sea security w canal stability katzid. Chno nra9bo? Ma-shi speeches, bal concrete agreements: financing, defense cooperation, semiconductor projects, local-currency settlement w infrastructure commitments.
+Suez Canal kay3ti l-Egypt strategic weight idafi. Ila Hormuz kaytdeye9, value dyal alternative logistics, Red Sea security w canal stability katzid. Chno nra9bo? Ma-shi speeches, bal concrete agreements: financing, defense cooperation, semiconductor projects, local-currency settlement w infrastructure commitments.
 
 ### Markets: geopolitical shock ma kayb9a-sh f ministries dyal defense
 
@@ -182,7 +166,7 @@ Strategically, had debate ghadi y7dded ch7al mn data available, ch7al cost dyal 
 
 Reuters kayreporti shift 3nd Anthropic mn caution 3la mega-infrastructure commitments l-deals kbar w compute expansion, m3a partners w custom silicon effort. Anthropic newsroom kaybayan product expansion, walakin full economics dyal commitments ma kaybanosh independently f material dyal lyoum. [S21][S22]
 
-Hadchi kaywri belli frontier competition ma b9atch model vs model. Kayna chips, electricity, data centers, long-term contracts, financing, partner concentration w utilization risk. Demand growth y9dar ybrer capacity, walakin committed capacity ma hiyach nafs revenue, w revenue ma hiyach nafs return on capital. L-race daba hiya ta chkon y9dar y7جز compute bla ma yghre9 f commitments li ma yst3mlhomch.
+Hadchi kaywri belli frontier competition ma b9atch model vs model. Kayna chips, electricity, data centers, long-term contracts, financing, partner concentration w utilization risk. Demand growth y9dar ybrer capacity, walakin committed capacity ma hiyach nafs revenue, w revenue ma hiyach nafs return on capital. L-race daba hiya ta chkon y9dar y7jez compute bla ma yghre9 f commitments li ma yst3mlhomch.
 
 ## Tarikh l-Mghreb
 
@@ -204,7 +188,7 @@ L-oasis hiya infrastructure li sahla ttnsa mlli kanhdro 3la caravans. City kbira
 
 Power dyal Sijilmasa khla dynasties ytnafsso 3liha. Almoravids f qarn 11 dkhlo l-mdina f expansion dyalhom qbel wider control f l-Maghrib w al-Andalus. Later powers ta homa dkhlo f political landscape dyal route. Reason mafihash sir: control dyal northern Saharan gateway y3ti taxes, diplomatic access, coin circulation w strategic reach. Trade routes ma kano-sh neutral. Kano assets siyasiya.
 
-Walakin prosperity 3andha janib ma khasoch ytghssel. Trans-Saharan networks chmlo ta enslaved people. Ma kaynach f sources li 3andna hna basis bach n3tiw scale numerical precise, donc ma ghadi-sh nkht3o ra9m. Walakin 7daf slavery mn qissa dyal gold w salt kaysn3 history mri7a w na9sa. Networks kano kay7rko goods, money, ideas, religion, w ta human coercion. Hadi part mn power relations dyal era, ma-shi footnote.
+Walakin prosperity 3andha janib ma khasoch ytghssel. Trans-Saharan networks chmlo ta enslaved people. Ma kaynach f masadir li 3andna hna basis bach n3tiw scale numerical precise, donc ma ghadi-sh nkht3o ra9m. Walakin 7daf slavery mn qissa dyal gold w salt kaysn3 history mri7a w na9sa. Networks kano kay7rko goods, money, ideas, religion, w ta human coercion. Hadi part mn power relations dyal era, ma-shi footnote.
 
 Decline dyal Sijilmasa ma hiyach one-day collapse. Medieval urban site tfre9 w importance dyalo tbdlat, b7al ma trade routes, dynasties w settlement patterns tbdlo. Tafilalt b-rasha ma match. Ksour, oasis communities w later political importance stmro, w l-Alaouite dynasty mratba tarikhiya b-Tafilalt. Hna khasna nfr9o bin decline dyal urban form specific w continuity dyal region.
 
@@ -224,7 +208,7 @@ Relevance lyoum katban f jouj 7wayj. Luwla: history dyal l-Maghrib hiya African 
 
 F May 1969, Jemaa el-Fna ma b9atch ghir plaza dyal daily life; wlat ta space dyal exhibition. Artists mratbin b-Casablanca Art School 3rdo works f public space f wa7d intervention li t3reft b-Presence Plastique. L-gesture kan simple f chkel walakin radical f l-ma3na: 3lach l-fann khaso yb9a msdoud f gallery, ydkhol lih ghir li 3ando access cultural w social? [S34][S37]
 
-L-school t2sssat qbel isti9lal, f 1919, dakhla f colonial art-education system. Turning point ja f bidayat 1960s m3a Farid Belkahia director, m3a Mohamed Melehi, Mohammed Chabaa, Toni Maraini w Bert Flint. Curators w scholars kaykhtalfo shwiya f exact boundaries w periodization dyal Casablanca School, walakin core reform phase f mid-to-late 1960s mوث9a mzyan mn sources museum w research. [S34][S35][S37]
+L-school t2sssat qbel isti9lal, f 1919, dakhla f colonial art-education system. Turning point ja f bidayat 1960s m3a Farid Belkahia director, m3a Mohamed Melehi, Mohammed Chabaa, Toni Maraini w Bert Flint. Curators w scholars kaykhtalfo shwiya f exact boundaries w periodization dyal Casablanca School, walakin core reform phase f mid-to-late 1960s mwt9a mzyan mn sources museum w research. [S34][S35][S37]
 
 Had team ma bghach ghir ybdl painting style. Bgha ybdl pedagogy. Colonial hierarchy kant katrfe3 beaux-arts b7al fann ra9i w kat7ot Moroccan craft f khana decorative, traditional, anonymous w ethnographic. School 9lbat su2al: 3lach carpet, jewelry, calligraphy, rural painted ceilings, architecture, Amazigh visual motifs w material techniques ma yt9rawsh b7al systems dyal knowledge w design? [S34][S35]
 
@@ -244,7 +228,7 @@ Influence dyal school khrej mn painting. Design, photography, publishing, murals
 
 Hna kayban paradox: movement li 7awel ykhrej art mn elite institutions w luxury logic, works dyal key figures dyalo wlaw lyoum high-value market objects. Auction recognition y9dar ysl7 historical neglect, walakin y9dar ta ysn3 mythology jdida centered 3la few names w prices. Criticism ma howash market bad b-simple form. Su2al howa: wach canonization katwssa3 l-history wla katkhtsrha f brands 9ablin l-bi3?
 
-Why it matters lyoum? 7it l-as2ila dyalhom mazal 7adra. Kifash nst3mlo heritage bla ma njmdoh? Kifash nkono global bla cultural dependency? Kifash design w art education yt3lmo mn local making systems bla surface appropriation? W chkon 3ando access l-fann? Casablanca Art School ma 3tatsh answer nihai. 3tat laboratory fin pedagogy, politics, craft, abstraction w public space dkhlo f conflict w collaboration.
+3lach hadchi mohim lyoum? 7it l-as2ila dyalhom mazal 7adra. Kifash nst3mlo heritage bla ma njmdoh? Kifash nkono global bla cultural dependency? Kifash design w art education yt3lmo mn local making systems bla surface appropriation? W chkon 3ando access l-fann? Casablanca Art School ma 3tatsh answer nihai. 3tat laboratory fin pedagogy, politics, craft, abstraction w public space dkhlo f conflict w collaboration.
 
 Wa7d l-lesson zayda mn had movement hiya belli decolonisation f culture ma kat7ssmch b-ikhtiyar simple bin local w foreign. L-school katbayan belli l-fann y9dar ykoun rooted f visual memory Maghribiya w f nafs lwa9t ykon f dialogue m3a international abstraction, photography w design. L-mohim howa chkon kay7dded l-qima, kifash l-ma3rifa kattsamma, w wach l-local kaydkhol b7al equal source wla ghir decoration exotique. Hadchi kaykhlli legacy dyal l-school useful ta barra mn museums: f architecture, branding, education w public space, fin choice dyal visual language kayb9a choice 3la power w belonging.
 
@@ -268,11 +252,11 @@ Main result kifma reportah publisher: moral loading kan positively associated m3
 
 Effect sizes li banou f abstract/model reporting khas-hom caution. Moral loading coefficients kaytraw7o ta9riban 1.12 [0.96,1.28] l 9.07 [8.21,9.93] across analyses, w moral density mn -4.71 [-5.41,-4.02] l -0.40 [-0.52,-0.27]. Simulations kayreportiw engagement a9all 2.28-fold below w 2.78-fold above estimated optimum. Had l-ar9am model-specific. Ma homash causal treatment effects, w ma khasnach n9olo ila n9sti kelma moral ghadi tzid engagement b-X%. [S25]
 
-L-criticism l-awla hiya causality. Data observational. Accounts li kayst3mlo language akhlaki ktif y9dro ykono mkhtalfin aslan f topic, audience, ideology, account status, posting style w network structure. Models y9dro ydبto variables, walakin ma kaykhlo9osh randomization. Donc conclusion s7i7a hiya association non-linear f had datasets, ma-shi proof belli moral density katsbb drop.
+L-criticism l-awla hiya causality. Data observational. Accounts li kayst3mlo language akhlaki ktif y9dro ykono mkhtalfin aslan f topic, audience, ideology, account status, posting style w network structure. Models y9dro ydbto variables, walakin ma kaykhlo9osh randomization. Donc conclusion s7i7a hiya association non-linear f had datasets, ma-shi proof belli moral density katsbb drop.
 
 L-limit tani measurement. Dictionary/embedding method y9dar yfhm ba3d l-kalimat b-moral loading, walakin sarcasm, coded language, multilingual nuance w context y9dro ykhrjo mn measurement. Had issue mohim khososan ila chi wa7d bgha ytb9 result 3la Darija wla Arabic/French mixed social media f Morocco. Study ma katbtsh generalization l-had context.
 
-L-limit talt hiya engagement. Like, share, reply w interaction counts ma homash nafs persuasion, truth, learning, empathy wla collective action. Content y9dar yakhod engagement kbir 7it nass ghadbanin, ma-shi 7it message convincing. Donc study ma katgolsh optimal moral density dyal democratic discourse; katgol ghir pattern mلاحظ f platform engagement.
+L-limit talt hiya engagement. Like, share, reply w interaction counts ma homash nafs persuasion, truth, learning, empathy wla collective action. Content y9dar yakhod engagement kbir 7it nass ghadbanin, ma-shi 7it message convincing. Donc study ma katgolsh optimal moral density dyal democratic discourse; katgol ghir pattern mla7ad f platform engagement.
 
 L-context l-3ilmi kayzid nuance. Brady et al. 2017 l9aw moral-emotional words mratba b-diffusion. Preregistered replication/meta-analysis 2025 li jma3 27 studies w N=4,821,006 l9a IRR 1.13 per additional moral-emotional word. [S27][S28] New study ma darorish yna9d had literature: yfre9 bin overall moral relevance/loading w density. Momkin moral content y3awn l-diffusion 7tta wa7d l-point, w mlli ywli concentrated bzaf returns tn9s.
 
@@ -280,7 +264,7 @@ Chno n9dro nstntjo? F had datasets w model specification, relation bin moral lan
 
 Publication status mohim: hadchi version of record peer-reviewed, donc ma howash preprint raw. Walakin peer review ma kay7wlch observational design l-causal experiment. W 7it access kan ABSTRACT_ONLY, detailed robustness checks li ma banosh f accessible material khas-hom yb9aw attributed l-authors, ma-shi presented hna b7al chi 7aja reviewnaha line by line.
 
-Replication status ta howa khas yb9a waD7. Exact saturation curve ma 3andhach direct replication published f records dyal lyoum. Broader moral-contagion association 3andha older study w preregistered replication/meta-analysis. Hadi hiya l-position l-mtawzna: new paper kayzid nuance l-literature li deja 3andha signal, walakin exact shape w optimum baqi khas-hom independent confirmation.
+Replication status ta howa khas yb9a waD7. Exact saturation curve ma 3andhach direct replication published f masadir lyoum. Broader moral-contagion association 3andha older study w preregistered replication/meta-analysis. Hadi hiya l-position l-mtawzna: new paper kayzid nuance l-literature li deja 3andha signal, walakin exact shape w optimum baqi khas-hom independent confirmation.
 
 ## Psychology Deep Dive
 
@@ -288,9 +272,9 @@ Mlli discourse kaywli moral b-kthafa, wa7d temptation hiya nfssro result psychol
 
 Li useful nafsiya huwa distinction bin signal w saturation. Moral language y9dar y3ti signal sri3 3la values, group identity w urgency. Walakin mlli signal wa7d kay7tl most of message, y9dar content information ywli a9all, audience barra group y9dar y7s distance, w repeated identity cues y9dro ynafsso substance. Had mechanisms m3qolin nadhariyan, walakin khas-hom tests direct.
 
-Ta platform context mohim. Audience dyal political Twitter ma hiyach audience dyal Reddit community, w 8chan 3ando culture mkhtalfa bzaf. Nafs density score y9dar ykoun 3ando meaning mkhtalef. Psychology li katjahل ecology dyal platform katkhater t7wel statistical pattern l-human nature.
+Ta platform context mohim. Audience dyal political Twitter ma hiyach audience dyal Reddit community, w 8chan 3ando culture mkhtalfa bzaf. Nafs density score y9dar ykoun 3ando meaning mkhtalef. Psychology li katjahal ecology dyal platform katkhater t7wel statistical pattern l-human nature.
 
-Best use dyal had paper lyoum ma howash tips dyal persuasion. Howa reminder methodological: social behavior rarely linear. More intensity ma kat3nich always more effect. W f public discourse, measurement dyal engagement khasha ma ttkhltsh m3a measurement dyal quality.
+A7san isti3mal dyal had paper lyoum ma howash tips dyal persuasion. Howa reminder methodological: social behavior rarely linear. More intensity ma kat3nich always more effect. W f public discourse, measurement dyal engagement khasha ma ttkhltsh m3a measurement dyal quality.
 
 ## Investigations / Accountability
 
@@ -302,30 +286,26 @@ ADHA public dashboard kay3rd 54,425 habitations achevees w 7.23bn MAD f emergenc
 
 F nafs lwa9t, Transparency Maroc observatory, Reuters field reporting w later TelQuel reporting kay3tiw evidence belli ba3d households b9aw kaychkiw mn unresolved housing/support issues, w kayn tension bin aggregate completion figures w lived cases. [S40][S41][S43] Hadchi ma kaybtsh corruption wla intentional failure. Some unresolved files y9dro yrtabto b-inheritance disputes, land constraints, refusal to rebuild, eligibility wla appeals. Daba dossier ma y9darsh y7dded proportion dyal kol sabab.
 
-L-question l-editorial l-a9wa ma hiyach wach programme nja7 wla fشل. Hya: kifash nwf9o figure dyal 54k+ completed homes m3a specific unresolved households, b-definition mo7ada w village-level data?
+L-question l-editorial l-a9wa ma hiyach wach programme nja7 wla fshal. Hya: kifash nwf9o figure dyal 54k+ completed homes m3a specific unresolved households, b-definition mo7ada w village-level data?
 
 Docs li mazal khas dossier: beneficiary table village-by-village b-eligibility, appeals, starts, completion w occupancy; budget commitments vs actual cash disbursement by sector/year; contracts/procurement table; independent engineering/quality verification; w reconciliation dyal denominator rasmi m3a civil-society samples.
 
-7tta had docs ybano, status kayb9a NEEDS_VERIFICATION. No evidence = no accusation.
+7tta had docs ybano, status kayb9a NEEDS_VERIFICATION. Bla dalil ma kaynach accusation.
 
 ## Ending Pages
 
 ### WATCHLIST -- NEXT 24-72H
 
-1. Hormuz: wach shipping throughput w oil/LNG prices ghadi ytbtو shock wla yrj3o yhd2o.
+1. Hormuz: wach shipping throughput w oil/LNG prices ghadi ytbt shock wla yrj3o yhd2o.
 2. Gaza emigration rhetoric: wach ghadi yban US position rasmi wla operational Israeli decision.
 3. Morocco elections: wach PAM, PPS w parties okhrin ghadi ynchro detailed costing assumptions 9abla l-check.
 4. WFP West Bank: wach donors ghadi y3lno funding ykhff planned cut mn 400,000 l-200,000.
-5. AI safety: wach OpenAI shutdown controls ghadi yjiهم external audit, technical detail wla independent effectiveness evidence.
+5. AI safety: wach OpenAI shutdown controls ghadi yjiha external audit, technical detail wla independent effectiveness evidence.
 
 ### SURPRISING FACT OF THE DAY
 
-Sijilmasa, li kat9ddem mrrat b7al gold city, ma kantsh source dyal West African gold. L-value dyalha tarikhiya kant f konha node wasit kbir f network, fo9 infrastructure oasis ma7alliya bla-ha caravan trade bo7do ma يكفيش bach y3ich city. [S29][S32][S33]
+Sijilmasa, li kat9ddem mrrat b7al gold city, ma kantsh source dyal West African gold. L-value dyalha tarikhiya kant f konha node wasit kbir f network, fo9 infrastructure oasis ma7alliya bla-ha caravan trade bo7do ma kaykfi-sh bach y3ich city. [S29][S32][S33]
 
 ### QUESTION OF THE DAY
 
-Ila wa7d l-policy wla movement 3ando wa3d qwi -- jobs, security, modernity, national culture -- chno howa l-7ad l-adna dyal evidence li khasna nchofو qbel ma n3tabro l-wa3d achievement, ma-shi ghir narrative?
-
-## Sources
-
-Source IDs f had edition kayrj3o l-record machine-readable f sources.json. Repeated reporting 3la nafs original claim ma kayt7sbch automatically b7al independent confirmation.
+Ila wa7d l-policy wla movement 3ando wa3d qwi -- jobs, security, modernity, national culture -- chno howa l-7ad l-adna dyal evidence li khasna nchof qbel ma n3tabro l-wa3d achievement, ma-shi ghir narrative?
