@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-03",
+  "editorial_status": "COMPLETE",
+  "edition_html_status": "PASS",
+  "print_css_status": "PASS",
+  "epub_xhtml_source_status": "PASS",
+  "utf8_status": "PASS",
+  "mojibake_status": "PASS",
+  "arabic_script_count": 0,
+  "source_link_status": "PASS",
+  "pdf_status": "NOT_GENERATED_NO_RUNTIME",
+  "epub_binary_status": "NOT_GENERATED_NO_RUNTIME",
+  "github_text_persistence": "PASS",
+  "github_binary_persistence": "UNSUPPORTED",
+  "ready_for_codex_rendering": true,
+  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "blocking_reason": null,
+  "generated_at": "2026-09-03T04:12:00+01:00"
+}

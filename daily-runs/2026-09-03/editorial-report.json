@@ -1,0 +1,93 @@
+{
+  "date": "2026-09-03",
+  "timezone": "Africa/Casablanca",
+  "status": "COMPLETE",
+  "total_word_count": 5906,
+  "section_word_counts": {
+    "Front Page": 417,
+    "Morocco": 790,
+    "Meknes": 211,
+    "Palestine": 549,
+    "L-3alam": 320,
+    "AI & Technology": 455,
+    "Tarikh l-Mghreb": 975,
+    "Adab & Culture": 980,
+    "New Studies / Science": 650,
+    "Psychology Deep Dive": 182,
+    "Investigations / Accountability": 230,
+    "Ending Pages": 147
+  },
+  "lead_story_id": "WORLD-20260903-US-IRAN-REESCALATION",
+  "lead_story_headline": "Hormuz rje3 l-qelb dyal l-azma l-3alamiya",
+  "editorial_angle": "L-edition katfrreq bin announcement, verified fact, disputed claim w real-world implementation; lead kayrbet US-Iran escalation b-Hormuz w direct energy risk 3la Morocco.",
+  "emotional_tone": "serious, skeptical, analytical, bla sensationalism",
+  "secondary_story_ids": [
+    "MA-20260903-ELECTION-FISCAL-PROMISES",
+    "PAL-20260903-GAZA-EMIGRATION-POLICY",
+    "science-moral-language-saturation-2026-09-02",
+    "history-sijilmasa-saharan-gateway",
+    "culture-casablanca-art-school-postcolonial-modernism"
+  ],
+  "history_teaser": "Sijilmasa katbayan l-Maghrib b7al history Sahariya w Ifriqiya, ma-shi ghir b7ariya.",
+  "literature_teaser": "Casablanca Art School 7awlat tdecolonizi l-3ayn b-pedagogy, craft w public space, bla ma t9ta3 m3a international modernism.",
+  "fact_check_status": "PASS",
+  "darija_status": "PASS",
+  "arabic_glyphs_found_before_repair": 25,
+  "arabic_script_count": 0,
+  "source_counts": {
+    "total": 44,
+    "primary": 15,
+    "independent": 29,
+    "unique_source_ids_cited": 44,
+    "citation_occurrences": 104
+  },
+  "quality_scores": {
+    "fact_check": 96,
+    "darija_latin": 96,
+    "depth_hard_gates": 100,
+    "source_traceability": 100,
+    "internal_prose_cleanup": 100,
+    "overall_editorial": 98
+  },
+  "hard_minimums": {
+    "total": {"required": 4000, "actual": 5906, "status": "PASS"},
+    "Morocco": {"required": 700, "actual": 790, "status": "PASS"},
+    "Meknes": {"required": 300, "actual": 211, "status": "PASS_WITH_THIN_NEWS_EXCEPTION"},
+    "Palestine": {"required": 500, "actual": 549, "status": "PASS"},
+    "Science": {"required": 500, "actual": 650, "status": "PASS"},
+    "History": {"required": 800, "actual": 975, "status": "PASS"},
+    "Literature_Culture": {"required": 800, "actual": 980, "status": "PASS"}
+  },
+  "target_ranges": {
+    "edition": "6000-9000",
+    "history": "1000-1500",
+    "literature_culture": "1000-1500",
+    "morocco": "1000-1800",
+    "palestine": "700-1400",
+    "meknes": "500-1000",
+    "world": "500-1000",
+    "ai": "500-1000",
+    "science": "700-1200"
+  },
+  "allowed_exceptions": {
+    "meknes_thin_news_exception": true,
+    "investigation_nonpublication_update": true
+  },
+  "repeated_topic_check": "PASS",
+  "regeneration_requests": [
+    "Arabic-script contamination repaired deterministically across full reader-facing text.",
+    "Palestine section strengthened above hard minimum without adding unsupported claims.",
+    "Internal implementation references removed from reader-facing prose."
+  ],
+  "fact_check_notes": [
+    "Election programme figures kept as party claims; feasibility remains insufficiently evidenced.",
+    "Sebta disinformation attribution kept disputed because no independent forensic attribution resolves it.",
+    "Gaza 80 percent figure is not presented as fact because no survey source resolves it.",
+    "OpenAI shutdown controls are presented as company response, not independently proven effectiveness.",
+    "Science paper is identified as peer-reviewed but accessible review remained abstract-only; causal claims are not made.",
+    "Al Haouz dossier remains NEEDS_VERIFICATION and no corruption allegation is published."
+  ],
+  "sources_resolve_status": "PASS",
+  "internal_backend_reader_facing_prose": "PASS",
+  "required_editorial_files_exist": "PASS"
+}
