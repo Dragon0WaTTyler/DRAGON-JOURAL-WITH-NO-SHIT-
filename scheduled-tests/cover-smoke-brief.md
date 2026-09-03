@@ -15,7 +15,7 @@ Nfar9o bin ra9m rasmi dyal CPI w tajriba l-yawmiya dyal nass. L-cover ma kat9olc
 Jaddi, m7tader, w shwiya m9la9: ra9m kayban wad7, walakin l-ma3na dyalo ma-shi sahl.
 
 ## Visual metaphor
-Wa7ed ticket dyal sou9 kbir b ar9am CPI kayt9ta3 f noss, w ta7to mizane: f jiha wa7da panier dyal makla, f jiha l-okhra facture/karra. L-fekra: l-index y9der yهبط, walakin l-7ayat dyal household ma kattsummar-sh f ra9m wa7ed. Ttswira ttb9a illustration ta7ririya, ma-shi dalil wa9i3i.
+Wa7ed ticket dyal sou9 kbir b ar9am CPI kayt9ta3 f noss, w ta7to mizane: f jiha wa7da panier dyal makla, f jiha l-okhra facture/karra. L-fekra: l-index y9der yn9es, walakin l-7ayat dyal household ma kattsummar-sh f ra9m wa7ed. Ttswira ttb9a illustration ta7ririya, ma-shi dalil wa9i3i.
 
 ## Cover mode
 B. Symbolic editorial illustration.
