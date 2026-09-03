@@ -1,28 +1,45 @@
 {
   "date": "2026-09-03",
-  "editorial_status": "BLOCKED",
+  "timezone": "Africa/Casablanca",
+  "editorial_status": "COMPLETE",
   "edition_html_status": "PASS",
   "print_css_status": "PASS",
   "epub_xhtml_source_status": "PASS",
   "utf8_status": "PASS",
   "mojibake_status": "PASS",
   "arabic_script_count": 0,
-  "source_link_status": "PASS",
+  "source_link_status": "PASS_IDS_RESOLVE_URLS_PRESENT",
+  "reader_facing_backend_language_status": "PASS",
+  "cover_insertion_area": "PRESENT",
   "pdf_status": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary_status": "NOT_GENERATED_NO_RUNTIME",
-  "github_text_persistence": "BLOCKED",
+  "github_text_persistence": "PASS",
   "github_binary_persistence": "UNSUPPORTED",
+  "ready_for_codex_rendering": true,
+  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "publication_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
   "remote_read_back": {
-    "status": "FAIL",
-    "paths": [],
+    "status": "PASS",
+    "paths": [
+      "editions/2026/09/2026-09-03/edition.html",
+      "editions/2026/09/2026-09-03/print.css",
+      "editions/2026/09/2026-09-03/epub-content.xhtml"
+    ],
     "required_paths": [
-      "editions/2026/09/2026-09-03/edition.md",
-      "editions/2026/09/2026-09-03/sources.json",
-      "editions/2026/09/2026-09-03/manifest.json"
+      "editions/2026/09/2026-09-03/edition.html",
+      "editions/2026/09/2026-09-03/print.css",
+      "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "daily-runs/2026-09-03/publishing-report.json",
+      "daily-runs/2026-09-03/status.json"
     ]
   },
-  "ready_for_codex_rendering": false,
-  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
-  "blocking_reason": "Editorial is blocked because edition.md, sources.json, and manifest.json were not read back from remote GitHub. Local or runtime files cannot establish persistence.",
-  "generated_at": "2026-09-03T04:12:00+01:00"
+  "validation_notes": [
+    "Canonical edition entered Task 4 with editorial COMPLETE, UTF-8 PASS, mojibake-free reader text, arabic_script_count 0, and source IDs resolving.",
+    "Generated HTML adds semantic publication structure, masthead, section navigation, front-page hierarchy, source anchors, direct source URLs, footer metadata, and a defined future cover.webp insertion area without changing editorial facts or judgments.",
+    "Generated print CSS uses black/white/red newspaper styling, print-safe breaks, multi-column support, source-note styling, and paged-media footer/page-number declarations where supported.",
+    "Generated XHTML uses XML declaration, XHTML namespace, UTF-8, closed empty elements, semantic headings, navigation anchors, internal source anchors, and direct source URLs.",
+    "Scheduled Work did not attempt PDF or EPUB binary generation and did not claim binary publication success."
+  ],
+  "blocking_reason": null,
+  "generated_at": "2026-09-03T06:53:00+01:00"
 }
