@@ -1,57 +1,53 @@
 {
   "dossier_id": "al-haouz-reconstruction-2023-2028",
-  "question": "Wash wa3d, sarf, w-nata2ij dyal programme i3mar l-Houz 2024-2028 kaytla9aw b-wodo7 men l-budget l-dar w-l-khadma li wslat l-kol qarya?",
-  "status": "RESEARCHING",
-  "claims": [
-    "Official programme claim: envelope dyal 120 milyar dirham 3la 2024-2028 kayghatti 4.2 million sakn f-6 a9alim; had ra9m programme multi-sector, ma-shi sarf monjaz.",
-    "World Bank financing claim: $1 billion Program-for-Results kaysaned recovery/resilience w-kayrbet financing b-results; exact disbursement and verified indicators khas-hom extract men implementation reports.",
-    "Residents' claim reported independently: ba3d l-motaḍarririn f-High Atlas chtkaw men ta2akhkhur w-sokon mo2aqqat ba3d 3am; ma ymknsh n3emmo had tajriba 3la kol l-qora.",
-    "Government progress claim: official updates kay3ddo permits, construction starts, completed housing, aid and infrastructure; definitions, cut-off date and village distribution khas independent check."
+  "QUESTION_OR_HYPOTHESIS": "Wash wa3d, sarf, w nata2ij dyal programme i3mar l-Houz kaytla9aw b-wodo7 men l-budget l-dar w l-khadma li wslat l-kol qarya?",
+  "STATUS": "NEEDS_VERIFICATION",
+  "TIMELINE": [
+    "2023-09-08: earthquake.",
+    "2023-09-20: l7okoma kat3len programme 2024-2028 b-envelope 120bn MAD l-recovery w development multi-sector.",
+    "2026-03-04: Transparency Maroc katnشر second observatory executive summary 3la reconstruction w social infrastructure covering Oct 2024-Dec 2025.",
+    "2026-03-17: ADHA kat3len 54,425 habitations achevees, aktar mn 3,000 mazal f travaux, w aktar mn 7.2bn MAD aid distributed.",
+    "2026-06-05: ADHA, EIB w EU Delegation kaydiro joint field mission f Al Haouz bach ychoufo progress dyal projects.",
+    "2026-07-15: ADHA katnشر programme previsionnel des marches T3 2026, kaybayan belli procurement w implementation mazal kayt9ddmo.",
+    "2026-09-03: dossier advanced men RESEARCHING l-NEEDS_VERIFICATION; no accusation added."
   ],
-  "supporting_evidence": [
-    "Head of Government announcement dated 2023-09-20 sets 120bn MAD, 2024-2028 and 4.2m-person/6-province scope: https://www.cg.gov.ma/en/node/11397",
-    "World Bank approval dated 2023-12-14 documents $1bn Program-for-Results and resilience objectives: https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
-    "World Bank project P178542 provides a durable place to follow results documents and implementation status: https://projects.worldbank.org/en/projects-operations/project-detail/P178542",
-    "USGS event record independently establishes M6.8 event on 2023-09-08: https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive"
+  "OFFICIAL_CLAIMS": [
+    "ADHA dashboard kay3ti 54,425 habitations achevees w 7.23bn MAD aid financial f emergency, reconstruction w rehabilitation categories.",
+    "ADHA March 2026 update kaygol aktar mn 3,000 habitations mazal f course de realisation, 372 schools w 110 health centers achevees.",
+    "Had l-progress rasmi kayna9ed ay claim blanket belli reconstruction ma w9e3atsh."
   ],
-  "contradictory_evidence": [
-    "Official milestones showing homes and infrastructure progressing contradict any blanket claim that nothing was rebuilt.",
-    "Independent field reporting of protests, delays and difficult interim shelter contradicts any blanket claim that reconstruction was complete or even across all villages.",
-    "The 120bn MAD envelope includes multiple sectors and five years; it contradicts a simplistic comparison treating all 120bn as housing money already spent.",
-    "A permit, a construction start, a completed structure and an occupied safe home are different outcomes; totals using different definitions can look contradictory without either being fabricated."
+  "SUPPORTING_EVIDENCE": [
+    "Transparency Maroc 3andha observatoire mosta9il kayjma3 w kay7لل data 3la governance, resources w field outcomes.",
+    "Independent reporting men Reuters w TelQuel kaydocumenti cases dyal residents li mazal kay3tiw complaints 3la delays, temporary shelter w unresolved files.",
+    "ADHA public procurement pages kaybano belli projects jdod w tenders mazal kaytkhddmo f 2026, donc programme ma salach."
   ],
-  "timeline": [
-    "2023-09-08: M6.8 earthquake strikes Al Haouz region (USGS event us7000kufc).",
-    "2023-09-20: government announces integrated 2024-2028 programme, 120bn MAD, aimed at 4.2m residents in six provinces/prefectures.",
-    "2023-12-14: World Bank approves $1bn recovery and resilience Program-for-Results.",
-    "2024-09: independent reporting records both official progress figures and complaints/protests by some survivors one year after the quake.",
-    "2026-09-02: dossier opened; current village-level completion, spending and appeals datasets still to be collected.",
-    "2026-09-04: second preproduction run attempted live search and direct retrieval; hosted web search returned 401 and HTTPS tunnel returned 403. No same-day progress claim was added; latest status remains UNKNOWN pending retrieval.",
-    "2026-09-02: pilot day 1 for edition date 2026-09-05 attempted hosted live search; HTTP 401 prevented fresh verification. No future/current progress claim was added and dossier remains RESEARCHING."
+  "CONTRADICTORY_EVIDENCE": [
+    "54,425 completed homes hiya evidence qwiya belli substantial reconstruction t9ddmat.",
+    "B3d l-cases unresolved y9dro ykono mratbin b-inheritance, land, eligibility, refusal to rebuild, wla technical constraints; ma ymknsh nnsbo kol case l-administrative failure bla dossier-level evidence.",
+    "Programme 120bn MAD multi-sector w multi-year; ma ymknsh n9arno had envelope kamla b-housing disbursement b7al ila hiya nafs l-metric."
   ],
+  "MISSING_DOCUMENTS": [
+    "Machine-readable village-by-village beneficiary table b-eligibility, appeals, starts, completions, occupancy w clear completion definitions.",
+    "Budget commitment vs cash disbursement by sector and year through 2026.",
+    "Contract/procurement table b-award value, amendments, delays w delivery status.",
+    "Independent engineering w seismic-compliance sampling.",
+    "Reconciliation bin official housing denominator w independent household samples."
+  ],
+  "UNANSWERED_QUESTIONS": [
+    "Ch7al mn 120bn MAD t3ahhed bih, ch7al tsref, w ch7al t-verifa ka-result l-2026?",
+    "Shno definition dyal habitation achevee: structure, utilities, inspection, keys wla occupancy?",
+    "Ch7al appeals/rejected cases mazal w ch7al processing time dyalhom?",
+    "Wash official aggregates y9dro ytreconcile m3a Transparency Maroc findings village-by-village?"
+  ],
+  "CONFIDENCE": "medium",
+  "PUBLICATION_READINESS": "NOT_READY",
   "sources": [
-    "Head of Government of Morocco, programme announcement, 2023-09-20, primary government, accessed 2026-09-02, https://www.cg.gov.ma/en/node/11397",
-    "World Bank, approval release, 2023-12-14, primary multilateral, accessed 2026-09-02, https://www.worldbank.org/en/news/press-release/2023/12/14/world-bank-approves-1-billion-program-to-support-morocco-s-earthquake-recovery-and-resilience",
-    "World Bank Projects & Operations, P178542, project documents, accessed 2026-09-02, https://projects.worldbank.org/en/projects-operations/project-detail/P178542",
-    "USGS, M6.8 Al Haouz event page, event 2023-09-08, scientific event data, accessed 2026-09-02, https://earthquake.usgs.gov/earthquakes/eventpage/us7000kufc/executive",
-    "Reuters, field reporting on reconstruction and protests one year after quake, 2024-09, independent reporting; exact article permalink must be recovered before final citation, section index https://www.reuters.com/world/africa/"
-  ],
-  "missing_evidence": [
-    "Latest 2026 budget commitments versus cash disbursement, split by housing, roads, health, schools, water and agriculture.",
-    "Village-level table with eligible households, approvals, appeals, starts, completions, occupancy and completion definition.",
-    "Procurement notices, winning bidders, contract values, amendments, delays and beneficial-ownership information where legally public.",
-    "Inspection evidence for seismic compliance and treatment of local earthen architectural heritage.",
-    "Court of Accounts, inspectorate or lender verification findings, including adverse findings and corrective actions.",
-    "Exact Reuters article permalink and direct responses from programme officials and affected residents.",
-    "Fresh retrieval of the latest World Bank P178542 implementation-status/results documents and 2026 official budget-execution records; hosted retrieval was unavailable on 2026-09-04.",
-    "Pilot day 1 could not retrieve current records because hosted search returned HTTP 401; retry the same focused records without regenerating dated editorial context."
-  ],
-  "unanswered_questions": [
-    "Ch7al t3ahdo bih, ch7al tsref, w-ch7al tverifa ka-result 7tta latest cut-off?",
-    "Shno definition rasmiya dyal dar 'kamla': structure, keys, utilities, inspection, wala occupancy?",
-    "Kifach kayt7ello rejected or disputed beneficiary dossiers, w-ch7al average dyal appeal?",
-    "Wash data village-by-village manshora b-format machine-readable w-b-tawarikh tabta?",
-    "Ashno l-adilla li t9dar tna9ed hypothesis dyal ta2akhkhur: early completions, beneficiary satisfaction, independent engineering checks, or expenditure audits?"
-  ],
-  "confidence": "medium"
+    "https://www.adha.ma/",
+    "https://www.adha.ma/secteurs/chiffres-cles.php?id=16&lang=fr&page=3&rubrique=1&slug=adha-bei-mission-terrain-al-haouz-avancement-projets-reconstruction-rehabilitation",
+    "https://adha.ma/actualites/article.php?lang=fr&slug=le-chef-du-gouvernement-pr-side-la-r-union-de-la-commission-interminist-rielle-et-la-3e-r-union-du-conseil-d-orientation-strat-gique-de-l-adha",
+    "https://transparencymaroc.ma/projet-observatoire-du-programme-de-reconstruction-post-seisme-atlas/",
+    "https://transparencymaroc.ma/category/observatoire-programme-reconstruction-post-seisme-atlas/",
+    "https://www.reuters.com/business/environment/moroccos-quake-survivors-demand-more-help-world-cup-spending-ramps-up-2025-09-15/",
+    "https://telquel.ma/instant-t/2026/08/19/al-haouz-trois-ans-apres-le-seisme-les-sinistres-haussent-le-ton-face-a-akhannouch_2003812/"
+  ]
 }
