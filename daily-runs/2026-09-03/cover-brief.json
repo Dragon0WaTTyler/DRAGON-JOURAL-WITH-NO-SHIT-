@@ -28,6 +28,24 @@
   "visual_truth_status": "PASS_EDITORIAL_ILLUSTRATION_NO_DOCUMENTARY_FABRICATION",
   "why_this_design": "L-edition kat3ti Hormuz howa l-qelb dyal risk: ma-shi ch7al mn strike, walakin wach chokepoint dyal energy w shipping yb9a normal. L-hourglass metaphor kaywassel had l-fekra f 2-3 seconds bla fake war image.",
   "arabic_script_count": 0,
-  "image_generation_status": "PENDING",
-  "github_image_persistence": "UNSUPPORTED_BY_CONNECTOR"
+  "image_generation_status": "PASS",
+  "visual_qa_status": "PASS",
+  "visual_qa_checks": {
+    "correct_lead": "PASS",
+    "correct_editorial_angle": "PASS",
+    "dragon_masthead_visible": "PASS",
+    "main_headline_readable": "PASS",
+    "arabic_script": "PASS_ZERO",
+    "key_text": "PASS",
+    "unrelated_collage": "PASS_NONE",
+    "documentary_fabrication": "PASS_NONE",
+    "portrait_3_4": "PASS",
+    "teaser_hierarchy": "PASS",
+    "style_contract": "PASS"
+  },
+  "github_image_persistence": "UNSUPPORTED_BY_CONNECTOR",
+  "final_headline": "HORMUZ: L3ALAM F LKHNA9",
+  "final_cover_mode": "SYMBOLIC EDITORIAL",
+  "cover_binary_archive": "PENDING_MANUAL_CODEX_OR_SUPPORTED_BINARY_PERSISTENCE",
+  "blocking_reason": null
 }
