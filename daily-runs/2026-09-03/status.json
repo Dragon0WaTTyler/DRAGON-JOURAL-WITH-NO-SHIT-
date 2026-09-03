@@ -5,14 +5,17 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
-  "cover": "PENDING",
+  "cover": "BLOCKED",
   "overall_status": "PENDING",
   "binary_artifacts": "GENERATED_VALIDATED_GITHUB_PERSISTENCE_BLOCKED",
-  "cover_binary_archive": "PENDING",
+  "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
   "binary_validation": "PASS",
   "pdf_binary": "GENERATED_VALIDATED",
   "epub_binary": "GENERATED_VALIDATED",
+  "image_generation_status": "PASS",
+  "visual_qa_status": "FAIL",
+  "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "remote_read_back": {
     "status": "BLOCKED_BINARIES_NOT_PERSISTED",
     "paths": [
@@ -26,18 +29,14 @@
       "editions/2026/09/2026-09-03/edition.pdf",
       "editions/2026/09/2026-09-03/edition.epub",
       "daily-runs/2026-09-03/publishing-report.json",
+      "daily-runs/2026-09-03/cover-brief.json",
       "daily-runs/2026-09-03/status.json"
     ],
     "required_paths": [
-      "editions/2026/09/2026-09-03/edition.html",
-      "editions/2026/09/2026-09-03/print.css",
-      "editions/2026/09/2026-09-03/epub-content.xhtml",
-      "editions/2026/09/2026-09-03/edition.pdf",
-      "editions/2026/09/2026-09-03/edition.epub",
-      "daily-runs/2026-09-03/publishing-report.json",
+      "daily-runs/2026-09-03/cover-brief.json",
       "daily-runs/2026-09-03/status.json"
     ]
   },
-  "last_updated": "2026-09-03T17:54:41+01:00",
-  "blocking_reason": "Binary generation and validation succeeded in the hosted runtime, but the connected GitHub write interface exposed no local-file parameter for binary blobs; binary payloads could not be transferred without unsafe/manual payload transcription. No shell git push, GitHub Actions, or external renderer was used."
+  "last_updated": "2026-09-03T18:59:00+01:00",
+  "blocking_reason": "Cover image generation returned a usable image on both the initial attempt and the single permitted retry, but both renders used the wrong lead and wrong headline instead of the persisted Hormuz cover brief. Visual QA therefore failed. Retry limit reached."
 }
