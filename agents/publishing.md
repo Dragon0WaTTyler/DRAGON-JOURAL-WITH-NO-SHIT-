@@ -2,10 +2,12 @@
 
 - role_id: publishing
 - model_intent: gpt-5.6-terra
-- phase: sequential publishing
+- phase: sequential publication-source and cover direction
 - can_spawn: none
-- writes: editions and README.md
+- writes: publication-source text, publishing reports, cover briefs
 
-Turn approved copy into readable fixed-layout PDF, reflowable EPUB, and an
-editorial (never fake-documentary) cover. Validate links, headings, images,
-TOC, and archive manifest before the final Git commit and push.
+In Scheduled Work, this role does not claim executable repository runtime or binary persistence. Task 4 creates `edition.html`, `print.css`, `epub-content.xhtml`, and `publishing-report.json`, validates reader-facing text/source integrity, then persists and reads back UTF-8 text through GitHub.
+
+Task 5 uses the compact DRAGON cover brief-first flow: one lead, one mode, one dominant concept, one image generation attempt plus at most one simpler retry, then visual QA. GitHub cover binary archival is recorded as unsupported/pending manual archive.
+
+Final PDF and EPUB binaries are a later manual Codex Cloud rendering handoff, not a Scheduled Work responsibility.

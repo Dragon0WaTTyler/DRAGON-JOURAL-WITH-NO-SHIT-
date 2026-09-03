@@ -1,4 +1,4 @@
-version: 1
+version: 2
 gates:
   research:
     required: [research_packets, source_records, uncertainty_labels]
@@ -9,15 +9,21 @@ gates:
   depth:
     required: [editorial_depth_policy, total_word_minimum, history_hard_minimum, literature_culture_hard_minimum, morocco_hard_minimum, science_hard_minimum, meknes_exception_or_minimum]
   language:
-    required: [darija_latin, zero_arabic_script, no_unnecessary_full_english_or_french]
+    required: [darija_latin, zero_arabic_script, deterministic_arabic_scan_repair_rescan]
   citations:
     required: [claim_source_traceability]
-  publishing:
-    required: [markdown, pdf, epub, webp_cover, sources_json, manifest_json]
+  scheduled_publication_source:
+    required: [edition_html, print_css, epub_content_xhtml, utf8, no_mojibake, zero_arabic_script, resolved_source_links, github_text_read_back]
+  scheduled_cover:
+    required: [compact_cover_brief, one_dominant_concept, image_generation_pass, visual_qa_pass, max_one_retry, zero_arabic_script]
+  manual_binary_render:
+    required: [pdf_render, epub_render, binary_validation]
+    scheduled_work_required: false
   archive:
-    required: [validator_pass, git_commit, git_push, remote_sha_match]
+    required: [github_text_read_back]
+    binary_archive_required_for_overall_scheduled_complete: false
   editorial_quality_report:
-    required: [total_word_count, per_section_word_counts, hard_minimums, target_ranges, allowed_exceptions, repeated_topic_check, regeneration_requests]
+    required: [total_word_count, per_section_word_counts, hard_minimums, target_ranges, allowed_exceptions, repeated_topic_check, regeneration_requests, arabic_script_count]
   workflow_state:
-    required: [fresh_run_initialization, dependency_invariants, remote_read_back, report_consistency, downstream_reset_on_block]
+    required: [fresh_run_initialization, dependency_invariants, binary_state_visibility, report_consistency, downstream_reset_on_block]
 blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE]

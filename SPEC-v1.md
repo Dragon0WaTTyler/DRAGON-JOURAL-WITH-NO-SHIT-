@@ -1,143 +1,79 @@
 # DRAGON Daily Newspaper — Technical Specification v1
 
-## Subscription and execution constraints
+## Architecture
 
-The production boundary is the user's existing ChatGPT Plus subscription.
-Execution must happen in hosted Codex Cloud. The project must not use the
-OpenAI API, require `OPENAI_API_KEY`, create pay-as-you-go OpenAI usage, call
-the OpenAI API from GitHub Actions, use external paid compute, require a
-self-hosted runner, or require the user's PC to stay online. GitHub remains
-source control, persistent memory, edition archive, and artifact storage
-only. Until native recurring Codex Cloud scheduling is available in this
-account/setup, production runs are manual hosted Cloud runs only.
+Daily production is coordinated by five ChatGPT Scheduled Work super-jobs over the authoritative 13 roles in `config/roles.yaml`. All scheduled stage semantics use `Africa/Casablanca`. `config/schedule.yaml` remains disabled and is not an activation mechanism for ChatGPT Scheduled Work.
 
-## Scope
+The execution boundary is ChatGPT Plus only. The OpenAI API, `OPENAI_API_KEY`, pay-as-you-go usage, GitHub Actions as compute, paid external compute, self-hosted runners, and the user's PC as production runtime are forbidden.
 
-One hosted Codex Cloud run produces one real or synthetic archived edition.
-The system has 13 editorial roles, but does not require 13 persistent
-processes. Research can be parallel; editorial gates are sequential.
+## Tested Scheduled Work capabilities
 
-The first archived run is a synthetic smoke test. The next required milestone
-is a real pre-production edition. Recurring production is forbidden until the
-pilot and PC-off acceptance test pass.
+Connected GitHub:
+- TEXT READ: PASS
+- UTF-8 TEXT WRITE: PASS
+- TEXT READ-BACK: PASS
+- BINARY IMAGE WRITE: UNSUPPORTED
+- PDF BINARY WRITE: UNSUPPORTED
+- EPUB BINARY WRITE: UNSUPPORTED
 
-## Roles and topology
+Scheduled repository executable runtime: `NOT_AVAILABLE`.
 
-The authoritative role registry is `config/roles.yaml`. The roles are:
+These are tested architecture facts. Do not model them as unknown capability probes.
 
-1. Chief Editor / Orchestrator
-2. Morocco Desk
-3. Meknes Intelligence Desk
-4. Palestine & Middle East Desk
-5. World Geopolitics Desk
-6. AI & Technology Desk
-7. Science Research Desk
-8. Tarikh l-Mghreb Desk
-9. Adab & Culture Desk
-10. Investigations & Accountability Desk
-11. Fact-check Desk
-12. Darija Language Editor
-13. Creative Director / Publishing Desk
+## Scheduled stages
 
-Research roles return structured packets, not disconnected final articles.
-Packets use `config/output-schema.json`. The Chief Editor owns selection,
-ranking, synthesis, rejection, and the final voice.
+1. 07:45 Current News Desk
+2. 08:00 Deep Features Desk
+3. 08:50 Chief Editor
+4. 09:25 Publication Builder
+5. 09:55 Cover Director
 
-The declarative execution order and failure isolation policy are in
-`config/pipeline.yaml`; it is a role/stage contract, not a requirement for
-thirteen permanently running processes.
+Allowed stage values are `PENDING`, `RUNNING`, `COMPLETE`, `BLOCKED`, and `FAILED`.
 
-## Research and continuity
+### Chief Editor
 
-Each run reads and updates durable repository state:
+Task 3 produces the canonical `edition.md`, `sources.json`, `manifest.json`, and editorial report. Editorial completion requires fact-check, citations, depth, Darija QA, GitHub text persistence/read-back, and exact Arabic-script count zero.
 
-- `memory/` for covered stories, front pages, topics, studies, and watchlists;
-- `investigations/` for multi-day dossiers;
-- `research/YYYY-MM-DD/` for that run's packets;
-- `editions/` for the canonical published record.
+Before completion, scan the five Arabic Unicode ranges U+0600–U+06FF, U+0750–U+077F, U+08A0–U+08FF, U+FB50–U+FDFF, and U+FE70–U+FEFF. Locate every match, rewrite/transliterate naturally into Moroccan Darija Latin without changing facts, rescan, and repeat until zero. The same scheduled execution performs safe deterministic repair.
 
-No container state or temporary attachment is authoritative. Investigations
-must record supporting and contradictory evidence and may only move to
-`READY` when the Chief Editor decides the evidence is sufficient.
+### Publication Builder
 
-## Sequential quality gates
+Task 4 is text-only. It creates semantic `edition.html`, `print.css`, XHTML-compatible `epub-content.xhtml`, and `publishing-report.json`. It validates UTF-8, mojibake, Arabic-script zero, source-link resolution, and connected GitHub text read-back.
 
-1. research packets and source records exist;
-2. major claims are verified and attributed;
-3. unsupported accusations are held or removed;
-4. editorial-depth gates pass using the thresholds in
-   `config/editorial-depth.yaml`;
-5. Darija Latin language gate passes with zero Arabic-script characters;
-6. citations support the relevant claims;
-7. PDF, EPUB, cover, manifest, and Markdown validate;
-8. the quality report is saved at
-   `research/YYYY-MM-DD/editorial-quality-report.json`;
-9. commit, push, and exact remote SHA verification pass.
+`publishing=COMPLETE` means `publication_source_package=COMPLETE`, not binary publication complete. Required binary state:
 
-Each fact-check issue is `PASS`, `FIX`, or `REMOVE`. A required `FIX` or
-`REMOVE` blocks publication until resolved.
+- `pdf_binary=NOT_GENERATED_NO_RUNTIME`
+- `epub_binary=NOT_GENERATED_NO_RUNTIME`
+- `binary_artifacts=PENDING_MANUAL_CODEX_RENDER`
+- `ready_for_codex_rendering=true`
 
-### Editorial depth policy
+A later manual Codex Cloud run may render and validate PDF/EPUB binaries from this package.
 
-The validator parses Markdown H2 sections and counts narrative words only;
-source lists, QA notes, metadata, preproduction labels, and citation IDs do
-not satisfy depth. The edition hard minimum is 4,000 words. Hard section
-minimums are History 800, Literature/Culture 800, Morocco 700, Palestine 500,
-and Science 500. Meknes has a 300-word minimum with a narrowly-scoped,
-explicit `THIN-NEWS EXCEPTION`; Investigations have a 600-word publication
-minimum but may record a marked non-publication dossier update. World and AI
-have configured target ranges. The report records counts, thresholds,
-exceptions, repeated-topic review, and Chief Editor regeneration requests.
+### Cover Director
 
-Technical validity alone cannot publish an edition. Existing pilot editions
-are historical evidence and may fail this stronger policy; they must not be
-edited solely to make the validator pass.
+Task 5 uses one lead, one cover mode, a compact persisted brief, and one simple 3:4 image-generation request. Visible text is limited to DRAGON masthead, date, main headline, and at most two teasers. Use one dominant concept and black/white/red hierarchy. No unrelated collage, fake documentary evidence, or Arabic script.
 
-## Artifact and manifest contract
+If generation fails, retry once only with an even simpler composition. `cover=COMPLETE` requires actual image generation PASS plus visual QA PASS. GitHub image archival is explicitly separate:
 
-The edition directory is:
+- `github_image_archive=UNSUPPORTED_BY_CONNECTOR`
+- `cover_binary_archive=PENDING_MANUAL_ARCHIVE`
 
-```text
-editions/YYYY/MM/YYYY-MM-DD/
-```
+## Overall status
 
-It must contain `edition.md`, `edition.pdf`, `edition.epub`, `cover.webp`,
-`sources.json`, and `manifest.json`. `edition.md` is the master text. The PDF
-is fixed-layout and the EPUB is reflowable with a navigation document; the
-EPUB must not be a fake copy of newspaper columns.
+`overall_status` may be `COMPLETE` when all five scheduled stages are `COMPLETE`. Manual PDF/EPUB rendering and cover binary archival do not block scheduled overall completion, but their state fields must remain visible and truthful.
 
-Smoke manifests have `smoke_test: true`. Real pre-production manifests have
-`smoke_test: false`, `mode: preproduction`, `status: pre-production`, passed
-fact-check and language states, and a nonzero source count. The validator
-enforces the mode-specific contract.
+## Persistence semantics
 
-## Cloud-only and persistence semantics
+Temporary/runtime existence is not persistence. A Scheduled Work text output is persisted only after connected GitHub write and exact canonical-path read-back. Binary persistence must never be inferred from text persistence.
 
-Production is hosted Codex Cloud only. Network access must be explicitly
-enabled for research. GitHub credentials remain in the configured secure
-Cloud setup and never enter the repository or logs.
+## Editorial topology and depth
 
-Credential rotation and the 2026-10-02 expiry checklist are documented in
-`SECURITY.md`.
+The role count remains exactly 13. Research desks return structured packets; Chief Editor synthesizes; fact-check and Darija QA are hard gates; Publishing role serves Task 4 and Task 5 without reducing the role registry.
 
-The run is `NOT COMPLETE` if validation, commit, push, or remote SHA
-verification fails, even when files exist inside the temporary Cloud
-container.
+Depth thresholds remain centralized in `config/editorial-depth.yaml`: edition 4000, History 800, Literature/Culture 800, Morocco 700, Palestine 500, Meknes 300 with explicit thin-news exception, and Science 500. Investigations may remain explicitly non-publication-ready.
 
-## Schedule and acceptance
+## Binary handoff
 
-`config/schedule.yaml` stays disabled during smoke, pre-production, review,
-second-run, and pilot stages. After the pilot, configure the recurring Cloud
-run for 10:00 `Africa/Casablanca`, then perform a genuine PC-off test. Only
-after the scheduled run creates and remotely verifies a complete edition may
-the project be called `PRODUCTION CLOUD-ONLY CONFIRMED`.
+Scheduled Work does not generate final PDF/EPUB binaries in this architecture. Manual Codex Cloud rendering is the supported later handoff. Cover binary archival also remains manual/supported-binary-persistence work.
 
-## Future Scheduled Work contract
-
-Future ChatGPT Scheduled Work orchestration is specified in
-`config/scheduled-workflow.yaml`. It coordinates the existing 13 editorial
-roles through five super-jobs and uses `Africa/Casablanca`; it does not replace
-the role registry or enable `config/schedule.yaml`. Cover generation follows
-`design/DRAGON-COVER-STYLE.md`. These are contracts only. Production
-activation requires tested native Scheduled Work behavior and verified text and
-binary persistence, including a successful PC-off acceptance test.
+Future maintainers must not reintroduce API, GitHub Actions compute, self-hosted runtime, or local-PC production dependencies to bypass this limitation.

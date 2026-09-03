@@ -1,23 +1,76 @@
-# DRAGON Production Master Prompt — Reference Contract
+# DRAGON Production Master Prompt — Scheduled Work Reference Contract
 
-This file is retained as a reference contract for future production orchestration. It is not an instruction to run a newspaper edition or enable scheduling by itself.
+This is the shared production contract for the five Scheduled Work super-jobs. It does not create or enable schedules and it does not authorize a task to redo work owned by another scheduled role.
 
-## Production state and persistence addendum
+## Architecture boundary
 
-Before a fresh production run, create a new deterministic `status.json` with
-all stage values set to `PENDING`, `overall_status` set to `PENDING`, and
-`blocking_reason` set to `null`. Never inherit `COMPLETE` from an earlier
-same-date smoke, pre-production, deleted-edition, or abandoned attempt.
+Use ChatGPT Plus Scheduled Work and connected GitHub UTF-8 text persistence only. Do not use the OpenAI API, `OPENAI_API_KEY`, pay-as-you-go, GitHub Actions as compute, paid external compute, self-hosted runners, or the user's PC as production runtime.
 
-Resume is allowed only when explicitly requested and only after validating the
-required exact remote GitHub read-back for every stage whose `COMPLETE` value is
-being retained.
+The tested Scheduled Work repository executable runtime is `NOT_AVAILABLE`. Connected GitHub text read/write/read-back PASS. Image/PDF/EPUB binary writes through the tested GitHub connector are unsupported.
 
-Local or runtime file existence is not GitHub persistence. A persistence PASS
-requires a connected GitHub write, an exact canonical-path read-back, and
-confirmation that the returned content or artifact matches the just-written
-output. `editorial-report.json` and `publishing-report.json` must not claim
-required files or GitHub persistence PASS before that check. If editorial is
-BLOCKED or FAILED, publishing and cover must not remain COMPLETE.
+`config/schedule.yaml` remains disabled.
 
-Create today’s full DRAGON daily newspaper edition using the existing repository: Dragon0WaTTyler/DRAGON-JOURAL-WITH-NO-SHIT- IMPORTANT: This is the PRODUCTION daily run under the current allowed architecture: - ChatGPT Plus only - Scheduled Work only - cloud execution only - GitHub connected app for persistence - no OpenAI API - no OPENAI_API_KEY - no GitHub Actions - no external paid compute - no self-hosted runner - no local-PC dependency Do not use shell git push as the primary archive mechanism. Use the connected GitHub app write path for final persistence. ================================================== 1. STARTUP ================================================== 1. Read the latest repository state. 2. Read: - AGENTS.md - SPEC-v1.md - config/execution-constraints.yaml - config/editorial-depth.yaml - config/sources.yaml - config/quality-gates.yaml - config/pipeline.yaml 3. Read memory, investigations, and recent editions. 4. Determine today’s real date in Africa/Casablanca. 5. Create today’s edition under: editions/YYYY/MM/YYYY-MM-DD/ 6. Label the edition as the normal daily production edition. Do not label it as smoke test or pre-production. ================================================== 2. EDITORIAL RULES ================================================== Write the newspaper in Moroccan Darija using LATIN characters only. Arabic script = 0. Natural Moroccan Darija Latin is required. Do not over-force translation. Natural terms such as: September, FACT, CLAIM, DISPUTED, UNKNOWN, PREPRINT, ABSTRACT_ONLY may remain when useful. Do not let English or French become the main narrative language. The newspaper must remain a serious, deep, personalized daily newspaper. Priorities: - Morocco - Meknes - Palestine - important world developments - AI - science - Tarikh l-Mghreb - Adab/Culture - psychology / anthropology Do not include routine Ukraine updates unless strategically major. Do not fill space with weak Africa climate stories. Do not invent news. ================================================== 3. REQUIRED DESKS ================================================== Use the existing editorial-role system: - Chief Editor - Morocco Desk - Meknes Desk - Palestine Desk - World Desk - AI Desk - Science Desk - Tarikh l-Mghreb - Adab/Culture - Investigations - Fact-check - Darija Editor - Publishing Use parallel research where useful and sequential QA/publishing where needed. ================================================== 4. RESEARCH ================================================== Do fresh current research for today. Use the supported live retrieval path available in Scheduled Work. For major claims: - use primary sources where possible - cross-check important claims independently - distinguish FACT / CLAIM / DISPUTED / ESTIMATE / UNKNOWN UNKNOWN is allowed only when the real-world fact is genuinely uncertain, not because of failed access. Morocco: be fair but tough. If evidence shows success, say it. If evidence shows failure, contradiction, waste, weak execution, or misleading communication, criticize it clearly. Meknes: search deeply beyond national newspapers. Use Meknes Radar if conventional news is thin. Palestine: must have a dedicated section. Start from Al Jazeera, then cross-check major/disputed claims. History: must be a real feature and pass minimum depth. Literature/Culture: must be a real feature and pass minimum depth. Do not make it a comment on one verse or one quote. Investigations: advance existing dossiers when possible. Do not publish accusations without evidence. ================================================== 5. DEPTH REQUIREMENTS ================================================== Use config/editorial-depth.yaml exactly. Hard minimums currently include: - total edition >= 4000 useful words - Morocco >= 700 - Meknes >= 300 unless legitimate thin-news exception - Palestine >= 500 - Science >= 500 - History >= 800 - Literature/Culture >= 800 Do not pad. If History or Literature topic is weak, choose another topic. ================================================== 6. READER-FACING PUBLICATION RULES ================================================== The final newspaper must be reader-facing, not backend-facing. Do NOT leak normal engineering prose such as: - Codex - API - GitHub Actions - pipeline - manifest - commit SHA - archive gate - scheduler internals - validation internals Keep only short useful transparency, e.g.: "Kifach khdemna" The PDF must look like a real newspaper: - strong front page - integrated cover - readable typography - proper hierarchy - sensible columns - page numbers - clickable sources The EPUB must be: - valid - strict XML/XHTML compliant - LTR - TOC working - navigation working - clickable links - UTF-8 correct ================================================== 7. REQUIRED OUTPUT FILES ================================================== Generate and validate: - edition.md - edition.pdf - edition.epub - cover.webp - sources.json - manifest.json Also generate/update supporting QA artifacts and research records as required. ================================================== 8. VALIDATION ================================================== All relevant validators must pass. Require PASS for: - configuration - research packets/schema if applicable - editorial depth - fact-check - Darija / Arabic-script gate - reader-facing QA - PDF validation - EPUB strict validation - cover validation - citations/source links - manifest validation Render all PDF pages and visually inspect them. Inspect EPUB content enough to confirm real readability. If something fails: fix it. Do not weaken the validator. ================================================== 9. GITHUB PERSISTENCE ================================================== After all content and publishing validations pass: Use the connected GitHub app write mechanism to persist today’s edition and artifacts to the repository. Persist/update all required files inside: editions/YYYY/MM/YYYY-MM-DD/ and any related research/memory files that belong to this run. Do not depend on shell git push authentication. After writing through the connected GitHub app: - confirm the remote files exist - confirm the main edition artifacts exist remotely - record the resulting remote commit SHA A run is NOT COMPLETE unless remote GitHub persistence succeeds. ================================================== 10. FINAL REPORT ================================================== Return: STATUS: COMPLETE / NOT COMPLETE Edition date Total word count Per-section word counts Source count Primary source count Independent cross-check count Any legitimate exceptions used Fact-check result Darija result PDF result EPUB result Cover result Reader-facing QA result Remote GitHub write result Remote commit SHA Main remaining weakness of today’s edition If remote persistence fails, report NOT COMPLETE. Do not mention internal implementation details inside the newspaper itself.
+## Production state
+
+Use `daily-runs/YYYY-MM-DD/status.json` with five stages:
+`current_research`, `deep_research`, `editorial`, `publishing`, `cover`.
+
+Stage values: `PENDING`, `RUNNING`, `COMPLETE`, `BLOCKED`, `FAILED`.
+
+Do not inherit stale same-date completion. Resume only when explicitly requested and only after exact GitHub read-back for any retained completed text stage.
+
+Overall scheduled completion may be `COMPLETE` when all five stages are complete even while binary states remain explicitly pending manual rendering/archive.
+
+## Task boundaries
+
+### Task 1 — Current News Desk
+Fresh live research for Morocco, Meknes, Palestine, World, and AI. Produce structured research packets only. Persist text and read it back. Do not write the final newspaper.
+
+### Task 2 — Deep Features Desk
+Deep research for Science, Tarikh l-Mghreb, Adab/Culture, and Investigations. Preserve methodology, uncertainty, depth, and dossier status. Persist text and read it back. Do not write the final newspaper.
+
+### Task 3 — Chief Editor
+Require Tasks 1 and 2 `COMPLETE`. Synthesize one coherent edition, fact-check it, apply depth and citation gates, and perform natural Moroccan Darija Latin editing.
+
+Before `editorial=COMPLETE`, deterministically scan the entire edition for:
+U+0600–U+06FF, U+0750–U+077F, U+08A0–U+08FF, U+FB50–U+FDFF, U+FE70–U+FEFF.
+
+Locate every occurrence, rewrite/transliterate intended text naturally into Moroccan Darija Latin without changing facts, rescan the entire edition, and repeat until `arabic_script_count == 0`. Safe deterministic repair happens during the same scheduled execution; do not require a separate human repair run merely because the initial draft failed this scan.
+
+Persist/read back `edition.md`, `sources.json`, `manifest.json`, and `editorial-report.json`.
+
+### Task 4 — Publication Builder
+Require `editorial=COMPLETE`. This task is TEXT-ONLY. Create:
+- `edition.html`
+- `print.css`
+- `epub-content.xhtml`
+- `publishing-report.json`
+
+Validate reader-facing cleanup, UTF-8, mojibake, Arabic-script zero, semantic HTML/XHTML, source-link resolution, and GitHub text persistence/read-back.
+
+`publishing=COMPLETE` means **PUBLICATION SOURCE PACKAGE COMPLETE**, not binary publication complete. Record:
+- `pdf_binary = NOT_GENERATED_NO_RUNTIME`
+- `epub_binary = NOT_GENERATED_NO_RUNTIME`
+- `binary_artifacts = PENDING_MANUAL_CODEX_RENDER`
+- `ready_for_codex_rendering = true`
+
+Do not claim PDF or EPUB binaries were generated by Scheduled Work.
+
+### Task 5 — Cover Director
+Require editorial and publication-source package `COMPLETE`. Read final edition, editorial report, and `design/DRAGON-COVER-STYLE.md`. Select one lead and one mode. Create compact `cover-brief.json`, persist/read it back, then issue one simple 3:4 image-generation request.
+
+Use one dominant concept, minimal typography, DRAGON masthead, date, main headline, maximum two teasers, black/white/red hierarchy, no unrelated collage, no fake documentary evidence, and zero Arabic script.
+
+Run visual QA. If generation fails, retry once only with an even simpler composition. `cover=COMPLETE` requires image generation PASS and visual QA PASS, not GitHub image archival. Record:
+- `github_image_archive = UNSUPPORTED_BY_CONNECTOR`
+- `cover_binary_archive = PENDING_MANUAL_ARCHIVE`
+
+## Manual binary handoff
+
+After Task 4 source package passes, a later manual Codex Cloud run may render final PDF and EPUB binaries. Cover binary archival is also a later manual/supported-binary-persistence step.
+
+Do not schedule Codex Cloud unless a native supported scheduling mechanism exists in the future.
+
+## Editorial rules
+
+Keep all 13 roles in `config/roles.yaml`. Use `Africa/Casablanca`. Obey `config/editorial-depth.yaml`, `config/quality-gates.yaml`, and `config/sources.yaml`. Do not invent news or weaken quality gates. Reader-facing edition prose must not leak backend workflow details.

@@ -53,4 +53,4 @@ roles:
   - id: publishing
     phase: sequential-publishing
     model: gpt-5.6-terra
-    output: six-edition-artifacts-and-archive-update
+    output: publication-source-and-cover-direction

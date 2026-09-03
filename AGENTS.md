@@ -1,165 +1,76 @@
-# Daily Newspaper — Codex Cloud operating contract
+# DRAGON Daily Newspaper — Production operating contract
 
-This repository is the source of truth for the DRAGON Daily Newspaper. The
-production and pre-production workflow must execute in hosted Codex Cloud.
-The local PC, localhost, desktop files, and a local process are never runtime
-dependencies.
+This repository is the source of truth for DRAGON. Daily production uses ChatGPT Scheduled Work for the five scheduled super-jobs and connected GitHub UTF-8 text persistence. The repository contract itself does not create or enable schedules.
 
-## Subscription and execution boundary
+## Execution boundary
 
-Production must stay within the user's existing ChatGPT Plus subscription and
-use hosted Codex Cloud only. The OpenAI API, `OPENAI_API_KEY`, pay-as-you-go
-OpenAI usage, GitHub Actions calling the OpenAI API, external paid compute,
-self-hosted runners, and a continuously online PC are forbidden. GitHub is
-used only for source control, persistent memory, edition archival, and
-artifact storage. See `config/execution-constraints.yaml`.
+Production stays inside the user's existing ChatGPT Plus subscription. Forbidden: OpenAI API, `OPENAI_API_KEY`, pay-as-you-go OpenAI usage, GitHub Actions as external compute, paid external compute, self-hosted runners, and the user's PC as a production runtime dependency.
 
-## Operating modes
+Tested Scheduled Work capabilities are recorded in `config/scheduled-workflow.yaml`. Connected GitHub text read/write/read-back PASS. Scheduled repository executable runtime is NOT AVAILABLE. GitHub image binary, PDF binary, and EPUB binary writes are UNSUPPORTED in the tested connector workflow.
 
-There are two explicit modes:
-
-1. `smoke`: synthetic content used only to test artifact creation, validation,
-   commit, push, and remote-SHA verification. It must remain labeled
-   `SMOKE TEST — NOT FOR PUBLICATION`.
-2. `preproduction`: one real, current, fully cited newspaper run. It must be
-   labeled `PRE-PRODUCTION — NOT YET DAILY PRODUCTION` and must not enable the
-   recurring schedule.
-
-Never represent a smoke fixture as journalism. Never use fixture content in a
-pre-production edition.
+Codex Cloud may be used manually later to render PDF/EPUB binaries from the persisted publication-source package. It is not part of the scheduled five-job execution and must not be scheduled unless a native supported mechanism exists in the future.
 
 ## Editorial topology
 
-Treat the 13 entries in `config/roles.yaml` as editorial roles, not as a
-requirement for 13 persistent processes. The Chief Editor coordinates the
-work. Research desks should run in parallel when Codex Cloud supports it and
-return structured packets under `research/YYYY-MM-DD/`. Synthesis,
-fact-check, Darija QA, publishing, validation, commit, and push are
-sequential quality gates.
+The 13 entries in `config/roles.yaml` remain authoritative editorial roles. They are coordinated through exactly five scheduled super-jobs:
 
-The Chief Editor must:
+- 07:45 — Current News Desk
+- 08:00 — Deep Features Desk
+- 08:50 — Chief Editor
+- 09:25 — Publication Builder
+- 09:55 — Cover Director
 
-- read the current memory and investigations before choosing stories;
-- assign work to the relevant desks and avoid duplicated research;
-- compare primary, independent, and contradictory evidence;
-- reject unsupported claims and weak filler;
-- request focused follow-up research when uncertainty is material;
-- write one coherent edition rather than pasting independent essays;
-- preserve facts and citations through the language and design stages.
+All use `Africa/Casablanca`. `config/schedule.yaml` remains disabled.
 
-The declarative stage order and isolated retry policy are recorded in
-`config/pipeline.yaml`. It is the implementation contract for Cloud prompts:
-research may be parallel, while synthesis, fact-check, Darija QA, publishing,
-and archive persistence remain sequential.
+## Chief Editor hard gate
 
-Each research packet must conform to `config/output-schema.json`. Each
-investigation must conform to `config/investigation-schema.json` and retain
-contradictory evidence as well as supporting evidence.
+The final newspaper is Moroccan Darija written in Latin characters. Before Task 3 may be `COMPLETE`, scan the entire edition deterministically for Arabic-script characters in:
 
-## Real-edition requirements
+- U+0600–U+06FF
+- U+0750–U+077F
+- U+08A0–U+08FF
+- U+FB50–U+FDFF
+- U+FE70–U+FEFF
 
-For `preproduction`, use real current web research and save source records.
-Apply the source policy in `config/sources.yaml`. Important claims need
-traceable citations. Label disputed claims, estimates, company claims,
-abstract-only studies, and unknowns explicitly.
+Locate every occurrence, rewrite/transliterate the intended text naturally into Moroccan Darija Latin without changing facts, rescan, and repeat until `arabic_script_count == 0`. Safe deterministic repair happens inside the same scheduled execution; do not require a separate human repair run merely because an initial scan found characters.
 
-The final newspaper must be Moroccan Darija written in Latin characters.
-Arabic-script characters in `edition.md` are a hard failure. Ordinary prose
-must not become full English or French paragraphs. The language editor may
-change style only, never factual meaning.
+## Publication Builder
 
-## Cloud runtime dependencies
+Scheduled Task 4 is TEXT-ONLY. It creates and persists:
 
-Hosted Cloud setup must install the pinned publishing dependencies before
-running the pre-production publisher:
+- `edition.html`
+- `print.css`
+- `epub-content.xhtml`
+- `publishing-report.json`
 
-```bash
-python -m pip install -r requirements.txt
-```
+`publishing=COMPLETE` means **PUBLICATION SOURCE PACKAGE COMPLETE**. It does not mean PDF/EPUB binaries exist. Record:
 
-This is a Cloud setup step only; the workflow must not depend on a local
-machine or a local virtual environment.
+- `pdf_binary = NOT_GENERATED_NO_RUNTIME`
+- `epub_binary = NOT_GENERATED_NO_RUNTIME`
+- `binary_artifacts = PENDING_MANUAL_CODEX_RENDER`
+- `ready_for_codex_rendering = true`
 
-History and Culture are substantial features when their topics justify it;
-they must include context, analysis, evidence, disagreement, and present
-relevance. Meknes must use local and institutional sources and may publish an
-honest `Meknes Radar` item when conventional news is thin. Palestine must
-separate fact, claim, disputed claim, estimate, and unknown.
+## Cover Director
 
-## Editorial depth gate
+Task 5 uses a compact brief-first workflow: one lead, one cover mode, one dominant concept, minimal typography, DRAGON masthead, date, main headline, at most two teasers, black/white/red hierarchy, 3:4 portrait. Generate one image, run visual QA, and retry at most once with an even simpler composition if generation fails.
 
-Technical validity is necessary but is not sufficient for a real edition.
-The pre-production validator reads all word-count thresholds from
-`config/editorial-depth.yaml`; it does not use hidden hardcoded quotas. It
-extracts Markdown H2 sections, counts narrative words, excludes Sources and
-QA/metadata filler, and writes the machine-readable report to
-`research/YYYY-MM-DD/editorial-quality-report.json`.
+The first large all-in-one prompt failed in testing; minimal image generation and compact brief rendering passed. Do not reintroduce over-complex multi-stage prompts.
 
-The edition hard minimum is 4,000 words. History and Literature/Culture each
-require 800 words, Morocco 700, Palestine 500, and Science 500. Meknes
-requires 300 unless the section contains the explicit `THIN-NEWS EXCEPTION`
-marker and an honest explanation. Investigations require 600 words only when
-the dossier is being published; an explicit `RESEARCHING`,
-`NEEDS_VERIFICATION`, or `HOLD` status may document a dossier update without
-publication. The configured target ranges guide the Chief Editor but are not
-substitutes for hard minima.
+`cover=COMPLETE` means an actual generated cover passed visual QA. GitHub binary archival is not required because the tested connector cannot archive the image binary. Record:
 
-The Chief Editor must regenerate or remove a weak section rather than pad it.
-An old edition may therefore fail the strengthened gate and must not be
-rewritten merely to make the historical pilot pass. Publication requires both
-the technical artifact gates and the editorial-depth report to pass.
+- `github_image_archive = UNSUPPORTED_BY_CONNECTOR`
+- `cover_binary_archive = PENDING_MANUAL_ARCHIVE`
 
-## Required artifacts
+## Status semantics
 
-Every real edition directory must contain:
+`daily-runs/YYYY-MM-DD/status.json` has five scheduled stage fields: `current_research`, `deep_research`, `editorial`, `publishing`, `cover`, each using `PENDING`, `RUNNING`, `COMPLETE`, `BLOCKED`, or `FAILED`.
 
-```text
-edition.md
-edition.pdf
-edition.epub
-cover.webp
-sources.json
-manifest.json
-```
+Binary/render/archive state is separate and must remain visible. `overall_status` may be `COMPLETE` when all five scheduled stages are legitimately complete even if PDF/EPUB rendering and cover binary archival remain pending manual work.
 
-`edition.md` is the canonical master. PDF and EPUB are derivatives. The
-manifest records mode, validation states, source count, and artifact names.
+Do not mark a text persistence step PASS merely because a file exists in temporary runtime. Connected GitHub write plus exact canonical read-back is required.
 
-Run the validator with the matching mode:
+## Editorial depth and evidence
 
-```bash
-python scripts/validate_edition.py --date YYYY-MM-DD --mode smoke
-python scripts/validate_edition.py --date YYYY-MM-DD --mode preproduction
-```
+Use `config/editorial-depth.yaml`, `config/sources.yaml`, and `config/quality-gates.yaml`. Major claims require traceable evidence. History, Literature/Culture, Morocco, Palestine, Meknes, and Science keep their configured depth gates. Investigations may remain explicitly non-publication-ready.
 
-Do not mark an edition complete because files merely exist. The appropriate
-content, language, source, PDF, EPUB, and manifest gates must pass.
-
-## GitHub persistence gate
-
-The daily run is complete only after all of these succeed, in order:
-
-1. artifacts are generated;
-2. validation passes;
-3. fact-check and language gates are recorded as passed;
-4. a commit succeeds;
-5. push to `origin/main` succeeds;
-6. `git ls-remote origin refs/heads/main` returns the exact pushed SHA.
-
-If push or remote verification fails, status is `NOT COMPLETE`. Retry the
-push without regenerating already successful editorial work. Never commit
-secrets or print `GITHUB_TOKEN`.
-
-## Scheduling and cloud-only acceptance
-
-`config/schedule.yaml` must remain disabled until a native recurring hosted
-Codex Cloud scheduler is available and the PC-off acceptance test passes.
-Until then, production is manual hosted Cloud runs only. Do not replace this
-with GitHub Actions, an API-based runner, paid compute, or a local scheduler.
-
-The final acceptance test must run with the local desktop and PC unavailable
-and verify that the scheduled hosted run creates, validates, commits, pushes,
-and remotely verifies a complete edition.
-
-Credential rotation, including the documented 2026-10-02 expiry, is tracked in
-`SECURITY.md`. Never copy a token into the repository or a Cloud log.
+Do not weaken validators to finish on time.

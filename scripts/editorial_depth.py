@@ -6,10 +6,15 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
 import yaml
 
-
+ARABIC_SCRIPT_RANGES = (
+    (0x0600, 0x06FF),
+    (0x0750, 0x077F),
+    (0x08A0, 0x08FF),
+    (0xFB50, 0xFDFF),
+    (0xFE70, 0xFEFF),
+)
 ARABIC_SCRIPT = re.compile(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]")
 CITATION = re.compile(r"\[S\d+\]")
 WORD = re.compile(r"[\wÀ-ÿ]+(?:['’ʼ-][\wÀ-ÿ]+)*", re.UNICODE)
@@ -30,7 +35,6 @@ def load_policy(path: Path) -> dict[str, Any]:
 
 
 def extract_sections(markdown: str) -> list[MarkdownSection]:
-    """Extract H2 sections; front matter and H1 metadata are not sections."""
     sections: list[MarkdownSection] = []
     heading: str | None = None
     body: list[str] = []
@@ -55,8 +59,6 @@ def _normalise(value: str) -> str:
 
 def section_key(heading: str, aliases: dict[str, list[str]]) -> str | None:
     normalised = _normalise(heading)
-    # Check longer aliases first so "adab w culture" is not confused with a
-    # generic culture mention in a different heading.
     for key, values in aliases.items():
         for alias in sorted(values, key=len, reverse=True):
             alias_normalised = _normalise(alias)
@@ -77,7 +79,6 @@ def _strip_markdown(line: str) -> str:
 
 
 def count_words(text: str) -> int:
-    """Count narrative words, excluding citation IDs and Markdown metadata."""
     return sum(len(WORD.findall(_strip_markdown(line))) for line in text.splitlines())
 
 
@@ -113,13 +114,7 @@ def _exception_reason(body: str, key: str, count: int, policy: dict[str, Any]) -
     return None
 
 
-def evaluate(
-    markdown: str,
-    policy: dict[str, Any],
-    *,
-    edition_date: str | None = None,
-    previous_topics: list[str] | None = None,
-) -> dict[str, Any]:
+def evaluate(markdown: str, policy: dict[str, Any], *, edition_date: str | None = None, previous_topics: list[str] | None = None) -> dict[str, Any]:
     aliases = policy.get("section_aliases", {})
     sections = extract_sections(markdown)
     counts: dict[str, int] = {}
@@ -133,7 +128,6 @@ def evaluate(
             headings[key] = section.heading
 
     total = sum(count_words(section.body) for section in sections if not _is_sources_or_non_editorial(section.heading))
-    # H2 headings are never counted; source and QA sections are excluded above.
     total_rule = policy.get("edition", {})
     total_min = int(total_rule.get("hard_min_words", 0))
     total_target = _target_range(total_rule.get("target_words"))
@@ -148,9 +142,7 @@ def evaluate(
         hard_min = rule.get("hard_min_words")
         publication_min = rule.get("publication_min_words")
         target_min, target_max = _target_range(rule.get("target_words"))
-        exception = _exception_reason(
-            headings.get(key, "") + "\n" + bodies.get(key, ""), key, count, rule
-        )
+        exception = _exception_reason(headings.get(key, "") + "\n" + bodies.get(key, ""), key, count, rule)
         hard_pass = True
         if hard_min is not None:
             hard_pass = count >= int(hard_min) or exception is not None
@@ -169,10 +161,7 @@ def evaluate(
             "pass": hard_pass,
         }
         exceptions[key] = {
-            "allowed": bool(
-                rule.get("allow_thin_news_exception")
-                or rule.get("allow_dossier_update_without_publication")
-            ),
+            "allowed": bool(rule.get("allow_thin_news_exception") or rule.get("allow_dossier_update_without_publication")),
             "used": exception is not None,
             "reason": exception,
         }
@@ -189,11 +178,7 @@ def evaluate(
         requests.append("repeated section headings detected: " + ", ".join(duplicate_headings))
 
     memory_matches: list[str] = []
-    editorial_text = "\n".join(
-        section.body
-        for section in sections
-        if not _is_sources_or_non_editorial(section.heading)
-    )
+    editorial_text = "\n".join(section.body for section in sections if not _is_sources_or_non_editorial(section.heading))
     current_text = _normalise(editorial_text)
     for topic in previous_topics or []:
         topic_normalised = _normalise(topic)
@@ -202,7 +187,7 @@ def evaluate(
     if memory_matches:
         requests.append("previous-topic memory match requires Chief Editor review: " + ", ".join(memory_matches))
 
-    report = {
+    return {
         "date": edition_date,
         "validation_status": "PASS" if total >= total_min and not requests else "FAIL",
         "total_word_count": total,
@@ -221,8 +206,34 @@ def evaluate(
         },
         "chief_editor_regeneration_requests": requests,
     }
-    return report
+
+
+def arabic_script_occurrences(text: str) -> list[dict[str, Any]]:
+    """Return every Arabic-script character with deterministic location metadata."""
+    occurrences: list[dict[str, Any]] = []
+    line = 1
+    column = 1
+    for index, char in enumerate(text):
+        codepoint = ord(char)
+        if any(start <= codepoint <= end for start, end in ARABIC_SCRIPT_RANGES):
+            occurrences.append({
+                "index": index,
+                "line": line,
+                "column": column,
+                "character": char,
+                "codepoint": f"U+{codepoint:04X}",
+            })
+        if char == "\n":
+            line += 1
+            column = 1
+        else:
+            column += 1
+    return occurrences
+
+
+def arabic_script_count(text: str) -> int:
+    return len(arabic_script_occurrences(text))
 
 
 def language_has_arabic_script(markdown: str) -> bool:
-    return bool(ARABIC_SCRIPT.search(markdown))
+    return arabic_script_count(markdown) > 0

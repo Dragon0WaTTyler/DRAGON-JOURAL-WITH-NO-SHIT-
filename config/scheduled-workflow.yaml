@@ -1,24 +1,25 @@
-version: 1
-contract: future-chatgpt-scheduled-work-orchestration
+version: 2
+contract: tested-chatgpt-scheduled-work-orchestration
 enabled: false
 activation: contract-only-no-scheduled-task-created
 timezone: Africa/Casablanca
 
-# This is a future orchestration contract. It does not enable config/schedule.yaml
-# and it does not create a recurring task in ChatGPT.
+# This file records tested Scheduled Work behavior. It does not create or
+# enable schedules and does not change config/schedule.yaml.
 scheduling:
-  current_mode: manual-cloud-run-only
+  current_mode: chatgpt-scheduled-work-supported-manual-activation-only
   schedule_config: config/schedule.yaml
   schedule_config_required_enabled: false
-  target_future_time: "10:00"
-  activation_requirements:
-    - native-hosted-codex-cloud-scheduled-work-is-available
-    - pc-off-acceptance-test-passes
-    - text-and-binary-persistence-behavior-is-tested
+  super_jobs:
+    - {task_number: 1, local_time: "07:45", id: current-news-desk}
+    - {task_number: 2, local_time: "08:00", id: deep-features-desk}
+    - {task_number: 3, local_time: "08:50", id: chief-editor}
+    - {task_number: 4, local_time: "09:25", id: publication-builder}
+    - {task_number: 5, local_time: "09:55", id: cover-director}
 
 execution_constraints:
   subscription: chatgpt-plus
-  execution_environment: hosted-codex-cloud
+  execution_environment: chatgpt-scheduled-work
   openai_api_allowed: false
   openai_api_key_required: false
   pay_as_you_go_openai_allowed: false
@@ -26,7 +27,42 @@ execution_constraints:
   external_paid_services_allowed: false
   self_hosted_runner_allowed: false
   local_pc_dependency_allowed: false
-  github_role: source-control-persistent-memory-edition-archive-artifacts
+  github_role: connected-text-source-control-memory-and-publication-source-persistence
+  manual_binary_render_environment: codex-cloud
+  codex_cloud_scheduling_allowed: false
+
+tested_capabilities:
+  task_1_current_news:
+    live_research: PASS
+    github_text_read: PASS
+    github_utf8_text_write: PASS
+    github_text_read_back: PASS
+  task_2_deep_features:
+    deep_research: PASS
+    github_utf8_text_write: PASS
+    github_text_read_back: PASS
+  task_3_chief_editor:
+    full_edition_generation: PASS
+    fact_check: PASS
+    depth_gates: PASS
+    github_text_persistence_read_back: PASS
+    arabic_script_initial_failure_glyph_count: 25
+    deterministic_same_run_repair: REQUIRED
+  task_4_publication_builder:
+    mode: TEXT_ONLY
+    tested_outputs:
+      - edition.html
+      - print.css
+      - epub-content.xhtml
+      - publishing-report.json
+    source_package_generation: PASS
+    repository_executable_runtime: NOT_AVAILABLE
+  task_5_cover_director:
+    simplified_compact_brief_flow: PASS
+    minimal_image_generation_capability: PASS
+    compact_cover_render: PASS
+    large_all_in_one_prompt: FAIL
+    retry_limit: 1
 
 production_state:
   status_path: daily-runs/YYYY-MM-DD/status.json
@@ -39,6 +75,15 @@ production_state:
       publishing: PENDING
       cover: PENDING
       overall_status: PENDING
+      publication_source_package: PENDING
+      pdf_binary: NOT_GENERATED_NO_RUNTIME
+      epub_binary: NOT_GENERATED_NO_RUNTIME
+      binary_artifacts: PENDING_MANUAL_CODEX_RENDER
+      ready_for_codex_rendering: false
+      image_generation_status: PENDING
+      visual_qa_status: PENDING
+      github_image_archive: UNSUPPORTED_BY_CONNECTOR
+      cover_binary_archive: PENDING_MANUAL_ARCHIVE
       blocking_reason: null
     remove_stale_completion_fields: true
     rule: Never inherit COMPLETE from smoke, pre-production, deleted-edition, or abandoned same-date state.
@@ -50,38 +95,54 @@ production_state:
     editorial_complete_requires:
       - current_research == COMPLETE
       - deep_research == COMPLETE
-      - local editions/YYYY/MM/YYYY-MM-DD/edition.md exists
-      - local editions/YYYY/MM/YYYY-MM-DD/sources.json exists
-      - local editions/YYYY/MM/YYYY-MM-DD/manifest.json exists
-      - exact remote read-back of edition.md, sources.json, and manifest.json
+      - exact remote read-back of edition.md, sources.json, manifest.json, and editorial-report.json
       - required editorial gates pass
+      - arabic_script_count == 0
     publishing_running_or_complete_requires: editorial == COMPLETE
     publishing_complete_requires:
-      - required text and binary artifacts exist
-      - artifact validation passes
-      - exact remote read-back corresponds to the current run
+      - publication_source_package == COMPLETE
+      - edition.html, print.css, epub-content.xhtml, and publishing-report.json exist as UTF-8 text
+      - exact GitHub text read-back corresponds to the current run
+      - pdf_binary == NOT_GENERATED_NO_RUNTIME
+      - epub_binary == NOT_GENERATED_NO_RUNTIME
+      - binary_artifacts == PENDING_MANUAL_CODEX_RENDER
+      - ready_for_codex_rendering == true
     cover_complete_requires:
       - editorial == COMPLETE
-      - cover.webp exists
-      - cover validation passes
-      - exact remote read-back corresponds to the current run
-    overall_complete_requires: every required production stage is legitimately COMPLETE
+      - publishing == COMPLETE
+      - image_generation_status == PASS
+      - visual_qa_status == PASS
+      - github_image_archive == UNSUPPORTED_BY_CONNECTOR
+      - cover_binary_archive == PENDING_MANUAL_ARCHIVE
+    overall_complete_requires:
+      - current_research == COMPLETE
+      - deep_research == COMPLETE
+      - editorial == COMPLETE
+      - publishing == COMPLETE
+      - cover == COMPLETE
+    binary_state_visibility_rule: overall_status may be COMPLETE while manual binary rendering/archive remains explicit and pending.
     downstream_reset_rule: If editorial is BLOCKED or FAILED, publishing and cover must not remain COMPLETE for that attempt.
 
 remote_persistence:
   local_or_runtime_file_is_not_remote_persistence: true
   pass_requires:
-    - write through connected GitHub persistence path
+    - write through connected GitHub text persistence path
     - read exact canonical remote path back
-    - confirm returned content or artifact corresponds to the just-written output
+    - confirm returned UTF-8 text corresponds to the just-written output
   chief_editor_required_read_back:
     - editions/YYYY/MM/YYYY-MM-DD/edition.md
     - editions/YYYY/MM/YYYY-MM-DD/sources.json
     - editions/YYYY/MM/YYYY-MM-DD/manifest.json
-  report_rule: editorial-report.json and publishing-report.json must not claim PASS before the exact read-back check.
+    - daily-runs/YYYY-MM-DD/editorial-report.json
+  publication_builder_required_read_back:
+    - editions/YYYY/MM/YYYY-MM-DD/edition.html
+    - editions/YYYY/MM/YYYY-MM-DD/print.css
+    - editions/YYYY/MM/YYYY-MM-DD/epub-content.xhtml
+    - daily-runs/YYYY-MM-DD/publishing-report.json
+  cover_director_required_read_back:
+    - daily-runs/YYYY-MM-DD/cover-brief.json
+  report_rule: Reports must not claim GitHub text persistence PASS before exact read-back.
 
-# These are five coordinating super-jobs over the authoritative 13 roles in
-# config/roles.yaml. They are not five replacement editorial roles.
 jobs:
   - id: current-news-desk
     task_number: 1
@@ -89,30 +150,16 @@ jobs:
     local_time: "07:45"
     timezone: Africa/Casablanca
     editorial_roles: [morocco, meknes, palestine, world, ai]
-    reads:
-      - memory/
-      - previous-edition
-      - ongoing-stories
-      - config/sources.yaml
-      - config/output-schema.json
     responsibilities:
-      - read repository memory and the previous edition before selecting work
-      - avoid unnecessary repetition and report only meaningful new developments
-      - perform fresh live research in hosted Codex Cloud
+      - read repository memory and previous edition before selecting work
+      - perform fresh live research
       - create structured research packets, not final newspaper prose
       - verify major claims and preserve source URLs and provenance
       - distinguish facts, claims, estimates, disputed claims, and unknowns
+      - persist UTF-8 text to GitHub and read it back
     outputs:
-      - path: daily-runs/YYYY-MM-DD/current-news.json
-        kind: text
-        format: structured-research-packets
-    completion:
-      status_field: current_research
-      complete_value: COMPLETE
-      rule: Set COMPLETE only when all required research is responsibly finished; otherwise use BLOCKED or FAILED.
-    forbidden:
-      - write-the-final-newspaper
-      - invent-missing-research
+      - {path: daily-runs/YYYY-MM-DD/current-news.json, kind: text}
+    completion: {status_field: current_research, complete_value: COMPLETE}
 
   - id: deep-features-desk
     task_number: 2
@@ -120,32 +167,14 @@ jobs:
     local_time: "08:00"
     timezone: Africa/Casablanca
     editorial_roles: [science, history, literature-culture, investigations]
-    reads:
-      - memory/
-      - investigations/
-      - config/editorial-depth.yaml
-      - config/sources.yaml
-      - config/output-schema.json
     responsibilities:
-      - read memory before topic selection and avoid recently repeated topics
       - research Science, History, Literature/Culture, and Investigations deeply
-      - keep History at a hard minimum of 800 words and target 1000-1500
-      - keep Literature/Culture at a hard minimum of 800 words and target 1000-1500
-      - allow investigations to remain RESEARCHING and never force publication
-      - preserve study methodology, publication status, limitations, and uncertainty
-      - write structured research packets and feature material only
+      - obey editorial-depth minimums without padding
+      - keep unresolved investigations explicitly non-publication-ready
+      - persist UTF-8 text to GitHub and read it back
     outputs:
-      - path: daily-runs/YYYY-MM-DD/deep-features.json
-        kind: text
-        format: structured-research-packets
-    completion:
-      status_field: deep_research
-      complete_value: COMPLETE
-      rule: Set COMPLETE only when responsible research is complete; an unresolved dossier remains explicitly RESEARCHING or BLOCKED.
-    forbidden:
-      - write-the-final-newspaper
-      - force-an-investigation-to-ready
-      - lower-editorial-depth-minimums
+      - {path: daily-runs/YYYY-MM-DD/deep-features.json, kind: text}
+    completion: {status_field: deep_research, complete_value: COMPLETE}
 
   - id: chief-editor
     task_number: 3
@@ -154,82 +183,66 @@ jobs:
     timezone: Africa/Casablanca
     editorial_roles: [chief-editor, fact-check, darija-editor]
     prerequisites:
-      all:
-        - current_research == COMPLETE
-        - deep_research == COMPLETE
-      if_not_met: STOP; do not invent missing research or produce a fake edition.
-    reads:
-      - daily-runs/YYYY-MM-DD/current-news.json
-      - daily-runs/YYYY-MM-DD/deep-features.json
-      - memory/
-      - investigations/
-      - config/editorial-depth.yaml
-      - config/quality-gates.yaml
-      - config/sources.yaml
+      all: [current_research == COMPLETE, deep_research == COMPLETE]
+      if_not_met: STOP
     responsibilities:
-      - combine and rank research packets
-      - remove duplication and select front-page priorities
-      - request only evidence-based follow-ups
-      - apply editorial-depth rules and the Morocco accountability doctrine
+      - combine and rank research packets into one coherent edition
       - fact-check claims, numbers, dates, attributions, and citations
-      - perform natural Moroccan Darija Latin editorial cleanup
-      - remove internal engineering prose from reader-facing copy
-      - update editorial memory and ongoing stories
-      - write one coherent newspaper
+      - apply editorial-depth and reader-facing gates
+      - perform natural Moroccan Darija Latin cleanup
+      - before COMPLETE scan the entire edition for every Arabic-script occurrence
+      - scan Unicode ranges U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, and U+FE70-U+FEFF
+      - locate every occurrence and rewrite or transliterate the intended text naturally into Moroccan Darija Latin without changing facts
+      - rescan the entire edition and repeat the repair loop until arabic_script_count is exactly zero
+      - do not require a separate human repair run when deterministic same-execution repair is safe
+      - persist canonical text artifacts and read them back
     outputs:
-      - path: daily-runs/YYYY-MM-DD/editorial-report.json
-        kind: text
-      - path: editions/YYYY/MM/YYYY-MM-DD/edition.md
-        kind: text
-      - path: editions/YYYY/MM/YYYY-MM-DD/sources.json
-        kind: text
-      - path: editions/YYYY/MM/YYYY-MM-DD/manifest.json
-        kind: text
+      - {path: daily-runs/YYYY-MM-DD/editorial-report.json, kind: text}
+      - {path: editions/YYYY/MM/YYYY-MM-DD/edition.md, kind: text}
+      - {path: editions/YYYY/MM/YYYY-MM-DD/sources.json, kind: text}
+      - {path: editions/YYYY/MM/YYYY-MM-DD/manifest.json, kind: text}
     completion:
       status_field: editorial
       complete_value: COMPLETE
-      rule: Set COMPLETE only after editorial, factual, depth, language, and citation gates pass.
+      hard_gates:
+        - arabic_script_count == 0
+        - editorial gates PASS
+        - exact GitHub text read-back PASS
 
-  - id: publishing-desk
+  - id: publication-builder
     task_number: 4
-    label: PUBLISHING DESK
+    label: PUBLICATION BUILDER
     local_time: "09:25"
     timezone: Africa/Casablanca
     editorial_roles: [publishing]
+    mode: TEXT_ONLY
     prerequisites:
-      all:
-        - editorial == COMPLETE
-      if_not_met: STOP; preserve successful research and edition text.
-    reads:
-      - editions/YYYY/MM/YYYY-MM-DD/edition.md
-      - editions/YYYY/MM/YYYY-MM-DD/sources.json
-      - config/edition-manifest-schema.json
-      - config/execution-constraints.yaml
-      - config/quality-gates.yaml
-      - design/DRAGON-COVER-STYLE.md
+      all: [editorial == COMPLETE]
+      if_not_met: STOP
     responsibilities:
-      - generate PDF and EPUB from canonical edition.md
-      - apply the V1.1 reader-facing publishing rules
-      - keep UTF-8 clean, with zero mojibake and zero Arabic script
-      - enforce strict EPUB XHTML/XML parsing, TOC, navigation, and links
-      - make source links clickable and preserve source provenance
-      - produce a readable newspaper-style PDF, not a Markdown-print layout
-      - render and visually inspect PDF pages before accepting artifacts
-      - validate every artifact and record actual persistence behavior
+      - perform reader-facing cleanup without changing facts
+      - validate UTF-8 and reject mojibake
+      - require Arabic-script count zero
+      - resolve source links
+      - create semantic HTML
+      - create print CSS
+      - create XHTML-compatible EPUB source
+      - persist all publication-source text to GitHub and read it back
+      - do not generate or claim Scheduled Work PDF or EPUB binaries
     outputs:
-      - path: editions/YYYY/MM/YYYY-MM-DD/edition.pdf
-        kind: binary
-      - path: editions/YYYY/MM/YYYY-MM-DD/edition.epub
-        kind: binary
-      - path: daily-runs/YYYY-MM-DD/publishing-report.json
-        kind: text
-    persistence:
-      text: TEXT_PERSISTENCE
-      binary: BINARY_PERSISTENCE
+      - {path: editions/YYYY/MM/YYYY-MM-DD/edition.html, kind: text}
+      - {path: editions/YYYY/MM/YYYY-MM-DD/print.css, kind: text}
+      - {path: editions/YYYY/MM/YYYY-MM-DD/epub-content.xhtml, kind: text}
+      - {path: daily-runs/YYYY-MM-DD/publishing-report.json, kind: text}
     completion:
       status_field: publishing
       complete_value: COMPLETE
-      rule: Set COMPLETE only when the required artifact validation and the actual available persistence behavior both pass; blocked binary persistence is not PASS.
+      meaning: PUBLICATION SOURCE PACKAGE COMPLETE
+      set_binary_state:
+        pdf_binary: NOT_GENERATED_NO_RUNTIME
+        epub_binary: NOT_GENERATED_NO_RUNTIME
+        binary_artifacts: PENDING_MANUAL_CODEX_RENDER
+        ready_for_codex_rendering: true
 
   - id: cover-director
     task_number: 5
@@ -238,79 +251,79 @@ jobs:
     timezone: Africa/Casablanca
     editorial_roles: [publishing]
     prerequisites:
-      all:
-        - editorial == COMPLETE
-      preferred:
-        - publishing == COMPLETE
-      if_not_met: Do not fabricate content; use only the final edition and its sources.
-    reads:
-      - editions/YYYY/MM/YYYY-MM-DD/edition.md
-      - editions/YYYY/MM/YYYY-MM-DD/sources.json
-      - design/DRAGON-COVER-STYLE.md
+      all: [editorial == COMPLETE, publishing == COMPLETE]
+      if_not_met: STOP
     responsibilities:
-      - identify the lead story, defensible editorial angle, emotional tone, and 3-5 teasers
-      - include a Tarikh or Adab teaser where it belongs
-      - create a cover brief without researching unrelated stories
-      - generate one DRAGON cover under the permanent art-direction contract
-      - use Darija Latin for ordinary visible cover text and never use Arabic script
-      - label generated visuals as editorial illustration, never documentary evidence
+      - read the final edition, editorial report, and DRAGON cover style
+      - select exactly one lead and one cover mode
+      - create a compact cover-brief.json and persist/read it back
+      - issue one simple 3:4 image-generation request with one dominant concept
+      - keep visible text to DRAGON masthead, date, main headline, and at most two secondary teasers
+      - use black, white, and red hierarchy
+      - never create unrelated collage or fake documentary evidence
+      - require Arabic-script count zero in visible text
+      - perform visual QA
+      - if first generation fails, retry once only with an even simpler composition
+      - after the retry limit, mark the stage FAILED rather than expanding prompt complexity
+      - update cover-brief.json and status.json
     outputs:
-      - path: daily-runs/YYYY-MM-DD/cover-brief.json
-        kind: text
-      - path: editions/YYYY/MM/YYYY-MM-DD/cover.webp
-        kind: binary
-    persistence:
-      text: TEXT_PERSISTENCE
-      binary: BINARY_PERSISTENCE
+      - {path: daily-runs/YYYY-MM-DD/cover-brief.json, kind: text}
+      - {artifact: actual-generated-3x4-cover, kind: generated-image, github_persistence: unsupported}
     completion:
       status_field: cover
       complete_value: COMPLETE
-      rule: Set COMPLETE only when cover generation and the actual required persistence step succeed.
+      hard_gates:
+        - image_generation_status == PASS
+        - visual_qa_status == PASS
+      set_binary_state:
+        github_image_archive: UNSUPPORTED_BY_CONNECTOR
+        cover_binary_archive: PENDING_MANUAL_ARCHIVE
 
 daily_status:
   path: daily-runs/YYYY-MM-DD/status.json
-  fields:
-    - date
-    - timezone
-    - current_research
-    - deep_research
-    - editorial
-    - publishing
-    - cover
-    - overall_status
-    - last_updated
-    - blocking_reason
   allowed_stage_values: [PENDING, RUNNING, COMPLETE, BLOCKED, FAILED]
-  initial_values:
-    current_research: PENDING
-    deep_research: PENDING
-    editorial: PENDING
-    publishing: PENDING
-    cover: PENDING
-    overall_status: PENDING
-  overall_completion_rule: overall_status may be COMPLETE only when all required stages supported by the current architecture are COMPLETE; a blocked binary persistence stage cannot be silently treated as PASS.
-
-failure_and_handoff:
-  task_1_or_2_failure: Chief Editor must not fabricate missing research.
-  chief_editor_failure: Publishing must not create a fake final edition.
-  publishing_failure: Preserve edition.md and successful research; retry only the failed publishing artifact or persistence step.
-  cover_failure: Newspaper content remains valid; retry only the cover stage.
-  github_text_write_failure: The affected stage is NOT COMPLETE.
-  binary_connector_limitation: Mark the exact limitation in status and reports; never fake binary persistence.
-  quality_gates: No task may weaken a quality gate merely to finish on time.
-  retry_scope: Retry only the failed stage or artifact when safe; do not rerun all research unnecessarily.
+  required_stage_fields: [current_research, deep_research, editorial, publishing, cover]
+  required_binary_state_fields:
+    - pdf_binary
+    - epub_binary
+    - binary_artifacts
+    - cover_binary_archive
+  required_publication_state_fields:
+    - publication_source_package
+    - ready_for_codex_rendering
+  required_cover_state_fields:
+    - image_generation_status
+    - visual_qa_status
+    - github_image_archive
+  publishing_complete_semantics: publication source package complete; PDF and EPUB binaries remain NOT_GENERATED_NO_RUNTIME.
+  cover_complete_semantics: actual generated cover passed visual QA; GitHub binary archival is not required.
+  overall_completion_rule: overall_status may be COMPLETE when all five scheduled stages are COMPLETE even while manual binary rendering/archive states remain explicitly pending.
 
 connector_capabilities:
   github_scheduled_text_read: PASS
   github_scheduled_utf8_text_write: PASS
   github_scheduled_text_read_back: PASS
-  github_binary_image_write_through_current_connector: UNSUPPORTED/BLOCKED
-  scheduled_image_generation: UNTESTED
-  binary_persistence_rule: Binary outputs must be marked BLOCKED or NOT COMPLETE until the current connector's real capability is tested and succeeds.
+  github_binary_image_write: UNSUPPORTED
+  pdf_binary_write: UNSUPPORTED
+  epub_binary_write: UNSUPPORTED
+  scheduled_repository_executable_runtime: NOT_AVAILABLE
+  scheduled_image_generation: PASS
+  binary_limitation_classification: TESTED_ARCHITECTURE_LIMITATION
 
-artifact_persistence:
-  text_persistence: Store canonical text, JSON reports, manifests, memory, and provenance in GitHub after gates.
-  binary_persistence: Do not claim edition.pdf, edition.epub, or cover.webp persisted through the current GitHub connector unless an actual supported write and read-back succeeds.
-  github_actions: forbidden
-  api_infrastructure: forbidden
-  local_pc_runtime: forbidden
+manual_handoff:
+  pdf_binary: NOT_GENERATED_NO_RUNTIME
+  epub_binary: NOT_GENERATED_NO_RUNTIME
+  binary_artifacts: PENDING_MANUAL_CODEX_RENDER
+  ready_for_codex_rendering_when_source_package_passes: true
+  github_image_archive: UNSUPPORTED_BY_CONNECTOR
+  cover_binary_archive: PENDING_MANUAL_ARCHIVE
+  codex_cloud_may_render_binaries_manually_later: true
+  codex_cloud_scheduled_execution: false
+
+failure_and_handoff:
+  task_1_or_2_failure: Chief Editor must not fabricate missing research.
+  chief_editor_failure: Publication Builder must not create a fake source package.
+  publishing_failure: Preserve edition.md and successful research; retry only Task 4.
+  cover_failure: Newspaper content and publication-source package remain valid; retry only the permitted single cover retry.
+  github_text_write_failure: The affected stage is NOT COMPLETE.
+  quality_gates: No task may weaken a quality gate merely to finish on time.
