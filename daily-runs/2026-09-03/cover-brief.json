@@ -1,51 +1,19 @@
 {
   "date": "2026-09-03",
-  "lead_story_id": "WORLD-20260903-US-IRAN-REESCALATION",
   "lead_story": "Hormuz rje3 l-qelb dyal l-azma l-3alamiya",
   "main_fact": "US w Iran rj3o l-exchange dyal strikes f 1-2 September 2026, w l-risk l-markazi daba howa wach Strait of Hormuz ghadi yb9a ykhdem b-normal w chno ghadi ytra l-oil, LNG w shipping.",
-  "editorial_angle": "L-cover kayrkez 3la Hormuz b7al chokepoint li y9dar y7awwel escalation siyasi-3askari l-shock f energy, tijara w inflation, m3a impact direct 3la Morocco b7al mostawrid dyal energy.",
+  "editorial_angle": "Hormuz howa l-khna9 li y9dar y7awwel escalation l-shock f energy, tijara w inflation, b-impact direct 3la Morocco b7al mostawrid dyal energy.",
   "emotional_tone": "serious, tense, analytical, controlled, bla sensationalism",
   "cover_mode": "SYMBOLIC EDITORIAL",
   "main_headline": "HORMUZ: L3ALAM F LKHNA9",
-  "deck": [
-    "US w Iran rj3o l-escalation.",
-    "Daba l-3ayn 3la l-mamar li kaydouz mno oil w LNG.",
-    "Ila tkhneq Hormuz, Morocco y9dar y7ess b-prix qbel ay 7aja okhra."
-  ],
   "secondary_teasers": [
-    "Intikhabat l-Maghrib: wa3d kbar, costing mazal khaso stress test",
-    "Gaza: l-far9 bin rhetoric dyal emigration w policy",
-    "OpenAI: shutdown automation ma hiyach proof belli risk t7ell",
-    "Science: moral language ma katzidch engagement b-la nihaya"
+    "Intikhabat: wa3d kbar, costing mazal",
+    "Gaza: rhetoric wla policy?"
   ],
-  "history_or_culture_teaser": "Sijilmasa: l-Maghrib ta howa tarikh Sahari w Ifriqi",
-  "visual_metaphor": "Strait of Hormuz kayban mn fo9 b-shkl hourglass: jouj masahat dyal b7ar kbar kaytla9aw f wa7d l-khna9 dayeq, w silhouettes dyal oil tankers kaydouzo mn l-wast. Red pressure glow kay7dded chokepoint bla ay scene 7arbi documentary.",
-  "hero_subject": "Abstract top-down editorial rendering dyal Strait of Hormuz b-oil tankers squeezed through the narrow center.",
-  "composition": "Portrait 3:4. DRAGON masthead f top. Compact teaser rail. Hero visual ya5od qrib 65% mn l-cover. Main headline kbir f lower-middle. Short deck w secondary rail f bottom.",
-  "background": "Deep black and dark sea, off-white coast contours, strong red highlight only at the bottleneck; no battlefield or fabricated damage.",
-  "color_logic": "Black dominant, white typography, strong red for the choke point and LKHNA9 only.",
-  "typography_logic": "Bold condensed editorial sans, high contrast, phone-readable; all ordinary visible text Darija Latin.",
-  "visual_truth_status": "PASS_EDITORIAL_ILLUSTRATION_NO_DOCUMENTARY_FABRICATION",
-  "why_this_design": "L-edition kat3ti Hormuz howa l-qelb dyal risk: ma-shi ch7al mn strike, walakin wach chokepoint dyal energy w shipping yb9a normal. L-hourglass metaphor kaywassel had l-fekra f 2-3 seconds bla fake war image.",
-  "arabic_script_count": 0,
-  "image_generation_status": "PASS",
-  "visual_qa_status": "PASS",
-  "visual_qa_checks": {
-    "correct_lead": "PASS",
-    "correct_editorial_angle": "PASS",
-    "dragon_masthead_visible": "PASS",
-    "main_headline_readable": "PASS",
-    "arabic_script": "PASS_ZERO",
-    "key_text": "PASS",
-    "unrelated_collage": "PASS_NONE",
-    "documentary_fabrication": "PASS_NONE",
-    "portrait_3_4": "PASS",
-    "teaser_hierarchy": "PASS",
-    "style_contract": "PASS"
-  },
-  "github_image_persistence": "UNSUPPORTED_BY_CONNECTOR",
-  "final_headline": "HORMUZ: L3ALAM F LKHNA9",
-  "final_cover_mode": "SYMBOLIC EDITORIAL",
-  "cover_binary_archive": "PENDING_MANUAL_CODEX_OR_SUPPORTED_BINARY_PERSISTENCE",
-  "blocking_reason": null
+  "visual_metaphor": "Hormuz mn fo9 b-shkl hourglass: jouj b7or kbar kaytla9aw f khna9 dayeq, w silhouettes dyal tankers kaydouzo mn l-wast ta7t pressure 7mer.",
+  "hero_subject": "Top-down editorial illustration dyal Strait of Hormuz b-tankers squeezed through the narrow center.",
+  "composition": "Portrait 3:4; DRAGON masthead w date f top; hero ya5od 65%; headline kbir f lower-middle; jouj teasers sghar f bottom.",
+  "color_logic": "Black dominant, white typography and coast contours, strong red accent only at the bottleneck and LKHNA9.",
+  "why_this_design": "L-hourglass kaywassel f 2-3 seconds belli l-risk l-kbir howa chokepoint dyal energy w shipping, bla fake war image.",
+  "arabic_script_count": 0
 }
