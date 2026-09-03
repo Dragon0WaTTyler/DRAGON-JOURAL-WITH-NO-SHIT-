@@ -7,11 +7,14 @@
   "publishing": "COMPLETE",
   "cover": "PENDING",
   "overall_status": "PENDING",
-  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "binary_artifacts": "GENERATED_VALIDATED_GITHUB_PERSISTENCE_BLOCKED",
   "cover_binary_archive": "PENDING",
   "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
+  "binary_validation": "PASS",
+  "pdf_binary": "GENERATED_VALIDATED",
+  "epub_binary": "GENERATED_VALIDATED",
   "remote_read_back": {
-    "status": "PASS",
+    "status": "BLOCKED_BINARIES_NOT_PERSISTED",
     "paths": [
       "editions/2026/09/2026-09-03/edition.md",
       "editions/2026/09/2026-09-03/sources.json",
@@ -20,6 +23,8 @@
       "editions/2026/09/2026-09-03/edition.html",
       "editions/2026/09/2026-09-03/print.css",
       "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "editions/2026/09/2026-09-03/edition.pdf",
+      "editions/2026/09/2026-09-03/edition.epub",
       "daily-runs/2026-09-03/publishing-report.json",
       "daily-runs/2026-09-03/status.json"
     ],
@@ -27,10 +32,12 @@
       "editions/2026/09/2026-09-03/edition.html",
       "editions/2026/09/2026-09-03/print.css",
       "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "editions/2026/09/2026-09-03/edition.pdf",
+      "editions/2026/09/2026-09-03/edition.epub",
       "daily-runs/2026-09-03/publishing-report.json",
       "daily-runs/2026-09-03/status.json"
     ]
   },
-  "last_updated": "2026-09-03T09:47:12+01:00",
-  "blocking_reason": null
+  "last_updated": "2026-09-03T17:54:41+01:00",
+  "blocking_reason": "Binary generation and validation succeeded in the hosted runtime, but the connected GitHub write interface exposed no local-file parameter for binary blobs; binary payloads could not be transferred without unsafe/manual payload transcription. No shell git push, GitHub Actions, or external renderer was used."
 }
