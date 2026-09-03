@@ -5,10 +5,10 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
-  "cover": "BLOCKED",
-  "overall_status": "BLOCKED",
+  "cover": "COMPLETE",
+  "overall_status": "COMPLETE",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "cover_binary_archive": "PENDING_MANUAL_CODEX_OR_SUPPORTED_BINARY_PERSISTENCE",
-  "last_updated": "2026-09-03T04:21:00+01:00",
-  "blocking_reason": "Built-in image generation returned no usable cover image, so visual QA could not run."
+  "last_updated": "2026-09-03T04:30:19+01:00",
+  "blocking_reason": null
 }
