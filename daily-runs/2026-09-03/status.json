@@ -4,11 +4,12 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "RUNNING",
+  "publishing": "COMPLETE",
   "cover": "PENDING",
   "overall_status": "PENDING",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "cover_binary_archive": "PENDING",
+  "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
   "remote_read_back": {
     "status": "PASS",
     "paths": [
@@ -16,13 +17,17 @@
       "editions/2026/09/2026-09-03/sources.json",
       "editions/2026/09/2026-09-03/manifest.json",
       "daily-runs/2026-09-03/editorial-report.json",
+      "editions/2026/09/2026-09-03/edition.html",
+      "editions/2026/09/2026-09-03/print.css",
+      "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "daily-runs/2026-09-03/publishing-report.json",
       "daily-runs/2026-09-03/status.json"
     ],
     "required_paths": [
-      "editions/2026/09/2026-09-03/edition.md",
-      "editions/2026/09/2026-09-03/sources.json",
-      "editions/2026/09/2026-09-03/manifest.json",
-      "daily-runs/2026-09-03/editorial-report.json",
+      "editions/2026/09/2026-09-03/edition.html",
+      "editions/2026/09/2026-09-03/print.css",
+      "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "daily-runs/2026-09-03/publishing-report.json",
       "daily-runs/2026-09-03/status.json"
     ]
   },
