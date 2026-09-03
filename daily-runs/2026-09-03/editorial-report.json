@@ -1,104 +1,122 @@
 {
   "date": "2026-09-03",
   "timezone": "Africa/Casablanca",
-  "status": "BLOCKED",
-  "total_word_count": 5906,
+  "status": "RUNNING_READ_BACK",
+  "total_word_count": 6186,
   "section_word_counts": {
-    "Front Page": 417,
-    "Morocco": 790,
-    "Meknes": 211,
-    "Palestine": 549,
-    "L-3alam": 320,
-    "AI & Technology": 455,
-    "Tarikh l-Mghreb": 975,
-    "Adab & Culture": 980,
-    "New Studies / Science": 650,
-    "Psychology Deep Dive": 182,
-    "Investigations / Accountability": 230,
-    "Ending Pages": 147
+    "Front Page": 821,
+    "Morocco": 703,
+    "Meknes": 230,
+    "Palestine": 520,
+    "World": 414,
+    "AI": 560,
+    "Science": 587,
+    "Tarikh": 838,
+    "Adab/Culture": 819,
+    "Psychology Deep Dive": 197,
+    "Investigations": 281,
+    "Ending Pages": 155,
+    "Sources": 29
   },
-  "lead_story_id": "WORLD-20260903-US-IRAN-REESCALATION",
-  "lead_story_headline": "Hormuz rje3 l-qelb dyal l-azma l-3alamiya",
-  "editorial_angle": "L-edition katfrreq bin announcement, verified fact, disputed claim w real-world implementation; lead kayrbet US-Iran escalation b-Hormuz w direct energy risk 3la Morocco.",
-  "emotional_tone": "serious, skeptical, analytical, bla sensationalism",
+  "lead_story_id": "WORLD-20260903-US-IRAN-ESCALATION",
+  "lead_story_headline": "US-Iran: l-darb rje3, w Hormuz rje3 l-qalb dyal risk",
+  "editorial_angle": "Power claims only matter when evidence shows execution: l-harb t9rat mn energy risk, l-intikhabat mn costing, AI mn control evidence, w Filastin mn displacement, aid capacity w attribution.",
+  "emotional_tone": "serious, vigilant, evidence-first",
   "secondary_story_ids": [
-    "MA-20260903-ELECTION-FISCAL-PROMISES",
     "PAL-20260903-GAZA-EMIGRATION-POLICY",
-    "science-moral-language-saturation-2026-09-02",
-    "history-sijilmasa-saharan-gateway",
-    "culture-casablanca-art-school-postcolonial-modernism"
+    "MA-20260903-ELECTION-FISCAL-PROMISES",
+    "AI-20260903-OPENAI-SHUTDOWN-CONTROLS",
+    "PAL-20260903-WESTBANK-WFP-CUTS",
+    "MA-20260903-CEUTA-CRISIS"
   ],
-  "history_teaser": "Sijilmasa katbayan l-Maghrib b7al history Sahariya w Ifriqiya, ma-shi ghir b7ariya.",
-  "literature_teaser": "Casablanca Art School 7awlat tdecolonizi l-3ayn b-pedagogy, craft w public space, bla ma t9ta3 m3a international modernism.",
+  "history_teaser": "Sijilmasa: l-Maghrib Saharan w African, bin trade, oasis, state power w coercion.",
+  "literature_teaser": "Casablanca Art School: kifash modernism t7wel l-pedagogy, craft w public space.",
+  "stories_rejected": [
+    {"story_id":"MEK-20260903-RADAR-OUISLANE","reason":"No fresh verified award or implementation result; retained only as clearly labeled radar context."}
+  ],
+  "stories_held": [
+    {"story_id":"investigation-al-haouz-reconstruction-2023-2028","reason":"NEEDS_VERIFICATION; dossier update only, no exposé or accusation."},
+    {"story_id":"WORLD-20260903-TAIWAN-DEFENCE","reason":"Useful brief, insufficient change for larger placement."},
+    {"story_id":"AI-20260903-ANTHROPIC-RETAIL-AGENTS","reason":"Company announcement without independent production evidence; brief treatment only."}
+  ],
   "fact_check_status": "PASS",
   "darija_status": "PASS",
-  "arabic_glyphs_found_before_repair": 25,
   "arabic_script_count": 0,
-  "source_counts": {
-    "total": 44,
-    "primary": 15,
-    "independent": 29,
-    "unique_source_ids_cited": 44,
-    "citation_occurrences": 104
-  },
-  "quality_scores": {
-    "fact_check": 96,
-    "darija_latin": 96,
-    "depth_hard_gates": 100,
-    "source_traceability": 100,
-    "internal_prose_cleanup": 100,
-    "overall_editorial": 98
+  "source_count": 47,
+  "primary_source_count": 15,
+  "independent_origin_count": 25,
+  "citation_occurrences": 78,
+  "unique_source_ids_cited": 44,
+  "science_access": "ABSTRACT_ONLY plus publisher-visible metadata and OSF materials",
+  "allowed_exceptions": {
+    "meknes_thin_news_exception": {
+      "used": true,
+      "reason": "No major local development verified in the 24-hour research window; section gives the useful EST registration notice and keeps Ouislane as unverified radar rather than inflating it into major news."
+    },
+    "investigation_nonpublication_update": {
+      "used": true,
+      "reason": "Al Haouz dossier remains NEEDS_VERIFICATION and is published only as an accountability dossier update without unsupported accusation."
+    }
   },
   "hard_minimums": {
-    "total": {"required": 4000, "actual": 5906, "status": "PASS"},
-    "Morocco": {"required": 700, "actual": 790, "status": "PASS"},
-    "Meknes": {"required": 300, "actual": 211, "status": "PASS_WITH_THIN_NEWS_EXCEPTION"},
-    "Palestine": {"required": 500, "actual": 549, "status": "PASS"},
-    "Science": {"required": 500, "actual": 650, "status": "PASS"},
-    "History": {"required": 800, "actual": 975, "status": "PASS"},
-    "Literature_Culture": {"required": 800, "actual": 980, "status": "PASS"}
+    "total": {"required":4000,"actual":6186,"status":"PASS"},
+    "Morocco": {"required":700,"actual":703,"status":"PASS"},
+    "Meknes": {"required":300,"actual":230,"status":"PASS_WITH_THIN_NEWS_EXCEPTION"},
+    "Palestine": {"required":500,"actual":520,"status":"PASS"},
+    "Science": {"required":500,"actual":587,"status":"PASS"},
+    "History": {"required":800,"actual":838,"status":"PASS"},
+    "Literature_Culture": {"required":800,"actual":819,"status":"PASS"}
   },
-  "target_ranges": {
-    "edition": "6000-9000",
-    "history": "1000-1500",
-    "literature_culture": "1000-1500",
-    "morocco": "1000-1800",
-    "palestine": "700-1400",
-    "meknes": "500-1000",
-    "world": "500-1000",
-    "ai": "500-1000",
-    "science": "700-1200"
+  "quality_scores": {
+    "Front Page": 9,
+    "Morocco": 8,
+    "Meknes": 8,
+    "Palestine": 9,
+    "World": 8,
+    "AI": 9,
+    "Science": 9,
+    "Tarikh": 9,
+    "Adab/Culture": 9,
+    "Investigations": 8,
+    "Darija": 9,
+    "Sources": 9,
+    "Coherence": 9
   },
-  "allowed_exceptions": {
-    "meknes_thin_news_exception": true,
-    "investigation_nonpublication_update": true
+  "quality_gate": {
+    "prerequisites_complete": true,
+    "total_depth": true,
+    "section_depth": true,
+    "history_hard_minimum": true,
+    "literature_culture_hard_minimum": true,
+    "claims_attributed": true,
+    "unsupported_accusations_removed": true,
+    "arabic_script_zero": true,
+    "unnecessary_english_french_reviewed": true,
+    "internal_backend_talk_removed": true,
+    "source_ids_resolve": true,
+    "front_page_selection_exists": true,
+    "cover_brief_data_exists": true
   },
-  "repeated_topic_check": "PASS",
-  "regeneration_requests": [
-    "Arabic-script contamination repaired deterministically across full reader-facing text.",
-    "Palestine section strengthened above hard minimum without adding unsupported claims.",
-    "Internal implementation references removed from reader-facing prose."
-  ],
   "fact_check_notes": [
-    "Election programme figures kept as party claims; feasibility remains insufficiently evidenced.",
-    "Sebta disinformation attribution kept disputed because no independent forensic attribution resolves it.",
-    "Gaza 80 percent figure is not presented as fact because no survey source resolves it.",
-    "OpenAI shutdown controls are presented as company response, not independently proven effectiveness.",
-    "Science paper is identified as peer-reviewed but accessible review remained abstract-only; causal claims are not made.",
-    "Al Haouz dossier remains NEEDS_VERIFICATION and no corruption allegation is published."
+    "Election programme figures remain party claims; feasibility is not presented as established.",
+    "Sebta disinformation attribution remains disputed because no forensic attribution resolves it.",
+    "Exact lethal-fire attribution in al-Mughayyir is not asserted without forensic support.",
+    "OpenAI shutdown controls are presented as a company response, not independently proven effectiveness.",
+    "Science article is peer-reviewed but full-paper access was not available; causal claims are not made.",
+    "Al Haouz remains NEEDS_VERIFICATION; official progress and unresolved cases are both preserved."
   ],
-  "sources_resolve_status": "PASS",
-  "internal_backend_reader_facing_prose": "PASS",
-  "required_editorial_files_exist": "FAIL",
+  "github_write": "PASS",
+  "github_read_back": "PENDING",
   "remote_read_back": {
-    "status": "FAIL",
+    "status": "PENDING",
     "paths": [],
     "required_paths": [
       "editions/2026/09/2026-09-03/edition.md",
       "editions/2026/09/2026-09-03/sources.json",
-      "editions/2026/09/2026-09-03/manifest.json"
-    ],
-    "reason": "The canonical edition directory is absent from remote GitHub; local or runtime existence is not persistence."
+      "editions/2026/09/2026-09-03/manifest.json",
+      "daily-runs/2026-09-03/editorial-report.json",
+      "daily-runs/2026-09-03/status.json"
+    ]
   },
-  "blocking_reason": "Editorial completion is blocked until the three canonical files are written through the connected GitHub path and read back exactly."
+  "blocking_reason": null
 }
