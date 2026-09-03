@@ -8,41 +8,60 @@
   "utf8_status": "PASS",
   "mojibake_status": "PASS",
   "arabic_script_count": 0,
-  "source_link_status": "PASS_IDS_RESOLVE_URLS_PRESENT",
+  "source_link_status": "PASS_IDS_RESOLVE_URLS_PRESENT_AND_BINARY_LINKS_CLICKABLE",
   "reader_facing_backend_language_status": "PASS",
   "cover_insertion_area": "PRESENT",
-  "pdf_status": "NOT_GENERATED_NO_RUNTIME",
-  "epub_binary_status": "NOT_GENERATED_NO_RUNTIME",
+  "pdf_status": "GENERATED_VALIDATED",
+  "epub_binary_status": "GENERATED_VALIDATED",
   "github_text_persistence": "PASS",
-  "github_binary_persistence": "UNSUPPORTED",
-  "ready_for_codex_rendering": true,
-  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "github_binary_persistence": "BLOCKED_NO_LOCAL_FILE_BRIDGE_TO_CONNECTED_GITHUB_BLOB_ACTION",
+  "ready_for_codex_rendering": false,
+  "binary_artifacts": "GENERATED_VALIDATED_GITHUB_PERSISTENCE_BLOCKED",
   "publication_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
+  "binary_validation": {
+    "pdf": {
+      "path": "editions/2026/09/2026-09-03/edition.pdf",
+      "pages": 25,
+      "page_size": "A4",
+      "visual_readability": "PASS",
+      "clipping_overflow": "PASS",
+      "link_annotations": 183,
+      "external_uri_annotations": 105,
+      "unique_external_source_urls": 47,
+      "sha256": "10338bea99255bfa2cd7986efc5445078319aa71fc6e7d13be8602fb24368787",
+      "size_bytes": 97054
+    },
+    "epub": {
+      "path": "editions/2026/09/2026-09-03/edition.epub",
+      "zip_integrity": "PASS",
+      "xml_validation": "PASS",
+      "open_read_validation": "PASS_PANDOC",
+      "mimetype_first_uncompressed": "PASS",
+      "external_source_urls": 47,
+      "internal_source_references": 78,
+      "sha256": "030b985c51ac50ee986099dce40367ad54214529d80d11c6a30c9edd79b6e116",
+      "size_bytes": 26203
+    }
+  },
   "remote_read_back": {
-    "status": "PASS",
+    "status": "BLOCKED_BINARIES_NOT_PERSISTED",
     "paths": [
       "editions/2026/09/2026-09-03/edition.html",
       "editions/2026/09/2026-09-03/print.css",
       "editions/2026/09/2026-09-03/epub-content.xhtml",
-      "daily-runs/2026-09-03/publishing-report.json",
-      "daily-runs/2026-09-03/status.json"
-    ],
-    "required_paths": [
-      "editions/2026/09/2026-09-03/edition.html",
-      "editions/2026/09/2026-09-03/print.css",
-      "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "editions/2026/09/2026-09-03/edition.pdf",
+      "editions/2026/09/2026-09-03/edition.epub",
       "daily-runs/2026-09-03/publishing-report.json",
       "daily-runs/2026-09-03/status.json"
     ]
   },
   "validation_notes": [
-    "Canonical edition entered Task 4 with editorial COMPLETE, UTF-8 PASS, mojibake-free reader text, arabic_script_count 0, and source IDs resolving.",
-    "Existing same-date publication-source files were not trusted from status alone; this explicitly requested run fetched and re-read the retained HTML, CSS and XHTML from GitHub before completion.",
-    "HTML provides semantic publication structure, DRAGON masthead, date, section navigation, front-page hierarchy, source anchors, direct source URLs, footer metadata, and a defined future cover.webp insertion area without changing editorial facts or judgments.",
-    "Print CSS provides black/white/red newspaper styling, multi-column support, print-safe breaks, readable source notes, and paged-media footer/page-number declarations where supported.",
-    "XHTML provides XML/XHTML-compatible structure, UTF-8, semantic headings, navigation anchors, internal source anchors and direct source URLs.",
-    "Scheduled Work did not attempt PDF or EPUB binary generation and does not claim binary publication success."
+    "Manual binary rendering executed only after publication source package COMPLETE.",
+    "Canonical newspaper content was not regenerated or editorially changed.",
+    "PDF rendered locally from byte-identical checked-in edition.html and print.css.",
+    "EPUB package preserves the reader-facing editorial content and source-link registry in strict XHTML/XML-compatible form.",
+    "No paid API, GitHub Actions compute, external hosted rendering service, or local-PC dependency was used."
   ],
-  "blocking_reason": null,
-  "generated_at": "2026-09-03T09:47:12+01:00"
+  "blocking_reason": "Binary generation and validation succeeded in the hosted runtime, but the connected GitHub write interface exposed no local-file parameter for binary blobs; binary payloads could not be transferred without unsafe/manual payload transcription. No shell git push, GitHub Actions, or external renderer was used.",
+  "generated_at": "2026-09-03T17:54:41+01:00"
 }
