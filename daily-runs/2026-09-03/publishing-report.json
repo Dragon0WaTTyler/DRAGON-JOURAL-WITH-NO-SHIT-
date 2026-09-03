@@ -23,7 +23,9 @@
     "paths": [
       "editions/2026/09/2026-09-03/edition.html",
       "editions/2026/09/2026-09-03/print.css",
-      "editions/2026/09/2026-09-03/epub-content.xhtml"
+      "editions/2026/09/2026-09-03/epub-content.xhtml",
+      "daily-runs/2026-09-03/publishing-report.json",
+      "daily-runs/2026-09-03/status.json"
     ],
     "required_paths": [
       "editions/2026/09/2026-09-03/edition.html",
@@ -35,11 +37,12 @@
   },
   "validation_notes": [
     "Canonical edition entered Task 4 with editorial COMPLETE, UTF-8 PASS, mojibake-free reader text, arabic_script_count 0, and source IDs resolving.",
-    "Generated HTML adds semantic publication structure, masthead, section navigation, front-page hierarchy, source anchors, direct source URLs, footer metadata, and a defined future cover.webp insertion area without changing editorial facts or judgments.",
-    "Generated print CSS uses black/white/red newspaper styling, print-safe breaks, multi-column support, source-note styling, and paged-media footer/page-number declarations where supported.",
-    "Generated XHTML uses XML declaration, XHTML namespace, UTF-8, closed empty elements, semantic headings, navigation anchors, internal source anchors, and direct source URLs.",
-    "Scheduled Work did not attempt PDF or EPUB binary generation and did not claim binary publication success."
+    "Existing same-date publication-source files were not trusted from status alone; this explicitly requested run fetched and re-read the retained HTML, CSS and XHTML from GitHub before completion.",
+    "HTML provides semantic publication structure, DRAGON masthead, date, section navigation, front-page hierarchy, source anchors, direct source URLs, footer metadata, and a defined future cover.webp insertion area without changing editorial facts or judgments.",
+    "Print CSS provides black/white/red newspaper styling, multi-column support, print-safe breaks, readable source notes, and paged-media footer/page-number declarations where supported.",
+    "XHTML provides XML/XHTML-compatible structure, UTF-8, semantic headings, navigation anchors, internal source anchors and direct source URLs.",
+    "Scheduled Work did not attempt PDF or EPUB binary generation and does not claim binary publication success."
   ],
   "blocking_reason": null,
-  "generated_at": "2026-09-03T06:53:00+01:00"
+  "generated_at": "2026-09-03T09:47:12+01:00"
 }
