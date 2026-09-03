@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-03",
+  "editorial_status": "COMPLETE",
+  "utf8_status": "PASS",
+  "mojibake_status": "PASS",
+  "arabic_script_count": 0,
+  "pdf_generation_status": "BLOCKED_NO_EXECUTABLE_REPOSITORY_RUNTIME",
+  "pdf_visual_qa_status": "NOT_RUN",
+  "pdf_page_count": null,
+  "epub_generation_status": "BLOCKED_NO_EXECUTABLE_REPOSITORY_RUNTIME",
+  "epub_xml_validation_status": "NOT_RUN",
+  "source_link_status": "NOT_VALIDATED_IN_DERIVATIVES",
+  "github_text_persistence": "PASS_PENDING_READ_BACK",
+  "github_binary_persistence": "BLOCKED_BY_CONNECTOR",
+  "binary_persistence_limitation": "The connected GitHub actions available in this execution can read and write UTF-8 text but do not expose a binary upload action for PDF/EPUB bytes. The current execution also does not expose an executable checked-out repository runtime through the connector, so the repository publishing generator and validators cannot be run against the repaired canonical edition.md. Existing edition.pdf and edition.epub are stale: their latest commit is 84fb204581d34fab376e89aa2e4422fba9b32f9f from 2026-09-02T03:24:45Z, before the canonical edition.md repair commit 18f92c4e3c0d5ae098dc6725f76ca7d0ef232f65 on 2026-09-03T02:50:44Z, so they were not accepted as today's derivatives.",
+  "reader_facing_status": "PASS_SOURCE_TEXT",
+  "blocking_reason": "Publishing artifact generation is blocked in this execution because the connected GitHub interface does not provide an executable/materialized repository runtime for running scripts/publish_preproduction_edition.py and scripts/validate_edition.py against the repaired 2026-09-03 canonical edition. Reusing the pre-repair PDF/EPUB would violate the canonical-source and validation contracts. PDF visual QA and strict EPUB XML/XHTML validation therefore could not be performed.",
+  "generated_at": "2026-09-03T04:04:53+01:00"
+}
