@@ -15,5 +15,9 @@
   "composition": "Portrait 3:4; DRAGON masthead w date f top; hero illustration dominante; headline kbir; maximum jouj teasers sghar f bottom.",
   "color_logic": "Black dominant, white typography w coast contours, strong red accent f chokepoint.",
   "why_this_design": "Kaywassel b-sor3a belli l-story ma hiyach ghir exchange dyal darbat: l-risk l-3alami kaytjm3 f chokepoint dyal energy w shipping, bla fake documentary scene.",
-  "arabic_script_count": 0
+  "arabic_script_count": 0,
+  "image_generation_status": "PASS",
+  "visual_qa_status": "FAIL",
+  "final_headline": "HORMUZ: L3ALAM F LKHNA9",
+  "github_image_archive": "UNSUPPORTED_BY_CONNECTOR"
 }
