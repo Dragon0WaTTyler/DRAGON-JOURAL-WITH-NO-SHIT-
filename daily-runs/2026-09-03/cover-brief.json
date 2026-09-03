@@ -15,5 +15,9 @@
   "composition": "Portrait 3:4; DRAGON masthead w date f top; hero ya5od 65%; headline kbir f lower-middle; jouj teasers sghar f bottom.",
   "color_logic": "Black dominant, white typography and coast contours, strong red accent only at the bottleneck and LKHNA9.",
   "why_this_design": "L-hourglass kaywassel f 2-3 seconds belli l-risk l-kbir howa chokepoint dyal energy w shipping, bla fake war image.",
-  "arabic_script_count": 0
+  "arabic_script_count": 0,
+  "image_generation_status": "PASS",
+  "visual_qa_status": "PASS",
+  "final_headline": "HORMUZ: L3ALAM F LKHNA9",
+  "github_image_archive": "UNSUPPORTED_BY_CONNECTOR"
 }
