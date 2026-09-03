@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-03",
+  "lead_story_id": "WORLD-20260903-US-IRAN-REESCALATION",
+  "lead_story": "Hormuz rje3 l-qelb dyal l-azma l-3alamiya",
+  "main_fact": "US w Iran rj3o l-exchange dyal strikes f 1-2 September 2026, w l-risk l-markazi daba howa wach Strait of Hormuz ghadi yb9a ykhdem b-normal w chno ghadi ytra l-oil, LNG w shipping.",
+  "editorial_angle": "L-cover kayrkez 3la Hormuz b7al chokepoint li y9dar y7awwel escalation siyasi-3askari l-shock f energy, tijara w inflation, m3a impact direct 3la Morocco b7al mostawrid dyal energy.",
+  "emotional_tone": "serious, tense, analytical, controlled, bla sensationalism",
+  "cover_mode": "SYMBOLIC EDITORIAL",
+  "main_headline": "Hormuz... fin ghadi y7بس l3alam?",
+  "deck": [
+    "US w Iran rj3o l-escalation.",
+    "Daba l-3ayn 3la l-mamar li kaydouz mno oil w LNG.",
+    "Ila tkhneq Hormuz, Morocco y9dar y7ess b-prix qbel ay 7aja okhra."
+  ],
+  "secondary_teasers": [
+    "Intikhabat l-Maghrib: wa3d kbar, costing mazal khaso stress test",
+    "Gaza: l-far9 bin rhetoric dyal emigration w policy",
+    "OpenAI: shutdown automation ma hiyach proof belli risk t7ell",
+    "Science: moral language ma katzidch engagement b-la nihaya"
+  ],
+  "history_or_culture_teaser": "Sijilmasa: l-Maghrib ta howa tarikh Sahari w Ifriqi",
+  "visual_metaphor": "Wa7d hourglass/khannaq visual kaytshkel b-map abstract dyal Strait of Hormuz: f l-fo9 oil tanker silhouette w LNG route, f l-wast mamar dayeq b-red pressure line, w f l-ta7t drop dyal oil katwli price tag/energy pulse wasla l-silhouette dyal Morocco. Metaphor kaybayan chokepoint bla ma yfabrici strike wla event documentary.",
+  "hero_subject": "Abstract editorial rendering dyal Strait of Hormuz b-tanker silhouette w energy-flow pressure, m3a Morocco silhouette as downstream consequence, not as geographic documentary map.",
+  "composition": "Portrait 3:4. DRAGON masthead f top b-white 3la black. Hero visual ya5od qrib 60-65% mn l-cover. Main headline kbir f lower-middle, word Hormuz prominent w key tension phrase b-red. Small side analysis box. Secondary teaser rail f bottom with strict hierarchy.",
+  "background": "Deep black/charcoal field with restrained off-white map contours and one strong red choke-point accent; no photographic battlefield scene.",
+  "color_logic": "Black dominant, white typography, strong red only for Hormuz pressure point and one headline phrase; muted beige/grey optional for secondary information.",
+  "typography_logic": "Bold condensed editorial sans for headline, clean high-contrast sans for deck and teasers, large readable DRAGON masthead, no decorative scripts, all ordinary visible text in Darija Latin.",
+  "visual_truth_status": "PASS_EDITORIAL_ILLUSTRATION_NO_DOCUMENTARY_FABRICATION",
+  "why_this_design": "L-edition kat3ti Hormuz howa l-qelb dyal risk: ma-shi ch7al mn strike, walakin wach chokepoint dyal energy w shipping yb9a normal. Symbolic editorial mode kaywassel had l-fekra f 2-3 seconds bla ma nsawbo fake war image.",
+  "arabic_script_count": 0,
+  "image_generation_status": "PENDING",
+  "visual_qa_status": "PENDING",
+  "github_image_persistence": "UNSUPPORTED_BY_CONNECTOR",
+  "final_headline": null,
+  "final_cover_mode": null
+}
