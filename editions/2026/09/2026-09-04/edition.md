@@ -82,7 +82,7 @@ L-Mghrib kayrbe7 aktar mn journalism li kaydir distinctions mn journalism li kay
 
 ### L-athar dyal global financing 3la l-Mghrib
 
-Story dyal global bond yields ma hiyach story Maghribi direct, walakin 3andha relevance. Ila sovereign yields f major markets b9aw tal3in, investors y9dro ytalbo return a3la f markets okhra, companies t9dar t9iiss debt b-thaman aghla, w governments t9dar t7ss b-pressure f refinancing. [S11] Ma kaynach f packet data jdida katgol ch7al hadchi ghadi y2atr 3la Morocco b-ra9m, donc ma ghadi-sh nkhtr3 estimate.
+Story dyal global bond yields ma hiyach story Maghribi direct, walakin 3andha relevance. Ila sovereign yields f major markets b9aw tal3in, investors y9dro ytalbo return a3la f markets okhra, companies t9dar t9iiss debt b-thaman aghla, w governments t9dar t7ss b-pressure f refinancing. [S11] Ma kaynach f l-ma3loumat available data jdida katgol ch7al hadchi ghadi y2atr 3la Morocco b-ra9m, donc ma ghadi-sh nkhtr3 estimate.
 
 Li n9dro n9olo huwa belli financing global howa wa7d mn l-channels li kayrbto decisions f central banks b-budget choices f douwal okhra. Ila l-selloff traja3 m3a inflation data w ECB/Fed expectations, risk y9dar ykhf. Ila b9a, su2al dyal cost of capital ghadi ykber. Nra9bo data, ma-shi panic.
 
@@ -116,7 +116,7 @@ Diplomatically, l-position l-Amerikaniya t9dar tban mohimma 7it US 3ando leverag
 
 ### OHCHR: civilian harm ma wa9afch m3a smiya dyal ceasefire
 
-OHCHR nchar 4 September statement kaygol belli 24 Palestinians t9tlo f Israeli attacks bin 28 August w 1 September, w 3ta details 3la wa7d raid f west Gaza City. [S08] Hadi casualty figure attributed l-OHCHR; packet ma kay3tich independent incident-by-incident verification l-kol death, donc ma khasnach n7awlo attribution l-certainty universal.
+OHCHR nchar 4 September statement kaygol belli 24 Palestinians t9tlo f Israeli attacks bin 28 August w 1 September, w 3ta details 3la wa7d raid f west Gaza City. [S08] Hadi casualty figure attributed l-OHCHR; l-masadir li 3andna ma kat3tich independent incident-by-incident verification l-kol death, donc ma khasnach n7awlo attribution l-certainty universal.
 
 L-mohim hna ma-shi ghir l-ra9m. UN human-rights office kaydir wa7d assessment belli bloodshed kaytwasel qrib 3am mn ceasefire. Ila truce ma katmna3ch attacks w civilian deaths, khas su2al ytbdel mn "wash kayn ceasefire?" l-"chno kay3ni had ceasefire f l-ard?". Kayn mechanism investigation? Kayn accountability? Kayn clear rules dyal fire? Kayn protection dyal movement civil? Kayn access medical? Kayn warning procedures?
 
@@ -172,7 +172,7 @@ Nra9bo exact allocation dyal funds, build-out dyal compute, export-control impac
 
 ### Social technologies w rida 3la l-7ayat: chno l9at study b-dabt?
 
-Paper "Social technology use and life satisfaction in a five-wave panel study of US adults" tnachrat f Nature Human Behaviour nhar 28 August 2026. Authors homa Kostadin Kushlev, Kibum Moon, Matt Motyl, Nathanael J. Fast w Juliana Schroeder. [S16] Study peer-reviewed version of record. Access li kan available l-research desk howa methods plus abstract, ma-shi claim dyal full unrestricted reading l-kol article.
+Paper "Social technology use and life satisfaction in a five-wave panel study of US adults" tnachrat f Nature Human Behaviour nhar 28 August 2026. Authors homa Kostadin Kushlev, Kibum Moon, Matt Motyl, Nathanael J. Fast w Juliana Schroeder. [S16] Study peer-reviewed version of record. L-access l-article li kan motah lina kaychmel methods w abstract, donc had l-qira2a ma katda3ich full unrestricted review dyal kol l-article.
 
 Su2al l-asasi kan: wash self-reported use dyal 10 social technologies kaypredict later life satisfaction, w wash reverse direction kayban? Sample kan N=1,966 US adults, 5 waves, kol 3 chhor. Use frequency t9as b-6-point scale, w analysis sta3ml Bayesian w frequentist random-intercept cross-lagged panel models. [S16][S17]
 
@@ -222,7 +222,7 @@ L-Makhzen kan kay7awel yst3ml port bach ycentralizi revenue w ykontroli foreign 
 
 French bombardment dyal Mogador f 1844 huwa milestone li kaybayan belli relation m3a Europe ma kantsh ghir trade peaceful. Military coercion t9dar tdkhl direct f balance dyal sovereignty. [S20][S23] Mn b3d, Anglo-Moroccan commercial treaty dyal 1856 zad integration w bddl framework dyal commerce. Systems dyal protege w consular privileges zado leverage foreign.
 
-Ma khasnach n9olo treaty wa7d huwa sabab wa7id dyal decline dyal sovereignty. Source packet kay7dded belli l-process multi-causal: local choices, unequal treaties, military pressure w wider commercial integration. History li katqleb 3la villain wa7d wla hero wa7d katf9d complexity.
+Ma khasnach n9olo treaty wa7d huwa sabab wa7id dyal decline dyal sovereignty. L-masadir katsnnd qira2a multi-causal: local choices, unequal treaties, military pressure w wider commercial integration. History li katqleb 3la villain wa7d wla hero wa7d katf9d complexity.
 
 ### Yahoud w Muslims: ma bin romanticization w conflict-only narrative
 
@@ -242,7 +242,7 @@ Hadi ta hiya lesson f economic history. City kat9wa 7it institutions, geography 
 
 Essaouira lyoum t9dar ttfham b-tourism w heritage, walakin history dyalha kat7ell as2ila akbar: kifach state kaynaddem market? kifach minority merchant elite kat3ich bin influence w vulnerability? kifach international trade y9dar yjib growth w f nafs lwa9t ywss3 leverage foreign? kifach memory katkhtasar relation social f slogan dyal tolerance wla conflict?
 
-L-jawab ma kaynch f slogan. Source base katbayan port bna-h Makhzen b-strategy. Katbayan Jewish merchant elite mohimma. Katbayan European pressure kbir. Katbayan hierarchy social. W katbayan belli history dyal sovereignty ma hiyach 9issa dyal wa7d side kaydir kolchi w side akhor passive. Hadi hiya qimat had dossier: kayrj3 l-agency l-Maghribiya bla ma ykhbi asymmetry li katzid m3a pressure Ewropeya.
+L-jawab ma kaynch f slogan. L-masadir katbayan port bna-h Makhzen b-strategy. Katbayan Jewish merchant elite mohimma. Katbayan European pressure kbir. Katbayan hierarchy social. W katbayan belli history dyal sovereignty ma hiyach 9issa dyal wa7d side kaydir kolchi w side akhor passive. Hadi hiya qimat had dossier: kayrj3 l-agency l-Maghribiya bla ma ykhbi asymmetry li katzid m3a pressure Ewropeya.
 
 ## Adab w Taqafa
 
@@ -286,7 +286,7 @@ Ila l-goal huwa t7mi heritage, 3andna juj options sahlin walakin na9sin. Luwel h
 
 Hadchi y9dar y3ni spaces fin l-halqa t9dar tsawb bla ma ttsed b-commercial pressure, support l-apprenticeship, documentation ma katsar9sh intellectual contribution dyal performers, fair opportunities l-practitioners, w city planning li kay3taref belli intangible culture kat7taj physical space.
 
-Exact current count dyal storytellers ma kaynch f packet b-source solid kafi, donc ma ghadi-sh nkhtro3 number w n9olo "b9aw ghir X". Li supported huwa concern 3la decline w pressure. [S24][S26] Hadi distinction sghira walakin mohimma: urgency ma kat7tajsh statistic invented.
+Exact current count dyal storytellers ma kaynch 3lih source solid kafi f l-masadir li 3andna, donc ma ghadi-sh nkhtro3 number w n9olo "b9aw ghir X". Li supported huwa concern 3la decline w pressure. [S24][S26] Hadi distinction sghira walakin mohimma: urgency ma kat7tajsh statistic invented.
 
 ### 3lach hadchi mohim lyoum
 
@@ -324,7 +324,7 @@ Daba l-position responsible huwa: progress official kbir kayn, complaints w gaps
 
 ### 7a9i9a mdahcha dyal lyoum
 
-Essaouira ma tbnatsh ghir 7da l-Atlantic 7it blassa zwina. Source scholarship katbayan belli Sultan Mohammed III bna royal port b-strategy bach ynaddem foreign trade, customs w state power. [S20][S21]
+Essaouira ma tbnatsh ghir 7da l-Atlantic 7it blassa zwina. L-masadir l-academiya katbayan belli Sultan Mohammed III bna royal port b-strategy bach ynaddem foreign trade, customs w state power. [S20][S21]
 
 ### So2al dyal lyoum
 
@@ -332,4 +332,4 @@ Ila tradition ma katb9ash 7ayya ghir ila tbdlat m3a audience dyalha, fin kayn l-
 
 ## Masadir
 
-Kol citation b-format [Sxx] katrje3 l-source ID l-motabi9 f sources.json dyal had l-edition. L-source kayt9ra 7sab origin dyal l-ma3louma: official statement kaythbet chno gal l-official, company announcement kaythbet chno 3lnt company, w claim disputed ma kaywlich fact ghir 7it t3awd f aktar mn site.
+Kol citation b-format [Sxx] katrje3 l-masdar l-mora9am li mraf9 had l-edition. Official statement kaythbet chno gal l-official, company announcement kaythbet chno 3lnt company, w claim disputed ma kaywlich fact ghir 7it t3awd f aktar mn site.
