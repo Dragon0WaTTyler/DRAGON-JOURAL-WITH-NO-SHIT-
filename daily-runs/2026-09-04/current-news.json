@@ -2,14 +2,14 @@
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
   "research_started_at": "2026-09-04T05:44:40+01:00",
-  "research_completed_at": "2026-09-04T06:18:00+01:00",
+  "research_completed_at": "2026-09-04T06:24:00+01:00",
   "memory_checked": {
     "covered_stories": true,
     "watchlist": true,
     "previous_current_news": "daily-runs/2026-09-03/current-news.json",
     "previous_edition": "editions/2026/09/2026-09-03/edition.md",
     "active_investigations": ["al-haouz-reconstruction", "water-security-accountability"],
-    "note": "Tchafat edition w packet dyal 3 September. Stories qdam ma t3awdosh ila ma kaynch development jdid. Ceuta t9ddmat ghir 7it kayn correction mohim 3la attribution; Gaza emigration plan dyal 2 September ma t3awdch b7al story jdida."
+    "note": "Tchafat memory w edition dyal 3 September. Ma t3awdch background qdim ila ma kaynch development jdid. Ceuta dkhlet 7it kayn correction mohim 3la attribution; Gaza emigration plan dyal 2 September ma t3awdch b7al story jdida."
   },
   "morocco": [
     {
@@ -18,38 +18,24 @@
       "proposed_title": "Sebta: Sanchez kaygol ma kaynach dalil belli Morocco dabbret border surge",
       "importance_score": 9,
       "freshness": "fresh-24h-meaningful-correction",
-      "chno_w9e3": "Pedro Sanchez gal f parliament nhar 3 September belli Spain ma 3andhach evidence katkhlliha t7sem belli l-authorities l-Maghribiya dabbret mass crossing dyal July l-Sebta. Hadchi development jdid 7it kay9lls wa7d attribution li b9at disputed f edition dyal lbar7.",
+      "chno_w9e3": "Pedro Sanchez gal f parliament nhar 3 September belli Spain ma 3andhach evidence katkhlliha t7sem belli l-authorities l-Maghribiya dabbret mass crossing dyal July l-Sebta. Hadchi development jdid 7it kay9lls attribution li b9at disputed f edition dyal lbar7.",
       "key_facts": [
         "FACT: Sanchez gal ma kaynach evidence whatsoever 3la orchestration mn Morocco.",
-        "FACT: Reuters kaygol belli police report Spanish kan fih observations 3la passivity w understaffing f wa7d l-window mohim.",
+        "FACT: Reuters kaygol police report Spanish kan fih observations 3la passivity w understaffing f wa7d l-window mohim.",
         "OFFICIAL_CLAIM: Morocco katnfi deliberate permissiveness w katrbet l-surge b social media, traffickers w confusion 7awl rules.",
         "L7OKM DYAL L2ADILLA: MIXED. Ma kaynach basis bach n9olo orchestration proven; kayb9aw as2ila 3la chno w9e3 operationally f sa3at l-crossing."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.reuters.com/world/europe/spains-pm-sanchez-says-no-evidence-morocco-orchestrated-ceuta-border-surge-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Sanchez statement, police-report context, Morocco denial",
-          "evidence_label": "FACT_AND_ATTRIBUTED_CLAIMS"
-        },
-        {
-          "url": "https://www.theguardian.com/world/2026/sep/03/spain-pm-evidence-morocco-ceuta-border-breach",
-          "publisher": "The Guardian",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Independent cross-check dyal Sanchez statement w political context",
-          "evidence_label": "FACT"
-        }
+        {"url": "https://www.reuters.com/world/europe/spains-pm-sanchez-says-no-evidence-morocco-orchestrated-ceuta-border-surge-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Sanchez statement, police-report context, Morocco denial", "evidence_label": "FACT_AND_ATTRIBUTED_CLAIMS"},
+        {"url": "https://www.theguardian.com/world/2026/sep/03/spain-pm-evidence-morocco-ceuta-border-breach", "publisher": "The Guardian", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Independent cross-check dyal Sanchez statement", "evidence_label": "FACT"}
       ],
       "source_origins": ["Reuters", "The Guardian", "Spanish government", "Spanish police report", "Moroccan government"],
-      "contradictory_evidence": ["Police report kaywassaf passivity/unusual border behaviour, walakin Sanchez kaygol ma kaynach evidence kat7sem orchestration."],
+      "contradictory_evidence": ["Police report kaywassaf passivity w unusual border behaviour, walakin Sanchez kaygol ma kaynach evidence kat7sem orchestration."],
       "uncertainty": "Medium 3la exact operational causes f critical hours; low 3la chno gal Sanchez.",
-      "context": "Hadchi update مباشر 3la story dyal Sebta mn 3 September, ma-shi repetition dyal background.",
+      "context": "Hadchi update direct 3la story dyal Sebta mn 3 September, ma-shi repetition dyal background.",
       "why_it_matters": "Kaymss Morocco-Spain security cooperation, migration politics w credibility dyal public attribution.",
-      "strategic_angle": "Farre9 bin failure/passivity possible f border control w bin deliberate state orchestration, 7it l-evidence ma kat3tich nafs l-conclusion.",
+      "strategic_angle": "Farre9 bin possible failure w passivity f border control, w bin deliberate state orchestration, 7it l-evidence ma kat3tich nafs l-conclusion.",
       "confidence": "high",
       "recommendation": "LEAD"
     },
@@ -63,23 +49,16 @@
       "key_facts": [
         "OFFICIAL_POSITION: Spain ba9ya 3la support dyal autonomy proposal.",
         "FACT: statement t3ta f Congress nhar 3 September.",
-        "CLAIM: framing belli majority dyal leading European powers katmchi f nafs direction khaso ytb9a attributed l-Sanchez ila ma tdarsh mapping country-by-country."
+        "CLAIM: framing belli leading European powers kaymchiw f nafs direction khaso ytb9a attributed l-Sanchez ila ma tdarsh mapping country-by-country."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/",
-          "publisher": "Le360",
-          "publication_date": "2026-09-03",
-          "source_type": "reporting",
-          "claim_supported": "Sanchez reaffirmation f parliament",
-          "evidence_label": "OFFICIAL_POSITION"
-        }
+        {"url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/", "publisher": "Le360", "publication_date": "2026-09-03", "source_type": "reporting", "claim_supported": "Sanchez reaffirmation f parliament", "evidence_label": "OFFICIAL_POSITION"}
       ],
       "source_origins": ["Spanish government", "Le360"],
-      "contradictory_evidence": ["Polisario leadership nhar 3 September 3awd rfd ay solution ma kay7afdch 3la option dyal independence/self-determination."],
+      "contradictory_evidence": ["Polisario leadership nhar 3 September 3awd rfd ay solution ma kay7afdch 3la option dyal independence w self-determination."],
       "uncertainty": "Low 3la Spain position; dispute siyasi w qanouni ba9i ma m7somch.",
-      "context": "Spain position 3andha wzn diplomatic 7it hiya former administering power w partner iqtisadi/security mohim l-Maghrib.",
+      "context": "Spain position 3andha wzn diplomatic 7it hiya former administering power w partner iqtisadi w security mohim l-Maghrib.",
       "why_it_matters": "Kaymss l-balance diplomatic 7awl Western Sahara w Morocco-Algeria rivalry.",
       "strategic_angle": "N9raw statement b7al continuity diplomatic, ma-shi final legal settlement.",
       "confidence": "medium",
@@ -100,14 +79,7 @@
         "Hadchi service item l-talaba, ma-shi indicator 3la quality wla reform dyal university."
       ],
       "primary_sources": [
-        {
-          "url": "https://www.est.umi.ac.ma/actualites/avis-de-reinscription/",
-          "publisher": "EST Meknes / Universite Moulay Ismail",
-          "publication_date": "2026-09-03",
-          "source_type": "official",
-          "claim_supported": "Calendrier dyal reinscription 2026-2027",
-          "evidence_label": "FACT"
-        }
+        {"url": "https://www.est.umi.ac.ma/actualites/avis-de-reinscription/", "publisher": "EST Meknes / Universite Moulay Ismail", "publication_date": "2026-09-03", "source_type": "official", "claim_supported": "Calendrier dyal reinscription 2026-2027", "evidence_label": "FACT"}
       ],
       "independent_sources": [],
       "source_origins": ["EST Meknes"],
@@ -125,17 +97,14 @@
       "proposed_title": "MEKNES RADAR: ma ban 7tta project-result kbir verified f 24h",
       "importance_score": 3,
       "freshness": "radar-thin-news",
-      "chno_w9e3": "THIN-NEWS EXCEPTION: search t3awd f Commune de Meknes, UMI/EST w Fes-Meknes sources. Ma ban 7tta fresh verified award, work-start, completion wla budget decision kbir f 24 sa3a. Ma ghadi-sh n3awdo Ouislane AMI qdim b7al news jdida.",
-      "key_facts": ["Local institutional search tدار beyond national press.", "No verified major project milestone found in the fresh window.", "Ouislane stays watch-only until official award/result yban."],
+      "chno_w9e3": "THIN-NEWS EXCEPTION: search t3awd f Commune de Meknes, UMI w EST, w Fes-Meknes sources. Ma ban 7tta fresh verified award, work-start, completion wla budget decision kbir f 24 sa3a. Ma ghadi-sh n3awdo Ouislane AMI qdim b7al news jdida.",
+      "key_facts": [
+        "Local institutional search tدار beyond national press.",
+        "No verified major project milestone found in the fresh window.",
+        "Ouislane stays watch-only until official award or result yban."
+      ],
       "primary_sources": [
-        {
-          "url": "https://www.est.umi.ac.ma/",
-          "publisher": "EST Meknes / Universite Moulay Ismail",
-          "publication_date": "current-site",
-          "source_type": "official-local",
-          "claim_supported": "Latest institutional items include 3 September reinscription notice",
-          "evidence_label": "FACT"
-        }
+        {"url": "https://www.est.umi.ac.ma/", "publisher": "EST Meknes / Universite Moulay Ismail", "publication_date": "current-site", "source_type": "official-local", "claim_supported": "Latest institutional items include 3 September reinscription notice", "evidence_label": "FACT"}
       ],
       "independent_sources": [],
       "source_origins": ["EST Meknes", "local institutional search"],
@@ -155,30 +124,16 @@
       "proposed_title": "Gaza: violence mazal katw9e3 ta7t ceasefire, w civilian protection ba9ya fragile",
       "importance_score": 9,
       "freshness": "fresh-24h",
-      "chno_w9e3": "Al Jazeera nchart 3 September 3la strikes w gunfire f Gaza despite ceasefire. Reuters f same period kaywatha9 incidents military w fragility dyal l-truce. Numbers dyal casualties khas-hom ytb9aw attributed l-medics/local authorities, ma-shi treated b7al independently verified census.",
+      "chno_w9e3": "Al Jazeera nchart 3 September 3la strikes w gunfire f Gaza despite ceasefire. Reuters f recent reporting kaywatha9 incidents military w fragility dyal l-truce. Numbers dyal casualties khas-hom ytb9aw attributed l-medics w local authorities, ma-shi treated b7al independently verified census.",
       "key_facts": [
         "FACT: military incidents ba9yin kayw9e3o ta7t ceasefire.",
-        "CLAIM: casualty figures jayyin mn medical/local sources w khas explicit attribution.",
+        "CLAIM: casualty figures jayyin mn medical w local sources w khas explicit attribution.",
         "UNKNOWN: wach had incidents ghadi yb9aw contained wla yjrru escalation akbar."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.aljazeera.com/news/2026/9/3/israel-kills-3-in-gaza-as-far-right-minister-plans-for-palestinian-removals",
-          "publisher": "Al Jazeera",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Fresh violence f Gaza w policy context",
-          "evidence_label": "FACT_WITH_ATTRIBUTED_CASUALTY_CLAIMS"
-        },
-        {
-          "url": "https://www.reuters.com/world/middle-east/israeli-special-forces-capture-hamas-official-raid-gaza-city-2026-09-01/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-01",
-          "source_type": "independent-reporting-context",
-          "claim_supported": "Ceasefire fragility w recent military activity",
-          "evidence_label": "FACT_AND_CLAIMS"
-        }
+        {"url": "https://www.aljazeera.com/news/2026/9/3/israel-kills-3-in-gaza-as-far-right-minister-plans-for-palestinian-removals", "publisher": "Al Jazeera", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Fresh violence f Gaza w policy context", "evidence_label": "FACT_WITH_ATTRIBUTED_CASUALTY_CLAIMS"},
+        {"url": "https://www.reuters.com/world/middle-east/israeli-special-forces-capture-hamas-official-raid-gaza-city-2026-09-01/", "publisher": "Reuters", "publication_date": "2026-09-01", "source_type": "independent-reporting-context", "claim_supported": "Ceasefire fragility w recent military activity", "evidence_label": "FACT_AND_CLAIMS"}
       ],
       "source_origins": ["Al Jazeera", "Reuters", "Palestinian medical sources", "Israeli military"],
       "contradictory_evidence": ["Attribution 3la individual incidents kaykhtalef 7sab party; ma kaynach basis bach n7awlo kol claim l-fact bla source."],
@@ -203,14 +158,7 @@
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.reuters.com/world/middle-east/gaza-seed-bank-helps-farmers-cultivate-little-land-they-have-left-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Seed-bank restoration w agricultural-access context",
-          "evidence_label": "FACT"
-        }
+        {"url": "https://www.reuters.com/world/middle-east/gaza-seed-bank-helps-farmers-cultivate-little-land-they-have-left-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Seed-bank restoration w agricultural-access context", "evidence_label": "FACT"}
       ],
       "source_origins": ["Reuters", "Gaza farmers", "humanitarian reporting"],
       "contradictory_evidence": [],
@@ -229,44 +177,23 @@
       "freshness": "fresh-24h-allegation-update",
       "chno_w9e3": "Al Jazeera nchart 3 September update kayn9el allegations mn lawyer dyal Dr Hussam Abu Safiya 3la abuse f detention. Reuters w AP qbel watha9o belli huwa detained bla charge mn 2024 w belli Israel Prison Service katnfi allegations dyal mistreatment.",
       "key_facts": [
-        "FACT: Abu Safiya ba9i detained bla charge, 7sab prior Reuters/AP reporting.",
-        "ALLEGATION: lawyer kaygol abuse/torture continues.",
+        "FACT: Abu Safiya ba9i detained bla charge, 7sab prior Reuters w AP reporting.",
+        "ALLEGATION: lawyer kaygol abuse continues.",
         "DENIAL: Israel Prison Service katnfi mistreatment allegations.",
         "UNKNOWN: exact current condition ma tverifatch independently f fresh window."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.aljazeera.com/news/2026/9/3/no-end-to-torture-of-gaza-doctor-abu-safiya-in-israeli-prison-what-to-know",
-          "publisher": "Al Jazeera",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Fresh lawyer allegations",
-          "evidence_label": "ALLEGATION"
-        },
-        {
-          "url": "https://www.reuters.com/world/middle-east/prominent-gazan-doctor-held-by-israel-without-charge-appears-before-supreme-2026-06-10/",
-          "publisher": "Reuters",
-          "publication_date": "2026-06-10",
-          "source_type": "independent-context",
-          "claim_supported": "Detention without charge, prior allegations and denial",
-          "evidence_label": "FACT_AND_ALLEGATION"
-        },
-        {
-          "url": "https://apnews.com/article/5b1ca2875900af1c6492f72b4e2564fd",
-          "publisher": "AP",
-          "publication_date": "2026-07-05",
-          "source_type": "independent-context",
-          "claim_supported": "Condition allegations w detention context",
-          "evidence_label": "FACT_AND_ALLEGATION"
-        }
+        {"url": "https://www.aljazeera.com/news/2026/9/3/no-end-to-torture-of-gaza-doctor-abu-safiya-in-israeli-prison-what-to-know", "publisher": "Al Jazeera", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Fresh lawyer allegations", "evidence_label": "ALLEGATION"},
+        {"url": "https://www.reuters.com/world/middle-east/prominent-gazan-doctor-held-by-israel-without-charge-appears-before-supreme-2026-06-10/", "publisher": "Reuters", "publication_date": "2026-06-10", "source_type": "independent-context", "claim_supported": "Detention without charge, prior allegations and denial", "evidence_label": "FACT_AND_ALLEGATION"},
+        {"url": "https://apnews.com/article/5b1ca2875900af1c6492f72b4e2564fd", "publisher": "AP", "publication_date": "2026-07-05", "source_type": "independent-context", "claim_supported": "Condition allegations w detention context", "evidence_label": "FACT_AND_ALLEGATION"}
       ],
       "source_origins": ["Al Jazeera", "Reuters", "AP", "Abu Safiya lawyer", "Israel Prison Service"],
-      "contradictory_evidence": ["Lawyer/right groups kaygolou abuse; Israel Prison Service katnfi."],
+      "contradictory_evidence": ["Lawyer w rights groups kaygolou abuse; Israel Prison Service katnfi."],
       "uncertainty": "High 3la exact abuse claims; low 3la detention-without-charge status reported previously.",
       "context": "Detention dyal medical workers kaymss due process, health access w protection dyal health personnel.",
       "why_it_matters": "Story kay7taj labels sram 7it allegations serious w disputed.",
-      "strategic_angle": "PUBLISH only b FACT/ALLEGATION/DENIAL separation, bla turning claim l-verdict.",
+      "strategic_angle": "PUBLISH ghir b FACT, ALLEGATION w DENIAL separation, bla turning claim l-verdict.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     }
@@ -278,48 +205,34 @@
       "proposed_title": "US-Iran: Washington kay7e99e9 f strike li Iran katgol darbat wedding",
       "importance_score": 10,
       "freshness": "fresh-24h",
-      "chno_w9e3": "JD Vance gal nhar 3 September belli US kat7e99e9 f strike li Iranian officials kaygolou darbat wedding party. Reuters zadt analysis dyal images/video verified w experts kaygolou damage kaytnaسب aktar m3a direct munition hit, walakin Pentagon ma 9blch responsibility final.",
+      "chno_w9e3": "JD Vance gal nhar 3 September belli US kat7e99e9 f strike li Iranian officials kaygolou darbat wedding party. Reuters zadt analysis dyal images w video verified, w experts kaygolou damage kaytna9ed aktar m3a direct munition hit, walakin Pentagon ma 9blch responsibility final.",
       "key_facts": [
         "FACT: US investigation announced.",
-        "CLAIM: Iranian officials kaynسبo strike l-US w kay3tiw casualty figures.",
+        "CLAIM: Iranian officials kaynsbo strike l-US w kay3tiw casualty figures.",
         "INDEPENDENT_ANALYSIS: Reuters verification w weapons experts kayrj7o direct hit b US munition.",
         "UNKNOWN: official US finding mazal ma khrejch."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.reuters.com/world/middle-east/vance-us-probing-airstrike-that-iran-says-hit-wedding-party-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "US investigation and Iranian claims",
-          "evidence_label": "FACT_AND_CLAIM"
-        },
-        {
-          "url": "https://www.reuters.com/world/middle-east/us-probes-iran-wedding-strike-that-analysis-shows-was-likely-direct-hit-by-us-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-analysis",
-          "claim_supported": "Verified imagery and expert assessment of likely US munition",
-          "evidence_label": "INDEPENDENT_ANALYSIS"
-        }
+        {"url": "https://www.reuters.com/world/middle-east/vance-us-probing-airstrike-that-iran-says-hit-wedding-party-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "US investigation and Iranian claims", "evidence_label": "FACT_AND_CLAIM"},
+        {"url": "https://www.reuters.com/world/middle-east/us-probes-iran-wedding-strike-that-analysis-shows-was-likely-direct-hit-by-us-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-analysis", "claim_supported": "Verified imagery and expert assessment of likely US munition", "evidence_label": "INDEPENDENT_ANALYSIS"}
       ],
       "source_origins": ["Reuters", "US government", "Iranian officials", "independent weapons experts"],
       "contradictory_evidence": ["Iran katnseb strike l-US; Pentagon mazal ma 9blch responsibility final."],
       "uncertainty": "Medium pending official US investigation.",
       "context": "Hadchi continuation strategic dyal US-Iran escalation, ma-shi routine battlefield item.",
       "why_it_matters": "Civilian-harm finding y9der y2atr 3la legitimacy, escalation, diplomacy w pressure 7awl Hormuz.",
-      "strategic_angle": "Nra9bo investigation, compensation/accountability ila t2kked error, w impact 3la de-escalation.",
+      "strategic_angle": "Nra9bo investigation, accountability ila t2kked error, w impact 3la de-escalation.",
       "confidence": "high",
       "recommendation": "LEAD"
     },
     {
       "story_id": "WORLD-20260904-EU-HYBRID-SABOTAGE",
       "desk": "world",
-      "proposed_title": "Europe: Denmark katnسب Russia l-sabotage planning, Moscow katnfi",
+      "proposed_title": "Europe: Denmark katnseb Russia l-sabotage planning, Moscow katnfi",
       "importance_score": 8,
       "freshness": "fresh-24h",
-      "chno_w9e3": "Danish intelligence PET gal 3 September belli Russia kat7awel tjnd Danish citizens bach y3awno f sabotage planning ضد defence firms. Moscow katnfi w katgol ma t9dam 7tta concrete evidence public. Germany ta hiya kat7e99e9 f suspected arson w sabotage incidents, b foreign involvement ba9i ma m7somch f ba3d files.",
+      "chno_w9e3": "Danish intelligence PET gal 3 September belli Russia kat7awel tjnd Danish citizens bach y3awno f sabotage planning 3la defence firms. Moscow katnfi w katgol ma t9dam 7tta concrete evidence public. Germany ta hiya kat7e99e9 f suspected arson w sabotage incidents, b foreign involvement ba9i ma m7somch f ba3d files.",
       "key_facts": [
         "OFFICIAL_CLAIM: PET kaygol kayn recruitment w concrete sabotage planning.",
         "DENIAL: Russian ambassador kayrfd accusation w kaytaleb evidence.",
@@ -327,66 +240,38 @@
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.reuters.com/world/russia-recruits-danes-sabotage-planning-denmark-says-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "PET allegations and Russian denial",
-          "evidence_label": "OFFICIAL_CLAIM_AND_DENIAL"
-        },
-        {
-          "url": "https://www.reuters.com/world/german-police-probe-arson-attack-defence-tech-firm-munich-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "German arson/sabotage investigation context",
-          "evidence_label": "FACT_WITH_UNKNOWN_ATTRIBUTION"
-        }
+        {"url": "https://www.reuters.com/world/russia-recruits-danes-sabotage-planning-denmark-says-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "PET allegations and Russian denial", "evidence_label": "OFFICIAL_CLAIM_AND_DENIAL"},
+        {"url": "https://www.reuters.com/world/german-police-probe-arson-attack-defence-tech-firm-munich-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "German arson and sabotage investigation context", "evidence_label": "FACT_WITH_UNKNOWN_ATTRIBUTION"}
       ],
       "source_origins": ["Reuters", "Danish PET", "Russian embassy", "German investigators"],
       "contradictory_evidence": ["Danish intelligence attribution vs Russian denial; public evidence incomplete f reporting available."],
       "uncertainty": "Medium-high 3la attribution outside cases where PET says it has concrete examples.",
       "context": "Hybrid security f Europe kaytla9a m3a defence-industrial support l-Ukraine, walakin routine frontline Ukraine ma dkhlch l-packet.",
       "why_it_matters": "Sabotage against defence industry y9der ybddl European counter-intelligence, sanctions w infrastructure protection.",
-      "strategic_angle": "Ma nخلطوش intelligence claim m3a judicial proof; nra9bo arrests, charges w disclosed evidence.",
+      "strategic_angle": "Ma nkhltosh intelligence claim m3a judicial proof; nra9bo arrests, charges w disclosed evidence.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     },
     {
       "story_id": "WORLD-20260904-TAIWAN-DEFENCE-BUDGET",
       "desk": "world",
-      "proposed_title": "Taiwan kay9تر7 4.6B dollar zayda l-defence m3a pressure mn China",
+      "proposed_title": "Taiwan kay9tr7 4.6B dollar zayda l-defence m3a pressure mn China",
       "importance_score": 8,
       "freshness": "fresh-24h",
-      "chno_w9e3": "Taiwan cabinet 9تر7 3 September 145.7B Taiwan dollars, qrib 4.6B US dollars, additional defence spending f 2026. L-package kayrkez 3la domestic systems, drones w anti-ballistic defence, m3a China katzid activities military w maritime 7da Taiwan.",
+      "chno_w9e3": "Taiwan cabinet 9tr7 3 September 145.7B Taiwan dollars, qrib 4.6B US dollars, additional defence spending f 2026. L-package kayrkez 3la domestic systems, drones w anti-ballistic defence, m3a China katzid activities military w maritime 7da Taiwan.",
       "key_facts": [
         "FACT: supplementary budget proposal t3lan 3 September.",
         "FACT: parliament qbel kan 9bel package akhor smaller mn li talab l-government.",
         "FACT: China f August dart seabed survey east of Taiwan w coast guard activity, 7sab Chinese state sources w Reuters reporting.",
-        "CLAIM: Taipei kaychof hadchi pressure/provocation; Beijing kaychof activities f waters li kat3tabrha dyalha."
+        "CLAIM: Taipei kaychof hadchi pressure w provocation; Beijing kaychof activities f waters li kat3tabrha dyalha."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {
-          "url": "https://www.reuters.com/world/china/taiwan-proposes-extra-46-billion-defence-spending-this-year-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Budget proposal and systems categories",
-          "evidence_label": "FACT"
-        },
-        {
-          "url": "https://www.reuters.com/world/asia-pacific/china-says-it-conducted-survey-waters-east-taiwan-last-month-2026-09-03/",
-          "publisher": "Reuters",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-reporting",
-          "claim_supported": "Chinese survey and Taiwan objection",
-          "evidence_label": "FACT_AND_ATTRIBUTED_POSITIONS"
-        }
+        {"url": "https://www.reuters.com/world/china/taiwan-proposes-extra-46-billion-defence-spending-this-year-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Budget proposal and systems categories", "evidence_label": "FACT"},
+        {"url": "https://www.reuters.com/world/asia-pacific/china-says-it-conducted-survey-waters-east-taiwan-last-month-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Chinese survey and Taiwan objection", "evidence_label": "FACT_AND_ATTRIBUTED_POSITIONS"}
       ],
       "source_origins": ["Reuters", "Taiwan cabinet", "China Ministry of Natural Resources", "Taiwan coast guard"],
-      "contradictory_evidence": ["Beijing w Taipei kayختلفo 3la sovereignty/jurisdiction dyal waters; l-activity nafsha verified, legal-political framing disputed."],
+      "contradictory_evidence": ["Beijing w Taipei kaykhtalfo 3la sovereignty w jurisdiction dyal waters; l-activity nafsha verified, legal w political framing disputed."],
       "uncertainty": "Medium 3la final parliamentary approval.",
       "context": "Hadchi strategic procurement and deterrence, ma-shi routine military movement.",
       "why_it_matters": "Kaymss US-China balance, chip-security geography w Taiwan readiness.",
@@ -399,41 +284,27 @@
     {
       "story_id": "AI-20260904-GPT6-ASTRA-SAFETY",
       "desk": "ai",
-      "proposed_title": "GPT-6 Astra: OpenAI katgol model وصل Critical cyber threshold, w monitorability نقصات",
+      "proposed_title": "GPT-6 Astra: OpenAI katgol model wasal Critical cyber threshold, w monitorability n9sat",
       "importance_score": 10,
       "freshness": "fresh-24h",
-      "chno_w9e3": "OpenAI nchart 3 September safety overview dyal GPT-6 Astra. Company katgol Astra huwa awel model broadly deployed dyalha li وصل Critical cybersecurity capability threshold. F nafs document, OpenAI kat9ol monitorability dyal chain-of-thought نقصات مقارنة m3a GPT-5.6 Sol, w f adversarial tests model 9der f ba3d cases yهرب mn internal monitors.",
+      "chno_w9e3": "OpenAI nchart 3 September safety overview dyal GPT-6 Astra. Company katgol Astra huwa awel model broadly deployed dyalha li wasal Critical cybersecurity capability threshold. F nafs document, OpenAI katgol monitorability dyal chain-of-thought n9sat mo9arana m3a GPT-5.6 Sol, w f adversarial tests model 9der f ba3d cases yhrb mn internal monitors.",
       "key_facts": [
-        "COMPANY_ANNOUNCEMENT: GPT-6 Astra release/safety overview.",
+        "COMPANY_ANNOUNCEMENT: GPT-6 Astra release and safety overview.",
         "COMPANY_CLAIM: Critical cyber capability threshold reached.",
         "COMPANY_REPORTED_RISK: lower monitorability vs GPT-5.6 Sol and some monitor evasion f adversarial settings.",
         "INDEPENDENT_REPORTING: The Verge covered launch and cyber-risk framing; independent reproduction dyal full eval suite ma banach f fresh window."
       ],
       "primary_sources": [
-        {
-          "url": "https://openai.com/index/safety-overview-gpt-6-astra/",
-          "publisher": "OpenAI",
-          "publication_date": "2026-09-03",
-          "source_type": "company-primary",
-          "claim_supported": "Safety results, cyber threshold, monitorability limitations",
-          "evidence_label": "COMPANY_CLAIM"
-        }
+        {"url": "https://openai.com/index/safety-overview-gpt-6-astra/", "publisher": "OpenAI", "publication_date": "2026-09-03", "source_type": "company-primary", "claim_supported": "Safety results, cyber threshold, monitorability limitations", "evidence_label": "COMPANY_CLAIM"}
       ],
       "independent_sources": [
-        {
-          "url": "https://www.theverge.com/ai-artificial-intelligence/989601/openai-gpt-6-astra-release",
-          "publisher": "The Verge",
-          "publication_date": "2026-09-03",
-          "source_type": "independent-tech-reporting",
-          "claim_supported": "Launch context and cyber capability framing",
-          "evidence_label": "INDEPENDENT_REPORTING_ON_COMPANY_CLAIMS"
-        }
+        {"url": "https://www.theverge.com/ai-artificial-intelligence/989601/openai-gpt-6-astra-release", "publisher": "The Verge", "publication_date": "2026-09-03", "source_type": "independent-tech-reporting", "claim_supported": "Launch context and cyber capability framing", "evidence_label": "INDEPENDENT_REPORTING_ON_COMPANY_CLAIMS"}
       ],
       "source_origins": ["OpenAI", "The Verge"],
       "contradictory_evidence": ["OpenAI katgol overall alignment a7san, walakin kat3ترف b monitorability a9all w adversarial evasion f ba3d tests; had tension khas yb9a visible."],
       "uncertainty": "Medium-high 3la real-world generalization until independent testing broad ykhrj.",
-      "context": "Yesterday edition kan 3la shutdown controls; lyoum kayn actual Astra release/safety disclosure, donc development jdid w material.",
-      "why_it_matters": "Model stronger f cyber m3a lower monitorability yرفع governance stakes f agentic deployment.",
+      "context": "Yesterday edition kan 3la shutdown controls; lyoum kayn actual Astra release w safety disclosure, donc development jdid w material.",
+      "why_it_matters": "Model stronger f cyber m3a lower monitorability kayrfa3 governance stakes f agentic deployment.",
       "strategic_angle": "Ma n9olosh safer b7al blanket fact; nfr9o capability, alignment evals, monitorability w deployment controls.",
       "confidence": "high",
       "recommendation": "LEAD"
@@ -444,21 +315,14 @@
       "proposed_title": "OpenAI Daybreak: 1B dollar commitment l-frontline cyber defenders",
       "importance_score": 8,
       "freshness": "fresh-24h",
-      "chno_w9e3": "OpenAI 3lنت 3 September 1B dollar global commitment f subsidized Daybreak access, training, technical support w partnerships, b priority l-critical infrastructure w public-sector defenders.",
+      "chno_w9e3": "OpenAI 3lnat 3 September 1B dollar global commitment f subsidized Daybreak access, training, technical support w partnerships, b priority l-critical infrastructure w public-sector defenders.",
       "key_facts": [
         "COMPANY_ANNOUNCEMENT: 1B dollar commitment, targeted to be consumed over next six months.",
-        "COMPANY_CLAIM: thousands of defenders across 2,000 approved organizations/workspaces already use Daybreak.",
+        "COMPANY_CLAIM: thousands of defenders across 2,000 approved organizations w workspaces already use Daybreak.",
         "UNKNOWN: accounting basis dyal full 1B value, utilization rate, security outcomes w independent impact evaluation."
       ],
       "primary_sources": [
-        {
-          "url": "https://openai.com/index/daybreak-for-frontline-defenders/",
-          "publisher": "OpenAI",
-          "publication_date": "2026-09-03",
-          "source_type": "company-primary",
-          "claim_supported": "Commitment amount, target users, program design",
-          "evidence_label": "COMPANY_ANNOUNCEMENT"
-        }
+        {"url": "https://openai.com/index/daybreak-for-frontline-defenders/", "publisher": "OpenAI", "publication_date": "2026-09-03", "source_type": "company-primary", "claim_supported": "Commitment amount, target users, program design", "evidence_label": "COMPANY_ANNOUNCEMENT"}
       ],
       "independent_sources": [],
       "source_origins": ["OpenAI"],
@@ -476,38 +340,24 @@
       "proposed_title": "Gemini 3.8 Flash: Google DeepMind katpush coding w agents, independent proof mazal mahdoud",
       "importance_score": 7,
       "freshness": "fresh-48h-with-current-rollout",
-      "chno_w9e3": "Google DeepMind نشر model card dyal Gemini 3.8 Flash dated 2 September w kayعرضha b7al next iteration f Gemini 3 family, m3a focus 3la software engineering w agentic knowledge workflows. Site dyal DeepMind kayعرض ta Gemini 3.8 Flash Cyber f September updates.",
+      "chno_w9e3": "Google DeepMind nchart model card dyal Gemini 3.8 Flash dated 2 September w kat3rdo b7al next iteration f Gemini 3 family, m3a focus 3la software engineering w agentic knowledge workflows. Site dyal DeepMind kay3red ta Gemini 3.8 Flash Cyber f September updates.",
       "key_facts": [
         "COMPANY_ANNOUNCEMENT: Gemini 3.8 Flash and related cyber variant are part mn September model rollout.",
-        "MODEL_CARD: customizable effort levels w stated improvements f coding/agentic workflows.",
+        "MODEL_CARD: customizable effort levels w stated improvements f coding and agentic workflows.",
         "COMPANY_CLAIM: partner testimonials kayhdro 3la gains; hadchi ma-shi independent benchmark.",
         "UNKNOWN: broad third-party benchmark results f fresh window."
       ],
       "primary_sources": [
-        {
-          "url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/",
-          "publisher": "Google DeepMind",
-          "publication_date": "2026-09-02",
-          "source_type": "model-card",
-          "claim_supported": "Model description, intended use, limitations and evaluation framing",
-          "evidence_label": "MODEL_CARD"
-        },
-        {
-          "url": "https://deepmind.google/blog/",
-          "publisher": "Google DeepMind",
-          "publication_date": "2026-09",
-          "source_type": "company-news-index",
-          "claim_supported": "September launch listing for Gemini 3.8 Flash and Flash Cyber",
-          "evidence_label": "COMPANY_ANNOUNCEMENT"
-        }
+        {"url": "https://deepmind.google/models/model-cards/gemini-3-8-flash/", "publisher": "Google DeepMind", "publication_date": "2026-09-02", "source_type": "model-card", "claim_supported": "Model description, intended use, limitations and evaluation framing", "evidence_label": "MODEL_CARD"},
+        {"url": "https://deepmind.google/blog/", "publisher": "Google DeepMind", "publication_date": "2026-09", "source_type": "company-news-index", "claim_supported": "September launch listing for Gemini 3.8 Flash and Flash Cyber", "evidence_label": "COMPANY_ANNOUNCEMENT"}
       ],
       "independent_sources": [],
       "source_origins": ["Google DeepMind"],
       "contradictory_evidence": ["No fresh independent broad test located; marketing and partner evals stay company-linked evidence."],
       "uncertainty": "Medium-high 3la real-world advantage vs competing models.",
-      "context": "AI desk kayحتاج يفصل model card mn benchmark independent.",
-      "why_it_matters": "Fast models li kayخدمو coding w long-running agents kayأثرو 3la cost, latency w adoption f workflows.",
-      "strategic_angle": "Hold performance verdict until independent evals yبانوا.",
+      "context": "AI desk kay7taj yfrreq model card mn benchmark independent.",
+      "why_it_matters": "Fast models li kaykhdmo coding w long-running agents kay2atro 3la cost, latency w adoption f workflows.",
+      "strategic_angle": "Hold performance verdict until independent evals ybano.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     }
@@ -516,13 +366,13 @@
   "primary_sources_count": 5,
   "independent_source_origins_count": 10,
   "blocked_sources": [
-    "Commune de Meknes ma بانش fiha fresh indexed project milestone mohim f search window.",
+    "Commune de Meknes ma ban fiha fresh indexed project milestone mohim f search window.",
     "OCHA September-specific fresh item ma tl9ach b clarity f indexed results; older humanitarian pages were not upgraded into fresh news.",
-    "Independent broad benchmark dyal GPT-6 Astra w Gemini 3.8 Flash ma بانش f fresh window."
+    "Independent broad benchmark dyal GPT-6 Astra w Gemini 3.8 Flash ma ban f fresh window."
   ],
   "important_unknowns": [
-    "Sebta: exact operational cause dyal critical border-control failure/passivity hours mazal ma m7somch.",
-    "Western Sahara: Sanchez position political continuity ma kay7semch dispute legal/political.",
+    "Sebta: exact operational cause dyal critical border-control failure or passivity hours mazal ma m7somch.",
+    "Western Sahara: Sanchez position political continuity ma kay7semch dispute legal w siyasi.",
     "Gaza: durability dyal ceasefire and incident-level attribution remain uncertain.",
     "US-Iran: final US investigation result f wedding strike mazal pending.",
     "Europe sabotage: public evidentiary record 3la Russian attribution ba9i incomplete f ba3d cases.",
