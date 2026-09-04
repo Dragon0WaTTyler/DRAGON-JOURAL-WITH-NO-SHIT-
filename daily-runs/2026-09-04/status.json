@@ -2,7 +2,7 @@
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
   "current_research": "COMPLETE",
-  "deep_research": "RUNNING",
+  "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
   "cover": "BLOCKED",
@@ -22,6 +22,6 @@
   "current_research_completed_at": "2026-09-04T22:20:56+01:00",
   "current_research_blocking_reason": null,
   "deep_research_started_at": "2026-09-04T22:26:19+01:00",
-  "deep_research_completed_at": null,
+  "deep_research_completed_at": "2026-09-04T22:28:36+01:00",
   "deep_research_blocking_reason": null
 }
