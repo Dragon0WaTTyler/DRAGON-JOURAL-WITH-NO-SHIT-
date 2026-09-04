@@ -1,135 +1,110 @@
 {
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
-  "research_started_at": "2026-09-04T21:59:00+01:00",
-  "research_completed_at": "2026-09-04T22:02:22+01:00",
+  "research_started_at": "2026-09-04T22:18:00+01:00",
+  "research_completed_at": "2026-09-04T22:20:56+01:00",
   "freshness_window": {
     "primary_window": "previous 24 hours",
-    "previous_successful_packet_cutoff": "2026-09-04T06:41:00+01:00",
-    "rerun_reason": "existing packet incomplete under current Task 1 schema; fresh research checked developments after prior cutoff",
-    "note": "Stories qdam dkhlo ghir ila kayn meaningful development, correction, wla current strategic relevance."
+    "rerun": true,
+    "note": "Had rerun kay7yed stale blocker w kay7seb ghir development jdid, correction, ruling, implementation, data, wla consequence verified."
   },
   "repository_memory": {
-    "production_master_read": true,
-    "agents_read": [
-      "morocco",
-      "meknes",
-      "palestine",
-      "ai"
-    ],
-    "missing_required_contracts": [
-      "SPEC-v1.md",
-      "agents/world.md"
-    ],
     "previous_current_news": "daily-runs/2026-09-03/current-news.json",
     "previous_edition": "editions/2026/09/2026-09-03/edition.md",
+    "continuity_checked": true,
     "ongoing_watch": [
-      "Sebta attribution",
-      "Gaza ceasefire and displacement policy",
-      "Iran escalation",
-      "Ouislane project watch",
-      "AI frontier safeguards"
-    ]
+      "Sebta attribution w Morocco-Spain border cooperation",
+      "Gaza displacement policy w ceasefire implementation",
+      "Iran escalation w energy-route risk",
+      "Ouislane w Meknes public-project milestones",
+      "AI agent safeguards w cyber-risk governance"
+    ],
+    "repeat_rule_applied": "Story qdim ma dkhalch ila ma ban 7tta material development jdid."
   },
   "morocco": [
     {
       "STORY_ID": "MA-20260904-CEUTA-SANCHEZ-EVIDENCE",
       "DESK": "morocco",
-      "PROPOSED_TITLE": "Sebta: Sanchez kaygol ma kaynach dalil 3la orchestration mn Morocco",
+      "PROPOSED_TITLE": "Sebta: Sanchez kaygol ma kaynach dalil kay7sem orchestration mn Morocco",
       "IMPORTANCE_SCORE": 9,
       "FRESHNESS": "fresh-24h-meaningful-correction",
-      "WHAT_IS_NEW": "Fresh correction f Spain: Pedro Sanchez gal f parliament nhar 3 September belli ma kaynach evidence kat7sem belli Morocco dabbret l-border surge. Hadi katna9s mn strength dyal attribution li b9at disputed qbel.",
-      "CHNO_W9E3": "Sanchez farre9 bin questions 3la border control w bin claim dyal deliberate state orchestration. Reporting kayb9i kaychof operational anomalies, walakin proof 3la orchestration ma t9ddamch.",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03",
+      "WHAT_IS_NEW": "Pedro Sanchez gal f parliament belli ma kaynach concrete evidence kaytbet belli Moroccan authorities dabbro l-migrant surge dyal Sebta. Hadi correction mohimma l-attribution li b9at disputed qbel.",
+      "CHNO_W9E3": "Spanish police material kaywassaf passivity w understaffing f wa7d l-window; Sanchez kayfssel hadchi 3la proof dyal deliberate state orchestration. Morocco katnfi deliberate permissiveness.",
       "KEY_FACTS": [
-        "FACT: Sanchez gal ma kaynach evidence 3la orchestration mn Morocco.",
-        "FACT: Spanish police reporting cited operational passivity w understaffing f wa7d l-window.",
+        "FACT: Sanchez gal ma kaynach concrete evidence kay7sem Moroccan orchestration.",
+        "FACT: Spanish police report kaywassaf operational anomalies w passivity.",
         "OFFICIAL_CLAIM: Morocco katnfi deliberate permissiveness.",
-        "ASSESSMENT: MIXED 3la border performance, INSUFFICIENT EVIDENCE 3la deliberate orchestration."
+        "L7OKM DYAL L2ADILLA: MIXED 3la border performance; INSUFFICIENT EVIDENCE 3la deliberate orchestration."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Reuters",
           "source_type": "independent-reporting",
-          "exact_url": "https://www.reuters.com/world/europe/spains-pm-sanchez-says-no-evidence-morocco-orchestrated-ceuta-border-surge-2026-09-03/",
+          "origin": "Reuters plus Spanish government, Spanish police report, Moroccan government",
+          "url": "https://www.reuters.com/world/europe/spains-pm-sanchez-says-no-evidence-morocco-orchestrated-ceuta-border-surge-2026-09-03/",
           "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Reuters",
-          "supports": "Sanchez statement, police-report context, Morocco denial"
-        },
-        {
-          "source_name": "The Guardian",
-          "source_type": "independent-reporting",
-          "exact_url": "https://www.theguardian.com/world/2026/sep/03/spain-pm-evidence-morocco-ceuta-border-breach",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "The Guardian",
-          "supports": "Independent cross-check dyal Sanchez statement"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Sanchez statement, police-report context, Morocco denial",
+          "independence_note": "Reuters reporting; underlying official claims remain attributed."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "Spanish government",
-        "Spanish police report",
-        "Moroccan government",
-        "Reuters",
-        "The Guardian"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Police material kaywassaf operational problems; Sanchez kaygol ma kaynach evidence kat7sem deliberate orchestration."
-      ],
-      "UNCERTAINTY": "Medium 3la exact operational cause; low 3la chno gal Sanchez.",
-      "CONTEXT": "Story qdima dyal Sebta dkhlet ghir 7it kayn development correctional jdid.",
+      "SOURCE_ORIGINS": ["Reuters", "Spanish government", "Spanish police report", "Moroccan government"],
+      "CONTRADICTORY_EVIDENCE": ["Operational failure indicators ma kay3niwsh bo7dhom deliberate orchestration."],
+      "UNCERTAINTY": "MEDIUM 3la exact operational cause; LOW 3la Sanchez statement.",
+      "CONTEXT": "Sebta tghattat qbel; had correction public f parliament hiya l-development jdid.",
       "WHY_IT_MATTERS": "Kaymss Morocco-Spain security cooperation, migration politics w credibility dyal public attribution.",
-      "STRATEGIC_ANGLE": "Ma nkhlltosh possible border failure m3a proof dyal state conspiracy. Nra9bo investigation, staffing records w chain of command.",
-      "CONFIDENCE": "high",
+      "STRATEGIC_ANGLE": "Farre9 bin possible border failure w proof dyal state conspiracy.",
+      "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "LEAD"
     },
     {
       "STORY_ID": "MA-20260904-SAHARA-SPAIN-CONTINUITY",
       "DESK": "morocco",
-      "PROPOSED_TITLE": "Sahara: Spain 3awdat akdat support l-autonomy proposal",
+      "PROPOSED_TITLE": "Sahara: Spain 3awdat akdat support l-autonomy proposal, bla policy reversal",
       "IMPORTANCE_SCORE": 7,
-      "FRESHNESS": "fresh-24h",
-      "WHAT_IS_NEW": "Sanchez 3awd akkad f Congress nhar 3 September belli Spain ba9ya katda3em autonomy proposal dyal Morocco, f defence public dyal policy li katsowl 3liha opposition.",
-      "CHNO_W9E3": "Spain ma bddlatch position dyalha; reaffirmation public f parliament hiya l-element jdid, ma-shi settlement jdid.",
+      "FRESHNESS": "fresh-24h-continuity",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03",
+      "WHAT_IS_NEW": "Sanchez 3awd akkad f Congress belli Spain ba9ya katda3em autonomy proposal dyal Morocco. L-element jdid huwa reaffirmation public, ma-shi settlement wla operational change.",
+      "CHNO_W9E3": "Position dyal Spain ma tbddlatch; dispute w UN process ba9yin ma m7sominch.",
       "KEY_FACTS": [
         "OFFICIAL_POSITION: Spain ba9ya katda3em autonomy proposal.",
         "FACT: reaffirmation t3tat f Congress nhar 3 September.",
-        "CONTRARY_POSITION: Polisario ba9i kayrfd ay solution li kay7yed option dyal independence."
+        "UNKNOWN: ma kaynach f had fresh window step qanouniya wla UN settlement jdid."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Le360",
           "source_type": "reporting",
-          "exact_url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
           "origin": "Spanish government",
-          "supports": "Sanchez reaffirmation f parliament"
+          "url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Sanchez reaffirmation",
+          "independence_note": "Publisher reporting an official political position; not independent proof of settlement outcome."
         },
         {
           "source_name": "Sahrawi Press Service",
           "source_type": "party-official-position",
-          "exact_url": "https://spsrasd.info/en/2026/09/03/17547.html",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
           "origin": "Polisario Front",
-          "supports": "Polisario position"
+          "url": "https://spsrasd.info/en/2026/09/03/17547.html",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Opposing Polisario position",
+          "independence_note": "Party source; used only for exact attribution of its position."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "Spanish government",
-        "Polisario Front"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Spain w Polisario 3andhom positions siyasiya w qanouniya mt3arda; hadchi ma kay7semch UN process."
-      ],
-      "UNCERTAINTY": "Low 3la Spain position; dispute ba9i ma m7somch.",
-      "CONTEXT": "Continuity f Morocco-Spain relation, ma-shi policy reversal.",
-      "WHY_IT_MATTERS": "Kaymss Western Sahara diplomacy, Morocco-Algeria rivalry w relation m3a EU.",
-      "STRATEGIC_ANGLE": "Nra9bo steps diplomatic w qanouniya jdod, bla ma n9dmo reaffirmation b7al settlement final.",
-      "CONFIDENCE": "medium",
+      "SOURCE_ORIGINS": ["Spanish government", "Polisario Front"],
+      "CONTRADICTORY_EVIDENCE": ["Spain w Polisario 3andhom positions siyasiya mt3arda; hadchi ma kay7semch UN process."],
+      "UNCERTAINTY": "LOW 3la Spain position; dispute l-asasi ba9i ma m7somch.",
+      "CONTEXT": "Continuity f Morocco-Spain relation.",
+      "WHY_IT_MATTERS": "Kaymss Western Sahara diplomacy, Morocco-Algeria rivalry w EU relations.",
+      "STRATEGIC_ANGLE": "Ma n9dmoush reaffirmation b7al final diplomatic settlement.",
+      "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "PUBLISH"
     }
   ],
@@ -137,82 +112,71 @@
     {
       "STORY_ID": "MEK-20260904-EST-REENROLMENT",
       "DESK": "meknes",
-      "PROPOSED_TITLE": "EST Meknes: calendrier dyal reinscription l-2eme annee",
+      "PROPOSED_TITLE": "EST Meknes: calendrier rasmi dyal reinscription l-2eme annee",
       "IMPORTANCE_SCORE": 5,
       "FRESHNESS": "fresh-24h",
-      "WHAT_IS_NEW": "EST Meknes nchart nhar 3 September avis rasmi 3la reinscription dyal 2eme annee 2026-2027 b dates mkhtalfa 7sab filiere.",
-      "CHNO_W9E3": "Notice institutionnel kay7dded dates dyal reinscription w soutenances; service item, ma-shi reform story.",
-      "KEY_FACTS": [
-        "FACT: notice rasmi dated 3 September 2026.",
-        "FACT: calendrier kayfrreq bin filieres w soutenances."
-      ],
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03",
+      "WHAT_IS_NEW": "EST Meknes nchart avis rasmi 3la reinscription dyal 2eme annee 2026-2027 b dates 7sab filiere.",
+      "CHNO_W9E3": "Service notice institutionnel jdid; ma-shi reform story.",
+      "KEY_FACTS": ["FACT: notice rasmi dated 3 September 2026.", "FACT: calendrier kayfrreq bin filieres."],
       "PRIMARY_SOURCES": [
         {
           "source_name": "EST Meknes / Universite Moulay Ismail",
           "source_type": "official-local",
-          "exact_url": "https://www.est.umi.ac.ma/actualites/avis-de-reinscription/",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
           "origin": "EST Meknes",
-          "supports": "Calendrier dyal reinscription 2026-2027"
+          "url": "https://www.est.umi.ac.ma/actualites/avis-de-reinscription/",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Calendrier dyal reinscription 2026-2027",
+          "independence_note": "Primary institutional source 3la procedure dyalha."
         }
       ],
       "INDEPENDENT_SOURCES": [],
-      "SOURCE_ORIGINS": [
-        "EST Meknes"
-      ],
+      "SOURCE_ORIGINS": ["EST Meknes"],
       "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "Low 3la notice; dates y9dro ytbddlo ila institution nchart update.",
-      "CONTEXT": "Mkhtalef 3la notice dyal students jdad li tghatta qbel.",
+      "UNCERTAINTY": "LOW; dates y9dro ytbddlo ila institution nchart update.",
+      "CONTEXT": "Mkhtalef 3la notice dyal inscription l-talaba jdad lli tghatta qbel.",
       "WHY_IT_MATTERS": "Fa2ida direct l-talaba w families f Meknes.",
-      "STRATEGIC_ANGLE": "BRIEF service, bla tnafikh dyal importance.",
-      "CONFIDENCE": "high",
+      "STRATEGIC_ANGLE": "BRIEF service bla tnafikh dyal importance.",
+      "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "BRIEF"
     },
     {
-      "STORY_ID": "MEK-20260904-RADAR-THIN-NEWS",
+      "STORY_ID": "MEK-20260904-RADAR-PROCUREMENT",
       "DESK": "meknes",
-      "PROPOSED_TITLE": "MEKNES RADAR: ma ban 7tta milestone kbir jdid verified",
-      "IMPORTANCE_SCORE": 3,
+      "PROPOSED_TITLE": "MEKNES RADAR: procurement kayban active, walakin fresh primary award ma tverifach",
+      "IMPORTANCE_SCORE": 4,
       "FRESHNESS": "radar-thin-news",
-      "WHAT_IS_NEW": "THIN-NEWS EXCEPTION: search local institutional tdar f Commune, UMI/EST, CRI Fes-Meknes w procurement discovery. Ma ban 7tta award, work-start, completion wla budget decision kbir jdid f fresh window.",
-      "CHNO_W9E3": "L-desk ma ghadi-sh y3awd Ouislane AMI qdim b7al khabar jdid. Absence mn indexed web ma kat3nich absence dyal activity.",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "THIN-NEWS EXCEPTION: discovery radar ban fih plusieurs listings b dates 4 September, mnha architectural studies, equipment w local services. Walakin ma tverifach f had run primary award/result exact l-story kbira, donc ma ghadi-sh n9lbo discovery aggregator l-khabar m7som.",
+      "CHNO_W9E3": "L-desk chaf procurement discovery beyond national press, walakin primary-source confirmation dyal major milestone mazal na9sa.",
       "KEY_FACTS": [
-        "Local search tdar beyond national press.",
-        "No fresh verified project milestone kbir found.",
-        "Ouislane stays watch-only until official result yban."
+        "FACT: procurement discovery page kaybayn listings jdad l-Meknes dated 4 September.",
+        "UNKNOWN: award status, contractor, final budget w implementation for the listed items.",
+        "RULE: aggregator discovery ma kayt7sebch primary verification."
       ],
-      "PRIMARY_SOURCES": [
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
         {
-          "source_name": "EST Meknes",
-          "source_type": "official-local",
-          "exact_url": "https://www.est.umi.ac.ma/",
+          "source_name": "Alerte Marches Publics",
+          "source_type": "procurement-discovery-aggregator",
+          "origin": "aggregated procurement notices",
+          "url": "https://alertemarchespublics.com/marches-publics/meknes.html",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "EST Meknes",
-          "supports": "Latest visible local institutional items"
-        },
-        {
-          "source_name": "CRI Fes-Meknes",
-          "source_type": "official-regional",
-          "exact_url": "https://fesmeknesinvest.ma/appel-a-manifestation-dinteret/",
-          "published_at": "2026-06-29",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "CRI Fes-Meknes",
-          "supports": "Older Ouislane AMI kept only as watch context"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Discovery dyal fresh Meknes procurement listings",
+          "independence_note": "Discovery only; ma tsta3mlch b7al confirmation dyal award wla implementation."
         }
       ],
-      "INDEPENDENT_SOURCES": [],
-      "SOURCE_ORIGINS": [
-        "EST Meknes",
-        "CRI Fes-Meknes"
-      ],
+      "SOURCE_ORIGINS": ["procurement notices aggregated by discovery service"],
       "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "High 3la projects li ma tindexawch quickly.",
-      "CONTEXT": "Radar kaymna3 invention w kayfrreq bin announcement, award, start w completion.",
-      "WHY_IT_MATTERS": "Local accountability kat7taj milestones verifiables, ma-shi headlines msno3in.",
-      "STRATEGIC_ANGLE": "HOLD project claims 7tta yban contractor, budget, deadline w latest verified status.",
-      "CONFIDENCE": "medium",
+      "UNCERTAINTY": "HIGH 3la award w implementation status.",
+      "CONTEXT": "Radar kaymna3 invention w kayfssel publication mn award w work-start.",
+      "WHY_IT_MATTERS": "Local accountability kat7taj contractor, budget, deadline w status verifiable.",
+      "STRATEGIC_ANGLE": "Khlli l-listings watch-only 7tta primary record ytverifa.",
+      "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "HOLD"
     }
   ],
@@ -222,495 +186,344 @@
       "DESK": "palestine",
       "PROPOSED_TITLE": "Gaza: Washington katrfd forced displacement mn b3d calls Israeliya jdod",
       "IMPORTANCE_SCORE": 10,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "Nhar 4 September, US State Department gal l-Al Jazeera belli Washington ma kayda3em 7tta plan dyal forced displacement, expulsion wla mandatory transfer dyal population dyal Gaza. Hadi response rasmi jdida mn b3d remarks dyal Israel Katz.",
-      "CHNO_W9E3": "US public position kayt3arad m3a calls mn top Israeli officials l-removal dyal Palestinians mn Gaza. Reuters ta hiya nchart 4 September 3la renewed proposals qbel election Israeli.",
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "US State Department gal belli Washington ma kayda3em 7tta plan dyal forced displacement, expulsion wla mandatory transfer dyal population dyal Gaza. Hadi response rasmi jdida mn b3d calls Israeliya renewed l-removal/emigration.",
+      "CHNO_W9E3": "Al Jazeera w Reuters kaywatha9o opposition US public w renewed proposals mn Israeli ministers. Framing dyal emigration b7al voluntary kayb9a claim siyasi; consent f context dyal war w displacement kay7taj scrutiny.",
       "KEY_FACTS": [
-        "FACT: State Department gal ma kayda3emch forced displacement, expulsion wla mandatory transfer.",
-        "FACT: Israeli ministers jdddo calls l-large-scale emigration/removal.",
-        "CLAIM: framing Israeli b7al voluntary emigration kayb9a political claim; consent f context dyal war w displacement kay7taj scrutiny.",
-        "UNKNOWN: wach had US opposition ghadi yt7wwel l-pressure policy practical."
+        "FACT: US State Department kayrfd forced displacement, expulsion w mandatory transfer.",
+        "FACT: top Israeli officials jdddo calls l-large-scale removal/emigration.",
+        "CLAIM: voluntary framing hiya position Israeli official, ma-shi independent legal conclusion.",
+        "UNKNOWN: wach US opposition ghadi yt7wwel l-pressure policy practical."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
-          "source_name": "Al Jazeera",
+          "source_name": "Al Jazeera English",
           "source_type": "independent-reporting",
-          "exact_url": "https://www.aljazeera.com/news/2026/9/4/us-rejects-israeli-suggestions-of-removing-palestinians-from-gaza",
+          "origin": "US State Department and Israeli officials",
+          "url": "https://www.aljazeera.com/news/2026/9/4/us-rejects-israeli-suggestions-of-removing-palestinians-from-gaza",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "US State Department; Israel Katz",
-          "supports": "US rejection and Israeli remarks"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "US rejection and Israeli remarks",
+          "independence_note": "Independent publisher; material official claims remain attributed."
         },
         {
           "source_name": "Reuters",
           "source_type": "independent-reporting",
-          "exact_url": "https://www.reuters.com/world/middle-east/netanyahu-partners-renew-calls-removal-gazans-israeli-election-nears-2026-09-04/",
+          "origin": "Israeli ministers and Palestinian residents",
+          "url": "https://www.reuters.com/world/middle-east/netanyahu-partners-renew-calls-removal-gazans-israeli-election-nears-2026-09-04/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Israeli ministers; Palestinian residents",
-          "supports": "Renewed removal proposals and election context"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Renewed removal proposals and political context",
+          "independence_note": "Independent agency reporting with attributed policy claims."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "US State Department",
-        "Israel Katz",
-        "Itamar Ben-Gvir",
-        "Reuters",
-        "Al Jazeera"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "US says it rejects forced removal; Israeli far-right ministers continue to advocate large-scale emigration/removal."
-      ],
-      "UNCERTAINTY": "Medium 3la policy consequences; low 3la public positions.",
-      "CONTEXT": "Hadi meaningful development 3la story dyal 2-3 September 7awl emigration plan.",
-      "WHY_IT_MATTERS": "Kaymss displacement, international law, US-Israel relation w future demographic dyal Gaza.",
-      "STRATEGIC_ANGLE": "Nra9bo wach US position kaywli condition diplomatic wla ghir statement, w wach Israel kay9dm plan tanfidi rasmi.",
-      "CONFIDENCE": "high",
+      "SOURCE_ORIGINS": ["US State Department", "Israeli ministers", "Reuters", "Al Jazeera"],
+      "CONTRADICTORY_EVIDENCE": ["Israeli officials kayst3mlo voluntary-emigration framing; US public position kayrfd forced transfer."],
+      "UNCERTAINTY": "MEDIUM 3la implementation; LOW 3la public US position.",
+      "CONTEXT": "Hadchi development direct mn story dyal 2-3 September 3la Israeli removal proposals.",
+      "WHY_IT_MATTERS": "Kaymss displacement, international law, reconstruction w regional diplomacy.",
+      "STRATEGIC_ANGLE": "Farre9 proposal, political position, legal framing w verified implementation.",
+      "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "LEAD"
     },
     {
-      "STORY_ID": "PAL-20260904-GAZA-CEASEFIRE-VIOLENCE",
+      "STORY_ID": "PAL-20260904-OHCHR-GAZA-KILLINGS",
       "DESK": "palestine",
-      "PROPOSED_TITLE": "Gaza: lethal incidents ba9yin ta7t ceasefire",
+      "PROPOSED_TITLE": "Gaza: OHCHR kaygol l-bloodshed mazal kaytwasel qrib 3am mn ceasefire",
       "IMPORTANCE_SCORE": 9,
-      "FRESHNESS": "fresh-24h-continuing",
-      "WHAT_IS_NEW": "Reporting dyal 3-4 September kaybayan belli drone fire, gunfire w demolitions ba9yin kayw9e3o ta7t ceasefire; incident-level casualty claims khas-hom ytb9aw attributed.",
-      "CHNO_W9E3": "Ceasefire ba9i fragile operationally. Al Jazeera w Reuters reporting kaywatha9o military incidents, walakin details dyal kol incident ma katkonch dima independently verified.",
+      "FRESHNESS": "fresh-24h-primary-human-rights",
+      "EVENT_TIME": "2026-08-28/2026-09-01",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "OHCHR nchar 4 September statement jdid kaygol belli 24 Palestinians t9tlo f Israeli attacks bin 28 August w 1 September, w kay3ti details 3la wa7d raid f West Gaza city. Hadi publication jdida b documented human-rights assessment, walakin l-events nafshom span several days.",
+      "CHNO_W9E3": "UN human-rights office kay2akked belli ceasefire ma wa9afch civilian harm w kaytaleb accountability. Casualty figures hna attributed l-OHCHR statement, ma-shi universal independent count.",
       "KEY_FACTS": [
-        "FACT: military incidents continue under ceasefire.",
-        "CLAIM: casualty figures jayyin mn medics/local sources w khas attribution.",
-        "UNKNOWN: wach violations ghadi yb9aw contained wla yjrru escalation."
+        "OFFICIAL/UN: OHCHR reports 24 Palestinians killed in Israeli attacks between 28 August and 1 September.",
+        "FACT: statement published 4 September 2026.",
+        "UNKNOWN: full independent incident-by-incident verification for every reported death f had packet."
       ],
-      "PRIMARY_SOURCES": [],
-      "INDEPENDENT_SOURCES": [
+      "PRIMARY_SOURCES": [
         {
-          "source_name": "Al Jazeera",
-          "source_type": "independent-reporting",
-          "exact_url": "https://www.aljazeera.com/news/2026/9/3/israel-kills-3-in-gaza-as-far-right-minister-plans-for-palestinian-removals",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Palestinian medical sources; Israeli military",
-          "supports": "Fresh violence under ceasefire"
-        },
-        {
-          "source_name": "Reuters",
-          "source_type": "independent-reporting-context",
-          "exact_url": "https://www.reuters.com/world/middle-east/israeli-fire-kills-four-people-including-three-children-gaza-medics-say-2026-09-01/",
-          "published_at": "2026-09-01",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Gaza medics; Israeli military",
-          "supports": "Recent ceasefire fragility context"
+          "source_name": "OHCHR via United Nations in Palestine",
+          "source_type": "UN-primary",
+          "origin": "Office of the UN High Commissioner for Human Rights",
+          "url": "https://palestine.un.org/en/322139-office-united-nations-high-commissioner-human-rights-bloodshed-gaza-must-stop",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "OHCHR casualty and legal-assessment statement",
+          "independence_note": "Primary UN human-rights source; incident-level claims remain attributed to OHCHR."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "Al Jazeera",
-        "Reuters",
-        "Palestinian medical sources",
-        "Israeli military"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Incident attribution kaykhtalef 7sab party; no single merged certainty."
-      ],
-      "UNCERTAINTY": "Medium 3la incident attribution; high 3la ceasefire trajectory.",
-      "CONTEXT": "Focus 3la enforcement w civilian protection, ma-shi casualty ticker.",
-      "WHY_IT_MATTERS": "Repeated lethal incidents kay9llso trust f truce w kayzido risk dyal escalation.",
-      "STRATEGIC_ANGLE": "Track verification mechanism, investigations w rules governing use of force.",
-      "CONFIDENCE": "medium",
-      "RECOMMENDATION": "PUBLISH"
-    },
-    {
-      "STORY_ID": "PAL-20260904-ABU-SAFIYA-ALLEGATIONS",
-      "DESK": "palestine",
-      "PROPOSED_TITLE": "Abu Safiya: allegations jdad 3la mistreatment, detention bla charge ba9ya",
-      "IMPORTANCE_SCORE": 8,
-      "FRESHNESS": "fresh-24h-allegation-update",
-      "WHAT_IS_NEW": "Al Jazeera nchart 3 September allegations jdad mn lawyer dyal Dr Hussam Abu Safiya 3la abuse f detention.",
-      "CHNO_W9E3": "Fresh allegations khas-hom ytb9aw ALLEGATION. Prior Reuters/AP reporting watha9 detention bla charge; Israel Prison Service katnfi mistreatment allegations.",
-      "KEY_FACTS": [
-        "FACT: Abu Safiya detained bla charge 7sab prior Reuters/AP reporting.",
-        "ALLEGATION: lawyer kaygol abuse continues.",
-        "DENIAL: Israel Prison Service katnfi allegations.",
-        "UNKNOWN: exact current condition ma tverifatch independently."
-      ],
-      "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
-          "source_name": "Al Jazeera",
-          "source_type": "independent-reporting",
-          "exact_url": "https://www.aljazeera.com/news/2026/9/3/no-end-to-torture-of-gaza-doctor-abu-safiya-in-israeli-prison-what-to-know",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Abu Safiya lawyer",
-          "supports": "Fresh allegations"
-        },
-        {
-          "source_name": "Reuters",
-          "source_type": "independent-context",
-          "exact_url": "https://www.reuters.com/world/middle-east/prominent-gazan-doctor-held-by-israel-without-charge-appears-before-supreme-2026-06-10/",
-          "published_at": "2026-06-10",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Israeli court; detention record",
-          "supports": "Detention without charge and prior allegations"
-        },
-        {
-          "source_name": "AP",
-          "source_type": "independent-context",
-          "exact_url": "https://apnews.com/article/5b1ca2875900af1c6492f72b4e2564fd",
-          "published_at": "2026-07-05",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "AP reporting; relevant parties",
-          "supports": "Detention and condition context"
+          "source_name": "Al Jazeera Gaza desk",
+          "source_type": "independent-reporting-discovery",
+          "origin": "Al Jazeera reporting from Gaza",
+          "url": "https://www.aljazeera.com/tag/gaza/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Fresh Gaza attack context",
+          "independence_note": "Used as cross-check context, not as duplicate origin for OHCHR figures."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "Abu Safiya lawyer",
-        "Israel Prison Service",
-        "Reuters",
-        "AP",
-        "Al Jazeera"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Lawyer kaygol abuse; Israel Prison Service katnfi."
-      ],
-      "UNCERTAINTY": "High 3la abuse allegations; low 3la detention status reported previously.",
-      "CONTEXT": "Fresh element huwa allegation update, ma-shi old detention fact.",
-      "WHY_IT_MATTERS": "Kaymss due process w protection dyal health personnel.",
-      "STRATEGIC_ANGLE": "PUBLISH ghir b separation sari7 bin FACT, ALLEGATION, DENIAL w UNKNOWN.",
-      "CONFIDENCE": "medium",
+      "SOURCE_ORIGINS": ["OHCHR", "Al Jazeera"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la incident-by-incident independent verification; LOW 3la chno nchar OHCHR.",
+      "CONTEXT": "Ma nkhltoch publication date 4 September m3a event dates 28 August-1 September.",
+      "WHY_IT_MATTERS": "Kaybayan civilian-protection problem beyond daily casualty ticker w kayzid legal-accountability evidence.",
+      "STRATEGIC_ANGLE": "Keep UN attribution exact w separate statement mn independently verified battlefield facts.",
+      "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "PUBLISH"
     }
   ],
   "world": [
     {
-      "STORY_ID": "WORLD-20260904-IRAN-IAEA-UNSC",
+      "STORY_ID": "WORLD-20260904-US-RUSSIA-UKRAINE-ENVOYS",
       "DESK": "world",
-      "PROPOSED_TITLE": "Iran nuclear: US w allies kaydf3o bach IAEA board yreporti Tehran l-UNSC",
-      "IMPORTANCE_SCORE": 10,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "Reuters nchart 4 September belli US, Britain, France w Germany kaydf3o resolution f IAEA board bach Iran ytreporta l-UN Security Council, awel move mn had nou3 f qrib 20 3am.",
-      "CHNO_W9E3": "Draft pressure kayji m3a dispute 3la access l-bombed nuclear sites w verification dyal enriched uranium stockpiles.",
+      "PROPOSED_TITLE": "US peace envoys l-Moscow w Kyiv mazal m3l9in b security guarantees",
+      "IMPORTANCE_SCORE": 8,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Planned visits dyal Steve Witkoff w Jared Kushner l-Moscow w Kyiv mazal uncertain 7it Washington kay9leb 3la security assurances mn juj jihat.",
+      "CHNO_W9E3": "Hadchi ma-shi peace agreement. Hwa diplomatic movement possible f waqt li l-air strikes ts3do w substantive positions ba9yin b3ad.",
       "KEY_FACTS": [
-        "FACT: diplomats kaygolou resolution kayt7der l-IAEA board.",
-        "FACT: dispute kaymss safeguards, inspector access w uranium verification.",
-        "UNKNOWN: passage likely walakin action f UNSC ma-shi guaranteed, khasatan m3a veto politics."
+        "FACT: US kaytaleb assurances dyal safety qbel l-visits.",
+        "FACT: visits mazal ma t2kkdoch final.",
+        "UNKNOWN: wach l-visits ghadi tdir breakthrough wla ghir channel diplomatic."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Reuters",
           "source_type": "independent-reporting",
-          "exact_url": "https://www.reuters.com/world/europe/us-allies-want-iaea-board-report-iran-un-security-council-diplomats-say-2026-09-04/",
+          "origin": "US source, Kremlin comments, Ukrainian and Russian positions",
+          "url": "https://www.reuters.com/world/europe/trump-envoys-visit-russia-ukraine-weekend-tass-reports-2026-09-04/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Diplomats; IAEA context",
-          "supports": "Proposed IAEA resolution and safeguards dispute"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Security concerns and status of possible visits",
+          "independence_note": "Independent agency; negotiation positions remain attributed."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "US/Britain/France/Germany diplomats",
-        "IAEA",
-        "Reuters"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Iran disputes Western pressure and has limited inspector access after attacks; Security Council outcome uncertain."
-      ],
-      "UNCERTAINTY": "Medium pending formal board vote and text.",
-      "CONTEXT": "Strategic nuclear diplomacy development, not routine battlefield news.",
-      "WHY_IT_MATTERS": "Y9der yrfa3 legal-diplomatic escalation around Iran nuclear file w sanctions.",
-      "STRATEGIC_ANGLE": "Track formal resolution, Iran response, inspector access w UNSC pathway.",
-      "CONFIDENCE": "high",
-      "RECOMMENDATION": "LEAD"
-    },
-    {
-      "STORY_ID": "WORLD-20260904-IRAN-TURKEY-SANCTIONS",
-      "DESK": "world",
-      "PROPOSED_TITLE": "US kay3aqeb Turkish bank f campaign 3la Iran finance",
-      "IMPORTANCE_SCORE": 9,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "US Treasury 4 September dar sanctions 3la Golden Global Yatirim Bankasi w subsidiaries, b claim belli sahlo transactions linked b Iran w IRGC-Qods Force. Bank katrfd accusations.",
-      "CHNO_W9E3": "Hadi economic-pressure step jdid kaymss institution f Turkey, NATO member, w kaybayan expansion dyal financial campaign 3la Iran.",
-      "KEY_FACTS": [
-        "FACT: US sanctions announced 4 September.",
-        "US_CLAIM: entities facilitated Iran-linked illicit finance and oil-revenue conversion.",
-        "DENIAL: bank rejects accusations and plans legal challenge."
-      ],
-      "PRIMARY_SOURCES": [],
-      "INDEPENDENT_SOURCES": [
-        {
-          "source_name": "Reuters",
-          "source_type": "independent-reporting",
-          "exact_url": "https://www.reuters.com/world/middle-east/us-targets-turkish-entities-with-iran-related-sanctions-2026-09-04/",
-          "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "US Treasury; Golden Global",
-          "supports": "Sanctions, US allegations, bank denial"
-        }
-      ],
-      "SOURCE_ORIGINS": [
-        "US Treasury",
-        "Golden Global",
-        "Reuters"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "US alleges illicit facilitation; bank denies wrongdoing."
-      ],
-      "UNCERTAINTY": "Medium 3la full evidentiary record and economic impact.",
-      "CONTEXT": "Part mn pressure campaign 3la Iran, m3a Turkey angle mohim.",
-      "WHY_IT_MATTERS": "Kaymss sanctions enforcement, NATO relations, Iran finance networks w diplomacy.",
-      "STRATEGIC_ANGLE": "Track Treasury evidence, Turkish response, bank litigation w secondary-sanctions effects.",
-      "CONFIDENCE": "high",
+      "SOURCE_ORIGINS": ["Reuters", "US source", "Kremlin", "Ukraine"],
+      "CONTRADICTORY_EVIDENCE": ["Talk channel possible, walakin core war demands ba9yin incompatible."],
+      "UNCERTAINTY": "HIGH 3la whether visits occur and produce results.",
+      "CONTEXT": "Ukraine ma dkhltch 7it routine strikes; dkhlet 7it kayn possible diplomatic channel b strategic consequence.",
+      "WHY_IT_MATTERS": "Y9der y2atr 3la war trajectory, sanctions, European security w energy risk.",
+      "STRATEGIC_ANGLE": "Ma n9dmoush planned visit b7al negotiation breakthrough.",
+      "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "PUBLISH"
     },
     {
-      "STORY_ID": "WORLD-20260904-LEBANON-ALI-TAHER",
+      "STORY_ID": "WORLD-20260904-GLOBAL-BOND-SELL-OFF",
       "DESK": "world",
-      "PROPOSED_TITLE": "South Lebanon: Israel katgol sffat Hezbollah fighters mn tunnels ta7t ridge strategic",
+      "PROPOSED_TITLE": "Global bonds: yields tal3in w financing pressure kaytwas3",
       "IMPORTANCE_SCORE": 8,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "Reuters 4 September n9lat belli Israeli military katgol sffat Hezbollah fighters mn tunnels ta7t Ali al-Taher ridge, mn b3d warning Iranian l-US nhar 3 September 3la attack f dik l-area.",
-      "CHNO_W9E3": "Military claim jdid 3la strategic ridge f south Lebanon. Independent verification dyal full clearance ma banach f fresh reporting.",
+      "FRESHNESS": "fresh-24h-market-structural",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters kaywassaf broad bond selloff kayrfe3 borrowing costs, m3a Japanese long yields f levels ma banatch mn decades w markets kaytsnaw US inflation w ECB decision.",
+      "CHNO_W9E3": "Hadchi financial-risk story, ma-shi market noise sghir, 7it higher sovereign yields y9dro y2atro 3la budgets, companies w capital flows.",
       "KEY_FACTS": [
-        "ISRAELI_MILITARY_CLAIM: fighters were cleared from tunnels under Ali al-Taher ridge.",
-        "FACT: Iran had warned US against Israeli offensive there one day earlier.",
-        "UNKNOWN: full independent verification and longer-term control."
+        "FACT: global bond yields under upward pressure.",
+        "FACT: Japan long yields reached multi-decade highs 7sab Reuters market reporting.",
+        "UNKNOWN: wach selloff ghadi ytbdel b macro data w central-bank actions next week."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Reuters",
-          "source_type": "independent-reporting",
-          "exact_url": "https://www.reuters.com/world/middle-east/israel-says-it-has-cleared-hezbollah-fighters-tunnels-under-key-lebanon-ridge-2026-09-04/",
+          "source_type": "independent-market-reporting",
+          "origin": "market data and analyst commentary",
+          "url": "https://www.reuters.com/business/take-five/global-markets-themes-2026-09-04/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Israeli military; Lebanese context",
-          "supports": "Claim of clearance under strategic ridge"
-        },
-        {
-          "source_name": "Reuters",
-          "source_type": "independent-reporting-context",
-          "exact_url": "https://www.reuters.com/world/middle-east/iran-warns-us-against-israeli-attack-south-lebanon-ridge-held-by-hezbollah-2026-09-03/",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "Iranian officials; US channel",
-          "supports": "Prior warning and escalation context"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Global bond selloff and key upcoming macro risks",
+          "independence_note": "Market synthesis; forward-looking implications remain analysis."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "Israeli military",
-        "Iranian officials",
-        "Reuters"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Clearance claim originates with Israeli military; no fresh independent on-site verification in packet."
-      ],
-      "UNCERTAINTY": "Medium-high 3la full battlefield status.",
-      "CONTEXT": "Included 7it ridge strategic w linked b regional escalation, ma-shi routine strike.",
-      "WHY_IT_MATTERS": "Kaymss Israel-Lebanon front, Iran signalling w risk dyal wider escalation.",
-      "STRATEGIC_ANGLE": "Track Lebanese state response, Hezbollah response, independent verification w whether fighting expands.",
-      "CONFIDENCE": "medium",
+      "SOURCE_ORIGINS": ["Reuters", "market data", "central-bank expectations"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la persistence dyal selloff.",
+      "CONTEXT": "Selected 7it financing costs and global stability, ma-shi geographic quota.",
+      "WHY_IT_MATTERS": "Higher global yields y9dro yzido cost dyal sovereign and corporate financing, including emerging markets.",
+      "STRATEGIC_ANGLE": "Nra9bo inflation data, ECB, Fed expectations w capital-flow reaction.",
+      "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "PUBLISH"
     }
   ],
   "ai": [
     {
-      "STORY_ID": "AI-20260904-GPT6-ASTRA-LAUNCH",
+      "STORY_ID": "AI-20260904-US-CHINA-SAFETY-TALKS",
       "DESK": "ai",
-      "PROPOSED_TITLE": "GPT-6 Astra: launch jdid m3a Critical cyber threshold w monitorability concerns",
-      "IMPORTANCE_SCORE": 10,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "OpenAI nchart official GPT-6 Astra launch page nhar 4 September. Company katsifto b7al most intelligent and aligned model dyalha, w safety material kaygol howa awel OpenAI model kaywsel Critical cybersecurity capability threshold.",
-      "CHNO_W9E3": "Launch public jdid tkamal mn b3d safety disclosures dyal 2-3 September. The Verge reported rollout and safety framing; independent reproduction dyal full eval suite mazal mahdoud.",
+      "PROPOSED_TITLE": "US w China kaywajdo first high-level AI safety dialogue dyal Trump second term",
+      "IMPORTANCE_SCORE": 9,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "mid-September 2026 planned",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters kaygol US w China kaywajdo high-level talks f mid-September 3la AI safety, cyber misuse w information-sharing bin frontier labs.",
+      "CHNO_W9E3": "REGULATORY/DIPLOMATIC ACTION under preparation, ma-shi signed agreement. Participants w location mazal ma t7smoch final.",
       "KEY_FACTS": [
-        "COMPANY_ANNOUNCEMENT: GPT-6 Astra launch.",
-        "COMPANY_CLAIM: state-of-the-art capability and strongest alignment.",
-        "PRIMARY_TECHNICAL_DOCUMENTATION: Astra meets OpenAI Critical cybersecurity threshold.",
-        "LIMITATION: independent reproduction dyal full capability/safety evals ma banach f fresh window."
-      ],
-      "PRIMARY_SOURCES": [
-        {
-          "source_name": "OpenAI",
-          "source_type": "company-announcement",
-          "exact_url": "https://openai.com/index/gpt-6-astra/",
-          "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "OpenAI",
-          "supports": "Official launch and capability claims"
-        },
-        {
-          "source_name": "OpenAI",
-          "source_type": "primary-technical-documentation",
-          "exact_url": "https://openai.com/index/path-to-astra/",
-          "published_at": "2026-09-02",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "OpenAI",
-          "supports": "Critical cyber threshold and safeguards"
-        }
-      ],
-      "INDEPENDENT_SOURCES": [
-        {
-          "source_name": "The Verge",
-          "source_type": "independent-tech-reporting",
-          "exact_url": "https://www.theverge.com/ai-artificial-intelligence/989601/openai-gpt-6-astra-release",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "The Verge; OpenAI",
-          "supports": "Independent reporting on launch and safety claims"
-        }
-      ],
-      "SOURCE_ORIGINS": [
-        "OpenAI",
-        "The Verge"
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Company says alignment improved while technical material acknowledges monitoring/observability challenges. Stronger alignment score ma kaylghich lower observability risk."
-      ],
-      "UNCERTAINTY": "Medium-high 3la real-world generalization until broad independent testing.",
-      "CONTEXT": "Development jdid mn b3d previous edition li kan 3la shutdown controls.",
-      "WHY_IT_MATTERS": "Stronger agentic and cyber capability katrfa3 stakes dyal permissions, containment w monitoring.",
-      "STRATEGIC_ANGLE": "Farre9 company claim, technical eval, independent test w deployment controls.",
-      "CONFIDENCE": "high",
-      "RECOMMENDATION": "LEAD"
-    },
-    {
-      "STORY_ID": "AI-20260904-ASTRA-ROLLOUT-PROBLEMS",
-      "DESK": "ai",
-      "PROPOSED_TITLE": "Astra rollout: Altman kay3tader 3la launch messy w access m3ttel l-ba3d subscribers",
-      "IMPORTANCE_SCORE": 7,
-      "FRESHNESS": "fresh-after-previous-cutoff",
-      "WHAT_IS_NEW": "The Verge nchart 4 September belli Sam Altman 3tader 3la rollout messy dyal Astra mn b3d ma b3d paying users ma l9awch access f launch.",
-      "CHNO_W9E3": "Hadi execution story, ma-shi model capability claim. Access staged w prioritization dyal enterprise/cyber users khllaw confusion 3la availability.",
-      "KEY_FACTS": [
-        "INDEPENDENT_REPORTING: The Verge reports rollout problems and Altman apology.",
-        "COMPANY_RESPONSE: OpenAI leadership acknowledged access frustration.",
-        "UNKNOWN: exact timeline bach access yst9rr across plans."
+        "FACT: talks kayt7ddro l-mid-September 7sab Reuters sourcing.",
+        "UNKNOWN: final participants, location w binding outcomes.",
+        "ANALYSIS: ila t9dmat, t9dar twli rare safety channel bin juj AI powers kaytnafso strategic."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
-          "source_name": "The Verge",
-          "source_type": "independent-tech-reporting",
-          "exact_url": "https://www.theverge.com/ai-artificial-intelligence/990060/altman-apologizes-messy-astra-rollout",
+          "source_name": "Reuters",
+          "source_type": "independent-reporting",
+          "origin": "US and China policy discussions plus diplomatic sources",
+          "url": "https://www.reuters.com/legal/litigation/us-china-gear-up-mid-september-ai-safety-dialogue-2026-09-04/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
-          "origin": "The Verge; Sam Altman",
-          "supports": "Rollout problems and apology"
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Preparation for bilateral AI-safety dialogue",
+          "independence_note": "Independent reporting; planned agenda ma-shi agreement."
         }
       ],
-      "SOURCE_ORIGINS": [
-        "The Verge",
-        "Sam Altman/OpenAI"
-      ],
+      "SOURCE_ORIGINS": ["Reuters", "US policy sources", "China policy sources"],
       "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "Medium 3la rollout timeline.",
-      "CONTEXT": "Secondary story 3la execution dyal launch, ma-shi safety verdict.",
-      "WHY_IT_MATTERS": "Availability and capacity planning kay2atro 3la trust dyal paying users w enterprise adoption.",
-      "STRATEGIC_ANGLE": "Nra9bo access stabilization, quotas, service reliability w whether promises match delivered availability.",
-      "CONFIDENCE": "medium",
-      "RECOMMENDATION": "BRIEF"
+      "UNCERTAINTY": "MEDIUM 3la final agenda and outcome.",
+      "CONTEXT": "AI safety kaywli part mn major-power security architecture, ma-shi ghir company policy.",
+      "WHY_IT_MATTERS": "Cyber misuse, model theft, frontier-risk disclosure w future standards y9dro yt2atro.",
+      "STRATEGIC_ANGLE": "Nra9bo wach dialogue ghadi yjib mechanisms operational wla ghir symbolic statement.",
+      "CONFIDENCE": "MEDIUM",
+      "RECOMMENDATION": "LEAD"
     },
     {
-      "STORY_ID": "AI-20260904-DAYBREAK-1B",
+      "STORY_ID": "AI-20260904-OPENAI-DAYBREAK-1B",
       "DESK": "ai",
-      "PROPOSED_TITLE": "Daybreak: OpenAI katcommit 1B dollar l-frontline cyber defenders",
+      "PROPOSED_TITLE": "OpenAI kat3lan $1B l-Daybreak cyberdefense, walakin hadi company commitment ma-shi independent outcome",
       "IMPORTANCE_SCORE": 8,
       "FRESHNESS": "fresh-24h",
-      "WHAT_IS_NEW": "OpenAI 3lnat 3 September 1B dollar global commitment f subsidized Daybreak access, training, technical support w partnerships, targeted l-consumption over next six months.",
-      "CHNO_W9E3": "Programme kayrkez 3la critical infrastructure, public sector, nonprofits w open-source maintainers. L-dollar headline commitment value, ma-shi cash already spent.",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03/2026-09-04",
+      "WHAT_IS_NEW": "OpenAI 3lnt $1 billion commitment f subsidized access, training, technical support w partnerships l-frontline defenders, w Reuters cross-checkat l-announcement.",
+      "CHNO_W9E3": "COMPANY ANNOUNCEMENT established; impact w efficacy mazal ma ttestawch independently.",
       "KEY_FACTS": [
-        "COMPANY_ANNOUNCEMENT: 1B dollar commitment.",
-        "COMPANY_CLAIM: thousands of defenders across 2,000 approved organizations/workspaces already use Daybreak.",
-        "UNKNOWN: realized value, utilization rate and independent security outcomes."
+        "COMPANY ANNOUNCEMENT: OpenAI commits $1B l-Daybreak for Frontline Defenders.",
+        "FACT: Reuters reported the same announcement.",
+        "UNKNOWN: uptake, measured cyber outcomes, independent red-team evidence w long-term cost."
       ],
       "PRIMARY_SOURCES": [
         {
           "source_name": "OpenAI",
-          "source_type": "company-announcement",
-          "exact_url": "https://openai.com/index/daybreak-for-frontline-defenders/",
-          "published_at": "2026-09-03",
-          "accessed_at": "2026-09-04T22:02:22+01:00",
+          "source_type": "company-primary",
           "origin": "OpenAI",
-          "supports": "Commitment amount, target users and programme design"
+          "url": "https://openai.com/index/daybreak-for-frontline-defenders/",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "$1B commitment and programme scope",
+          "independence_note": "Company announcement; establishes commitment, not independent efficacy."
         }
       ],
-      "INDEPENDENT_SOURCES": [],
-      "SOURCE_ORIGINS": [
-        "OpenAI"
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-reporting",
+          "origin": "Reuters reporting on OpenAI announcement",
+          "url": "https://www.reuters.com/legal/litigation/openai-commits-1-billion-cyberdefense-effort-amid-ai-safety-scrutiny-2026-09-03/",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "$1B cyberdefense initiative",
+          "independence_note": "Independent reporting, walakin programme performance mazal future."
+        }
       ],
-      "CONTRADICTORY_EVIDENCE": [
-        "No independent outcome evaluation found f fresh window; commitment value ma-shi nafs l-7aja b7al realized impact."
+      "SOURCE_ORIGINS": ["OpenAI", "Reuters"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "HIGH 3la efficacy; LOW 3la announced commitment.",
+      "CONTEXT": "Announcement jay f waqt AI-agent safety scrutiny katzid.",
+      "WHY_IT_MATTERS": "Kaybayan shift mn general safety language l-cyber deployment support b capital kbir.",
+      "STRATEGIC_ANGLE": "Qis results, adoption, independent evaluation w misuse controls, ma-shi budget headline bo7do.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "PUBLISH"
+    },
+    {
+      "STORY_ID": "AI-20260904-BYTEDANCE-LOAN",
+      "DESK": "ai",
+      "PROPOSED_TITLE": "ByteDance katsecuri $29.6B loan f AI infrastructure push",
+      "IMPORTANCE_SCORE": 8,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters kaygol ByteDance secured $29.6 billion unsecured loan mn nearly 30 banks, m3a large share expected l-AI chips w infrastructure.",
+      "CHNO_W9E3": "FINANCING DEVELOPMENT, ma-shi benchmark w ma-shi proof dyal model superiority.",
+      "KEY_FACTS": [
+        "FACT: $29.6B loan reported by Reuters from transaction sources.",
+        "FACT: loan was increased from initial $20B target 7sab Reuters.",
+        "CLAIM/EXPECTATION: AI chips and data-centre investment expected to absorb a material share."
       ],
-      "UNCERTAINTY": "Medium 3la delivered value and measurable outcomes.",
-      "CONTEXT": "Material because scale kbir, walakin evidence 3la outcomes ba9i company-side.",
-      "WHY_IT_MATTERS": "Y9der ywssa3 frontier defensive capability l-organizations li resources dyalhom mahdouda.",
-      "STRATEGIC_ANGLE": "Follow actual uptake, fixes accepted, incidents prevented w external audits.",
-      "CONFIDENCE": "high",
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-transaction-reporting",
+          "origin": "banking and transaction sources",
+          "url": "https://www.reuters.com/legal/transactional/bytedance-secures-296-billion-loan-ai-push-sources-say-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-04T22:20:56+01:00",
+          "claim_supported": "Loan size, bank participation and AI investment context",
+          "independence_note": "Independent agency based on transaction sources."
+        }
+      ],
+      "SOURCE_ORIGINS": ["Reuters", "banking sources", "ByteDance financing counterparties"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la exact allocation dyal funds l-AI.",
+      "CONTEXT": "AI competition katwli capital-infrastructure race, ma-shi ghir model launches.",
+      "WHY_IT_MATTERS": "Financing scale kay2atr 3la chips, data centers w China-US AI competition.",
+      "STRATEGIC_ANGLE": "Farre9 financing capacity mn demonstrated technical capability.",
+      "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "PUBLISH"
     }
   ],
-  "sources_count": 20,
-  "primary_sources_count": 5,
-  "independent_source_origins_count": 15,
+  "sources_count": 15,
+  "primary_sources_count": 3,
+  "independent_source_origins_count": 12,
   "blocked_sources": [
-    "SPEC-v1.md ma kaynach f repository path li contract talab.",
-    "agents/world.md ma kaynach f agents directory; world desk ttab3 config/sources.yaml, config/roles.yaml w Task 1 contract.",
-    "Fresh Meknes major-project milestone ma banach f indexed institutional search.",
-    "Broad independent reproduction dyal GPT-6 Astra evals ma banach f fresh window."
+    {
+      "source": "Some Meknes primary procurement records",
+      "reason": "Fresh discovery ban, walakin exact primary award/result ma tverifach f had run; items kept HOLD rather than upgraded."
+    }
   ],
   "important_unknowns": [
-    "Sebta: exact operational cause dyal critical border-control failure mazal ma m7somch.",
-    "Meknes: procurement/projects li ma tindexawch quickly y9dro ma ybanosh f fresh web search.",
-    "Gaza: ceasefire durability, incident-level attribution, w policy consequences dyal US rejection ba9yin uncertain.",
-    "Iran: IAEA board vote, UNSC pathway and sanctions effects mazal pending.",
-    "Lebanon: independent verification dyal full Ali al-Taher clearance ma kaynach f packet.",
-    "GPT-6 Astra: real-world safety, monitoring and benchmark reproduction need independent testing."
+    "Exact operational cause dyal Sebta border lapse mazal ma m7somch.",
+    "Wach Gaza removal proposals ghadi ytbddlou l-policy implemented, w chno safeguards/legal response.",
+    "Meknes procurement listings khasshom primary award, contractor, budget w implementation confirmation.",
+    "US-China AI safety talks mazal ma 3andhomch final agenda w binding outcome.",
+    "OpenAI Daybreak efficacy mazal ma tverifatch independently."
+  ],
+  "contract_reads": [
+    {"path": "prompts/production-master.md", "status": "READ_OK"},
+    {"path": "AGENTS.md", "status": "READ_OK"},
+    {"path": "SPEC-v1.md", "status": "READ_OK"},
+    {"path": "config/execution-constraints.yaml", "status": "READ_OK"},
+    {"path": "config/scheduled-workflow.yaml", "status": "READ_OK"},
+    {"path": "config/editorial.yaml", "status": "READ_OK"},
+    {"path": "config/editorial-depth.yaml", "status": "READ_OK"},
+    {"path": "config/quality-gates.yaml", "status": "READ_OK"},
+    {"path": "config/sources.yaml", "status": "READ_OK"},
+    {"path": "config/roles.yaml", "status": "READ_OK"},
+    {"path": "agents/morocco.md", "status": "READ_OK"},
+    {"path": "agents/meknes.md", "status": "READ_OK"},
+    {"path": "agents/palestine.md", "status": "READ_OK"},
+    {"path": "agents/world.md", "status": "READ_OK"},
+    {"path": "agents/ai.md", "status": "READ_OK"}
   ],
   "quality_gate": {
-    "required_repository_contracts": "FAIL_MISSING_SPEC_V1_AND_WORLD_AGENT",
-    "recent_memory_checked": "PASS",
+    "repository_contracts": "PASS",
+    "continuity_checked": "PASS",
     "fresh_research": "PASS",
-    "repetition_control": "PASS",
-    "exact_source_urls": "PASS",
-    "source_origins_deduplicated": "PASS",
-    "major_claims_attributed": "PASS",
-    "contradictory_evidence_retained": "PASS",
-    "morocco_researched": "PASS",
-    "meknes_beyond_national_press": "PASS",
-    "palestine_researched": "PASS",
-    "world_significance_filter": "PASS",
-    "ai_evidence_labels": "PASS",
-    "required_story_fields": "PASS",
-    "arabic_script_count": 0,
-    "json_parse": "PASS"
-  },
-  "handoff": {
-    "ready_for_chief_editor": false,
-    "highest_priority_story_ids": [
-      "PAL-20260904-US-REJECTS-FORCED-REMOVAL",
-      "WORLD-20260904-IRAN-IAEA-UNSC",
-      "AI-20260904-GPT6-ASTRA-LAUNCH",
-      "MA-20260904-CEUTA-SANCHEZ-EVIDENCE"
-    ],
-    "possible_front_page_candidates": [
-      "PAL-20260904-US-REJECTS-FORCED-REMOVAL",
-      "WORLD-20260904-IRAN-IAEA-UNSC",
-      "AI-20260904-GPT6-ASTRA-LAUNCH",
-      "MA-20260904-CEUTA-SANCHEZ-EVIDENCE"
-    ],
-    "stories_requiring_editorial_caution": [
-      "PAL-20260904-ABU-SAFIYA-ALLEGATIONS",
-      "WORLD-20260904-LEBANON-ALI-TAHER",
-      "MA-20260904-CEUTA-SANCHEZ-EVIDENCE"
-    ],
-    "stories_on_hold": [
-      "MEK-20260904-RADAR-THIN-NEWS"
-    ],
-    "major_unresolved_questions": [
-      "Repository contract blockers: SPEC-v1.md w agents/world.md ma kaynach f expected paths.",
-      "Wach US rejection dyal forced removal ghadi ywli policy pressure practical?",
-      "Wach IAEA board ghadi yreporti Iran l-UNSC w chno ghadi ydir Tehran?",
-      "Wach independent testing ghadi y2kked Astra safety/capability claims?",
-      "Wach Meknes ghadi ybban fiha fresh procurement award wla project milestone?"
-    ]
+    "source_origin_analysis": "PASS",
+    "uncertainty_labels": "PASS",
+    "morocco": "PASS",
+    "meknes": "PASS_WITH_THIN_NEWS_EXCEPTION",
+    "palestine": "PASS",
+    "world": "PASS",
+    "ai": "PASS",
+    "arabic_script_generated_editorial_text": 0,
+    "structured_data": "PASS",
+    "ready_for_task1_complete_after_github_readback": true
   }
 }
