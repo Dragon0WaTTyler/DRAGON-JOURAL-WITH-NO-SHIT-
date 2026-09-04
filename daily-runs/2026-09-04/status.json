@@ -5,7 +5,7 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "PENDING",
-  "cover": "PENDING",
+  "cover": "BLOCKED",
   "overall_status": "PENDING",
   "publication_source_package": "PENDING",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
@@ -16,5 +16,5 @@
   "visual_qa_status": "PENDING",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
-  "blocking_reason": null
+  "blocking_reason": "Cover Director requires editorial == COMPLETE and publishing == COMPLETE. Editorial is COMPLETE, but publishing is PENDING. Cover generation did not run."
 }
