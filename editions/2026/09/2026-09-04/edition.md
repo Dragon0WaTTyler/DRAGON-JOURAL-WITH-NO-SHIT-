@@ -4,7 +4,7 @@
 
 ### Gaza: Washington katrfd forced displacement, walakin l-imti7an howa policy ma-shi ghir tasri7
 
-**Chno w9e3:** US State Department gal belli Washington ma kayda3em la forced displacement, la expulsion, la mandatory transfer dyal population dyal Gaza. Hadi jat mn b3d ma jdddo mas2oulin Israeliyn calls 3la large-scale removal wla emigration dyal Palestinians mn Gaza. Al Jazeera w Reuters watha9o had l-position l-Amerikaniya w had l-calls l-Israeliya, m3a wa7d l-far9 mohim: wasf emigration b7al "voluntary" huwa framing siyasi dyal mas2oulin, ma-shi conclusion qanouni mosta9il. [S06][S07]
+**Chno w9e3:** US State Department gal belli Washington ma kayda3em la forced displacement, la expulsion, la mandatory transfer dyal population dyal Gaza. Hadi jat mn b3d ma jdddo mas2oulin Israeliyn calls 3la large-scale removal wla emigration dyal Palestinians mn Gaza. Al Jazeera w Reuters watha9o had l-position l-Amerikaniya w had l-calls l-Israeliya. Wasf emigration b7al "voluntary" huwa framing siyasi dyal mas2oulin, ma-shi conclusion qanouni mosta9il. [S06][S07]
 
 **3lach hadchi mohim:** f wa9t dyal war, destruction, displacement w na9s dyal l-khadamat l-asasiya, su2al dyal consent ma y9drch yt7sem b-kelma wa7da. L-mohim daba huwa wach opposition l-Amerikaniya ghadi tb9a tasri7 diplomasi wla ghadi tban f pressure, aid conditions, negotiation positions wla safeguards practical. Hadi hiya l-far9 bin statement w policy.
 
@@ -26,11 +26,11 @@
 
 **Chno nra9bo daba:** wach ghadi ykoun agenda operational, wach kayna mechanisms dyal incident communication wla ghir statement symbolic, w wach labs ghadi ykoun 3andhom role direct.
 
-### Global bonds: ila cost dyal l-flous tla3, l-athar kaywsel mn Tokyo 7tta l-budgets dyal emerging markets
+### Global bonds: ila cost dyal l-flous tla3, l-athar kaywsel 7tta l-budgets dyal emerging markets
 
 **Chno w9e3:** Reuters katwassaf broad bond selloff rfe3 sovereign yields, m3a Japanese long-term yields wslat l-levels ma banatch mn decades. Markets kaytsnaw US inflation data w ECB decisions, w persistence dyal had l-movement mazal ma hiyach m7soma. [S11]
 
-**3lach hadchi mohim:** higher yields ma-shi ghir chart dyal traders. Kat3ni borrowing ghla l-dowal, companies w households, w kat9dar tbdl capital flows l-emerging markets. L-Maghrib ma kaynach barra mn had l-system: global financing conditions t9dar t2atr 3la cost dyal debt w investment appetite.
+**3lach hadchi mohim:** higher yields ma-shi ghir chart dyal traders. Kat3ni borrowing ghla l-dowal, companies w households, w kat9dar tbdl capital flows l-emerging markets. L-Mghrib ma kaynach barra mn had l-system: global financing conditions t9dar t2atr 3la cost dyal debt w investment appetite.
 
 ### Essaouira: port li kan instrument dyal dawla, tijara w power
 
@@ -44,7 +44,7 @@
 
 **3lach hadchi mohim:** intangible heritage ma-shi statue kat7etha f glass. Ila bghiti t7mi l-halqa, khas t7mi practitioners, transmission, l-space public w l-9odra 3la adaptation. Authenticity ma katsawich stasis.
 
-### Social media w rida 3la l-7ayat: paper jdida kat9ol "ma ban lina-sh athar longitudinal qwi" — ma-shi "ma kayn 7tta darar"
+### Social technologies w rida 3la l-7ayat: paper jdida ma l9atch athar longitudinal qwi
 
 **Chno w9e3:** peer-reviewed study f Nature Human Behaviour tab3at 1,966 US adults 3la 5 waves, kol 3 chhor, w 9assat use dyal 10 social technologies. F models li kayfer9o bin differences bin nass w changes dakhl nafs chakhss, authors ma l9awsh evidence qwi belli frequency dyal use katpredict subsequent life satisfaction 3la had timescale. [S16][S17]
 
@@ -62,7 +62,7 @@ F dossier Sebta, development l-jdid huwa belli Pedro Sanchez gal b-wodo7 f parli
 
 Mnin kansm3o had jouj l-ma3loumat, ma khasnach nkhtaro wa7da w nms7o lakhra. "Ma kaynach evidence 3la orchestration" ma katsawich "kolchi tddar mzyan f border". W "kayn police report 3la passivity" ma katsawich "dawla 3tat order bach tfett7 border". Hadi hiya l-masafa li khas journalism y7afd 3liha.
 
-Mn jihat l-Maghrib, statement dyal Sanchez kayna9s wa7d accusation kbira 7it jay mn head of government dyal Spain, wa7d l-partner li 3ando access l-information l-amniya dyal jihato. Walakin l-reader ma khasosh yakhod hadchi b7al final answer 3la kol chi wa9e3. Kayb9aw as2ila legitimate: ch7al mn personnel kano present? wach staffing kan below plan? wach chain of command t2kher? wach communication bin agencies kan wa3er? wach kayn data li t9dar tfrreq bin confusion, overload, negligence w intention?
+Mn jihat l-Mghrib, statement dyal Sanchez kayna9s wa7d accusation kbira 7it jay mn head of government dyal Spain, wa7d l-partner li 3ando access l-information l-amniya dyal jihato. Walakin l-reader ma khasosh yakhod hadchi b7al final answer 3la kol chi wa9e3. Kayb9aw as2ila legitimate: ch7al mn personnel kano present? wach staffing kan below plan? wach chain of command t2kher? wach communication bin agencies kan wa3er? wach kayn data li t9dar tfrreq bin confusion, overload, negligence w intention?
 
 Hadchi mohim 7it relation Morocco-Spain ma b9atch file wa7d. Fiha trade, migration, security, fisheries, tourism, Sahara w European policy. Ila attribution katbna 3la suspicion, trust institutional kayt2ada. Ila denial kaywli excuse bach ma kayn 7tta review, trust public kayt2ada ta huwa. L-mizan l-mzyan huwa transparency b-9dar li ma ykhsersh security operations, m3a facts 3la sequence, responsibility w corrective measures.
 
@@ -78,13 +78,15 @@ L-far9 hna ta huwa bin chno t9dar source tthbet w chno ma t9drch. Source t9dar t
 
 F juj dossiers, state language 3andha qima walakin ma hiyach evidence l-kamel 3la kol reality. F Sebta, Spanish government kaygol ma kaynach evidence 3la deliberate orchestration. F Sahara, Spanish government kaygol kayda3em autonomy proposal. Luwla assessment 3la attribution; taniya position siyasiya. Juj ma khas-homsh yt7awlo l-ma3na akhor.
 
-L-Maghrib kayrbe7 aktar mn journalism li kaydir distinctions mn journalism li kaytsenna ghir wa7d l-camp bach y3ti signal. Ila evidence positive l-position Maghribi, khas yban. Ila kayn gap, delay wla contradiction, khas yban. Hadi ma hiyach neutrality fargha; hiya accountability m3a standard wa7d.
+L-Mghrib kayrbe7 aktar mn journalism li kaydir distinctions mn journalism li kaytsenna ghir wa7d l-camp bach y3ti signal. Ila evidence positive l-position Maghribi, khas yban. Ila kayn gap, delay wla contradiction, khas yban. Hadi ma hiyach neutrality fargha; hiya accountability m3a standard wa7d.
 
-### L-athar dyal global financing 3la l-Maghrib
+### L-athar dyal global financing 3la l-Mghrib
 
 Story dyal global bond yields ma hiyach story Maghribi direct, walakin 3andha relevance. Ila sovereign yields f major markets b9aw tal3in, investors y9dro ytalbo return a3la f markets okhra, companies t9dar t9iiss debt b-thaman aghla, w governments t9dar t7ss b-pressure f refinancing. [S11] Ma kaynach f packet data jdida katgol ch7al hadchi ghadi y2atr 3la Morocco b-ra9m, donc ma ghadi-sh nkhtr3 estimate.
 
 Li n9dro n9olo huwa belli financing global howa wa7d mn l-channels li kayrbto decisions f central banks b-budget choices f douwal okhra. Ila l-selloff traja3 m3a inflation data w ECB/Fed expectations, risk y9dar ykhf. Ila b9a, su2al dyal cost of capital ghadi ykber. Nra9bo data, ma-shi panic.
+
+F had context, l-qarar l-mzyan huwa ma n9fzoch mn market move l-conclusion 3la l-budget Maghribi bla data. L-reader khaso y3ref fin kayn channel dyal risk w fin kaybda speculation. Ila Bank Al-Maghrib, Treasury wla market issuance bano fihom effect measurable, dik sa3a n9dro n9issoh b-ra9m. Daba, l-relevance strategiya kayna, l-impact exact mazal ma t9assch b-wodo7.
 
 ## Meknes
 
@@ -97,6 +99,8 @@ L-fa2ida practical hiya belli talib ma khasosh y3tamed 3la screenshot qdim wla m
 F nafs lwa9t, radar dyal procurement l9a fresh listings 3la Meknes f aggregator, mnha studies architecturales, equipment w services. [S05] Walakin aggregator discovery ma kay3nich award, ma kay3nich contractor selected, ma kay3nich budget final, w ma kay3nich works bdaw. Had l-items b9aw HOLD 7tta primary record ythbet milestone.
 
 Hadi point local accountability li katswa aktar mn headline: project kaydouz mn announcement l-tender, mn tender l-award, mn award l-works, mn works l-completion, w mn completion l-service li citizen kay7ss biha. Ila journalist qfz mn stage luwla l-natija, kaykhl9 success li mazal ma w9e3ch. Ila qfz mn listing l-scandal, kaykhl9 failure li ma tthbatatch. Lyoum ma kaynach development local kbira verified; hadi hiya l-khbar b-s7i7.
+
+Thin-news exception hna legitimate 7it fresh primary material ma kaykfish l-300 kelma bla padding. Ma ghadi-sh n3awdo announcements qdamin, ma ghadi-sh n7awlo procurement discovery l-result, w ma ghadi-sh n3mro l-page b-generalities 3la l-mdina. L-desk local kaykseb credibility mlli kay9ol b-wodo7 chno tverifa w chno mazal watch-only.
 
 ## Filastin
 
@@ -122,7 +126,7 @@ Al Jazeera coverage dyal Gaza kat3ti fresh context 3la attacks w conditions, wal
 
 Debate 3la removal, ceasefire, elections w US pressure y9dar ybda abstract bser3a. Walakin l-meaning kayb9a m3alla9 b-nass li 3aychin decisions. Forced transfer ma-shi ghir diplomatic wording; kaymss family, property, return, identity w future political dyal Gaza. Ceasefire ma-shi ghir paper; kaymss wach wa7d l-weld y9dar ymchi l-clinic, wach family t9dar trj3 l-dar, wach farmer y9dar ywsal l-ard.
 
-L-editorial principle hna huwa ma n7awloch l-civilian l-footnote. Nn9lo l-claims b-attribution, nfar9o bin official statement w verified implementation, w manrkabosh certainty fin l-evidence mazal na9s.
+L-editorial principle hna huwa ma n7awloch l-civilian l-footnote. Nn9lo l-claims b-attribution, nfar9o bin official statement w verified implementation, w manrkabosh certainty fin l-evidence mazal na9s. F Gaza, l-kelma qanouniya w l-position diplomasi kaywliw 3andhom ma3na ghir ila t9asso b-wach kaytbdl f 7ayat nass w f protection li kayna 3la l-ard.
 
 ## Chno kayw9e3 f l3alam
 
@@ -130,7 +134,7 @@ L-editorial principle hna huwa ma n7awloch l-civilian l-footnote. Nn9lo l-claims
 
 Reuters katgol belli planned visits dyal Steve Witkoff w Jared Kushner l-Moscow w Kyiv ba9yin uncertain 7it Washington kay9leb 3la security assurances mn juj jihat. [S10] Hadchi kaystahel inclusion 7it ma-shi routine battlefield update; kayn possible diplomatic channel b-consequence strategiya. Walakin visits ma t2kkdoch final, w core positions ba9yin b3ad.
 
-Ma khasnach nktbo "peace talks bdaw" ila li kayn huwa preparation l-ziyara. Diplomacy t9dar tfta7 channel, t9dar ta tfشل, t9dar ghir t9iss positions. Nra9bo wach l-visits ghadi yوقعo, chkon ghadi yشارك, wach kayn agenda 3la ceasefire wla security arrangements, w wach positions rasmiya katbddl mn b3d.
+Ma khasnach nktbo "peace talks bdaw" ila li kayn huwa preparation l-ziyara. Diplomacy t9dar tfta7 channel, t9dar ta tfchel, t9dar ghir t9iss positions. Nra9bo wach l-visits ghadi yw93o, chkon ghadi ycharek, wach kayn agenda 3la ceasefire wla security arrangements, w wach positions rasmiya katbddl mn b3d.
 
 ### Bond selloff: l-risk l-mali kaytwas3
 
@@ -230,15 +234,15 @@ Tujjar as-Sultan kay3tiw example: elite Jewish merchants kano central l-foreign 
 
 ### Mn 1870s: decline relative, ma-shi disappearance
 
-Mn 1870s w 1880s, Essaouira bdat katf9d ba3d l-position relative dyalha m3a transformation dyal trade routes, ports, foreign influence w merchant order. [S20][S22] "Decline" ma khas-hash tfham b7al city ماتت. Kay3ni relative weight dyal old system tbdl.
+Mn 1870s w 1880s, Essaouira bdat katf9d ba3d l-position relative dyalha m3a transformation dyal trade routes, ports, foreign influence w merchant order. [S20][S22] "Decline" ma khas-hash tfham b7al city salat. Kay3ni relative weight dyal old system tbdl.
 
-Hadi ta hiya lesson f economic history. City katطلع 7it institutions, geography w policy kaytla9aw f wa9t mo3ayan. Mlli routes, technology, treaties w power kaytbddlou, city t9dar tbdl role. Ma kaynach eternal commercial capital.
+Hadi ta hiya lesson f economic history. City kat9wa 7it institutions, geography w policy kaytla9aw f wa9t mo3ayan. Mlli routes, technology, treaties w power kaytbddlou, city t9dar tbdl role. Ma kaynach eternal commercial capital.
 
 ### Chno kayb9a lyoum?
 
 Essaouira lyoum t9dar ttfham b-tourism w heritage, walakin history dyalha kat7ell as2ila akbar: kifach state kaynaddem market? kifach minority merchant elite kat3ich bin influence w vulnerability? kifach international trade y9dar yjib growth w f nafs lwa9t ywss3 leverage foreign? kifach memory katkhtasar relation social f slogan dyal tolerance wla conflict?
 
-L-jawab ma kaynch f slogan. Source base katbayan port bna-h Makhzen b-strategy. Katbayan Jewish merchant elite mohimma. Katbayan European pressure kbir. Katbayan hierarchy social. W katbayan belli history dyal sovereignty ma hiyach 9issa dyal wa7d side kaydir kolchi w side akhor passive.
+L-jawab ma kaynch f slogan. Source base katbayan port bna-h Makhzen b-strategy. Katbayan Jewish merchant elite mohimma. Katbayan European pressure kbir. Katbayan hierarchy social. W katbayan belli history dyal sovereignty ma hiyach 9issa dyal wa7d side kaydir kolchi w side akhor passive. Hadi hiya qimat had dossier: kayrj3 l-agency l-Maghribiya bla ma ykhbi asymmetry li katzid m3a pressure Ewropeya.
 
 ## Adab w Taqafa
 
@@ -260,7 +264,7 @@ Had l-fekra mohimma 7it cultural policy t9dar tghlet ila bghat "tfreeze" halqa f
 
 UNESCO case dyal Jemaa el-Fna kan important f evolution dyal concept dyal oral and intangible heritage. Consultation f Marrakesh f 1997 w recognition mn b3d contribuw l-fekra belli l-heritage y9dar ykoun cultural space, practices w social relations, ma-shi ghir monument. [S25]
 
-Square protected b7al artistic heritage mn 1922, UNESCO Masterpiece recognition ja f 2001, w tradition dkhlat Representative List f 2008. [S24][S25] Dates hna ma khas-hash ttsaraf b7al trophies. L-mohim huwa chno tbdl f policy: l-3alam bda kay3ترف aktar blli performance oral, transmission w public space y9dro ykouno heritage li kaystahel safeguarding.
+Square protected b7al artistic heritage mn 1922, UNESCO Masterpiece recognition ja f 2001, w tradition dkhlat Representative List f 2008. [S24][S25] Dates hna ma khas-hash ttsaraf b7al trophies. L-mohim huwa chno tbdl f policy: l-3alam bda kay3taref aktar blli performance oral, transmission w public space y9dro ykouno heritage li kaystahel safeguarding.
 
 ### Recognition: rescue wla touristification?
 
@@ -268,35 +272,37 @@ UNESCO recognition zadt visibility w shj3at practitioners, walakin source record
 
 Visibility t9dar tjib money, audience, prestige w political protection. Nafs visibility t9dar tjib tourist gaze li kaytalab wa7d version "traditional" li sahla l-photo w l-consumption. Performer y9dar ybdl content bach yrdi visitors li ma kayfhmoush references local. Property values, redevelopment w crowd management y9dro ybdlo access l-space. Recognition kat7mi w katbdl f nafs lwa9t.
 
-Scholarship 3la heritage katna9ech had l-risk dyal folklorization: practice katb9a visible walakin relation social li kat3tiha ma3na katd3af. [S27] Halqa li katsift ghir l-siyah message ready-made ma hiyach necessarily nafs ecology dyal halqa li audience local kayjرب performer w kaydkhl m3ah f exchange.
+Scholarship 3la heritage katna9ech had l-risk dyal folklorization: practice katb9a visible walakin relation social li kat3tiha ma3na katd3af. [S27] Halqa li katsift ghir l-siyah message ready-made ma hiyach necessarily nafs ecology dyal halqa li audience local kayjarrab performer w kaydkhl m3ah f exchange.
 
 ### Ma kaynch creator wa7d
 
 B-kteb, n9dro nsowlo 3la author. F halqa, creation collective aktar. Kayn hlay9i, kayn memory dyal narratives qdima, kayn styles dyal performers li dazo, kayn audience, kayn urban space, kayn musicians w vendors 7da. L-work kattsna3 f interaction.
 
-Hadi kats3b documentation. Archive y9dar ysجل video, walakin video ma kay7afdsh automatic 3la ecosystem. Text transcription y9dar y7afd 3la words, walakin ma kay7afdsh 3la timing, crowd, interruptions, smell, sound w negotiation dyal attention. Safeguarding li kayfhem hadchi khaso yrkkz 3la transmission mn generation l-generation, conditions dyal practitioners, access l-space, w freedom dyal adaptation.
+Hadi kats3b documentation. Archive y9dar yrecordi video, walakin video ma kay7afdsh automatic 3la ecosystem. Text transcription y9dar y7afd 3la words, walakin ma kay7afdsh 3la timing, crowd, interruptions, smell, sound w negotiation dyal attention. Safeguarding li kayfhem hadchi khaso yrkkz 3la transmission mn generation l-generation, conditions dyal practitioners, access l-space, w freedom dyal adaptation.
 
 ### Shno n7miw b-dabt?
 
-Ila l-goal huwa t7mi heritage, 3andna juj options sahlين walakin na9sin. Luwel huwa nhmiw image dyal square bla practitioners. Tani huwa n7awlo performers l-museum actors. L-alternative as3ab: n7miw l-conditions li katkhlli practice t3ich.
+Ila l-goal huwa t7mi heritage, 3andna juj options sahlin walakin na9sin. Luwel huwa nhmiw image dyal square bla practitioners. Tani huwa n7awlo performers l-museum actors. L-alternative as3ab: n7miw l-conditions li katkhlli practice t3ich.
 
-Hadchi y9dar y3ni spaces fin l-halqa t9dar tsawb bla ma ttsed b-commercial pressure, support l-apprenticeship, documentation ma katsar9sh intellectual contribution dyal performers, fair opportunities l-practitioners, w city planning li kay3ترف belli intangible culture katحتاج physical space.
+Hadchi y9dar y3ni spaces fin l-halqa t9dar tsawb bla ma ttsed b-commercial pressure, support l-apprenticeship, documentation ma katsar9sh intellectual contribution dyal performers, fair opportunities l-practitioners, w city planning li kay3taref belli intangible culture kat7taj physical space.
 
-Exact current count dyal storytellers ma kaynch f packet b-source solid kafi, donc ma ghadi-sh nkhtro3 number w n9olo "b9aw ghir X". Li supported huwa concern 3la decline w pressure. [S24][S26] Hadi distinction sghira walakin mohimma: urgency ma katحتاجsh statistic invented.
+Exact current count dyal storytellers ma kaynch f packet b-source solid kafi, donc ma ghadi-sh nkhtro3 number w n9olo "b9aw ghir X". Li supported huwa concern 3la decline w pressure. [S24][S26] Hadi distinction sghira walakin mohimma: urgency ma kat7tajsh statistic invented.
 
 ### 3lach hadchi mohim lyoum
 
 Marrakesh kat3ich tourism kbir, redevelopment w global visibility. Su2al Jemaa el-Fna huwa su2al dyal mdon bzaf: kifach tkhlli l-city tdkhl f economy global bla ma t7awel culture l-decor? kifach t7mi tradition bla ma tjmdo? kifach t3ti practitioner dignity w income bla ma t7awlo commodity?
 
-Halqa katjawb b-wa7d principle: culture l-7ayya katحتاج room bach tbdl. Ila hminaha ghir mn taghyir, momkin n7miw shell w nf9do l-ro7. Ila khllina market yقرر kolchi, momkin l-ro7 tbdl l-product. Safeguarding l-mzyan kaymchi bin juj.
+Halqa katjawb b-wa7d principle: culture l-7ayya kat7taj room bach tbdl. Ila hminaha ghir mn taghyir, momkin n7miw shell w nf9do l-ro7. Ila khllina market y9rrer kolchi, momkin l-ro7 tbdl l-product. Safeguarding l-mzyan kaymchi bin juj.
+
+Wa7d l-me3yar useful huwa transmission: wach performer jdid y9dar yta3llm, yjarrab, yghlet w ybni style dyalo? Ila jawab la, momkin nkouno 7fdo image dyal heritage w khserna mechanism dyal continuity. Hadi 3lach support l-practitioners a9wa mn support l-postcard.
 
 ## Mo7asaba w Ta7qiq
 
 ### Al Haouz: dossier ba9i NEEDS_VERIFICATION, ma kaynach expose lyoum
 
-Dossier dyal reconstruction l-Houz tراجع, walakin ma wslsh l-publication readiness. Official reporting kaygol blli 54,425 habitations kano completed f update March 2026, aktar mn 3,000 mazal f works, w aktar mn 7.2bn MAD dyal aid twz3at. [S29] Field mission dyal ADHA, EIB w EU f June 2026 watha9at continuing projects f ta3lim, se77a w roads. [S30]
+Dossier dyal reconstruction l-Houz traja3, walakin ma wslsh l-publication readiness. Official reporting kaygol blli 54,425 habitations kano completed f update March 2026, aktar mn 3,000 mazal f works, w aktar mn 7.2bn MAD dyal aid twz3at. [S29] Field mission dyal ADHA, EIB w EU f June 2026 watha9at continuing projects f ta3lim, se77a w roads. [S30]
 
-F jihat okhra, Transparency Maroc 3andha observatory independent, w Reuters سبق وثق complaints w delays 3nd ba3d survivors. [S31][S32] Hadchi kayبرر scrutiny, walakin ma kayبررش blanket claim belli reconstruction ma w9e3atsh. Official completion figures nafshom kayna9do had l-hypothesis l-motla9a.
+F jihat okhra, Transparency Maroc 3andha observatory independent, w Reuters saba9 watha9 complaints w delays 3nd ba3d survivors. [S31][S32] Hadchi kaybrer scrutiny, walakin ma kaybrersh blanket claim belli reconstruction ma w9e3atsh. Official completion figures nafshom kayna9do had l-hypothesis l-motla9a.
 
 L-missing li kaymna3 publication strong huwa village-level table dyal beneficiaries w completion, budget commitment versus cash disbursement b-sector w year, contracts m3a amendments/delays/delivery, w independent engineering sample. 120bn MAD envelope multi-year w multi-sector ma khas-hash ttsawa direct b-housing cash aid.
 
@@ -308,13 +314,13 @@ Daba l-position responsible huwa: progress official kbir kayn, complaints w gaps
 
 **Gaza w forced displacement:** nra9bo wach opposition l-Amerikaniya ghadi tban f action policy, w wach kayn ay plan operational wla language jdida 3la removal. Signal l-mohim ma-shi ghir tasri7, walakin conditions, pressure w legal safeguards. [S06][S07]
 
-**Sebta:** nra9bo ay review operational, data 3la staffing w chain of command, w wach Madrid w Rabat ghadi yخرجو facts jdod li y9dro yfrreqo bin failure, confusion w intention. [S01]
+**Sebta:** nra9bo ay review operational, data 3la staffing w chain of command, w wach Madrid w Rabat ghadi ykhrjo facts jdod li y9dro yfrreqo bin failure, confusion w intention. [S01]
 
 **US–China AI:** nra9bo confirmation dyal participants w location, agenda dyal cyber misuse w frontier-risk disclosure, w wach talks ghadi tji b-mechanism measurable wla ghir declaration. [S12]
 
-**Global bonds:** nra9bo US inflation, ECB signal w reaction dyal long yields. Ila pressure b9a, financing-cost story ghadi tخرج mn market screens l-budgets w companies. [S11]
+**Global bonds:** nra9bo US inflation, ECB signal w reaction dyal long yields. Ila pressure b9a, financing-cost story ghadi tkhrej mn market screens l-budgets w companies. [S11]
 
-**Ukraine diplomatic channel:** nra9bo wach planned visits dyal US envoys ghadi yوقعo w wach kayn shift substantiel f positions, ma-shi ghir movement protocolar. [S10]
+**Ukraine diplomatic channel:** nra9bo wach planned visits dyal US envoys ghadi yw93o w wach kayn shift substantiel f positions, ma-shi ghir movement protocolar. [S10]
 
 ### 7a9i9a mdahcha dyal lyoum
 
@@ -326,4 +332,4 @@ Ila tradition ma katb9ash 7ayya ghir ila tbdlat m3a audience dyalha, fin kayn l-
 
 ## Masadir
 
-Kol citation b-format [Sxx] katrje3 l-source ID l-motabi9 f sources.json dyal had l-edition. L-source kayt9ra 7sab origin dyal l-ma3louma: official statement kaythbet chno gal l-official, company announcement kaythbet chno 3lnt company, w claim disputed ma kaywليش fact ghir 7it t3awd f aktar mn site.
+Kol citation b-format [Sxx] katrje3 l-source ID l-motabi9 f sources.json dyal had l-edition. L-source kayt9ra 7sab origin dyal l-ma3louma: official statement kaythbet chno gal l-official, company announcement kaythbet chno 3lnt company, w claim disputed ma kaywlich fact ghir 7it t3awd f aktar mn site.
