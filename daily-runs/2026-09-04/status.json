@@ -4,7 +4,7 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "BLOCKED",
+  "publishing": "RUNNING",
   "cover": "COMPLETE",
   "overall_status": "PENDING",
   "publication_source_package": "COMPLETE",
@@ -33,6 +33,7 @@
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-04/assets/cover.svg",
   "cover_fallback_reason": "IMAGE_INVOCATION_MODE_ERROR_NO_RETRY_ALLOWED: pure text-to-image generation was invoked with no referenced image target, but the image system classified the request as an edit requiring an existing image and explicitly prohibited retry.",
-  "publishing_completed_at": "2026-09-04T23:25:00+01:00",
-  "publishing_blocking_reason": "PREREQUISITE_FAILED: required canonical cover editions/2026/09/2026-09-04/assets/cover.webp is missing on GitHub (404); cover-brief.json points instead to SVG fallback editions/2026/09/2026-09-04/assets/cover.svg, so the mandatory cover.webp prerequisite for final PDF/EPUB publication is not satisfied."
+  "publishing_started_at": "2026-09-04T23:31:00+01:00",
+  "publishing_completed_at": null,
+  "publishing_blocking_reason": null
 }
