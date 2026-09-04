@@ -5,7 +5,7 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
-  "cover": "BLOCKED",
+  "cover": "RUNNING",
   "overall_status": "PENDING",
   "publication_source_package": "COMPLETE",
   "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
@@ -27,7 +27,7 @@
   "editorial_started_at": "2026-09-04T22:31:00+01:00",
   "editorial_completed_at": "2026-09-04T22:46:22+01:00",
   "editorial_blocking_reason": null,
-  "cover_started_at": "2026-09-04T22:48:00+01:00",
-  "cover_completed_at": "2026-09-04T22:48:00+01:00",
-  "cover_blocking_reason": "Image generation did not produce a usable cover artifact in this execution; the image tool required a usable image target and explicitly prohibited retry."
+  "cover_started_at": "2026-09-04T23:05:00+01:00",
+  "cover_completed_at": null,
+  "cover_blocking_reason": null
 }
