@@ -2,7 +2,7 @@
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
   "research_started_at": "2026-09-04T05:44:40+01:00",
-  "research_completed_at": "2026-09-04T06:24:00+01:00",
+  "research_completed_at": "2026-09-04T06:31:00+01:00",
   "memory_checked": {
     "covered_stories": true,
     "watchlist": true,
@@ -33,9 +33,9 @@
       "source_origins": ["Reuters", "The Guardian", "Spanish government", "Spanish police report", "Moroccan government"],
       "contradictory_evidence": ["Police report kaywassaf passivity w unusual border behaviour, walakin Sanchez kaygol ma kaynach evidence kat7sem orchestration."],
       "uncertainty": "Medium 3la exact operational causes f critical hours; low 3la chno gal Sanchez.",
-      "context": "Hadchi update direct 3la story dyal Sebta mn 3 September, ma-shi repetition dyal background.",
-      "why_it_matters": "Kaymss Morocco-Spain security cooperation, migration politics w credibility dyal public attribution.",
-      "strategic_angle": "Farre9 bin possible failure w passivity f border control, w bin deliberate state orchestration, 7it l-evidence ma kat3tich nafs l-conclusion.",
+      "context": "Hadchi update direct 3la story dyal Sebta mn 3 September, ma-shi repetition dyal background. L-far9 l-editorial huwa bin observation dyal weak control f wa7d l-window w bin proof dyal deliberate state orchestration. Had jouj ma-shi nafs l-claim.",
+      "why_it_matters": "Kaymss Morocco-Spain security cooperation, migration politics, domestic debate f Spain w credibility dyal public attribution. Ila public officials kay9fzo mn operational anomaly l-state conspiracy bla evidence, hadchi y9der y3qqed bilateral cooperation bla dalil kafi.",
+      "strategic_angle": "Farre9 bin possible failure w passivity f border control, w bin deliberate state orchestration. Nra9bo wach kaykhrj investigation akthar tafsil, chain of command, staffing records, communication logs w joint Morocco-Spain review. Ila ma kaynach had evidence, verdict yb9a MIXED w attribution intentional ma tthbatsh.",
       "confidence": "high",
       "recommendation": "LEAD"
     },
@@ -49,18 +49,20 @@
       "key_facts": [
         "OFFICIAL_POSITION: Spain ba9ya 3la support dyal autonomy proposal.",
         "FACT: statement t3ta f Congress nhar 3 September.",
-        "CLAIM: framing belli leading European powers kaymchiw f nafs direction khaso ytb9a attributed l-Sanchez ila ma tdarsh mapping country-by-country."
+        "CLAIM: framing belli leading European powers kaymchiw f nafs direction khaso ytb9a attributed l-Sanchez ila ma tdarsh mapping country-by-country.",
+        "CONTRARY_POSITION: Polisario leadership ba9i kayrfd solution li ma kay7afdch 3la option dyal independence w self-determination."
       ],
       "primary_sources": [],
       "independent_sources": [
-        {"url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/", "publisher": "Le360", "publication_date": "2026-09-03", "source_type": "reporting", "claim_supported": "Sanchez reaffirmation f parliament", "evidence_label": "OFFICIAL_POSITION"}
+        {"url": "https://en.le360.ma/politics/sahara-defying-pressure-from-the-right-sanchez-reaffirms-spains-support-for-moroccos-autonomy-plan_J4ZWJ2ITDFBS3FHYGJRNDARLNE/", "publisher": "Le360", "publication_date": "2026-09-03", "source_type": "reporting", "claim_supported": "Sanchez reaffirmation f parliament", "evidence_label": "OFFICIAL_POSITION"},
+        {"url": "https://spsrasd.info/en/2026/09/03/17547.html", "publisher": "Sahrawi Press Service", "publication_date": "2026-09-03", "source_type": "party-official-position", "claim_supported": "Polisario rejection of settlement excluding independence option", "evidence_label": "OFFICIAL_POSITION"}
       ],
-      "source_origins": ["Spanish government", "Le360"],
-      "contradictory_evidence": ["Polisario leadership nhar 3 September 3awd rfd ay solution ma kay7afdch 3la option dyal independence w self-determination."],
+      "source_origins": ["Spanish government", "Le360", "Polisario Front"],
+      "contradictory_evidence": ["Spain katda3em autonomy proposal; Polisario ba9i kayrfd ay settlement li kay7yed independence option. Hada disagreement siyasi w legal, ma-shi fact-check contradiction 3la wa7d event."],
       "uncertainty": "Low 3la Spain position; dispute siyasi w qanouni ba9i ma m7somch.",
-      "context": "Spain position 3andha wzn diplomatic 7it hiya former administering power w partner iqtisadi w security mohim l-Maghrib.",
-      "why_it_matters": "Kaymss l-balance diplomatic 7awl Western Sahara w Morocco-Algeria rivalry.",
-      "strategic_angle": "N9raw statement b7al continuity diplomatic, ma-shi final legal settlement.",
+      "context": "Spain position 3andha wzn diplomatic 7it hiya former administering power w partner iqtisadi w security mohim l-Maghrib. Reaffirmation dyal 3 September katbayan continuity, ma-shi policy reversal. Ma khasnach n9rawha b7al settlement final 7it UN process w positions dyal parties ba9yin.",
+      "why_it_matters": "Kaymss l-balance diplomatic 7awl Western Sahara, Morocco-Algeria rivalry, relation m3a EU w Spain, w calculus dyal recognition/support f capitals okhrin.",
+      "strategic_angle": "Nra9bo wach support siyasi kayt7wl l-steps diplomatic w qanouniya jdod, w kifach l-UN process kaytفاعل m3a widening support l-autonomy. L7OKM DYAL L2ADILLA: POSITIVE 3la continuity dyal bilateral Morocco-Spain relation, walakin INSUFFICIENT EVIDENCE bach n9olo dispute qrib ytsala.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     }
@@ -84,10 +86,10 @@
       "independent_sources": [],
       "source_origins": ["EST Meknes"],
       "contradictory_evidence": [],
-      "uncertainty": "Low.",
-      "context": "Yesterday kan notice 3la registration dyal students jdad; had lyoum update mkhtalef kaymss 2eme annee.",
-      "why_it_matters": "Fa2ida direct l-talaba w families f Meknes.",
-      "strategic_angle": "BRIEF service, bla tnafikh dyal importance.",
+      "uncertainty": "Low 3la notice. L-talaba khas-hom ytab3o l-page official ila tbdlat chi date.",
+      "context": "Yesterday kan notice 3la registration dyal students jdad; had lyoum update mkhtalef kaymss 2eme annee. Donc ma t3awdch nafs khabar. Local desk kaykhlli service information f volume monasib w ma kay7awloch l-major reform story bla evidence.",
+      "why_it_matters": "Fa2ida direct l-talaba w families f Meknes, khasatan 7it calendrier kayfrreq bin filiieres w soutenances.",
+      "strategic_angle": "BRIEF service, bla tnafikh dyal importance. Ila bano capacity issues, registration failures, cancelled classes wla staffing problems b evidence, dak sa3a y9der ywli accountability story.",
       "confidence": "high",
       "recommendation": "BRIEF"
     },
@@ -99,9 +101,10 @@
       "freshness": "radar-thin-news",
       "chno_w9e3": "THIN-NEWS EXCEPTION: search t3awd f Commune de Meknes, UMI w EST, w Fes-Meknes sources. Ma ban 7tta fresh verified award, work-start, completion wla budget decision kbir f 24 sa3a. Ma ghadi-sh n3awdo Ouislane AMI qdim b7al news jdida.",
       "key_facts": [
-        "Local institutional search tدار beyond national press.",
+        "Local institutional search tdar beyond national press.",
         "No verified major project milestone found in the fresh window.",
-        "Ouislane stays watch-only until official award or result yban."
+        "Ouislane stays watch-only until official award or result yban.",
+        "No contractor, fresh budget award or completion evidence was invented."
       ],
       "primary_sources": [
         {"url": "https://www.est.umi.ac.ma/", "publisher": "EST Meknes / Universite Moulay Ismail", "publication_date": "current-site", "source_type": "official-local", "claim_supported": "Latest institutional items include 3 September reinscription notice", "evidence_label": "FACT"}
@@ -109,10 +112,10 @@
       "independent_sources": [],
       "source_origins": ["EST Meknes", "local institutional search"],
       "contradictory_evidence": [],
-      "uncertainty": "High 3la projects li ma tindexawch public web quickly.",
-      "context": "Radar kaymna3 invention w kaykhlli project-accountability tied l-verifiable milestones.",
-      "why_it_matters": "F local beat, l-far9 bin announcement w result howa l-mohim.",
-      "strategic_angle": "HOLD ay project claim 7tta yban tender result, contractor, budget w status rasmi.",
+      "uncertainty": "High 3la projects li ma tindexawch public web quickly. Absence mn search ma kat3nich absence dyal activity f l-mdina.",
+      "context": "Radar kaymna3 invention w kaykhlli project-accountability tied l-verifiable milestones. Ouislane li kan f packet dyal lbar7 ma khasosh yrj3 b7al development jdid ghir 7it project mazal kayn f records.",
+      "why_it_matters": "F local beat, l-far9 bin announcement, tender, award, start, completion w service delivered howa l-mohim. Ila ma kaynach milestone jdid, l-hold a7san mn headline msno3.",
+      "strategic_angle": "HOLD ay project claim 7tta yban tender result, contractor, budget w status rasmi. Search l-jaya khas y9lb 3la marches publics, Commune, Prefecture, Region, CRI, ONCF, ONEE, hospitals w heritage bodies.",
       "confidence": "medium",
       "recommendation": "HOLD"
     }
@@ -124,23 +127,24 @@
       "proposed_title": "Gaza: violence mazal katw9e3 ta7t ceasefire, w civilian protection ba9ya fragile",
       "importance_score": 9,
       "freshness": "fresh-24h",
-      "chno_w9e3": "Al Jazeera nchart 3 September 3la strikes w gunfire f Gaza despite ceasefire. Reuters f recent reporting kaywatha9 incidents military w fragility dyal l-truce. Numbers dyal casualties khas-hom ytb9aw attributed l-medics w local authorities, ma-shi treated b7al independently verified census.",
+      "chno_w9e3": "Al Jazeera nchart 3 September 3la strikes w gunfire f Gaza despite ceasefire. Reuters f recent reporting kaywatha9 military incidents w fragility dyal l-truce. Numbers dyal casualties khas-hom ytb9aw attributed l-medics w local authorities, ma-shi treated b7al independently verified census.",
       "key_facts": [
         "FACT: military incidents ba9yin kayw9e3o ta7t ceasefire.",
         "CLAIM: casualty figures jayyin mn medical w local sources w khas explicit attribution.",
-        "UNKNOWN: wach had incidents ghadi yb9aw contained wla yjrru escalation akbar."
+        "UNKNOWN: wach had incidents ghadi yb9aw contained wla yjrru escalation akbar.",
+        "EDITORIAL RULE: ma n9lbosh hadchi casualty ticker; focus 3la durability dyal ceasefire w civilian protection."
       ],
       "primary_sources": [],
       "independent_sources": [
         {"url": "https://www.aljazeera.com/news/2026/9/3/israel-kills-3-in-gaza-as-far-right-minister-plans-for-palestinian-removals", "publisher": "Al Jazeera", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "Fresh violence f Gaza w policy context", "evidence_label": "FACT_WITH_ATTRIBUTED_CASUALTY_CLAIMS"},
-        {"url": "https://www.reuters.com/world/middle-east/israeli-special-forces-capture-hamas-official-raid-gaza-city-2026-09-01/", "publisher": "Reuters", "publication_date": "2026-09-01", "source_type": "independent-reporting-context", "claim_supported": "Ceasefire fragility w recent military activity", "evidence_label": "FACT_AND_CLAIMS"}
+        {"url": "https://www.reuters.com/world/middle-east/israeli-fire-kills-four-people-including-three-children-gaza-medics-say-2026-09-01/", "publisher": "Reuters", "publication_date": "2026-09-01", "source_type": "independent-reporting-context", "claim_supported": "Ceasefire fragility w recent military activity", "evidence_label": "FACT_AND_ATTRIBUTED_CLAIMS"}
       ],
       "source_origins": ["Al Jazeera", "Reuters", "Palestinian medical sources", "Israeli military"],
       "contradictory_evidence": ["Attribution 3la individual incidents kaykhtalef 7sab party; ma kaynach basis bach n7awlo kol claim l-fact bla source."],
       "uncertainty": "Medium 3la incident-level attribution; high 3la trajectory dyal ceasefire.",
-      "context": "Palestine desk ma kayt7wlsh casualty ticker; l-story howa durability dyal ceasefire w protection dyal civilians.",
-      "why_it_matters": "Ceasefire lli kaytna9d b repeated lethal incidents y9der ykoun siyasi aktar mn operationally stable.",
-      "strategic_angle": "Track verification mechanism, investigations w rules governing use of force.",
+      "context": "Palestine desk ma kayt7wlsh casualty ticker. L-story howa wach ceasefire 3ando enforcement mechanism, wach violations kayt7e99e9 fihom, w wach civilians 3andhom protection practical. Hadchi fresh 7it incidents dyal 3 September jat mn b3d story dyal lbar7 li kan focus dyalha emigration policy.",
+      "why_it_matters": "Ceasefire lli kaytna9d b repeated lethal incidents y9der ykoun siyasi aktar mn operationally stable. Ila ma kaynach verification w accountability, trust kayhbt w risk dyal escalation kayzid.",
+      "strategic_angle": "Track verification mechanism, investigations, rules governing use of force, aid access w diplomatic pressure. Ila source kay3ti casualty number, nnsbo l-source w ma n9dmosh b7al independently audited total.",
       "confidence": "medium",
       "recommendation": "LEAD"
     },
@@ -163,9 +167,9 @@
       "source_origins": ["Reuters", "Gaza farmers", "humanitarian reporting"],
       "contradictory_evidence": [],
       "uncertainty": "Medium 3la long-term scale w survival dyal l-project.",
-      "context": "Agricultural recovery hiya part mn humanitarian security w reconstruction.",
-      "why_it_matters": "Local seed preservation y9der y9lls dependency w y7afd 3la crops adapted l-bi2a, walakin bla land access ma kaynch recovery kamla.",
-      "strategic_angle": "Qaren resilience initiatives m3a actual access l-land, water w imports.",
+      "context": "Agricultural recovery hiya part mn humanitarian security w reconstruction. Seed bank bo7do ma y7ellch land access, irrigation, fuel, import w market problems, walakin kaybayan effort local bach ma tdi3ch varieties w farming knowledge.",
+      "why_it_matters": "Local seed preservation y9der y9lls dependency w y7afd 3la crops adapted l-bi2a, walakin bla land access ma kaynch recovery kamla. Hadi angle structural katmchi ab3ad mn casualty numbers.",
+      "strategic_angle": "Qaren resilience initiatives m3a actual access l-land, water, inputs w imports. Nra9bo wach seed collection katwssa3, wach farmers kay9dro ywslou l-ard, w wach restrictions katkhlli production mumkin.",
       "confidence": "high",
       "recommendation": "PUBLISH"
     },
@@ -189,11 +193,11 @@
         {"url": "https://apnews.com/article/5b1ca2875900af1c6492f72b4e2564fd", "publisher": "AP", "publication_date": "2026-07-05", "source_type": "independent-context", "claim_supported": "Condition allegations w detention context", "evidence_label": "FACT_AND_ALLEGATION"}
       ],
       "source_origins": ["Al Jazeera", "Reuters", "AP", "Abu Safiya lawyer", "Israel Prison Service"],
-      "contradictory_evidence": ["Lawyer w rights groups kaygolou abuse; Israel Prison Service katnfi."],
+      "contradictory_evidence": ["Lawyer w rights groups kaygolou abuse; Israel Prison Service katnfi. Had contradiction ma t7smatch b independent fresh examination f material available."],
       "uncertainty": "High 3la exact abuse claims; low 3la detention-without-charge status reported previously.",
-      "context": "Detention dyal medical workers kaymss due process, health access w protection dyal health personnel.",
-      "why_it_matters": "Story kay7taj labels sram 7it allegations serious w disputed.",
-      "strategic_angle": "PUBLISH ghir b FACT, ALLEGATION w DENIAL separation, bla turning claim l-verdict.",
+      "context": "Detention dyal medical workers kaymss due process, health access w protection dyal health personnel. Fresh element howa allegation update dyal 3 September, ma-shi recycling dyal old detention fact.",
+      "why_it_matters": "Story kay7taj labels sram 7it allegations serious w disputed. Journalism khaso y7mi l-far9 bin fact verified, allegation, denial w unknown.",
+      "strategic_angle": "PUBLISH ghir b FACT, ALLEGATION w DENIAL separation. Nra9bo court record, access l-lawyer, medical examination independent w ay official response jdid.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     }
@@ -218,11 +222,11 @@
         {"url": "https://www.reuters.com/world/middle-east/us-probes-iran-wedding-strike-that-analysis-shows-was-likely-direct-hit-by-us-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-analysis", "claim_supported": "Verified imagery and expert assessment of likely US munition", "evidence_label": "INDEPENDENT_ANALYSIS"}
       ],
       "source_origins": ["Reuters", "US government", "Iranian officials", "independent weapons experts"],
-      "contradictory_evidence": ["Iran katnseb strike l-US; Pentagon mazal ma 9blch responsibility final."],
+      "contradictory_evidence": ["Iran katnseb strike l-US; Pentagon mazal ma 9blch responsibility final. Independent visual analysis katzid probability walakin ma kat3awdch official investigation."],
       "uncertainty": "Medium pending official US investigation.",
-      "context": "Hadchi continuation strategic dyal US-Iran escalation, ma-shi routine battlefield item.",
-      "why_it_matters": "Civilian-harm finding y9der y2atr 3la legitimacy, escalation, diplomacy w pressure 7awl Hormuz.",
-      "strategic_angle": "Nra9bo investigation, accountability ila t2kked error, w impact 3la de-escalation.",
+      "context": "Hadchi continuation strategic dyal US-Iran escalation, ma-shi routine battlefield item. Edition dyal lbar7 kan focus 3la renewed strikes w Hormuz; lyoum l-development huwa possible civilian-harm incident w US probe.",
+      "why_it_matters": "Civilian-harm finding y9der y2atr 3la legitimacy, escalation, diplomacy w pressure 7awl Hormuz. Ila t2kked error, accountability w rules of engagement y9dro ywliw central f Washington w internationally.",
+      "strategic_angle": "Nra9bo investigation, accountability ila t2kked error, w impact 3la de-escalation. Ma n9dmoush Iranian casualty count b7al independently verified ila source ma kay3tich had level dyal verification.",
       "confidence": "high",
       "recommendation": "LEAD"
     },
@@ -244,11 +248,11 @@
         {"url": "https://www.reuters.com/world/german-police-probe-arson-attack-defence-tech-firm-munich-2026-09-03/", "publisher": "Reuters", "publication_date": "2026-09-03", "source_type": "independent-reporting", "claim_supported": "German arson and sabotage investigation context", "evidence_label": "FACT_WITH_UNKNOWN_ATTRIBUTION"}
       ],
       "source_origins": ["Reuters", "Danish PET", "Russian embassy", "German investigators"],
-      "contradictory_evidence": ["Danish intelligence attribution vs Russian denial; public evidence incomplete f reporting available."],
+      "contradictory_evidence": ["Danish intelligence attribution vs Russian denial; public evidence incomplete f reporting available. German case khaso yb9a separate 7it foreign attribution ma m7somch."],
       "uncertainty": "Medium-high 3la attribution outside cases where PET says it has concrete examples.",
-      "context": "Hybrid security f Europe kaytla9a m3a defence-industrial support l-Ukraine, walakin routine frontline Ukraine ma dkhlch l-packet.",
-      "why_it_matters": "Sabotage against defence industry y9der ybddl European counter-intelligence, sanctions w infrastructure protection.",
-      "strategic_angle": "Ma nkhltosh intelligence claim m3a judicial proof; nra9bo arrests, charges w disclosed evidence.",
+      "context": "Hybrid security f Europe kaytla9a m3a defence-industrial support l-Ukraine, walakin routine frontline Ukraine ma dkhlch l-packet. L-mohim huwa security dyal defence supply chains w infrastructure.",
+      "why_it_matters": "Sabotage against defence industry y9der ybddl European counter-intelligence, sanctions, policing w infrastructure protection. Ila recruitment dyal locals t2kked, threat model kaywli distributed w s3ib aktar mn conventional espionage.",
+      "strategic_angle": "Ma nkhltosh intelligence claim m3a judicial proof. Nra9bo arrests, charges, court filings w disclosed evidence. Germany case ma khasosh ytsna9 automatically l-Russia ghir 7it jat f nafs strategic context.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     },
@@ -272,10 +276,10 @@
       ],
       "source_origins": ["Reuters", "Taiwan cabinet", "China Ministry of Natural Resources", "Taiwan coast guard"],
       "contradictory_evidence": ["Beijing w Taipei kaykhtalfo 3la sovereignty w jurisdiction dyal waters; l-activity nafsha verified, legal w political framing disputed."],
-      "uncertainty": "Medium 3la final parliamentary approval.",
-      "context": "Hadchi strategic procurement and deterrence, ma-shi routine military movement.",
-      "why_it_matters": "Kaymss US-China balance, chip-security geography w Taiwan readiness.",
-      "strategic_angle": "Nra9bo final budget vote w wach domestic production t9der tl7e9 procurement scale.",
+      "uncertainty": "Medium 3la final parliamentary approval w implementation pace.",
+      "context": "Hadchi strategic procurement and deterrence, ma-shi routine military movement. Budget kaybayan effort bach Taiwan ykber domestic capability, khasatan drones w missile defence, f wa9t li maritime w military pressure kayb9a.",
+      "why_it_matters": "Kaymss US-China balance, chip-security geography w Taiwan readiness. Additional budget ma kay3nich automatically additional capability ila procurement, production w training ma l7e9osh.",
+      "strategic_angle": "Nra9bo final budget vote, procurement contracts, delivery dates w wach domestic production t9der tl7e9 scale. L-result ytt9as b systems delivered w readiness, ma-shi ghir budget announced.",
       "confidence": "high",
       "recommendation": "PUBLISH"
     }
@@ -301,11 +305,11 @@
         {"url": "https://www.theverge.com/ai-artificial-intelligence/989601/openai-gpt-6-astra-release", "publisher": "The Verge", "publication_date": "2026-09-03", "source_type": "independent-tech-reporting", "claim_supported": "Launch context and cyber capability framing", "evidence_label": "INDEPENDENT_REPORTING_ON_COMPANY_CLAIMS"}
       ],
       "source_origins": ["OpenAI", "The Verge"],
-      "contradictory_evidence": ["OpenAI katgol overall alignment a7san, walakin kat3ترف b monitorability a9all w adversarial evasion f ba3d tests; had tension khas yb9a visible."],
+      "contradictory_evidence": ["OpenAI katgol overall alignment a7san, walakin kat3tarf b monitorability a9all w adversarial evasion f ba3d tests. Had tension khas yb9a visible, 7it stronger alignment scores ma kaylghiwsh lower observability."],
       "uncertainty": "Medium-high 3la real-world generalization until independent testing broad ykhrj.",
-      "context": "Yesterday edition kan 3la shutdown controls; lyoum kayn actual Astra release w safety disclosure, donc development jdid w material.",
-      "why_it_matters": "Model stronger f cyber m3a lower monitorability kayrfa3 governance stakes f agentic deployment.",
-      "strategic_angle": "Ma n9olosh safer b7al blanket fact; nfr9o capability, alignment evals, monitorability w deployment controls.",
+      "context": "Yesterday edition kan 3la shutdown controls; lyoum kayn actual Astra release w safety disclosure, donc development jdid w material. L-company source yثبت chno OpenAI katgol w chno evals dyalha l9aw, ma-shi independent proof dyal safety f deployment real.",
+      "why_it_matters": "Model stronger f cyber m3a lower monitorability kayrfa3 governance stakes f agentic deployment. Ila system y9der ydir tasks cyber advanced w internal reasoning as3ab l-monitoring, permissions, containment w shutdown controls kaywliw akthar ahamiya.",
+      "strategic_angle": "Ma n9olosh safer b7al blanket fact. Nfr9o capability, alignment evals, monitorability w deployment controls. Nra9bo independent red-teaming, external benchmarks, incident disclosures w wach controls katsd real attack paths.",
       "confidence": "high",
       "recommendation": "LEAD"
     },
@@ -326,11 +330,11 @@
       ],
       "independent_sources": [],
       "source_origins": ["OpenAI"],
-      "contradictory_evidence": ["No independent outcome evaluation found in fresh window; dollar headline ma khasosh yt9ra b7al cash grant fully spent."],
+      "contradictory_evidence": ["No independent outcome evaluation found in fresh window; dollar headline ma khasosh yt9ra b7al cash grant fully spent. Commitment value w realized value ma-shi darori nafs l-7aja."],
       "uncertainty": "Medium 3la delivered value w measurable outcomes.",
-      "context": "Program kayrbet frontier cyber capability b defensive access and governance.",
-      "why_it_matters": "Kaybddl distribution dyal advanced cyber AI mn elite labs l-infrastructure defenders, walakin scale dyal benefit khaso measurement.",
-      "strategic_angle": "Follow actual uptake, fixes accepted, incidents prevented w external audits.",
+      "context": "Program kayrbet frontier cyber capability b defensive access and governance. L-announcement material 7it scale dyal commitment kbir, walakin evidence ba9i company-side 3la usage w expected benefits.",
+      "why_it_matters": "Kaybddl distribution dyal advanced cyber AI mn elite labs l-infrastructure defenders, walakin scale dyal benefit khaso measurement. Ila access subsidized kaywsel l-small public teams, y9der y9lls capability gap; ila credits ma tsta3mlosh, headline value ma y3nich impact.",
+      "strategic_angle": "Follow actual uptake, credits consumed, fixes accepted, incidents prevented, false-positive burden w external audits. Ma n7sbo 1B b7al result 7tta yban ch7al ttsraf w chno t7ssen.",
       "confidence": "high",
       "recommendation": "PUBLISH"
     },
@@ -353,16 +357,16 @@
       ],
       "independent_sources": [],
       "source_origins": ["Google DeepMind"],
-      "contradictory_evidence": ["No fresh independent broad test located; marketing and partner evals stay company-linked evidence."],
+      "contradictory_evidence": ["No fresh independent broad test located; marketing and partner evals stay company-linked evidence. Model card is useful primary documentation but ma kay3tich independent ranking vs rivals."],
       "uncertainty": "Medium-high 3la real-world advantage vs competing models.",
-      "context": "AI desk kay7taj yfrreq model card mn benchmark independent.",
-      "why_it_matters": "Fast models li kaykhdmo coding w long-running agents kay2atro 3la cost, latency w adoption f workflows.",
-      "strategic_angle": "Hold performance verdict until independent evals ybano.",
+      "context": "AI desk kay7taj yfrreq model card mn benchmark independent. 2 September is slightly outside strict 24h window walakin rollout ba9i current, w item kayb9a secondary ma-shi lead.",
+      "why_it_matters": "Fast models li kaykhdmo coding w long-running agents kay2atro 3la cost, latency w adoption f workflows. Value practical kayban ila quality-per-dollar w reliability f long tasks t2kkdo independently.",
+      "strategic_angle": "Hold performance verdict until independent evals ybano. Nra9bo coding benchmarks, agent reliability, context handling, cyber safety w cost under comparable settings.",
       "confidence": "medium",
       "recommendation": "PUBLISH"
     }
   ],
-  "sources_count": 18,
+  "sources_count": 19,
   "primary_sources_count": 5,
   "independent_source_origins_count": 10,
   "blocked_sources": [
