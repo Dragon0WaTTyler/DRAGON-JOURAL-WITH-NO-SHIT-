@@ -6,6 +6,8 @@ Daily production is coordinated by five ChatGPT Scheduled Work super-jobs over t
 
 The execution boundary is ChatGPT Plus only. The OpenAI API, `OPENAI_API_KEY`, pay-as-you-go usage, GitHub Actions as compute, paid external compute, self-hosted runners, and the user's PC as production runtime are forbidden.
 
+Final reader-facing publication semantics are defined by `config/final-publication.yaml`.
+
 ## Tested Scheduled Work capabilities
 
 Connected GitHub:
@@ -53,18 +55,33 @@ A later manual Codex Cloud run may render and validate PDF/EPUB binaries from th
 
 Task 5 uses one lead, one cover mode, a compact persisted brief, and one simple 3:4 image-generation request. Visible text is limited to DRAGON masthead, date, main headline, and at most two teasers. Use one dominant concept and black/white/red hierarchy. No unrelated collage, fake documentary evidence, or Arabic script.
 
-If generation fails, retry once only with an even simpler composition. `cover=COMPLETE` requires actual image generation PASS plus visual QA PASS. GitHub image archival is explicitly separate:
+If generation fails, retry once only with an even simpler composition. `cover=COMPLETE` requires actual image generation PASS plus visual QA PASS. `SVG_FALLBACK` never satisfies the generated-cover gate. If the permitted retry also fails, set `cover=FAILED` and `final_publication_status=BLOCKED`.
+
+For a successful generated cover, GitHub image archival is explicitly separate:
 
 - `github_image_archive=UNSUPPORTED_BY_CONNECTOR`
 - `cover_binary_archive=PENDING_MANUAL_ARCHIVE`
 
-## Overall status
+## Final publication status
 
-`overall_status` may be `COMPLETE` when all five scheduled stages are `COMPLETE`. Manual PDF/EPUB rendering and cover binary archival do not block scheduled overall completion, but their state fields must remain visible and truthful.
+`final_publication_status` uses `PENDING`, `BLOCKED`, or `COMPLETE` and follows `config/final-publication.yaml`.
+
+The five scheduled stage fields may all be individually `COMPLETE` while final publication is still `PENDING`. This is not an error: it means editorial/source work is complete but the reader-facing binaries are not yet published.
+
+`overall_status` must not be set to `COMPLETE` until `final_publication_status=COMPLETE`.
+
+Final publication `COMPLETE` requires all of the following:
+- real generated cover with image generation and visual QA PASS
+- `cover_asset_type` is not `SVG_FALLBACK`
+- `pdf_binary=GENERATED_VALIDATED`
+- `epub_binary=GENERATED_VALIDATED`
+- `binary_artifacts=COMPLETE`
+- canonical `dragon-YYYY-MM-DD.pdf` and `dragon-YYYY-MM-DD.epub` exist in the edition directory
+- binary persistence/read-back is verified
 
 ## Persistence semantics
 
-Temporary/runtime existence is not persistence. A Scheduled Work text output is persisted only after connected GitHub write and exact canonical-path read-back. Binary persistence must never be inferred from text persistence.
+Temporary/runtime existence is not persistence. A Scheduled Work text output is persisted only after connected GitHub write and exact canonical-path read-back. Binary persistence must never be inferred from text persistence or temporary runtime existence.
 
 ## Editorial topology and depth
 
@@ -74,6 +91,8 @@ Depth thresholds remain centralized in `config/editorial-depth.yaml`: edition 40
 
 ## Binary handoff
 
-Scheduled Work does not generate final PDF/EPUB binaries in this architecture. Manual Codex Cloud rendering is the supported later handoff. Cover binary archival also remains manual/supported-binary-persistence work.
+Scheduled Work does not generate final PDF/EPUB binaries in this architecture. Manual Codex Cloud rendering is the supported later handoff through `scripts/render_production_binaries.py` and `prompts/manual-binary-publisher.md`.
+
+The manual renderer must use the canonical `edition.html`, `print.css`, `epub-content.xhtml`, and canonical generated cover without editorial rewriting. Normal final publication must fail closed if only an SVG fallback cover exists.
 
 Future maintainers must not reintroduce API, GitHub Actions compute, self-hosted runtime, or local-PC production dependencies to bypass this limitation.
