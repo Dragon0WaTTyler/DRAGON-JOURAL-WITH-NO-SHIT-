@@ -1,0 +1,45 @@
+{
+  "date": "2026-09-04",
+  "timezone": "Africa/Casablanca",
+  "edition_path": "editions/2026/09/2026-09-04/edition.md",
+  "editorial_report_path": "daily-runs/2026-09-04/editorial-report.json",
+  "lead_story_id": "PAL-20260904-US-REJECTS-FORCED-REMOVAL",
+  "lead_story": "Gaza: Washington katrfd forced displacement, walakin l-imti7an howa policy ma-shi ghir tasri7",
+  "main_fact": "US State Department publicly rejected forced displacement, expulsion and mandatory transfer from Gaza on 2026-09-04.",
+  "editorial_angle": "L-far9 bin tasri7, claim, evidence w implementation: l-sulta ma katwlich fact ghir b-lougha rasmiya.",
+  "emotional_tone": "serious, restrained, evidence-led",
+  "cover_mode": "SYMBOLIC_EDITORIAL",
+  "main_headline": "Gaza: Tasri7 ma kaykfi-sh",
+  "secondary_teasers": [],
+  "visual_metaphor": "A clean white diplomatic sheet visually transforms into a solid red barrier blocking one abstract outward arrow: words only matter if they become policy. No people, no battle scene, no documentary implication.",
+  "hero_subject": "A single red policy barrier emerging from a white statement sheet against a stark black field.",
+  "composition": "3:4 portrait. DRAGON masthead and date at top. One large centered symbolic hero occupying most of the page. Main headline large in lower third. Deliberate negative space. No secondary teasers.",
+  "color_logic": "Predominantly black and white with one strong red accent reserved for the barrier and hierarchy.",
+  "visual_facts_used": [
+    "US State Department publicly rejected forced displacement, expulsion and mandatory transfer from Gaza on 2026-09-04.",
+    "The lead is a political and humanitarian policy story, not a verified single photographic incident."
+  ],
+  "visual_elements_avoided": [
+    "Invented forced-removal or evacuation scenes presented as documentary fact",
+    "Unverified identifiable civilians or officials",
+    "Graphic victim imagery",
+    "Imagery implying criminal guilt by a specific person without evidence",
+    "Fake documentary photography or fabricated evidence",
+    "Arabic-script text",
+    "Unrelated collage"
+  ],
+  "why_this_design": "The cover turns the edition's central distinction between a diplomatic statement and implemented policy into one immediate visual thesis while avoiding fabricated Gaza event imagery.",
+  "image_format": "WEBP",
+  "image_path": "editions/2026/09/2026-09-04/assets/cover.webp",
+  "target_aspect_ratio": "3:4 portrait",
+  "image_generation_status": "PENDING",
+  "visual_qa_status": "PENDING",
+  "arabic_script_count": 0,
+  "github_image_write": "UNSUPPORTED_BY_CONNECTOR",
+  "github_image_read_back": "UNSUPPORTED_BY_CONNECTOR",
+  "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
+  "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
+  "handoff": {
+    "ready_for_publication_builder": false
+  }
+}
