@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-04",
+  "timezone": "Africa/Casablanca",
+  "current_research": "RUNNING",
+  "deep_research": "PENDING",
+  "editorial": "PENDING",
+  "publishing": "PENDING",
+  "cover": "PENDING",
+  "overall_status": "PENDING",
+  "publication_source_package": "PENDING",
+  "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
+  "epub_binary": "NOT_GENERATED_NO_RUNTIME",
+  "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "ready_for_codex_rendering": false,
+  "image_generation_status": "PENDING",
+  "visual_qa_status": "PENDING",
+  "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
+  "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
+  "blocking_reason": null
+}
