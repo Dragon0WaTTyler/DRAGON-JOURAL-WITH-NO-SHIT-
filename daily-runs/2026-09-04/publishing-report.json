@@ -10,10 +10,20 @@
   "source_link_status": "PASS_IDS_RESOLVE_URLS_PRESENT",
   "pdf_status": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary_status": "NOT_GENERATED_NO_RUNTIME",
-  "github_text_persistence": "PASS_PENDING_FINAL_READ_BACK",
+  "github_text_persistence": "PASS",
   "github_binary_persistence": "UNSUPPORTED",
   "ready_for_codex_rendering": true,
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "publication_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
+  "remote_read_back": {
+    "status": "PASS",
+    "paths": [
+      "editions/2026/09/2026-09-04/edition.html",
+      "editions/2026/09/2026-09-04/print.css",
+      "editions/2026/09/2026-09-04/epub-content.xhtml",
+      "daily-runs/2026-09-04/publishing-report.json",
+      "daily-runs/2026-09-04/status.json"
+    ]
+  },
   "blocking_reason": null
 }
