@@ -1,7 +1,7 @@
 {
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
-  "current_research": "RUNNING",
+  "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
@@ -18,5 +18,7 @@
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "blocking_reason": null,
-  "current_research_started_at": "2026-09-04T22:18:00+01:00"
+  "current_research_started_at": "2026-09-04T22:18:00+01:00",
+  "current_research_completed_at": "2026-09-04T22:20:56+01:00",
+  "current_research_blocking_reason": null
 }
