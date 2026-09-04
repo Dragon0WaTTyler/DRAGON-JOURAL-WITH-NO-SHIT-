@@ -11,10 +11,10 @@
   "cover_brief": "daily-runs/2026-09-04/cover-brief.json",
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-04/assets/cover.svg",
-  "cover_source_status": "PASS_CANONICAL_SVG_READ_BACK",
+  "cover_source_status": "SVG_FALLBACK_ONLY_NOT_GENERATED_COVER",
   "publishing_report": "daily-runs/2026-09-04/publishing-report.json",
   "editorial_status": "COMPLETE",
-  "cover_status": "COMPLETE",
+  "cover_status": "FAILED",
   "html_status": "PASS",
   "print_css_status": "PASS",
   "epub_xhtml_source_status": "PASS",
@@ -27,6 +27,8 @@
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
+  "ready_for_codex_rendering": true,
+  "final_publication_status": "BLOCKED_PENDING_COVER_AND_BINARIES",
   "target_binary_paths": {
     "pdf": "TARGET: editions/2026/09/2026-09-04/dragon-2026-09-04.pdf",
     "epub": "TARGET: editions/2026/09/2026-09-04/dragon-2026-09-04.epub"
@@ -40,6 +42,5 @@
     "epub_cover_media_type": "image/svg+xml",
     "redesign_allowed": false,
     "hard_coded_cover_webp_fallback_allowed": false
-  },
-  "ready_for_codex_rendering": true
+  }
 }
