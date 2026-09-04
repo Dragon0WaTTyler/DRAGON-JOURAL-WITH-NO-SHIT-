@@ -32,13 +32,14 @@
   "image_format": "WEBP",
   "image_path": "editions/2026/09/2026-09-04/assets/cover.webp",
   "target_aspect_ratio": "3:4 portrait",
-  "image_generation_status": "PENDING",
-  "visual_qa_status": "PENDING",
+  "image_generation_status": "FAIL",
+  "visual_qa_status": "FAIL",
   "arabic_script_count": 0,
-  "github_image_write": "UNSUPPORTED_BY_CONNECTOR",
-  "github_image_read_back": "UNSUPPORTED_BY_CONNECTOR",
+  "github_image_write": "FAIL",
+  "github_image_read_back": "FAIL",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
+  "blocking_reason": "Image generation did not produce a usable cover artifact in this execution; the image tool required a usable image target and explicitly prohibited retry.",
   "handoff": {
     "ready_for_publication_builder": false
   }
