@@ -7,7 +7,7 @@ Permanent art direction for DRAGON covers. Use one strong editorial idea, not a 
 The permanent Scheduled Work flow is intentionally compact because end-to-end testing found that a large all-in-one prompt failed image generation, while a minimal capability test and a compact persisted cover brief both passed.
 
 1. require editorial `COMPLETE`
-2. require publication-source package `COMPLETE`
+2. do not require the downstream publication-source package or manifest
 3. read the final edition and editorial report
 4. read this style contract
 5. select exactly one lead
@@ -51,8 +51,5 @@ The cover should be portrait, approximately 3:4. One concept, one lead, one mode
 
 ## Archive semantics
 
-Task 5 may be `COMPLETE` when actual image generation and visual QA pass. Connected GitHub binary image archival is unsupported in the tested workflow.
-
-Record:
-- `github_image_archive = UNSUPPORTED_BY_CONNECTOR`
-- `cover_binary_archive = PENDING_MANUAL_ARCHIVE`
+Task 4 is COMPLETE only after the canonical cover is persisted and visually verified.
+Use AI_GENERATED only with actual archived bytes. If generation or binary archival is unavailable, use a self-contained, visually verified SVG_FALLBACK. It is a valid cover but never image_generation_status PASS. Preserve its exact 3:4 aspect ratio. Always include the ISO date. No external resources, scripting, use/image elements or foreignObject in the SVG.

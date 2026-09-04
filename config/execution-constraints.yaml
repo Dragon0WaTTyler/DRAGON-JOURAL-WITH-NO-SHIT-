@@ -1,8 +1,5 @@
-version: 2
-
-# Hard production boundary: use the user's existing ChatGPT Plus subscription.
+version: 3
 subscription: chatgpt-plus
-
 production:
   scheduled_execution_environment: chatgpt-scheduled-work
   manual_binary_render_environment: codex-cloud
@@ -10,7 +7,7 @@ production:
   openai_api_key_required: false
   pay_as_you_go_openai_allowed: false
   github_actions_openai_api_allowed: false
-  github_actions_external_compute_allowed: false
+  github_actions_external_compute_allowed: true
   external_paid_compute_allowed: false
   self_hosted_runner_required: false
   local_pc_required: false
@@ -19,14 +16,16 @@ production:
   github_binary_image_write: UNSUPPORTED
   pdf_binary_write: UNSUPPORTED
   epub_binary_write: UNSUPPORTED
-
+  github_actions_scope: deterministic publication rendering, validation, persistence
+    only
+  automatic_binary_render_environment: github-hosted-ubuntu
 scheduling:
   timezone: Africa/Casablanca
   config_schedule_must_remain_disabled: true
   codex_cloud_native_schedule_required: false
   codex_cloud_scheduling_allowed: false
-  note: The five Scheduled Work super-jobs are an external ChatGPT schedule contract; this repository file does not create or enable them.
-
+  note: Five ChatGPT schedules remain external. GitHub Actions push plus UTC polling
+    renders ready packages; runtime uses Africa/Casablanca dates.
 manual_handoff:
   publication_source_package_can_be_rendered_with_codex_cloud: true
   pdf_binary_state_before_manual_render: NOT_GENERATED_NO_RUNTIME

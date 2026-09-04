@@ -7,8 +7,8 @@ EXPECTED = [
     ("current-news-desk", 1, "07:45"),
     ("deep-features-desk", 2, "08:00"),
     ("chief-editor", 3, "08:50"),
-    ("publication-builder", 4, "09:25"),
-    ("cover-director", 5, "09:55"),
+    ("cover-director", 4, "09:25"),
+    ("publication-builder", 5, "09:55"),
 ]
 
 class ScheduledWorkflowContractTests(unittest.TestCase):
@@ -30,7 +30,7 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertFalse(self.schedule["enabled"])
 
     def test_publication_builder_is_text_only(self):
-        job = self.workflow["jobs"][3]
+        job = self.workflow["jobs"][4]
         self.assertEqual(job["id"], "publication-builder")
         self.assertEqual(job["mode"], "TEXT_ONLY")
         paths = {o["path"] for o in job["outputs"]}
@@ -39,19 +39,20 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
             "editions/YYYY/MM/YYYY-MM-DD/print.css",
             "editions/YYYY/MM/YYYY-MM-DD/epub-content.xhtml",
             "daily-runs/YYYY-MM-DD/publishing-report.json",
+            "editions/YYYY/MM/YYYY-MM-DD/manifest.json",
         })
         state = job["completion"]["set_binary_state"]
         self.assertEqual(state["pdf_binary"], "NOT_GENERATED_NO_RUNTIME")
         self.assertEqual(state["epub_binary"], "NOT_GENERATED_NO_RUNTIME")
-        self.assertEqual(state["binary_artifacts"], "PENDING_MANUAL_CODEX_RENDER")
+        self.assertEqual(state["binary_artifacts"], "PENDING_AUTOMATIC_RENDER")
         self.assertTrue(state["ready_for_codex_rendering"])
 
     def test_cover_completion_does_not_require_archive(self):
-        job = self.workflow["jobs"][4]
+        job = self.workflow["jobs"][3]
         state = job["completion"]["set_binary_state"]
-        self.assertEqual(state["github_image_archive"], "UNSUPPORTED_BY_CONNECTOR")
-        self.assertEqual(state["cover_binary_archive"], "PENDING_MANUAL_ARCHIVE")
-        self.assertEqual(self.workflow["tested_capabilities"]["task_5_cover_director"]["retry_limit"], 1)
+        self.assertEqual(state["github_image_archive"], "TYPE_DEPENDENT")
+        self.assertEqual(state["cover_binary_archive"], "PERSISTED_CANONICAL_ASSET")
+        self.assertEqual(self.workflow["tested_capabilities"]["task_4_cover_director"]["retry_limit"], 1)
 
     def test_connector_limitations_are_tested_facts(self):
         c = self.workflow["connector_capabilities"]
@@ -65,9 +66,10 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertEqual(c["scheduled_image_generation"], "PASS")
 
     def test_no_forbidden_runtime_requirements(self):
+        self.assertTrue(self.workflow["execution_constraints"]["github_actions_allowed"])
         c = self.workflow["execution_constraints"]
         for key in ("openai_api_allowed","openai_api_key_required","pay_as_you_go_openai_allowed",
-                    "github_actions_allowed","external_paid_services_allowed",
+                    "external_paid_services_allowed",
                     "self_hosted_runner_allowed","local_pc_dependency_allowed"):
             self.assertFalse(c[key])
 

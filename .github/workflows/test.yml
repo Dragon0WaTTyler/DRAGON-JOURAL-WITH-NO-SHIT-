@@ -1,0 +1,27 @@
+name: Validate production pipeline
+on:
+  pull_request:
+  push:
+    branches: [main, 'fix/**']
+    paths: ['scripts/**', 'tests/**', 'config/**', 'requirements.txt', '.github/workflows/**']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core fonts-liberation
+          python -m pip install -r requirements.txt
+      - run: python scripts/validate_configuration.py
+      - run: python -m unittest discover -s tests -v
+        env:
+          DRAGON_RENDER_SMOKE: '1'

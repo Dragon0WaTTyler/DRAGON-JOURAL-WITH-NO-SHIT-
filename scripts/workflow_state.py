@@ -7,17 +7,17 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-STAGE_FIELDS = ("current_research", "deep_research", "editorial", "publishing", "cover")
+STAGE_FIELDS = ("current_research", "deep_research", "editorial", "cover", "publishing")
 ALLOWED_STAGE_VALUES = {"PENDING", "RUNNING", "COMPLETE", "BLOCKED", "FAILED"}
 
-EDITORIAL_FILES = ("edition.md", "sources.json", "manifest.json")
-PUBLICATION_SOURCE_FILES = ("edition.html", "print.css", "epub-content.xhtml")
+EDITORIAL_FILES = ("edition.md", "sources.json")
+PUBLICATION_SOURCE_FILES = ("edition.html", "print.css", "epub-content.xhtml", "manifest.json")
 PUBLICATION_REPORT = "publishing-report.json"
 COVER_BRIEF = "cover-brief.json"
 
 PDF_BINARY_STATE = "NOT_GENERATED_NO_RUNTIME"
 EPUB_BINARY_STATE = "NOT_GENERATED_NO_RUNTIME"
-BINARY_ARTIFACTS_STATE = "PENDING_MANUAL_CODEX_RENDER"
+BINARY_ARTIFACTS_STATE = "PENDING_AUTOMATIC_RENDER"
 GITHUB_IMAGE_ARCHIVE_STATE = "UNSUPPORTED_BY_CONNECTOR"
 COVER_BINARY_ARCHIVE_STATE = "PENDING_MANUAL_ARCHIVE"
 
@@ -58,6 +58,7 @@ def fresh_production_status(edition_date: str, *, last_updated: str | None = Non
         "publishing": "PENDING",
         "cover": "PENDING",
         "overall_status": "PENDING",
+        "final_publication_status": "PENDING",
         "publication_source_package": "PENDING",
         "pdf_binary": PDF_BINARY_STATE,
         "epub_binary": EPUB_BINARY_STATE,
@@ -80,6 +81,8 @@ def initialize_production_run(
     remote_paths: Iterable[str] = (),
     last_updated: str | None = None,
 ) -> dict[str, Any]:
+    if not resume and status_path.exists():
+        raise ValueError("existing run must be explicitly resumed; never reset another desk's state")
     if not resume:
         status = fresh_production_status(edition_date, last_updated=last_updated)
     else:
@@ -152,6 +155,7 @@ def validate_state(
         "publication_source_package", "pdf_binary", "epub_binary", "binary_artifacts",
         "ready_for_codex_rendering", "image_generation_status", "visual_qa_status",
         "github_image_archive", "cover_binary_archive",
+        "final_publication_status",
     )
     for field in required_state_fields:
         if field not in status:
@@ -163,6 +167,10 @@ def validate_state(
     editorial = status.get("editorial")
     publishing = status.get("publishing")
     cover = status.get("cover")
+
+    for field in ("current_research", "deep_research"):
+        if status.get(field) == "COMPLETE" and not set(required_remote_paths(edition_date, field)).issubset(remote):
+            errors.append(f"{field} COMPLETE requires exact research remote read-back")
 
     gates_pass = editorial_gates_passed
     if gates_pass is None:
@@ -188,8 +196,8 @@ def validate_state(
         if not gates_pass:
             errors.append("editorial COMPLETE requires passing editorial gates")
 
-    if publishing in {"RUNNING", "COMPLETE"} and editorial != "COMPLETE":
-        errors.append("publishing cannot be RUNNING or COMPLETE unless editorial is COMPLETE")
+    if publishing in {"RUNNING", "COMPLETE"} and (editorial != "COMPLETE" or cover != "COMPLETE"):
+        errors.append("publishing cannot be RUNNING or COMPLETE unless editorial and cover are COMPLETE")
     if publishing == "COMPLETE":
         source_valid = publication_source_valid
         if source_valid is None:
@@ -204,7 +212,7 @@ def validate_state(
         missing_remote = sorted(set(required_remote_paths(edition_date, "publishing")) - remote)
         if missing_remote:
             errors.append("publishing COMPLETE requires remote text read-back: " + ", ".join(missing_remote))
-        expected = {
+        expected = {} if status.get("binary_artifacts") == "COMPLETE" else {
             "pdf_binary": PDF_BINARY_STATE,
             "epub_binary": EPUB_BINARY_STATE,
             "binary_artifacts": BINARY_ARTIFACTS_STATE,
@@ -212,25 +220,27 @@ def validate_state(
         for field, value in expected.items():
             if status.get(field) != value:
                 errors.append(f"publishing COMPLETE requires {field} == {value}")
-        if status.get("ready_for_codex_rendering") is not True:
+        if status.get("binary_artifacts") != "COMPLETE" and status.get("ready_for_codex_rendering") is not True:
             errors.append("publishing COMPLETE requires ready_for_codex_rendering == true")
 
-    if cover in {"RUNNING", "COMPLETE"} and publishing != "COMPLETE":
-        errors.append("cover cannot be RUNNING or COMPLETE unless publishing is COMPLETE")
+    if cover in {"RUNNING", "COMPLETE"} and editorial != "COMPLETE":
+        errors.append("cover cannot be RUNNING or COMPLETE unless editorial is COMPLETE")
     if cover == "COMPLETE":
         if run_dir is not None and COVER_BRIEF not in _local_paths(run_dir, (COVER_BRIEF,)):
             errors.append("cover COMPLETE requires local cover-brief.json")
         missing_remote = sorted(set(required_remote_paths(edition_date, "cover")) - remote)
         if missing_remote:
             errors.append("cover COMPLETE requires cover brief remote read-back: " + ", ".join(missing_remote))
-        if status.get("image_generation_status") != "PASS":
+        if status.get("cover_asset_type") not in {"AI_GENERATED", "SVG_FALLBACK"}:
+            errors.append("cover COMPLETE requires a supported cover_asset_type")
+        if status.get("cover_asset_type") == "AI_GENERATED" and status.get("image_generation_status") != "PASS":
             errors.append("cover COMPLETE requires image_generation_status == PASS")
         if status.get("visual_qa_status") != "PASS":
             errors.append("cover COMPLETE requires visual_qa_status == PASS")
-        if status.get("github_image_archive") != GITHUB_IMAGE_ARCHIVE_STATE:
-            errors.append("cover COMPLETE requires github_image_archive == UNSUPPORTED_BY_CONNECTOR")
-        if status.get("cover_binary_archive") != COVER_BINARY_ARCHIVE_STATE:
-            errors.append("cover COMPLETE requires cover_binary_archive == PENDING_MANUAL_ARCHIVE")
+        if status.get("cover_asset_type") == "SVG_FALLBACK":
+            cover_path = status.get("cover_asset_path")
+            if not isinstance(cover_path, str) or cover_path not in remote:
+                errors.append("SVG cover COMPLETE requires exact canonical SVG remote read-back")
 
     if editorial in {"BLOCKED", "FAILED"}:
         if publishing == "COMPLETE":
@@ -238,7 +248,28 @@ def validate_state(
         if cover == "COMPLETE":
             errors.append("blocked or failed editorial cannot leave cover COMPLETE")
 
+    final = status.get("final_publication_status")
+    if final not in {"PENDING", "BLOCKED", "COMPLETE"}:
+        errors.append("final_publication_status must be PENDING, BLOCKED or COMPLETE")
+    if final == "COMPLETE" or status.get("binary_artifacts") == "COMPLETE":
+        for field in ("pdf_binary", "epub_binary"):
+            if status.get(field) != "GENERATED_VALIDATED":
+                errors.append(f"final publication requires {field} GENERATED_VALIDATED")
+        if status.get("github_binary_read_back") != "PASS":
+            errors.append("final publication requires GitHub binary read-back PASS")
+        hashes = status.get("binary_sha256", {})
+        for suffix in ("pdf", "epub"):
+            name = f"dragon-{edition_date}.{suffix}"
+            path = f"{edition_relative_dir(edition_date)}/{name}"
+            if path not in remote or edition_dir is None or name not in _local_paths(edition_dir, (name,)):
+                errors.append(f"final publication requires canonical binary read-back: {path}")
+            elif hashes.get(path) != __import__("hashlib").sha256((edition_dir / name).read_bytes()).hexdigest():
+                errors.append(f"final publication binary hash mismatch: {path}")
+        if final != "COMPLETE" or status.get("binary_artifacts") != "COMPLETE":
+            errors.append("final publication and binary completion states must agree")
     if status.get("overall_status") == "COMPLETE":
+        if final != "COMPLETE":
+            errors.append("overall_status COMPLETE requires final_publication_status COMPLETE")
         if any(status.get(field) != "COMPLETE" for field in STAGE_FIELDS):
             errors.append("overall_status COMPLETE requires every scheduled production stage COMPLETE")
         if errors:
@@ -288,7 +319,7 @@ def validate_report_consistency(
     if status.get("publishing") == "COMPLETE" and publishing_report:
         if publishing_report.get("github_text_persistence") != "PASS":
             errors.append("publishing COMPLETE requires github_text_persistence PASS")
-        for forbidden in ("github_binary_persistence", "pdf_binary_generated", "epub_binary_generated"):
+        for forbidden in (() if status.get("final_publication_status") == "COMPLETE" else ("github_binary_persistence", "pdf_binary_generated", "epub_binary_generated")):
             if str(publishing_report.get(forbidden, "")).upper() in {"PASS", "TRUE", "GENERATED"}:
                 errors.append(f"Scheduled Publication Builder must not claim {forbidden}")
 

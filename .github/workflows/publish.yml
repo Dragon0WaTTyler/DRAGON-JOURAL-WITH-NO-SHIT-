@@ -1,0 +1,60 @@
+name: Publish DRAGON binaries
+on:
+  push:
+    branches: [main]
+    paths: ['daily-runs/**', 'editions/**', 'scripts/publication_*.py', 'scripts/auto_publish.py', '.github/workflows/publish.yml']
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Optional recovery date YYYY-MM-DD; blank checks today and yesterday in Casablanca'
+        required: false
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: dragon-publication-main
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Discover ready source packages
+        id: discover
+        env:
+          EDITION_DATE: ${{ inputs.date }}
+        run: |
+          python -m pip install -r requirements.txt
+          if [ -n "$EDITION_DATE" ]; then
+            dates=$(python scripts/auto_publish.py --check --date "$EDITION_DATE")
+          else
+            dates=$(python scripts/auto_publish.py --check)
+          fi
+          echo "dates=$dates" >> "$GITHUB_OUTPUT"
+      - name: Install rendering libraries
+        if: steps.discover.outputs.dates != '[]'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 fonts-dejavu-core fonts-liberation
+      - name: Validate, render, archive and read back
+        if: steps.discover.outputs.dates != '[]'
+        env:
+          EDITION_DATE: ${{ inputs.date }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if [ -n "$EDITION_DATE" ]; then
+            python scripts/auto_publish.py --date "$EDITION_DATE"
+          else
+            python scripts/auto_publish.py
+          fi

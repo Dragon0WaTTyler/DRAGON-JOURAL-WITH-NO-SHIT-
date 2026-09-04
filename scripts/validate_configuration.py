@@ -20,8 +20,8 @@ EXPECTED_JOBS = [
     ("current-news-desk", 1, "07:45"),
     ("deep-features-desk", 2, "08:00"),
     ("chief-editor", 3, "08:50"),
-    ("publication-builder", 4, "09:25"),
-    ("cover-director", 5, "09:55"),
+    ("cover-director", 4, "09:25"),
+    ("publication-builder", 5, "09:55"),
 ]
 ARABIC_RANGES = (
     "U+0600-U+06FF", "U+0750-U+077F", "U+08A0-U+08FF",
@@ -83,7 +83,7 @@ def main() -> int:
         errors.append("execution constraints must target ChatGPT Plus")
     for key in (
         "openai_api_allowed", "openai_api_key_required", "pay_as_you_go_openai_allowed",
-        "github_actions_openai_api_allowed", "github_actions_external_compute_allowed",
+        "github_actions_openai_api_allowed",
         "external_paid_compute_allowed", "self_hosted_runner_required", "local_pc_required",
     ):
         if production.get(key) is not False:
@@ -119,50 +119,55 @@ def main() -> int:
     if not any("repeat the repair loop" in x and "exactly zero" in x for x in chief_responsibilities):
         errors.append("Task 3 must require same-run repair/rescan")
 
-    builder = next((j for j in jobs or [] if j.get("task_number") == 4), {})
+    builder = next((j for j in jobs or [] if j.get("id") == "publication-builder"), {})
     if builder.get("id") != "publication-builder" or builder.get("label") != "PUBLICATION BUILDER":
-        errors.append("Task 4 must be PUBLICATION BUILDER")
+        errors.append("Task 5 must be PUBLICATION BUILDER")
     if builder.get("mode") != "TEXT_ONLY":
-        errors.append("Task 4 must be text-only")
+        errors.append("Task 5 must be text-only")
     output_paths = {item.get("path") for item in builder.get("outputs", []) if isinstance(item, dict)}
     required_sources = {
         "editions/YYYY/MM/YYYY-MM-DD/edition.html",
         "editions/YYYY/MM/YYYY-MM-DD/print.css",
         "editions/YYYY/MM/YYYY-MM-DD/epub-content.xhtml",
         "daily-runs/YYYY-MM-DD/publishing-report.json",
+        "editions/YYYY/MM/YYYY-MM-DD/manifest.json",
     }
     if output_paths != required_sources:
-        errors.append("Task 4 outputs must be exactly the tested publication-source package")
+        errors.append("Task 5 outputs must be exactly the tested publication-source package")
     builder_text = yaml.safe_dump(builder, sort_keys=False).lower()
     if "edition.pdf" in builder_text or "edition.epub" in builder_text:
-        errors.append("Task 4 must not require Scheduled Work PDF/EPUB binary generation")
+        errors.append("Task 5 must not require Scheduled Work PDF/EPUB binary generation")
     set_binary = builder.get("completion", {}).get("set_binary_state", {})
     if set_binary.get("pdf_binary") != "NOT_GENERATED_NO_RUNTIME":
-        errors.append("Task 4 COMPLETE must leave pdf_binary NOT_GENERATED_NO_RUNTIME")
+        errors.append("Task 5 COMPLETE must leave pdf_binary NOT_GENERATED_NO_RUNTIME")
     if set_binary.get("epub_binary") != "NOT_GENERATED_NO_RUNTIME":
-        errors.append("Task 4 COMPLETE must leave epub_binary NOT_GENERATED_NO_RUNTIME")
-    if set_binary.get("binary_artifacts") != "PENDING_MANUAL_CODEX_RENDER":
-        errors.append("Task 4 COMPLETE must hand binaries to manual Codex rendering")
+        errors.append("Task 5 COMPLETE must leave epub_binary NOT_GENERATED_NO_RUNTIME")
+    if set_binary.get("binary_artifacts") != "PENDING_AUTOMATIC_RENDER":
+        errors.append("Task 5 COMPLETE must hand binaries to manual Codex rendering")
     if set_binary.get("ready_for_codex_rendering") is not True:
-        errors.append("Task 4 COMPLETE must set ready_for_codex_rendering true")
+        errors.append("Task 5 COMPLETE must set ready_for_codex_rendering true")
 
-    cover = next((j for j in jobs or [] if j.get("task_number") == 5), {})
+    cover = next((j for j in jobs or [] if j.get("id") == "cover-director"), {})
     cover_responsibilities = [str(x) for x in cover.get("responsibilities", [])]
-    if workflow.get("tested_capabilities", {}).get("task_5_cover_director", {}).get("retry_limit") != 1:
+    if workflow.get("tested_capabilities", {}).get("task_4_cover_director", {}).get("retry_limit") != 1:
         errors.append("Cover Director retry limit must be exactly one")
     if not any("at most two secondary teasers" in x for x in cover_responsibilities):
         errors.append("Cover Director must cap secondary teasers at two")
-    if cover.get("completion", {}).get("set_binary_state", {}).get("github_image_archive") != "UNSUPPORTED_BY_CONNECTOR":
-        errors.append("cover COMPLETE must not imply GitHub image archival")
-    if cover.get("completion", {}).get("set_binary_state", {}).get("cover_binary_archive") != "PENDING_MANUAL_ARCHIVE":
-        errors.append("cover binary archive must remain explicit")
+    if production.get("github_actions_external_compute_allowed") is not True:
+        errors.append("automatic binary rendering requires scoped GitHub Actions authorization")
+    if production.get("github_actions_scope") != "deterministic publication rendering, validation, persistence only":
+        errors.append("GitHub Actions authorization must remain binary-only")
+    if cover.get("prerequisites", {}).get("all") != ["editorial == COMPLETE"]:
+        errors.append("cover must not depend on downstream publishing")
+    if builder.get("prerequisites", {}).get("all") != ["editorial == COMPLETE", "cover == COMPLETE"]:
+        errors.append("publishing requires editorial and cover")
 
     status = workflow.get("daily_status", {})
     required_binary = {"pdf_binary", "epub_binary", "binary_artifacts", "cover_binary_archive"}
     if set(status.get("required_binary_state_fields", [])) != required_binary:
         errors.append("daily status contract must require explicit binary-state fields")
-    if "overall_status may be COMPLETE" not in status.get("overall_completion_rule", ""):
-        errors.append("overall completion semantics must permit scheduled COMPLETE with visible manual binary pending state")
+    if "final_publication_status COMPLETE" not in status.get("overall_completion_rule", ""):
+        errors.append("overall COMPLETE must require final binary publication")
 
     language_required = quality.get("gates", {}).get("language", {}).get("required", [])
     if "deterministic_arabic_scan_repair_rescan" not in language_required:
