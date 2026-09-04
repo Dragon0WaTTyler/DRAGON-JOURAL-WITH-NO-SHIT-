@@ -4,11 +4,11 @@
   "publishing_started_at": "2026-09-04T23:46:31+01:00",
   "publishing_completed_at": "2026-09-04T23:47:20+01:00",
   "editorial_status": "COMPLETE",
-  "cover_status": "COMPLETE",
+  "cover_status": "FAILED",
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-04/assets/cover.svg",
   "cover_fallback_reason": "IMAGE_INVOCATION_MODE_ERROR_NO_RETRY_ALLOWED: pure text-to-image generation was invoked with no referenced image target, but the image system classified the request as an edit requiring an existing image and explicitly prohibited retry.",
-  "cover_read_back_status": "PASS",
+  "cover_read_back_status": "PASS_SVG_FALLBACK_ONLY",
   "html_status": "PASS",
   "print_css_status": "PASS",
   "epub_xhtml_source_status": "PASS",
@@ -28,8 +28,9 @@
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "ready_for_codex_rendering": true,
   "manual_render_required": true,
+  "final_publication_status": "BLOCKED_PENDING_COVER_AND_BINARIES",
   "publication_memory_status": "NOT_UPDATED_PENDING_FINAL_BINARY_PUBLICATION",
-  "blocking_reason": null,
+  "blocking_reason": "Final publication is blocked because image generation failed and PDF/EPUB binaries do not yet exist.",
   "manual_codex_handoff": {
     "edition_md": "editions/2026/09/2026-09-04/edition.md",
     "edition_html": "editions/2026/09/2026-09-04/edition.html",
@@ -43,6 +44,7 @@
     "publishing_report": "daily-runs/2026-09-04/publishing-report.json",
     "cover_resolution_rule": "RESOLVE_FROM_COVER_BRIEF_ONLY_NO_HARD_CODED_COVER_WEBP",
     "pdf_rule": "PAGE_1_CANONICAL_COVER_PAGE_2_ONWARD_HTML_PLUS_PRINT_CSS",
-    "epub_rule": "PACKAGE_CANONICAL_SVG_AS_IMAGE_SVG_XML_OR_EXACT_DERIVATIVE_IF_TOOLING_REQUIRES_RASTER"
+    "epub_rule": "PACKAGE_CANONICAL_COVER_WITH_CORRECT_MEDIA_TYPE",
+    "cover_policy": "SVG_FALLBACK_DOES_NOT_COUNT_AS_GENERATED_COVER"
   }
 }
