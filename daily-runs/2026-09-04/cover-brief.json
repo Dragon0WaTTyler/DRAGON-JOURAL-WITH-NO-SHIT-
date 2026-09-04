@@ -11,8 +11,8 @@
   "cover_mode": "SYMBOLIC_EDITORIAL",
   "main_headline": "Gaza: Tasri7 ma kaykfi-sh",
   "secondary_teasers": [],
-  "visual_metaphor": "A clean white diplomatic sheet visually transforms into a solid red barrier blocking one abstract outward arrow: words only matter if they become policy. No people, no battle scene, no documentary implication.",
-  "hero_subject": "A single red policy barrier emerging from a white statement sheet against a stark black field.",
+  "visual_metaphor": "A clean white diplomatic statement sheet becomes a solid red barrier blocking one abstract outward arrow: words only matter if they become policy. No people, battle scene, or documentary implication.",
+  "hero_subject": "One red policy barrier emerging from a white statement sheet against a stark black field.",
   "composition": "3:4 portrait. DRAGON masthead and date at top. One large centered symbolic hero occupying most of the page. Main headline large in lower third. Deliberate negative space. No secondary teasers.",
   "color_logic": "Predominantly black and white with one strong red accent reserved for the barrier and hierarchy.",
   "visual_facts_used": [
@@ -32,14 +32,12 @@
   "image_format": "WEBP",
   "image_path": "editions/2026/09/2026-09-04/assets/cover.webp",
   "target_aspect_ratio": "3:4 portrait",
-  "image_generation_status": "FAIL",
-  "visual_qa_status": "FAIL",
+  "image_generation_status": "PENDING",
+  "visual_qa_status": "PENDING",
   "arabic_script_count": 0,
-  "github_image_write": "FAIL",
-  "github_image_read_back": "FAIL",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
-  "blocking_reason": "Image generation did not produce a usable cover artifact in this execution; the image tool required a usable image target and explicitly prohibited retry.",
+  "blocking_reason": null,
   "handoff": {
     "ready_for_publication_builder": false
   }
