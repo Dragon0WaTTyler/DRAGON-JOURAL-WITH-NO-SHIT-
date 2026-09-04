@@ -1,42 +1,13 @@
 {
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
-  "task": "DEEP FEATURES DESK",
+  "research_started_at": "2026-09-04T22:26:19+01:00",
+  "research_completed_at": "2026-09-04T22:28:36+01:00",
   "science": {
     "TOPIC_ID": "science-social-tech-life-satisfaction-2026-08-28",
-    "PROPOSED_TITLE": "Wash social technologies katn9so rida 3la l-7ayat? 5 waves ma l9awsh signal causal wade7",
-    "WHY_SELECTED": "Study peer-reviewed jdida, longitudinala, w katna9ed wa7d claim sha2i3 b-design li kayferreq bin far9 bin nass w changes dakhl nafs person.",
-    "RECENTLY_USED_CHECK": "Ma hiya-sh study dyal 2026-09-03 3la moral-language saturation, w memory/psychology-used.json khawi.",
-    "EXACT_TITLE": "Social technology use and life satisfaction in a five-wave panel study of US adults",
-    "AUTHORS": [
-      "Kostadin Kushlev",
-      "Kibum Moon",
-      "Matt Motyl",
-      "Nathanael J. Fast",
-      "Juliana Schroeder"
-    ],
-    "VENUE": "Nature Human Behaviour",
-    "DATE": "2026-08-28",
-    "PUBLICATION_STATUS": "Peer-reviewed article; version of record",
-    "FULL_TEXT_OR_ABSTRACT_ONLY": "ABSTRACT_PLUS_PUBLISHER_METHODS_METADATA; full article preview was not fully accessible.",
-    "RESEARCH_QUESTION": "Wash frequency dyal use dyal 10 social technologies katpredict life satisfaction m3a lwa9t, wla life satisfaction hiya li katpredict changes f use?",
-    "STUDY_TYPE": "Five-wave longitudinal panel study; observational.",
-    "SAMPLE": "N=1,966 US adults; 5 waves, measurement every 3 months.",
-    "METHOD": "Self-reported frequency dyal 10 social technologies 3la 6-point scale; Bayesian w frequentist random-intercept cross-lagged panel models bach yferqo within-person mn between-person associations.",
-    "MAIN_RESULT": "Little credible evidence belli use dyal ay wa7d mn 10 technologies kaypredict subsequent life satisfaction 3la measured 3-month timescale. Between-person analyses: texting mratba b-life satisfaction a3la, YouTube/TikTok b-a9all; had associations ma-shi causal.",
-    "EFFECT_SIZE": "Publisher abstract ma 3tash wa7d pooled effect size l-main null finding. Reverse-direction effects described as modest only in select demographic groups.",
-    "LIMITATIONS": [
-      "Observational design: ma kaythbetch causation.",
-      "Self-reported frequency ma kat9issch duration, content, passive vs active use, quality dyal interaction w social context.",
-      "Temporal stability f responses 7ddat ability bach ydetecti within-person change.",
-      "US adult sample; ma khasnach n3mmo 3la teenagers wla Morocco.",
-      "Three-month lag y9dar maychofch short-term effects."
-    ],
-    "CRITICISM": "Study qwi f longitudinal modelling, walakin null result kayn ghir 3la had measurement level w timescale. Ma khasosh ytsaw9 b7al proof belli social media ma 3ndha ta athar.",
-    "REPLICATION_STATUS": "No direct replication yet. Independent context: 2025 preregistered systematic review/meta-analysis of social-media abstinence, 10 studies and N=4,674, ma l9ach significant pooled effect 3la life satisfaction, positive affect wla negative affect.",
-    "CORRELATION_VS_CAUSATION": "CORRELATIONAL. Cross-lagged longitudinal modelling kay9wi temporal inference walakin ma kaywli-sh randomized causal evidence.",
-    "WHAT_WE_CAN_CONCLUDE": "F had sample, measures w 3-month lag, ma kaynach evidence credible belli frequency dyal social technologies katpredict meaningful subsequent change f life satisfaction.",
-    "WHAT_WE_CANNOT_CONCLUDE": "Ma n9drosh ngolo digital platforms harmless, ma n9drosh n3mmo 3la minors wla Morocco, w ma n9drosh n9olo content harmful/beneficial ma kay2atrsh.",
+    "PROPOSED_TITLE": "Social technologies w rida 3la l-7ayat: 5 waves ma l9awsh athar longitudinal qwi",
+    "WHY_SELECTED": "Paper peer-reviewed jdida, longitudinala, w katsed su2al 3am b-design kayferreq between-person mn within-person change.",
+    "RECENTLY_USED_CHECK": "memory/psychology-used.json khawi; topic ma tban-sh f published memory.",
     "PRIMARY_SOURCES": [
       "https://www.nature.com/articles/s41562-026-02564-8",
       "https://doi.org/10.17605/OSF.IO/A3DN6"
@@ -46,155 +17,181 @@
       "https://pubmed.ncbi.nlm.nih.gov/40038410/"
     ],
     "SOURCE_ORIGINS": [
-      "Nature Human Behaviour article",
-      "OSF analysis code",
-      "Scientific Reports preregistered systematic review/meta-analysis",
-      "PubMed index"
+      "Nature Human Behaviour version of record",
+      "OSF project and analysis materials",
+      "Scientific Reports preregistered systematic review and meta-analysis",
+      "PubMed bibliographic index"
     ],
-    "KEY_EVIDENCE": "N=1,966; 5 waves; 10 technologies; 3-month intervals; Bayesian and frequentist RI-CLPM; main within-person cross-lagged signal was scant.",
-    "CONTRADICTORY_EVIDENCE": "Between-person patterns linked texting with higher and YouTube/TikTok with lower life satisfaction, so cross-sectional-looking differences can coexist with weak longitudinal within-person prediction.",
-    "UNCERTAINTY": "Medium: design is strong for observational panel data, walakin measurement granularity and low within-person change limit what null effects mean.",
-    "CONTEXT": "Had study kaydkhol f debate li kayt3awd bzaf: wach social media w digital communication kayn9so life satisfaction b-tariqa direct? L-authors ma qasouch screen time b-total, walakin frequency dyal 10 social technologies, men texting w calling l-YouTube w TikTok, 3la 5 waves, kol 3 chhor. L-models random-intercept cross-lagged kay7awlo yferqo bin far9 bin nass w changes dakhl nafs person m3a lwa9t. N=1,966 adults f US. Nata2ij l-main: scant evidence belli increase f use dyal wa7d technology katpredict life satisfaction f wave li b3d. Between-person comparisons l9aw texting mratba b-life satisfaction a3la, w YouTube/TikTok mratbin b-a9all, walakin hadi ma katsawich causal effect. Reverse direction kan 7ta howa mahdoud: life satisfaction a3la kan mratab ghir b-modest increases f calling/video calling f ba3d demographic groups.\n\nL-strength dyal study hiya longitudinal panel w separation bin within-person w between-person patterns, m3a Bayesian w frequentist analyses. L-limit l-kbir: self-reported frequency rough, ma kat9issch duration, content, passive/active use, social context, wla quality dyal interaction. Responses kano stable across waves, donc power bach ychof within-person change kan mahdoud. Sample US adults, donc ma khasnach n3mmo 3la teenagers wla Morocco. W 3la sabab natija null f measured timescale, ma n9drosh n9olo social media safe wla ma kay2atrsh; n9dro ghir ngolo had design ma l9ach evidence credible belli frequency dyal had technologies katpredict subsequent life satisfaction 3la 3-month intervals.\n\nContext independent kayji men 2025 preregistered systematic review/meta-analysis dyal social-media abstinence: 10 studies, N=4,674, ma l9ach significant pooled effects 3la positive affect, negative affect wla life satisfaction. Hadi ma hiyach replication direct, walakin katzid counterweight l-claims simple dyal less social media equals automatically happier. Nafs l-review 3ndha limitations: samples mostly Western, interventions short, w statistical power f ba3d outcomes mahdoud.",
-    "CONFIDENCE": "medium-high for reported null/weak longitudinal association; low for broad causal claims",
-    "RECOMMENDATION": "SELECT"
+    "KEY_EVIDENCE": "N=1,966 US adults, 5 waves, kol 3 chhor, 10 social technologies, Bayesian w frequentist random-intercept cross-lagged panel models. Main finding: little credible evidence belli use dyal ay technology kaypredict subsequent life satisfaction 3la had timescale.",
+    "CONTRADICTORY_EVIDENCE": "Between-person comparisons l9aw texting mratab b-life satisfaction a3la w YouTube/TikTok b-a9all, donc cross-sectional association momkin tb9a 7ta ila within-person longitudinal prediction da3if.",
+    "UNCERTAINTY": "Observational design, self-report frequency, temporal stability, US adults, w 3-month lag kay7ddo generalization.",
+    "CONTEXT": "Strength hiya repeated panel measures w separation dyal within-person mn between-person effects; weakness hiya rough measurement w no randomization.",
+    "CONFIDENCE": "MEDIUM_HIGH",
+    "RECOMMENDATION": "PUBLISH",
+    "STUDY_ID": "s41562-026-02564-8",
+    "EXACT_TITLE": "Social technology use and life satisfaction in a five-wave panel study of US adults",
+    "AUTHORS": ["Kostadin Kushlev", "Kibum Moon", "Matt Motyl", "Nathanael J. Fast", "Juliana Schroeder"],
+    "VENUE": "Nature Human Behaviour",
+    "DATE": "2026-08-28",
+    "PUBLICATION_STATUS": "PEER_REVIEWED_VERSION_OF_RECORD",
+    "ACCESS_LEVEL": "METHODS_PLUS_ABSTRACT",
+    "DOI": "10.1038/s41562-026-02564-8",
+    "RESEARCH_QUESTION": "Wash self-reported use dyal 10 social technologies kaypredict later life satisfaction, w wash direction reverse kayban?",
+    "STUDY_TYPE": "Five-wave longitudinal observational panel study",
+    "SAMPLE": "N=1,966 US adults",
+    "METHOD": "Use frequency 3la 6-point scale, 5 waves kol 3 chhor, Bayesian w frequentist random-intercept cross-lagged panel models.",
+    "MAIN_RESULT": "Scant evidence dyal meaningful relationship between technology use w subsequent life satisfaction 3la measured level w timescale.",
+    "EFFECT_SIZE": "No wa7d pooled headline effect size reported f accessible abstract l-main null result; reverse effects described as modest in select demographic groups.",
+    "LIMITATIONS": [
+      "Observational, ma kaythbetch causation.",
+      "Self-reported frequency ma kat9issch duration, content, passive vs active use, w quality dyal interaction.",
+      "Temporal stability 7ddat ability bach ydetecti within-person change.",
+      "US adults; ma n3mmo-sh 3la minors wla Morocco.",
+      "3-month lag y9dar maychofch short-term effects."
+    ],
+    "CRITICISM": "Null finding khas ytfham b7dodo: ma kaynch evidence qwi f had measurement/timescale, machi proof belli social media harmless.",
+    "REPLICATION_STATUS": "No direct replication identified. Independent 2025 preregistered systematic review/meta-analysis dyal social-media abstinence l9at no significant pooled effects 3la positive affect, negative affect w life satisfaction.",
+    "CORRELATION_VS_CAUSATION": "CORRELATION_ONLY",
+    "GENERALIZABILITY": "Moderate l-US adults; low l-adolescents, non-US populations, w platform/content-specific claims.",
+    "WHAT_WE_CAN_CONCLUDE": "F had sample w 3-month lag, frequency dyal social technologies ma banch katpredict meaningful subsequent change f life satisfaction.",
+    "WHAT_WE_CANNOT_CONCLUDE": "Ma n9drosh ngolo platforms safe, ma kaynch short-term effects, wla nafs result kayn 3nd teenagers w Morocco.",
+    "WHY_IT_MATTERS": "Kayna9ed narratives simple li katsawi more social media = less happiness, w kaybayan 3lach longitudinal within-person evidence mohim.",
+    "SOURCE_URLS": [
+      "https://www.nature.com/articles/s41562-026-02564-8",
+      "https://doi.org/10.17605/OSF.IO/A3DN6",
+      "https://www.nature.com/articles/s41598-025-90984-3",
+      "https://pubmed.ncbi.nlm.nih.gov/40038410/"
+    ]
   },
   "history": {
     "TOPIC_ID": "history-essaouira-tujjar-sultan-trade-power",
-    "PROPOSED_TITLE": "Essaouira w tujjar as-Sultan: kif l-port, l-Makhzen w tijjar Yahoud bdlou tijara qbel l-Protectorat",
-    "WHY_SELECTED": "Topic kayrbet history Yahoud l-Maghrib b-state-building, Atlantic trade, regional networks w European imperial pressure; source base academic qwi w y9dar y7mel long-form bla filler.",
-    "RECENTLY_USED_CHECK": "Ma kaynch f memory/history-used.json; kayb3ed 3la 11 Yanayer 1944, Green March w Sijilmasa dyal edition 2026-09-03.",
+    "PROPOSED_TITLE": "Essaouira w tujjar as-Sultan: port, Makhzen, tijara w Yahoud f qarn 19",
+    "WHY_SELECTED": "Topic yjma3 state-building, Atlantic trade, Jewish history, regional networks w European pressure, b-source base academic qwi.",
+    "RECENTLY_USED_CHECK": "Ma kaynch f published history memory. 11 Yanayer 1944 published; Green March entry marked preproduction 2026-09-05 ma katsawich publication.",
     "PRIMARY_SOURCES": [
-      "https://assets.cambridge.org/97805211/05408/frontmatter/9780521105408_frontmatter.pdf"
+      "https://www.cambridge.org/core/books/merchants-of-essaouira/merchants-of-the-sultan/F77806D69565F13CBCD91CFC78FFA6B0",
+      "https://www.cambridge.org/core/books/abs/merchants-of-essaouira/royal-port/A82D3019C162FDED42D581D0BA5E176C"
     ],
     "INDEPENDENT_SOURCES": [
-      "https://www.cambridge.org/core/books/abs/merchants-of-essaouira/merchants-of-the-sultan/F77806D69565F13CBCD91CFC78FFA6B0",
-      "https://www.cambridge.org/core/books/abs/merchants-of-essaouira/politics-of-trade/FA2D87D6220E4E650BBD6D9B9440F28C",
-      "https://www.cambridge.org/core/books/abs/merchants-of-essaouira/end-of-an-era/79FDD37868920CEFF2C584B197AE6CFD",
+      "https://www.cambridge.org/core/books/abs/merchants-of-essaouira/introduction/08BD76340E510660007EC2FA521CE166",
       "https://www.persee.fr/doc/cea_0008-0055_1990_num_30_119_1613_t1_0378_0000_2"
     ],
     "SOURCE_ORIGINS": [
-      "Cambridge University Press monograph based on Moroccan archives, merchant-house papers and consular records",
-      "Cambridge thematic chapters",
+      "Daniel J. Schroeter, Cambridge University Press monograph based on Moroccan archives, merchant papers and consular records",
       "Cahiers d'Etudes africaines scholarly review"
     ],
-    "KEY_EVIDENCE": "Essaouira t2asssat f 1760s b-strategy dyal Sultan Sidi Mohammed ben Abdallah l-European trade; tujjar as-Sultan kano elite merchants, majority Yahoud, m3a palace patronage; 1844 bombardment w 1856 treaty bdlou balance; decline mn 1870s kan multi-causal.",
-    "CONTRADICTORY_EVIDENCE": "Narrative dyal port b7al mere product dyal European capitalism ma katfissrch local state strategy; narrative dyal perfect coexistence ma katsawrsh legal hierarchy, poverty w dependence 3la palace protection.",
-    "UNCERTAINTY": "Population figures qbel census modern are estimates; degree dyal monopoly and influence tbdlat m3a periods; avoid treating elite Jewish merchants as representative of whole Jewish community.",
-    "CONTEXT": "L-feature y9dar ybda men port Essaouira f nos l-qarn 19, fin wa7d l-mdina sghira 3la l-Atlantique katjma3 l-Makhzen, tijjar Yahoud, tijjar Moslimin, consuls Ewropeen, qabail dyal Haha w Sous, w caravanat jayyin men janoub. Essaouira ma tkhll9atch b-sodfa. Sultan Sidi Mohammed ben Abdallah bna l-mdina f 1760s bach ydir port rasmi y9dar ykontroli bih commerce m3a Europe w y9wi l-silta dyal dawla f janoub l-Maghrib. Hna l-port ma kanch ghir bab tijari; kan instrument dyal state-building.\n\nWa7d l-angle l-asasi huwa tujjar as-Sultan. Daniel J. Schroeter, li bna dirasto 3la archives Maghribiya, papers dyal merchant houses w consular records, kaybayan belli international trade kan f qalb l-iqtisad dyal Essaouira, w wa7d l-group sghir dyal merchants 3ndhom relation khassa m3a l-palais kano kayl3bo role kbir. L-aghlab dyalhom kano Yahoud. Hadi ma katsawich belli l-yahoud kamlin f Essaouira kano elite wla m7miyin b-nafs tariqa. L-feature khas yferreq bin elite merchants li 3ndhom patronage dyal Sultan w bin community Yahoudiya wassa3a fiha craftspeople, poor households w social differences.\n\nHad l-merchant elite kan 3ndo wa7d l-position paradoxale. Men jiha, f system siyasi w qanouni dyal dak lwa9t, Yahoud l-Maghrib ma kano-sh 3ndhom nafs l-access l-political office li 3nd Muslims. Men jiha khra, palace kan kay3ti l-ba3d menhom advantages, protection, property access w commercial privileges 7it kano useful l-state: 3ndhom l-loughat, l-connections m3a ports b7al London, Marseille, Livorno w Amsterdam, w y9dro ywaslo bin Europe, interior dyal Morocco w Saharan routes. Hna power ma hiyach simple: l-merchant y9dar ykoun ghani w influential, walakin dependence 3la Sultan katb9a 3onsor asasi.\n\nCommerce dyal Essaouira kan kayrbet l-b7ar b-l-hinterland. L-mdina katstafed men exports b7al gum, hides, wool, almonds w agricultural goods, w katdkhol imports Ewropeya. Networks katmchi ta l-Sous w routes li katrbet m3a trans-Saharan trade. L-merchant houses ma kano-sh khddamin b-wa7dhom; kano kay7tajjo brokers, caravan leaders, tribal protection, warehouse workers, craftsmen, money, credit w information. Hadi katbayan belli market ma kanch world apart mn politics. Safe passage, taxes, customs, tribal alliances w palace recognition kano kolhom part men business model.\n\nSchroeter kay9tar7 belli l-Makhzen st3mel Essaouira bach ykoun 3ndo control aktar 3la trade w bach yrbet regions li momkin tkoun siyasiyaan s3iba b-commercial circuits. Hadi interpretation mohimma 7it katna9ed taswira li katgol belli coastal port kan ghir natija dyal European capitalism. European demand kan mohim, walakin local state strategy, regional markets w social institutions kano 7ta homa moteur. Review f Cahiers d'Etudes africaines kaychdded had point: study dyal Schroeter kat3ti weight l-dynamics dakhlia dyal Morocco, ma-shi ghir pressure men barra.\n\n1844 kan turning point. French fleet bombarded Mogador f context dyal l-war bin France w Morocco m3a support dyal Amir Abd al-Qadir. L-attack warra l-far9 l-3askari w l-pressure Ewropeya li ghadi ykbar. Men b3d, treaty Anglo-Moroccan dyal 1856 w Spanish war dyal 1859-1860 bddlou l-balance. Foreign merchants w protege system w consular influence wlaw kaydkhlo aktar f commercial life. L-Makhzen b9a actor, walakin ability dyalo bach y7ded rules dyal trade b-w7do t9llsat.\n\nHna kayn wa7d l-debate historiografi qwi: wach decline dyal sovereignty ja 7it Morocco t7ell 3la world economy, wla 7it foreign powers frdo unequal terms 3la wa7d state kay7awel yadapt? L-evidence kaychj3 3la jawab morkkab: integration tijariya jab opportunities w revenues, walakin naval coercion, diplomatic pressure w legal privileges dyal foreigners bddlou rules b-tariqa ma kantsh symmetric. Ma khasnach n7kiw l-story b7al modernization inevitable; kayna choices dyal palace, merchants w foreign governments, walakin power military ma kanch mtwazen.\n\nL-population Yahoudiya dyal Essaouira kbrat f qarn 19. Schroeter kay3ti estimates ihtiyatiya, 7it ma kaynch census reliable, kat9tar7 qrib 4,000 Yahoud men total 12,000 f 1844, w qrib 7,000 men 14,000 f 1875. Had arqam khas ttsmma estimates, ma-shi facts exact. Growth kat3kes attraction dyal port l-merchants, craftsmen w families mn Sous w mdon okhra. Walakin demographic importance ma katsawich political sovereignty. Community kan 3ndha institutions dyalha, walakin l-power l-kbir f city b9a mwzza3 bin palace, governors, notables, merchant houses, consuls w regional actors.\n\nMen 1870s, Essaouira bdat katf9ed l-position l-preeminent dyalha. Cambridge chapter 3la end of an era kayrbet had decline b-changing commodity markets, insecurity f hinterland, inflation, debts dyal merchant families, w growth dyal ports okhrin. Hadi importanta bach ma ndirouch narrative romantic dyal golden age li t9t3at f nhar wa7d. Decline kan process: trade geography tbdlat, foreign commerce t7wwel, internal routes t2atro, w some old merchant houses t3dbou financially.\n\nFeature khas ykhdem ta l-memory dyal coexistence b-7adar. Essaouira kat3ti evidence real 3la daily Jewish-Muslim commercial interdependence, shared urban space, partnerships w political mediation. Walakin harmony b7al slogan ma katsawrsh inequality, legal difference, poverty, conflicts w dependence 3la state protection. Naqd dyal l-myth ma kaynfi-sh l-coexistence; kaykhalih aktar historically serious. N9dro ngolo belli had l-mdina kant plural, connected w productive, walakin pluralism dyalha kan mratab b-power hierarchy dyal dak zaman.\n\nRelevance l-yawm katji men 3 points. Luwel, history dyal Morocco Yahoudi ma hiyach appendice; hiya dakhla f economic, diplomatic w urban history dyal dawla. Tani, Essaouira katbayan kif l-Makhzen kan kayst3mel commerce bach ybni state capacity qbel Protectorate. Talet, l-port kay3tina case study kif globalisation t9dar tjib growth w f nafs lwa9t tfte7 bab l-asymmetry siyasiya ila wa7d taraf 3ndo navy, treaties w extraterritorial leverage. Hadi hya l-qima dyal topic: ma-shi nostalgia, walakin anatomy dyal trade, minority, dawla w imperial power.",
-    "CONFIDENCE": "high on broad institutional and trade history; medium on demographic estimates",
-    "RECOMMENDATION": "SELECT",
-    "ESTIMATED_USABLE_FEATURE_WORDS": 868,
-    "DRAFT_READY_MATERIAL": "L-feature y9dar ybda men port Essaouira f nos l-qarn 19, fin wa7d l-mdina sghira 3la l-Atlantique katjma3 l-Makhzen, tijjar Yahoud, tijjar Moslimin, consuls Ewropeen, qabail dyal Haha w Sous, w caravanat jayyin men janoub. Essaouira ma tkhll9atch b-sodfa. Sultan Sidi Mohammed ben Abdallah bna l-mdina f 1760s bach ydir port rasmi y9dar ykontroli bih commerce m3a Europe w y9wi l-silta dyal dawla f janoub l-Maghrib. Hna l-port ma kanch ghir bab tijari; kan instrument dyal state-building.\n\nWa7d l-angle l-asasi huwa tujjar as-Sultan. Daniel J. Schroeter, li bna dirasto 3la archives Maghribiya, papers dyal merchant houses w consular records, kaybayan belli international trade kan f qalb l-iqtisad dyal Essaouira, w wa7d l-group sghir dyal merchants 3ndhom relation khassa m3a l-palais kano kayl3bo role kbir. L-aghlab dyalhom kano Yahoud. Hadi ma katsawich belli l-yahoud kamlin f Essaouira kano elite wla m7miyin b-nafs tariqa. L-feature khas yferreq bin elite merchants li 3ndhom patronage dyal Sultan w bin community Yahoudiya wassa3a fiha craftspeople, poor households w social differences.\n\nHad l-merchant elite kan 3ndo wa7d l-position paradoxale. Men jiha, f system siyasi w qanouni dyal dak lwa9t, Yahoud l-Maghrib ma kano-sh 3ndhom nafs l-access l-political office li 3nd Muslims. Men jiha khra, palace kan kay3ti l-ba3d menhom advantages, protection, property access w commercial privileges 7it kano useful l-state: 3ndhom l-loughat, l-connections m3a ports b7al London, Marseille, Livorno w Amsterdam, w y9dro ywaslo bin Europe, interior dyal Morocco w Saharan routes. Hna power ma hiyach simple: l-merchant y9dar ykoun ghani w influential, walakin dependence 3la Sultan katb9a 3onsor asasi.\n\nCommerce dyal Essaouira kan kayrbet l-b7ar b-l-hinterland. L-mdina katstafed men exports b7al gum, hides, wool, almonds w agricultural goods, w katdkhol imports Ewropeya. Networks katmchi ta l-Sous w routes li katrbet m3a trans-Saharan trade. L-merchant houses ma kano-sh khddamin b-wa7dhom; kano kay7tajjo brokers, caravan leaders, tribal protection, warehouse workers, craftsmen, money, credit w information. Hadi katbayan belli market ma kanch world apart mn politics. Safe passage, taxes, customs, tribal alliances w palace recognition kano kolhom part men business model.\n\nSchroeter kay9tar7 belli l-Makhzen st3mel Essaouira bach ykoun 3ndo control aktar 3la trade w bach yrbet regions li momkin tkoun siyasiyaan s3iba b-commercial circuits. Hadi interpretation mohimma 7it katna9ed taswira li katgol belli coastal port kan ghir natija dyal European capitalism. European demand kan mohim, walakin local state strategy, regional markets w social institutions kano 7ta homa moteur. Review f Cahiers d'Etudes africaines kaychdded had point: study dyal Schroeter kat3ti weight l-dynamics dakhlia dyal Morocco, ma-shi ghir pressure men barra.\n\n1844 kan turning point. French fleet bombarded Mogador f context dyal l-war bin France w Morocco m3a support dyal Amir Abd al-Qadir. L-attack warra l-far9 l-3askari w l-pressure Ewropeya li ghadi ykbar. Men b3d, treaty Anglo-Moroccan dyal 1856 w Spanish war dyal 1859-1860 bddlou l-balance. Foreign merchants w protege system w consular influence wlaw kaydkhlo aktar f commercial life. L-Makhzen b9a actor, walakin ability dyalo bach y7ded rules dyal trade b-w7do t9llsat.\n\nHna kayn wa7d l-debate historiografi qwi: wach decline dyal sovereignty ja 7it Morocco t7ell 3la world economy, wla 7it foreign powers frdo unequal terms 3la wa7d state kay7awel yadapt? L-evidence kaychj3 3la jawab morkkab: integration tijariya jab opportunities w revenues, walakin naval coercion, diplomatic pressure w legal privileges dyal foreigners bddlou rules b-tariqa ma kantsh symmetric. Ma khasnach n7kiw l-story b7al modernization inevitable; kayna choices dyal palace, merchants w foreign governments, walakin power military ma kanch mtwazen.\n\nL-population Yahoudiya dyal Essaouira kbrat f qarn 19. Schroeter kay3ti estimates ihtiyatiya, 7it ma kaynch census reliable, kat9tar7 qrib 4,000 Yahoud men total 12,000 f 1844, w qrib 7,000 men 14,000 f 1875. Had arqam khas ttsmma estimates, ma-shi facts exact. Growth kat3kes attraction dyal port l-merchants, craftsmen w families mn Sous w mdon okhra. Walakin demographic importance ma katsawich political sovereignty. Community kan 3ndha institutions dyalha, walakin l-power l-kbir f city b9a mwzza3 bin palace, governors, notables, merchant houses, consuls w regional actors.\n\nMen 1870s, Essaouira bdat katf9ed l-position l-preeminent dyalha. Cambridge chapter 3la end of an era kayrbet had decline b-changing commodity markets, insecurity f hinterland, inflation, debts dyal merchant families, w growth dyal ports okhrin. Hadi importanta bach ma ndirouch narrative romantic dyal golden age li t9t3at f nhar wa7d. Decline kan process: trade geography tbdlat, foreign commerce t7wwel, internal routes t2atro, w some old merchant houses t3dbou financially.\n\nFeature khas ykhdem ta l-memory dyal coexistence b-7adar. Essaouira kat3ti evidence real 3la daily Jewish-Muslim commercial interdependence, shared urban space, partnerships w political mediation. Walakin harmony b7al slogan ma katsawrsh inequality, legal difference, poverty, conflicts w dependence 3la state protection. Naqd dyal l-myth ma kaynfi-sh l-coexistence; kaykhalih aktar historically serious. N9dro ngolo belli had l-mdina kant plural, connected w productive, walakin pluralism dyalha kan mratab b-power hierarchy dyal dak zaman.\n\nRelevance l-yawm katji men 3 points. Luwel, history dyal Morocco Yahoudi ma hiyach appendice; hiya dakhla f economic, diplomatic w urban history dyal dawla. Tani, Essaouira katbayan kif l-Makhzen kan kayst3mel commerce bach ybni state capacity qbel Protectorate. Talet, l-port kay3tina case study kif globalisation t9dar tjib growth w f nafs lwa9t tfte7 bab l-asymmetry siyasiya ila wa7d taraf 3ndo navy, treaties w extraterritorial leverage. Hadi hya l-qima dyal topic: ma-shi nostalgia, walakin anatomy dyal trade, minority, dawla w imperial power."
+    "KEY_EVIDENCE": "Essaouira t2asssat b-strategy dyal Sultan Mohammed III bach yorganizi trade m3a Europe. Tujjar as-Sultan kano elite merchants 3ndhom palace patronage; majority kano Jews, b-influence commercial kbir walakin dependence siyasi 3la palace. Foreign intervention w treaties f qarn 19 bdlo balance dyal sovereignty w commerce.",
+    "CONTRADICTORY_EVIDENCE": "Ma khasnach n9raw port ghir b7al product dyal European capitalism; local state strategy w regional trade importantin. Ma khasnach 7ta nromantizaw Jewish-Muslim relations: kayn hierarchy qanouniya, poverty, unequal power, w differences dakhl Jewish community.",
+    "UNCERTAINTY": "Population estimates qbel modern census ma-shi exact; monopoly w privileges tbdlo 7sab period; elite merchants ma kaymthloch community kamla.",
+    "CONTEXT": "Feature y9dar ywasel men foundation dyal royal port l-1844 bombardment, 1856 Anglo-Moroccan treaty, foreign privileges, regional caravan networks, w decline relative dyal Essaouira men 1870s.",
+    "CONFIDENCE": "HIGH",
+    "RECOMMENDATION": "PUBLISH",
+    "FEATURE_OPENING_MATERIAL": "Bda b-port Essaouira b7al instrument siyasi, ma-shi ghir marina: Sultan kaybni bab l-Atlantic bach yjma3 customs, ykontroli trade, w yrbet l-hinterland b-dawla.",
+    "SECTION_OUTLINE": [
+      "Foundation dyal royal port w strategy dyal Makhzen",
+      "Tujjar as-Sultan w majority Jewish merchant elite",
+      "Port, bazaar, Sous, caravans w Europe",
+      "Commercial privilege vs political dependence",
+      "1844 bombardment, 1856 treaty w foreign pressure",
+      "Historiography: local strategy, imperial coercion w world economy",
+      "Society dyal Essaouira beyond merchant elites",
+      "Relative decline men 1870s w legacy"
+    ],
+    "KEY_FACTS": [
+      "Mohammed III founded Essaouira in qarn 18 as royal port tied to foreign trade.",
+      "International trade kan central f economy dyal city.",
+      "Tujjar as-Sultan kano kayakhdo advantages mn special relation m3a palace, w f ba3d periods quasi-monopoly.",
+      "Majority dyal had elite merchants kano Jews, walakin influence commercial ma kanch sovereignty political.",
+      "1844 bombardment warra pressure military Ewropeya.",
+      "Treaty 1856 w protege/consular systems zado foreign leverage.",
+      "Decline relative dyal Essaouira kan multi-causal."
+    ],
+    "KEY_ACTORS": ["Sultan Mohammed III", "Makhzen", "tujjar as-Sultan", "Jewish merchant houses", "Muslim merchants", "Haha w Sous networks", "European consuls and merchants"],
+    "TIMELINE": ["1760s: foundation and consolidation dyal royal port.", "1844: French bombardment dyal Mogador.", "1856: Anglo-Moroccan commercial treaty.", "1859-1860: war m3a Spain w tzaid external pressure.", "1870s-1880s: relative decline w transformation dyal old merchant order."],
+    "INTERPRETATIONS": ["Schroeter kaychdded 3la domestic state strategy w local social institutions.", "Port y9dar ytfham b7al tool dyal centralization, customs revenue w regional control.", "Elite Jewish merchants kano f position paradoxale: commercial influence m3a political/legal dependence."],
+    "COUNTERINTERPRETATIONS": ["European penetration 3ndo role kbir f erosion dyal sovereignty.", "Narratives dyal coexistence khas ttsah7 b-evidence 3la hierarchy, vulnerability w internal class differences."],
+    "MYTH_VS_EVIDENCE": [
+      {"label": "MYTH", "claim": "Essaouira kant simply European creation.", "evidence": "Source base kaybayan active Moroccan state strategy f foundation w control dyal trade."},
+      {"label": "MYTH", "claim": "Kol Jews dyal Essaouira kano rich merchants.", "evidence": "Tujjar as-Sultan elite sghira; community kan fiha craftspeople, workers w poor households."},
+      {"label": "CONTESTED", "claim": "Opening to world economy bo7dha sbabat decline dyal sovereignty.", "evidence": "Evidence katsupport mix dyal local choices, unequal treaties, military coercion w commercial integration."}
+    ],
+    "PRESENT_DAY_RELEVANCE": "Kay3ti context l-history dyal Moroccan Jews, state-market relations, ports, globalization w sovereignty bla romanticization.",
+    "CLAIMS_TO_AVOID": ["Exact population numbers b7al certainties.", "Belli Jewish merchant elite kaymthel community kamla.", "Belli coexistence kant perfect wla conflict permanent.", "Belli European influence wa7d sabab wa7id."],
+    "ESTIMATED_USABLE_WORDS": 1250
   },
   "literature_culture": {
-    "TOPIC_ID": "literature-tahar-ben-jelloun-enfant-de-sable",
-    "PROPOSED_TITLE": "L'Enfant de sable: identity, l-irth w chkoun kaymlek l-hikaya",
-    "WHY_SELECTED": "Riwaya Maghribiya t9dar t7mel feature 3la gender, inheritance, narrative authority, Francophone form w postcolonial identity bla ma ttbna 3la quote wla scene wa7da.",
-    "RECENTLY_USED_CHECK": "Ma kaynch f memory/literature-used.json; kayb3ed 3la Rabat World Book Capital 2026, Gnawa preproduction, w topic culture dyal 2026-09-03.",
+    "TOPIC_ID": "culture-jemaa-el-fna-halqa-oral-heritage",
+    "PROPOSED_TITLE": "Halqa dyal Jemaa el-Fna: l7ki, l-performance w kifach t7mi heritage li khaso yb9a 7ay",
+    "WHY_SELECTED": "Topic kayjma3 oral literature, performance, urban space, tourism, safeguarding w debate 3la authenticity; source base UNESCO + academic criticism kaykfi long-form.",
+    "RECENTLY_USED_CHECK": "Ma kaynch f published literature memory. Rabat World Book Capital 2026 published; Gnawa entry 2026-09-05 marked preproduction w ma katsawich publication.",
     "PRIMARY_SOURCES": [
-      "Tahar Ben Jelloun, L'Enfant de sable, Editions du Seuil, 1985",
-      "Tahar Ben Jelloun, La Nuit sacree, Editions du Seuil, 1987"
+      "https://ich.unesco.org/en/RL/lespace-culturel-de-la-place-jemaa-el-fna-00014",
+      "https://ich.unesco.org/en/events/international-consultation-on-the-preservation-of-popular-cultural-spaces-declaration-of-the-oral-heritage-of-mankind-00803",
+      "https://ich.unesco.org/en/state/morocco-MA?cp=MA&info=periodic-reporting&topic=en-state"
     ],
     "INDEPENDENT_SOURCES": [
-      "https://repository.up.ac.za/handle/2263/77976",
-      "https://asjp.cerist.dz/en/article/199942"
+      "https://doi.org/10.1080/13527250701844019",
+      "https://meridian.allenpress.com/awg/article/8/4/173/60222/Jemaa-el-Fna-Square-in-Marrakech-Changes-to-a"
     ],
-    "SOURCE_ORIGINS": [
-      "Original novels",
-      "University of Pretoria MA dissertation",
-      "Peer-reviewed literary article indexed by ASJP"
-    ],
-    "KEY_EVIDENCE": "Work uses imposed male identity, inheritance logic and unstable storytelling to connect gender hierarchy with narrative authority; sequel extends identity reclamation; criticism reads work through patriarchy, androgyny, postcolonialism and narrative form.",
-    "CONTRADICTORY_EVIDENCE": "Reducing novel to ethnographic statement 3la Moroccan society kaydir essentialism; literary construction ma hiyach census. Critical readings differ on whether male-authored representation opens space for marginalized voice or reproduces authority.",
-    "UNCERTAINTY": "Interpretation literary, donc ma kaynch wa7d reading final. Historical-social context khas yb9a separated men claims 3la all Moroccan families.",
-    "CONTEXT": "L'Enfant de sable dyal Tahar Ben Jelloun, nchat f 1985, t9dar t9raha b7al riwaya 3la identity, gender, l-irth, l-sulta l-abawiya w 7ta 3la nafs l-hikaya: chkoun 3ndo l-ha9 y7ki wa7d l-7ayat, w sh7al men narrator n9dro nti9o fih? L-feature ma khasosh ykhtzel l-kitab f message wa7d 3la rights of women. L-qowa dyalo katji men form m3a theme: Ben Jelloun kaybni wa7d l-story li katbdl m3a storytellers, gaps, contradictions w uncertainty.\n\nL-background huwa Morocco postcolonial li mazal fih family law, inheritance expectations, honor w gender hierarchy kay2atro 3la private life. F riwaya, wa7d l-ab li ma 3ndosh weld dker kay9arrar yrabbi wa7d bent b7al ila hiya weld bach y7mi inheritance w status dyal family. Had premise kat7ett l-identity men l-bidaya f conflict m3a institution: l-body, l-smia, l-lbas, l-paper social, l-irth w l-nadarat dyal nass. L-character ma kat3ichsh ghir wa7d secret; kat3ich role mfrud 3liha b-authority dyal l-ab.\n\nTahar Ben Jelloun kteb b-French, walakin l-imaginaire, storytelling structures w social references dyalo mghribiya w Maghribiya. Had tension dyal language huwa wa7d part men reception dyalo: wach writer Maghribi b-French kayktb l-reader Maghribi, l-reader Francophone, wla juj? Ma kaynch jawab wa7d. Critics kaychoufo f l-kitab interaction bin oral storytelling, folktale, modernist fragmentation w postcolonial writing. Hadi kat3ni belli l-form ma hiyach decoration; hiya tariqa bach l-author ykhalik tchok f single authoritative truth.\n\nWa7d technique markaziya hiya l-storyteller f public setting. Narration katban b7al wa7d l-7alqa fin l-7aki kay3ti version, w voices okhrin t9dar tdkhol, tna9ed, tbddl wla tkmel. B-had tariqa, reader ma kayt9ddemch lih file stable dyal facts. Identity dyal Ahmed/Zahra katwli ta hiya mfr9a 3la riwayat. Hna form w theme kaytla9aw: ila society kat7awel tfrd identity wa7da, novel katrdd b-ktrt l-aswat w impossibility dyal final possession dyal person.\n\nAcademic criticism ktr mn marra qra L'Enfant de sable m3a La Nuit sacree, l-sequel dyal 1987, b7al critique dyal patriarchy w condition dyal women. Dissertation men University of Pretoria kat9ra juj l-novels f had framework w katbayan kif l-father's decision kayrbet honor w inheritance b-gendered violence dyal social system. Hadi reading m9n3a, walakin ma khasnach n3tiwha b7al interpretation wa7ida. Riwaya ta hiya 3la language, body, performativity, uncertainty, narrative authority w postcolonial identity.\n\nWa7d reading okhra katrkkz 3la androgyny w subversion: l-character kay3ich identity imposed, walakin later kay7awel ykhrj men script dyal l-ab. Hna question ma hiyach ghir wach huwa rajel wla mra; l-question l-ad9 huwa kif society katdir institutions b7al inheritance, kinship w public respectability bach t7wel gender men personal identity l-resource siyasi w iqtisadi. L-novel katwarri belli gender role kay7kem access l-property w l-future, ma-shi ghir l-clothes.\n\nForm dyal l-kitab kayst3mel ambiguity deliberately. Reader y9dar y7ess blli storytellers ma kay3tiwhch certainty. Hadchi kaykhdem wa7d critique dyal authority: father kaybghi ykteb identity dyal child; storyteller kaybghi ykteb life dyal character; reader b-nafso ybghi closure. Riwaya katqawem had juj wla tlata dyal desires. L-character ma katsmahsh b-sahel l-wa7d version tsed 3liha. Hadi qima modernista w postcoloniala: subject ma-shi object passive dyal family wla narrator.\n\nCriticism khas ydkhol ta 3la limits dyal riwaya. Wa7d l-risk f some readings howa nkhtzlo Moroccan society f patriarchy timeless, b7al ila history, class, law, urban/rural differences w change ma kaynash. Feature khas yb3d men had essentialism. Ben Jelloun kayktb literary construction, ma-shi census wla ethnography dyal kol Morocco. Khas n9raw social critique dyalo b7al intervention f wa7d context, ma-shi report representative 3la jami3 l-Mgharba.\n\nKayn 7ta su2al 3la male author li kayktb suffering w agency dyal female-coded character. Ba3d critics y9dro ychoufo hadchi b7al opening space l-naqd; akhrin y9dro ysowlo wach voice dyal marginalized character mazal kaydouz 3abr male literary authority. Hadi ma katbttlsh work, walakin katkhlli analysis richer. L-novel nafsha kat3tina tools bach ntr7o had su2al 7it katbni tension 7awl who tells whose story.\n\nRelationship m3a l-period ta hiya importanta. 1980s f Morocco kano wa9t siyasi w ijtima3i complex, m3a authoritarian state, economic pressure, debates 3la law, modernity w identity. Ma khasnach nrbt kol scene b-direct politics bla evidence, walakin l-work t9ra f atmosphere fin questions dyal authority, silence w social conformity kano 3ndhom resonance. Ben Jelloun, li 3ach bin Morocco w France, kan part men Francophone Maghrebi literature li katfawd language dyal former colonial power m3a local memory w forms.\n\nReception dyal Ben Jelloun t9wat internationally, w La Nuit sacree rb7at Prix Goncourt f 1987, li zed visibility dyal project l-adabi li bda m3a L'Enfant de sable. Walakin international success y9dar yjib su2al akhor: wash Western readers kayqraw l-work b7al complex literature wla b7al window exotic 3la Arab women? Responsible feature khas yrfd second shortcut. L-book worth studying 7it style dyalo, unstable narration w philosophical su2alat dyalo kayfouto wa7d sociological slogan.\n\nInfluence dyal l-work kayban f studies 3la gender, postcolonialism, Francophone literature, narrative theory w Moroccan cultural representation. Nqta l-akhira li khas feature ywasel liha: L'Enfant de sable ma kat3tish reader wa7d identity true w simple bach yrtah. Katwarri kif identities y9dro ytsn3o b-law, family, language w expectation, w kif storytelling b-nafso y9dar ykoun form dyal control w form dyal resistance f nafs lwa9t. Had complexity hiya li katkhlli riwaya mazal katstahel l-9raya, bla ma n7tajjo n9lbo 3la quote wa7d wla scene wa7da bach nfhmouha.",
-    "CONFIDENCE": "medium-high",
-    "RECOMMENDATION": "SELECT",
-    "ESTIMATED_USABLE_FEATURE_WORDS": 848,
-    "DRAFT_READY_MATERIAL": "L'Enfant de sable dyal Tahar Ben Jelloun, nchat f 1985, t9dar t9raha b7al riwaya 3la identity, gender, l-irth, l-sulta l-abawiya w 7ta 3la nafs l-hikaya: chkoun 3ndo l-ha9 y7ki wa7d l-7ayat, w sh7al men narrator n9dro nti9o fih? L-feature ma khasosh ykhtzel l-kitab f message wa7d 3la rights of women. L-qowa dyalo katji men form m3a theme: Ben Jelloun kaybni wa7d l-story li katbdl m3a storytellers, gaps, contradictions w uncertainty.\n\nL-background huwa Morocco postcolonial li mazal fih family law, inheritance expectations, honor w gender hierarchy kay2atro 3la private life. F riwaya, wa7d l-ab li ma 3ndosh weld dker kay9arrar yrabbi wa7d bent b7al ila hiya weld bach y7mi inheritance w status dyal family. Had premise kat7ett l-identity men l-bidaya f conflict m3a institution: l-body, l-smia, l-lbas, l-paper social, l-irth w l-nadarat dyal nass. L-character ma kat3ichsh ghir wa7d secret; kat3ich role mfrud 3liha b-authority dyal l-ab.\n\nTahar Ben Jelloun kteb b-French, walakin l-imaginaire, storytelling structures w social references dyalo mghribiya w Maghribiya. Had tension dyal language huwa wa7d part men reception dyalo: wach writer Maghribi b-French kayktb l-reader Maghribi, l-reader Francophone, wla juj? Ma kaynch jawab wa7d. Critics kaychoufo f l-kitab interaction bin oral storytelling, folktale, modernist fragmentation w postcolonial writing. Hadi kat3ni belli l-form ma hiyach decoration; hiya tariqa bach l-author ykhalik tchok f single authoritative truth.\n\nWa7d technique markaziya hiya l-storyteller f public setting. Narration katban b7al wa7d l-7alqa fin l-7aki kay3ti version, w voices okhrin t9dar tdkhol, tna9ed, tbddl wla tkmel. B-had tariqa, reader ma kayt9ddemch lih file stable dyal facts. Identity dyal Ahmed/Zahra katwli ta hiya mfr9a 3la riwayat. Hna form w theme kaytla9aw: ila society kat7awel tfrd identity wa7da, novel katrdd b-ktrt l-aswat w impossibility dyal final possession dyal person.\n\nAcademic criticism ktr mn marra qra L'Enfant de sable m3a La Nuit sacree, l-sequel dyal 1987, b7al critique dyal patriarchy w condition dyal women. Dissertation men University of Pretoria kat9ra juj l-novels f had framework w katbayan kif l-father's decision kayrbet honor w inheritance b-gendered violence dyal social system. Hadi reading m9n3a, walakin ma khasnach n3tiwha b7al interpretation wa7ida. Riwaya ta hiya 3la language, body, performativity, uncertainty, narrative authority w postcolonial identity.\n\nWa7d reading okhra katrkkz 3la androgyny w subversion: l-character kay3ich identity imposed, walakin later kay7awel ykhrj men script dyal l-ab. Hna question ma hiyach ghir wach huwa rajel wla mra; l-question l-ad9 huwa kif society katdir institutions b7al inheritance, kinship w public respectability bach t7wel gender men personal identity l-resource siyasi w iqtisadi. L-novel katwarri belli gender role kay7kem access l-property w l-future, ma-shi ghir l-clothes.\n\nForm dyal l-kitab kayst3mel ambiguity deliberately. Reader y9dar y7ess blli storytellers ma kay3tiwhch certainty. Hadchi kaykhdem wa7d critique dyal authority: father kaybghi ykteb identity dyal child; storyteller kaybghi ykteb life dyal character; reader b-nafso ybghi closure. Riwaya katqawem had juj wla tlata dyal desires. L-character ma katsmahsh b-sahel l-wa7d version tsed 3liha. Hadi qima modernista w postcoloniala: subject ma-shi object passive dyal family wla narrator.\n\nCriticism khas ydkhol ta 3la limits dyal riwaya. Wa7d l-risk f some readings howa nkhtzlo Moroccan society f patriarchy timeless, b7al ila history, class, law, urban/rural differences w change ma kaynash. Feature khas yb3d men had essentialism. Ben Jelloun kayktb literary construction, ma-shi census wla ethnography dyal kol Morocco. Khas n9raw social critique dyalo b7al intervention f wa7d context, ma-shi report representative 3la jami3 l-Mgharba.\n\nKayn 7ta su2al 3la male author li kayktb suffering w agency dyal female-coded character. Ba3d critics y9dro ychoufo hadchi b7al opening space l-naqd; akhrin y9dro ysowlo wach voice dyal marginalized character mazal kaydouz 3abr male literary authority. Hadi ma katbttlsh work, walakin katkhlli analysis richer. L-novel nafsha kat3tina tools bach ntr7o had su2al 7it katbni tension 7awl who tells whose story.\n\nRelationship m3a l-period ta hiya importanta. 1980s f Morocco kano wa9t siyasi w ijtima3i complex, m3a authoritarian state, economic pressure, debates 3la law, modernity w identity. Ma khasnach nrbt kol scene b-direct politics bla evidence, walakin l-work t9ra f atmosphere fin questions dyal authority, silence w social conformity kano 3ndhom resonance. Ben Jelloun, li 3ach bin Morocco w France, kan part men Francophone Maghrebi literature li katfawd language dyal former colonial power m3a local memory w forms.\n\nReception dyal Ben Jelloun t9wat internationally, w La Nuit sacree rb7at Prix Goncourt f 1987, li zed visibility dyal project l-adabi li bda m3a L'Enfant de sable. Walakin international success y9dar yjib su2al akhor: wash Western readers kayqraw l-work b7al complex literature wla b7al window exotic 3la Arab women? Responsible feature khas yrfd second shortcut. L-book worth studying 7it style dyalo, unstable narration w philosophical su2alat dyalo kayfouto wa7d sociological slogan.\n\nInfluence dyal l-work kayban f studies 3la gender, postcolonialism, Francophone literature, narrative theory w Moroccan cultural representation. Nqta l-akhira li khas feature ywasel liha: L'Enfant de sable ma kat3tish reader wa7d identity true w simple bach yrtah. Katwarri kif identities y9dro ytsn3o b-law, family, language w expectation, w kif storytelling b-nafso y9dar ykoun form dyal control w form dyal resistance f nafs lwa9t. Had complexity hiya li katkhlli riwaya mazal katstahel l-9raya, bla ma n7tajjo n9lbo 3la quote wa7d wla scene wa7da bach nfhmouha.",
-    "COPYRIGHT_NOTE": "No copyrighted passages reproduced; analysis and paraphrase only."
+    "SOURCE_ORIGINS": ["UNESCO nomination and safeguarding record", "UNESCO 1997 Marrakesh consultation record", "Morocco periodic reporting to UNESCO", "International Journal of Heritage Studies scholarship", "The Arab World Geographer study"],
+    "KEY_EVIDENCE": "UNESCO kay3ref Jemaa el-Fna b7al cultural space fin storytelling, poetry, music, healing, preaching w commerce kaytla9aw. Oral performance kat3tamed 3la speech, gesture w improvisation. UNESCO records kay7dro mn urbanization, tourism, acculturation, w decline dyal storytellers.",
+    "CONTRADICTORY_EVIDENCE": "UNESCO recognition zada visibility w shj3at practitioners, walakin nafs visibility t9dar tzid folklorization, tourism pressure w transformation dyal audience.",
+    "UNCERTAINTY": "Counts exact dyal storytellers kaytbdlo 7sab definitions w periods; avoid romantic claims 3la centuries of unchanged practice.",
+    "CONTEXT": "Jemaa el-Fna hiya performance ecology: halqa, audience, gesture, improvisation, competition 3la attention, commerce, tourism w city planning kaykono m3a ba3d.",
+    "CONFIDENCE": "HIGH",
+    "RECOMMENDATION": "PUBLISH",
+    "FEATURE_OPENING_MATERIAL": "Bda b-halqa: circle dyal nass kattsawb f blassa 3amma, performer f nos 3ndo voice, timing, gesture w audience li kaybdel m3ah l-performance.",
+    "SECTION_OUTLINE": ["Shno hiya halqa", "Jemaa el-Fna b7al cultural space", "Improvisation, gesture, repetition w audience", "Tourism w public space", "1997 consultation w UNESCO intangible heritage concept", "Safeguarding paradox", "Folklorization w decline dyal storytellers", "3lach oral performance matters lyom"],
+    "CONTEXT_DETAIL": "UNESCO katgol performers kayadaptaw old narrative outlines l-contemporary contexts; continuity hna dynamic, ma-shi copy exact.",
+    "CREATOR_OR_WORK_BACKGROUND": "Ma kaynch creator wa7d. L-work hiya collective performance tradition dyal hlay9iya, poets, musicians w audiences f Jemaa el-Fna.",
+    "CENTRAL_IDEAS": ["Oral literature katsna3 f relation bin performer w audience.", "Heritage momkin ykoun space + practices, ma-shi object wa7d.", "Authenticity ma katsawich stasis.", "Institutional recognition t9dar t7mi w tbdl l-practice f nafs lwa9t."],
+    "STYLE_AND_FORM": "Speech, gesture, improvisation, episodic narration, audience feedback, memory, humor, suspense, repetition w flexible adaptation.",
+    "HISTORICAL_RELATIONSHIP": "Square protected as artistic heritage since 1922; 1997 Marrakesh consultation; UNESCO Masterpiece in 2001; incorporated f Representative List in 2008.",
+    "INFLUENCES": "Urban history dyal Marrakesh, Amazigh bardic traditions, Arabic oral narrative, preaching, music, market performance, tourism w cultural policy.",
+    "RECEPTION": "UNESCO recognition zada visibility, walakin reports kay7dro mn decline dyal storytellers w touristification.",
+    "CRITICISM": "Scholarship kayna9ech difficulty dyal safeguarding living traditions under global pressure w risk dyal turning practice l-folklore for visitors.",
+    "COMPETING_INTERPRETATIONS": ["Recognition b7al rescue mechanism.", "Recognition t9dar tzid tourist gaze w freeze expectations.", "Safeguarding khas support practitioners, transmission w space, ma-shi canonical form."],
+    "LATER_INFLUENCE": "Case dyal Jemaa el-Fna kan wa7d men roots dyal international concept dyal oral and intangible heritage.",
+    "WHY_IT_MATTERS_TODAY": "Kay3ti model bach nfahmo kif l-mdon y7miw living culture m3a tourism, redevelopment w changing audiences.",
+    "CLAIMS_TO_AVOID": ["Exact current storyteller count bla solid source.", "Belli form b9at unchanged centuries.", "Belli UNESCO recognition automatically saved tradition.", "Copyrighted long passages w invented quotes."],
+    "ESTIMATED_USABLE_WORDS": 1150
   },
   "investigations": {
-    "TOPIC_ID": "investigation-al-haouz-reconstruction-2023-2028",
-    "PROPOSED_TITLE": "Al Haouz: kif nreconcilew 54,425 logement acheve m3a households li mazal kaygolo recovery ma kmelatch?",
-    "WHY_SELECTED": "Existing dossier kayn deja w fih clear accountability question. Fresh 2026 evidence kay9wi both official-progress case and independent uneven-recovery case.",
-    "RECENTLY_USED_CHECK": "Existing dossier read before research; no new dossier opened.",
-    "QUESTION_OR_HYPOTHESIS": "Wash official housing completion, budget disbursement w sector progress y9dro ytreconcile village-by-village m3a beneficiary, occupancy, appeals w independent household evidence?",
-    "STATUS": "NEEDS_VERIFICATION",
-    "TIMELINE": [
-      "2023-09-08: Al Haouz earthquake.",
-      "2023-09-20: multi-sector 2024-2028 reconstruction/development programme announced with 120bn MAD envelope.",
-      "2026-02-27: reporting on Transparency Maroc survey of 454 households documents uneven household recovery.",
-      "2026-03-17: ADHA reports 54,425 habitations achevees, more than 3,000 still under work, 7.23bn MAD aid paid.",
-      "2026-06-05: EIB/EU announce second EUR500m tranche, taking EIB commitment to EUR1bn; field mission reviews projects.",
-      "2026-09-04: dossier evidence refreshed; status remains NEEDS_VERIFICATION."
-    ],
-    "OFFICIAL_CLAIMS": [
-      "ADHA dashboard: 54,425 completed homes and 7.23bn MAD in financial aid.",
-      "ADHA/EIB/EU June mission reports visible progress in schools, health facilities and road works.",
-      "EIB second tranche of EUR500m brings its total commitment to EUR1bn for essential infrastructure."
-    ],
-    "SUPPORTING_EVIDENCE": [
-      "Transparency Maroc household survey, as reported by Hespress, found 44% of respondents not living in newly built or repaired housing and serious livelihood stress.",
-      "Official programme and procurement activity continuing in 2026 shows reconstruction is not a closed project."
-    ],
-    "CONTRADICTORY_EVIDENCE": [
-      "54,425 completed-home count is strong evidence against any blanket claim that reconstruction failed or did not occur.",
-      "Survey and official figures may use different denominators, geography and definitions; apparent conflict may partly be measurement mismatch.",
-      "Some unresolved files can involve land, inheritance, eligibility or technical constraints; no allegation should be assigned without case-level evidence."
-    ],
-    "MISSING_DOCUMENTS": [
-      "Machine-readable village-by-village beneficiary table with eligibility, appeals, starts, completions and occupancy.",
-      "Budget commitments versus cash disbursement by sector and year through 2026.",
-      "Contract-level award, amendment, delay and delivery status.",
-      "Independent engineering/seismic-compliance sample.",
-      "Methodological reconciliation between official completion denominator and independent household surveys."
-    ],
-    "UNANSWERED_QUESTIONS": [
-      "Shno exact definition dyal habitation achevee?",
-      "Ch7al men appeals/rejections mazal unresolved, w fin geographic concentration dyalhom?",
-      "Ch7al men 120bn MAD committed, disbursed and independently verified as delivered outcomes by sector?",
-      "Wash beneficiary households actually occupy completed homes?"
-    ],
-    "PRIMARY_SOURCES": [
-      "https://www.adha.gov.ma/",
-      "https://www.eeas.europa.eu/delegations/morocco/morocco-eib-mobilises-second-tranche-%E2%82%AC500-million-post-earthquake-reconstruction-eu-support_en"
-    ],
-    "INDEPENDENT_SOURCES": [
-      "https://en.hespress.com/132677-transparency-42-lost-jobs-50-live-on-under-mad-1000-after-al-haouz-earthquake.html",
-      "https://medias24.com/2026/03/18/seisme-dal-haouz-54-425-logements-acheves-et-72-milliards-de-dirhams-daides-verses-1645309/"
-    ],
-    "SOURCE_ORIGINS": [
-      "ADHA",
-      "EIB/EU Delegation",
-      "Transparency Maroc household survey via Hespress",
-      "Medias24 cross-check"
-    ],
-    "KEY_EVIDENCE": "Substantial official reconstruction progress and financing coexist with independent evidence of uneven household recovery.",
-    "UNCERTAINTY": "Medium; unresolved denominator/definition problem prevents responsible publication-ready accusation.",
-    "CONTEXT": "Dossier Al Haouz tzad fih evidence jdida walakin ma khasoch ytl3 READY. Official ADHA dashboard f 2026 kay3ti 54,425 habitations achevees w 7.23bn MAD aides versees. Update dyal March 2026 katgol aktar men 3,000 housing units mazal f travaux, w programmes f roads, schools w health mazal kaytkhdmo. F June 2026, EIB/UE 3lno second tranche dyal EUR500m, li katsali total commitment EUR1bn l-infrastructure reconstruction, w joint field mission chafat schools, health facilities w N7 works. Hadchi evidence qwiya dd ay hypothesis belli ma t3awd walo: substantial reconstruction w financing kaynin.\n\nF nafs lwa9t, Transparency Maroc survey li t-reporta 3lih Hespress f February 2026, 454 households f Al Haouz w Chichaoua, l9a 44% kaygolo ma sakinsh f housing jdid wla repaired, 42% dyal household heads lost jobs, w 50% dyal families reported less than 1,000 MAD monthly income. Had sample ma kaymthlsh darori kol affected households, walakin kay3ti independent evidence belli aggregate completion figures ma kayjawbosh wa7dhom 3la occupancy, exclusion, household recovery w livelihoods.\n\nContradictory evidence khasha tb9a explicit: official completed-house count t9dar tkoun valid w f nafs lwa9t survey households yb9aw barra l-completion 7it denominator, eligibility, legal/land status, timing w geographic sample kaykhtalfo. Ma kayn ta proof mn had sources b-wa7dha dyal corruption wla deliberate exclusion. L-hypothesis responsible hiya accounting reconciliation: wach official achevee definitions, beneficiary denominator, appeals, occupancy w village-level delivery kaytla9aw m3a independent household observations?\n\nPublication readiness katb9a NOT_READY 7it missing machine-readable village-by-village table, appeals/rejections, budget commitment vs disbursement by sector/year, procurement amendments/delays, independent engineering sample, w reconciliation dyal official denominator m3a household surveys. Status ma kaytbddlch: NEEDS_VERIFICATION, walakin dossier tzad evidence w clearer falsification path.",
-    "CONFIDENCE": "medium",
-    "PUBLICATION_READINESS": "NOT_READY",
-    "RECOMMENDATION": "ADVANCE DOSSIER, DO NOT PUBLISH AS ACCUSATION"
+    "checked_existing_dossiers": ["investigations/al-haouz-reconstruction.json", "investigations/water-security-accountability.json"],
+    "active_dossier": {
+      "DOSSIER_ID": "al-haouz-reconstruction-2023-2028",
+      "QUESTION_OR_HYPOTHESIS": "Wash wa3d, sarf w nata2ij dyal programme i3mar l-Houz kaytla9aw b-wodo7 men l-budget l-dar w l-khadma li wslat l-kol qarya?",
+      "STATUS": "NEEDS_VERIFICATION",
+      "TIMELINE": ["2023-09-08: earthquake.", "2023-09-20: multi-year reconstruction programme announced.", "2026-03-17: official update reported 54,425 completed habitations, more than 3,000 still in works, and more than 7.2bn MAD aid distributed.", "2026-06-05: ADHA, EIB w EU field mission reviewed education, health w road projects.", "2026-09-03: dossier already moved to NEEDS_VERIFICATION."],
+      "OFFICIAL_CLAIMS": ["ADHA reports substantial housing completion and multi-sector progress.", "Official field mission 2026-06-05 documented continuing education, health and road works."],
+      "SUPPORTING_EVIDENCE": ["Transparency Maroc runs an independent reconstruction observatory.", "Independent reporting documents unresolved complaints and delays in some cases.", "2026 procurement activity shows continuing projects."],
+      "CONTRADICTORY_EVIDENCE": ["54,425 completed homes contradict any blanket claim that reconstruction did not occur.", "Some unresolved cases may involve land, inheritance, eligibility or technical constraints.", "120bn MAD is a multi-sector, multi-year envelope and cannot be compared directly with housing cash aid."],
+      "DISCONFIRMING_SEARCH": "Official ADHA progress material w continuing works kayna9do blanket failure hypothesis; no accusation supportable.",
+      "MISSING_DOCUMENTS": ["Village-level beneficiary/completion table.", "Budget commitment vs cash disbursement by sector/year.", "Contract table with amendments/delays/delivery.", "Independent engineering sample."],
+      "UNANSWERED_QUESTIONS": ["Ch7al mn 120bn MAD committed, disbursed w verified?", "Shno definition dyal habitation achevee?", "Ch7al appeals/rejected cases mazal?", "Wash official aggregates ytreconcilew village-by-village?"],
+      "CONFIDENCE": "MEDIUM",
+      "PUBLICATION_READINESS": "NOT_READY",
+      "NEXT_RESEARCH_STEPS": ["Obtain machine-readable disbursement data.", "Match procurement awards to delivery status.", "Compare sample villages with official denominator and independent field evidence."],
+      "PRIMARY_SOURCES": ["https://www.adha.ma/", "https://adha.gov.ma/actualites/article.php?lang=fr&slug=adha-bei-mission-terrain-al-haouz-avancement-projets-reconstruction-rehabilitation"],
+      "INDEPENDENT_SOURCES": ["https://transparencymaroc.ma/projet-observatoire-du-programme-de-reconstruction-post-seisme-atlas/", "https://www.reuters.com/business/environment/moroccos-quake-survivors-demand-more-help-world-cup-spending-ramps-up-2025-09-15/"]
+    },
+    "dossier_files_updated": [],
+    "status_change": "NONE_TODAY"
   },
-  "quality_gate": {
-    "science_status_clear": true,
-    "science_method_sample_recorded": true,
-    "science_limitations_recorded": true,
-    "science_correlation_causation_handled": true,
-    "history_recent_repeat": false,
-    "history_usable_words": 868,
-    "history_competing_interpretations": true,
-    "literature_recent_repeat": false,
-    "literature_usable_words": 848,
-    "literature_criticism_competing_interpretations": true,
-    "investigation_unsupported_accusation": false,
-    "investigation_contradictory_evidence_searched": true,
-    "investigation_publication_readiness": "NOT_READY",
-    "arabic_script_count": 0
-  },
-  "source_summary": {
-    "primary_source_count": 8,
-    "independent_origin_count": 10
+  "sources_count": 17,
+  "primary_sources_count": 9,
+  "independent_source_origins_count": 11,
+  "blocked_sources": ["Nature Human Behaviour full article body subscription preview; access recorded as METHODS_PLUS_ABSTRACT.", "Some Cambridge book chapters are subscription-limited; accessible summaries plus scholarly review used."],
+  "important_unknowns": ["Science: no direct replication identified.", "History: demographic estimates remain approximate.", "Culture: exact current storyteller count not used as hard fact.", "Investigation: village-level and budget-level reconciliation missing."],
+  "handoff": {
+    "ready_for_chief_editor": true,
+    "science_selected_topic_id": "science-social-tech-life-satisfaction-2026-08-28",
+    "science_alternates": ["science-moral-language-saturation-2026-09-02", "science-ongoing-thoughts-rest-brain-2026-08-26"],
+    "history_selected_topic_id": "history-essaouira-tujjar-sultan-trade-power",
+    "literature_culture_selected_topic_id": "culture-jemaa-el-fna-halqa-oral-heritage",
+    "investigation_dossiers_updated": [],
+    "investigation_ready_for_publication": false,
+    "features_requiring_editorial_caution": ["Science: ma t7awelsh null longitudinal l-proof dyal no harm.", "History: khlli estimates labelled w ferreq elite merchants mn community kamla.", "Culture: ma tjmmdsh oral tradition f wa7d form.", "Investigation: not publication-ready; no accusation."],
+    "major_unresolved_questions": ["Science generalizability beyond US adults.", "Exact demographic levels f nineteenth-century Essaouira.", "Current storyteller counts and transmission pipeline.", "Village-level and budget-level reconciliation for Al Haouz reconstruction."]
   }
 }
