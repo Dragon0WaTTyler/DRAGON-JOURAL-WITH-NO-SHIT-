@@ -1,4 +1,4 @@
-version: 2
+version: 3
 gates:
   research:
     required: [research_packets, source_records, uncertainty_labels]
@@ -15,15 +15,19 @@ gates:
   scheduled_publication_source:
     required: [edition_html, print_css, epub_content_xhtml, utf8, no_mojibake, zero_arabic_script, resolved_source_links, github_text_read_back]
   scheduled_cover:
-    required: [compact_cover_brief, one_dominant_concept, image_generation_pass, visual_qa_pass, max_one_retry, zero_arabic_script]
+    required: [compact_cover_brief, one_dominant_concept, image_generation_pass, visual_qa_pass, max_one_retry, zero_arabic_script, no_svg_fallback_as_success]
   manual_binary_render:
     required: [pdf_render, epub_render, binary_validation]
     scheduled_work_required: false
+  final_publication:
+    required: [publication_source_package_complete, generated_cover_pass, cover_visual_qa_pass, no_svg_fallback, pdf_generated_validated, epub_generated_validated, binary_artifacts_complete, canonical_binary_paths, github_binary_persistence_read_back]
+    complete_status: COMPLETE
+    fail_closed: true
   archive:
     required: [github_text_read_back]
-    binary_archive_required_for_overall_scheduled_complete: false
+    binary_archive_required_for_final_publication_complete: true
   editorial_quality_report:
     required: [total_word_count, per_section_word_counts, hard_minimums, target_ranges, allowed_exceptions, repeated_topic_check, regeneration_requests, arabic_script_count]
   workflow_state:
-    required: [fresh_run_initialization, dependency_invariants, binary_state_visibility, report_consistency, downstream_reset_on_block]
-blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE]
+    required: [fresh_run_initialization, dependency_invariants, binary_state_visibility, report_consistency, downstream_reset_on_block, final_publication_status_visibility]
+blocking_statuses: [FAIL, FIX, REMOVE, NOT_COMPLETE, BLOCKED]
