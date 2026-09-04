@@ -5,7 +5,7 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
-  "cover": "RUNNING",
+  "cover": "BLOCKED",
   "overall_status": "PENDING",
   "publication_source_package": "COMPLETE",
   "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
@@ -13,8 +13,8 @@
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
   "ready_for_codex_rendering": true,
-  "image_generation_status": "PENDING",
-  "visual_qa_status": "PENDING",
+  "image_generation_status": "FAIL",
+  "visual_qa_status": "FAIL",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "blocking_reason": null,
@@ -28,6 +28,6 @@
   "editorial_completed_at": "2026-09-04T22:46:22+01:00",
   "editorial_blocking_reason": null,
   "cover_started_at": "2026-09-04T23:05:00+01:00",
-  "cover_completed_at": null,
-  "cover_blocking_reason": null
+  "cover_completed_at": "2026-09-04T23:05:00+01:00",
+  "cover_blocking_reason": "IMAGE_INVOCATION_MODE_ERROR_NO_RETRY_ALLOWED: a pure text-to-image request was issued with no referenced image target, but the image tool classified it as an edit requiring an existing image and explicitly prohibited retry."
 }
