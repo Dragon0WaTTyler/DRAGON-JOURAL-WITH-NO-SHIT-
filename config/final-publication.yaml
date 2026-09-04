@@ -1,0 +1,66 @@
+version: 1
+
+# Final publication is separate from Scheduled Work stage completion.
+# This file defines the reader-facing completion gate for a truly published edition.
+
+status_field: final_publication_status
+allowed_values: [PENDING, BLOCKED, COMPLETE]
+initial_value: PENDING
+
+source_package:
+  required_status: COMPLETE
+  required_files:
+    - edition.html
+    - print.css
+    - epub-content.xhtml
+
+cover:
+  normal_final_publication_requires:
+    - cover == COMPLETE
+    - image_generation_status == PASS
+    - visual_qa_status == PASS
+    - cover_asset_type != SVG_FALLBACK
+  fallback_rule: SVG_FALLBACK never counts as a successfully generated cover.
+  failure_rule: If image generation fails after the permitted retry, set cover=FAILED and final_publication_status=BLOCKED.
+
+binaries:
+  pdf:
+    canonical_name: dragon-YYYY-MM-DD.pdf
+    complete_state: GENERATED_VALIDATED
+    required_checks: [non_zero_size, readable_pdf, page_count_at_least_2, canonical_cover_page_1, visual_qa_pass]
+  epub:
+    canonical_name: dragon-YYYY-MM-DD.epub
+    complete_state: GENERATED_VALIDATED
+    required_checks: [non_zero_size, valid_zip, mimetype_first_uncompressed, valid_container_xml, valid_opf_xml, valid_nav_xhtml, canonical_cover_metadata]
+  combined_complete_state: COMPLETE
+
+persistence:
+  final_complete_requires_github_binary_persistence: true
+  final_complete_requires_exact_path_read_back: true
+  temporary_runtime_binary_is_not_published: true
+
+final_complete_requires:
+  - publication_source_package == COMPLETE
+  - cover == COMPLETE
+  - image_generation_status == PASS
+  - visual_qa_status == PASS
+  - cover_asset_type != SVG_FALLBACK
+  - pdf_binary == GENERATED_VALIDATED
+  - epub_binary == GENERATED_VALIDATED
+  - binary_artifacts == COMPLETE
+  - PDF exists at editions/YYYY/MM/YYYY-MM-DD/dragon-YYYY-MM-DD.pdf
+  - EPUB exists at editions/YYYY/MM/YYYY-MM-DD/dragon-YYYY-MM-DD.epub
+  - exact GitHub binary persistence/read-back PASS
+
+status_semantics:
+  publishing_COMPLETE: PUBLICATION_SOURCE_PACKAGE_COMPLETE_ONLY
+  overall_status_rule: Keep overall_status PENDING or BLOCKED until final_publication_status == COMPLETE. Do not use overall_status COMPLETE as a synonym for scheduled-stage completion.
+  scheduled_stage_summary: The five scheduled stages may all be individually COMPLETE while overall_status remains PENDING because final binary publication is still pending.
+
+manual_renderer:
+  environment: codex-cloud
+  script: scripts/render_production_binaries.py
+  prompt: prompts/manual-binary-publisher.md
+  normal_command: python scripts/render_production_binaries.py --date YYYY-MM-DD
+  historical_degraded_command: python scripts/render_production_binaries.py --date YYYY-MM-DD --allow-svg-fallback
+  degraded_rule: Historical fallback rendering must never set normal final_publication_status COMPLETE unless the user explicitly accepts degraded publication and the status is visibly labelled as degraded.
