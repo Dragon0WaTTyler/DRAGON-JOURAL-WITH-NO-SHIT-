@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 from markdown_it import MarkdownIt
-from scripts.publication_inputs import validate_inputs, canonical_date, safe_asset, digest
+from scripts.publication_inputs import validate_inputs, canonical_date, safe_asset, digest, git_blob
 from scripts.publication_renderer import build_epub, validate_epub, render, read_json, write_json, restricted_fetcher
 from scripts.auto_publish import publish, git, candidates, verify_remote
 from scripts.workflow_state import fresh_production_status, validate_state, initialize_production_run
@@ -41,15 +41,22 @@ def fixture(root):
         (edition / name).write_text(doc, encoding="utf-8")
     (edition / "print.css").write_text('@page{size:A4;margin:15mm}body{font-family:serif;font-size:11pt}p{line-height:1.4}', encoding="utf-8")
     base = {"date":DATE,"timezone":"Africa/Casablanca"}
-    meta = base | {"cover_asset_type":"SVG_FALLBACK","cover_asset_path":str(cover.relative_to(root)).replace("\\","/"),"visual_qa_status":"PASS","image_generation_status":"NOT_AVAILABLE","publication_source_package":"COMPLETE"}
+    meta = base | {"lead_story_id":"test-lead","cover_asset_type":"SVG_FALLBACK","cover_asset_path":str(cover.relative_to(root)).replace("\\","/"),"visual_qa_status":"PASS","image_generation_status":"NOT_AVAILABLE","publication_source_package":"COMPLETE"}
     status = fresh_production_status(DATE) | meta | {k:"COMPLETE" for k in ("current_research","deep_research","editorial","cover","publishing")}
     write_json(run / "status.json", status)
     write_json(run / "cover-brief.json", meta)
     write_json(edition / "manifest.json", meta)
     write_json(edition / "sources.json", base | {"sources":[{"id":"S1","url":"https://example.org/evidence"}]})
-    write_json(run / "editorial-report.json", base | {"fact_check_status":"PASS","darija_status":"PASS","arabic_script_count":0,"history_topic_id":"test-history"})
+    write_json(run / "editorial-report.json", base | {"lead_story_id":"test-lead","fact_check_status":"PASS","darija_status":"PASS","arabic_script_count":0,"history_topic_id":"test-history"})
     for name in ("publishing-report.json", "current-news.json", "deep-features.json"):
         write_json(run / name, base)
+    def lineage(report_path, inputs):
+        obj=read_json(report_path)
+        obj['input_blobs']={p.relative_to(root).as_posix():git_blob(p) for p in inputs}
+        write_json(report_path,obj)
+    lineage(run/'editorial-report.json',[run/'current-news.json',run/'deep-features.json'])
+    lineage(run/'cover-brief.json',[edition/'edition.md',edition/'sources.json',run/'editorial-report.json'])
+    lineage(run/'publishing-report.json',[edition/'edition.md',edition/'sources.json',run/'editorial-report.json',run/'cover-brief.json',cover])
     return edition, run, cover
 
 def fake_pdf(edition, cover, output):
@@ -92,7 +99,12 @@ class AutomaticPublicationTests(unittest.TestCase):
 
     def test_false_complete_cannot_bypass_depth(self):
         (self.edition / "edition.md").write_text("# DRAGON\n\nShort edition.")
-        with self.assertRaisesRegex(ValueError, "depth failed"):
+        with self.assertRaisesRegex(ValueError, "STALE_UPSTREAM_HANDOFF|depth failed"):
+            validate_inputs(self.root, DATE)
+
+    def test_changed_research_invalidates_editorial_handoff(self):
+        write_json(self.run/'current-news.json', {'date':DATE,'changed':True})
+        with self.assertRaisesRegex(ValueError, "STALE_UPSTREAM_HANDOFF"):
             validate_inputs(self.root, DATE)
 
     def test_renderer_blocks_network_and_secrets(self):

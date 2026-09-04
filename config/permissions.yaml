@@ -4,14 +4,40 @@ default:
   filesystem: repository-only
   external_writes: github-push-after-gates
 chief-editor:
-  can_spawn: [morocco, meknes, palestine, world, ai, science, history, literature-culture, investigations]
-  can_write: [research, editions, memory, investigations]
+  can_spawn:
+  - morocco
+  - meknes
+  - palestine
+  - world
+  - ai
+  - science
+  - history
+  - literature-culture
+  - investigations
+  can_write:
+  - editions
+  - daily-runs
 fact-check:
   can_spawn: []
-  can_write: [research, editions]
+  can_write:
+  - research
+  - editions
 darija-editor:
   can_spawn: []
-  can_write: [editions]
+  can_write:
+  - editions
 publishing:
   can_spawn: []
-  can_write: [editions, README.md]
+  can_write:
+  - editions
+  - daily-runs
+automatic-binary-publisher:
+  runtime: github-hosted-ubuntu
+  can_spawn: []
+  can_write:
+  - editions
+  - daily-runs
+  - memory/publication-ledger.json
+  external_writes: non-force github push after validation; final COMPLETE after exact
+    binary read-back
+  model_api_allowed: false

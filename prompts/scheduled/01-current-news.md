@@ -768,3 +768,7 @@ GITHUB READ-BACK:
 BLOCKERS:
 
 The final response is only a status report. Do not paste the full research packet into chat.
+
+## Exact input lineage required by the binary validator
+
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.

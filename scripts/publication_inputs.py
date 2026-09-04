@@ -23,6 +23,19 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def git_blob(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+
+
+def require_lineage(root: Path, report: dict, paths: list[Path]):
+    observed = report.get("input_blobs", {})
+    for path in paths:
+        key = path.relative_to(root).as_posix()
+        if observed.get(key) != git_blob(path):
+            raise ValueError(f"STALE_UPSTREAM_HANDOFF: {path.name} blob does not match observed input")
+
+
 def safe_asset(root: Path, edition: Path, declared: str) -> Path:
     if not isinstance(declared, str) or not declared or "\\" in declared:
         raise ValueError("cover_asset_path must be a repository-relative POSIX path")
@@ -111,11 +124,16 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
         if status.get(field) != "COMPLETE":
             raise ValueError(f"prerequisite {field} is not COMPLETE")
     manifest, brief, report = (payload[n] for n in ("manifest.json", "cover-brief.json", "editorial-report.json"))
+    require_lineage(root, report, [run / "current-news.json", run / "deep-features.json"])
+    require_lineage(root, brief, [edition / "edition.md", edition / "sources.json", run / "editorial-report.json"])
     if manifest.get("publication_source_package") != "COMPLETE" or status.get("publication_source_package") != "COMPLETE":
         raise ValueError("publication source package is not COMPLETE")
     if report.get("fact_check_status") != "PASS" or report.get("darija_status") != "PASS" or report.get("arabic_script_count") != 0:
         raise ValueError("editorial evidence gates have not passed")
     cover = safe_asset(root, edition, brief.get("cover_asset_path"))
+    require_lineage(root, payload["publishing-report.json"], [edition / "edition.md", edition / "sources.json", run / "editorial-report.json", run / "cover-brief.json", cover])
+    if not report.get("lead_story_id") or brief.get("lead_story_id") != report.get("lead_story_id"):
+        raise ValueError("cover lead does not match current editorial lead")
     for key in ("cover_asset_type", "cover_asset_path"):
         if manifest.get(key) != brief.get(key) or status.get(key) != brief.get(key):
             raise ValueError(f"cover metadata mismatch: {key}")
@@ -140,7 +158,7 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
         if ARABIC_SCRIPT.search(text) or MOJIBAKE.search(text) or value not in text or "DRAGON" not in text:
             raise ValueError("invalid SVG text/date/masthead")
     elif kind == "AI_GENERATED":
-        if brief.get("image_generation_status") != "PASS":
+        if brief.get("image_generation_status") != "PASS" or status.get("image_generation_status") != "PASS":
             raise ValueError("generated cover lacks generation PASS")
         from PIL import Image
         with Image.open(cover) as image:

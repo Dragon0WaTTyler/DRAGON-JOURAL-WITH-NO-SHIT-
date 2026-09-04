@@ -16,3 +16,8 @@ Record publication_source_package=COMPLETE and publishing_completion_semantics=P
 
 Only after exact output read-back and unchanged canonical inputs conditionally merge publishing=COMPLETE and the above source/binary fields into latest status.json, preserving Tasks 1–4. Use latest blob SHA, retry conflict with fresh read/merge up to 3 times, never blind overwrite. Read back final status. Any source change must invalidate previous final binary publication; never reset valid final binary state on an unchanged idempotent rerun.
 Finish with status/date, current output paths, cover type/path, freshness and text read-back evidence, automatic-render readiness and exact blockers. Do not claim PDF/EPUB exist until the automatic publisher has verified them.
+
+
+## Exact input lineage required by the binary validator
+
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.
