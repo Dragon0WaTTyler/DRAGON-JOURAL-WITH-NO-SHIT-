@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">DRAGON cover - 4 Sebtember 2026 - Tasri7 Ma Kaykfi-sh</title>
+  <desc id="desc">Symbolic editorial cover about the gap between a public statement and policy implementation on forced displacement from Gaza.</desc>
+  <rect width="1200" height="1600" fill="#f4f2ed"/>
+  <rect x="0" y="0" width="1200" height="230" fill="#111111"/>
+  <text x="70" y="150" font-family="Arial, Helvetica, sans-serif" font-size="132" font-weight="900" letter-spacing="4" fill="#ffffff">DRAGON</text>
+  <text x="1130" y="155" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="1.5" fill="#ffffff">4 Sebtember 2026</text>
+
+  <rect x="70" y="290" width="1060" height="6" fill="#d71920"/>
+
+  <!-- Dominant metaphor: speech above, policy gate below -->
+  <path d="M170 390 H865 Q930 390 930 455 V690 Q930 755 865 755 H515 L405 855 L430 755 H170 Q105 755 105 690 V455 Q105 390 170 390 Z" fill="#111111"/>
+  <rect x="190" y="485" width="650" height="36" fill="#f4f2ed"/>
+  <rect x="190" y="555" width="555" height="36" fill="#f4f2ed"/>
+  <rect x="190" y="625" width="465" height="36" fill="#f4f2ed"/>
+
+  <!-- Policy line / gate -->
+  <rect x="515" y="785" width="10" height="405" fill="#111111"/>
+  <rect x="680" y="785" width="10" height="405" fill="#111111"/>
+  <rect x="505" y="870" width="195" height="28" fill="#d71920"/>
+  <rect x="505" y="975" width="195" height="28" fill="#d71920"/>
+  <rect x="505" y="1080" width="195" height="28" fill="#d71920"/>
+
+  <!-- Route that stops at the gate -->
+  <path d="M105 1030 C245 940 340 940 475 1010" fill="none" stroke="#111111" stroke-width="22" stroke-linecap="round"/>
+  <path d="M425 956 L500 1012 L422 1061 Z" fill="#111111"/>
+
+  <!-- Red implementation block beyond the gate -->
+  <rect x="760" y="805" width="340" height="340" rx="18" fill="#d71920"/>
+  <path d="M835 970 H1015" stroke="#f4f2ed" stroke-width="24" stroke-linecap="round"/>
+  <path d="M925 880 V1060" stroke="#f4f2ed" stroke-width="24" stroke-linecap="round"/>
+
+  <text x="70" y="1320" font-family="Arial, Helvetica, sans-serif" font-size="112" font-weight="900" fill="#111111">Tasri7 Ma</text>
+  <text x="70" y="1438" font-family="Arial, Helvetica, sans-serif" font-size="112" font-weight="900" fill="#d71920">Kaykfi-sh</text>
+  <rect x="70" y="1490" width="620" height="16" fill="#111111"/>
+</svg>
