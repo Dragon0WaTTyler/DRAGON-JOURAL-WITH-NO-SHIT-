@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-04",
+  "mode": "production",
+  "status": "pre-production",
+  "language": "darija-latin",
+  "pdf": "edition.pdf",
+  "epub": "edition.epub",
+  "cover": "cover.webp",
+  "fact_check": "passed",
+  "language_check": "passed",
+  "sources_count": 28,
+  "citations_count": 48,
+  "sections": ["Front Page","L-Maghrib","Meknes","Filastin","Chno Kayw9e3 f l-3alam","AI w Technology","Tarikh l-Mghreb","Adab w Culture","Science — Dirasa Jdida","Psychology Deep Dive","Investigations w Accountability","Ending Pages","Sources"],
+  "smoke_test": false,
+  "editorial_stage": "COMPLETE",
+  "arabic_script_count": 0
+}
