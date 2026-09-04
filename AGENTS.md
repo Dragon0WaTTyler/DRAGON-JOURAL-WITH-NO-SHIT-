@@ -10,6 +10,8 @@ Tested Scheduled Work capabilities are recorded in `config/scheduled-workflow.ya
 
 Codex Cloud may be used manually later to render PDF/EPUB binaries from the persisted publication-source package. It is not part of the scheduled five-job execution and must not be scheduled unless a native supported mechanism exists in the future.
 
+Final reader-facing publication semantics are authoritative in `config/final-publication.yaml`.
+
 ## Editorial topology
 
 The 13 entries in `config/roles.yaml` remain authoritative editorial roles. They are coordinated through exactly five scheduled super-jobs:
@@ -56,7 +58,9 @@ Task 5 uses a compact brief-first workflow: one lead, one cover mode, one domina
 
 The first large all-in-one prompt failed in testing; minimal image generation and compact brief rendering passed. Do not reintroduce over-complex multi-stage prompts.
 
-`cover=COMPLETE` means an actual generated cover passed visual QA. GitHub binary archival is not required because the tested connector cannot archive the image binary. Record:
+`cover=COMPLETE` means an actual generated cover passed visual QA. `SVG_FALLBACK` never counts as successful image generation. If image generation fails after the permitted retry, set `cover=FAILED`, keep the fallback only as a clearly labelled emergency text asset, and set final publication BLOCKED.
+
+GitHub binary archival is separate because the tested connector cannot archive the generated image binary directly. Record normal generated-cover archival state as:
 
 - `github_image_archive = UNSUPPORTED_BY_CONNECTOR`
 - `cover_binary_archive = PENDING_MANUAL_ARCHIVE`
@@ -65,12 +69,16 @@ The first large all-in-one prompt failed in testing; minimal image generation an
 
 `daily-runs/YYYY-MM-DD/status.json` has five scheduled stage fields: `current_research`, `deep_research`, `editorial`, `publishing`, `cover`, each using `PENDING`, `RUNNING`, `COMPLETE`, `BLOCKED`, or `FAILED`.
 
-Binary/render/archive state is separate and must remain visible. `overall_status` may be `COMPLETE` when all five scheduled stages are legitimately complete even if PDF/EPUB rendering and cover binary archival remain pending manual work.
+Binary/render/archive state is separate and must remain visible. Add and preserve `final_publication_status` using `PENDING`, `BLOCKED`, or `COMPLETE` as defined by `config/final-publication.yaml`.
 
-Do not mark a text persistence step PASS merely because a file exists in temporary runtime. Connected GitHub write plus exact canonical read-back is required.
+Do **not** mark `overall_status=COMPLETE` merely because the five scheduled stages are done. `overall_status` must remain `PENDING` or `BLOCKED` until the final publication gate passes. Final publication `COMPLETE` requires a real generated cover plus validated PDF and EPUB binaries at their canonical GitHub paths with persistence/read-back verified.
+
+A run may therefore have all five scheduled stage fields individually `COMPLETE` while `overall_status=PENDING` and `final_publication_status=PENDING`. This is expected when manual binary rendering is still pending.
+
+Do not mark a text persistence step PASS merely because a file exists in temporary runtime. Connected GitHub write plus exact canonical read-back is required. Do not mark a binary published merely because it exists in temporary runtime either.
 
 ## Editorial depth and evidence
 
-Use `config/editorial-depth.yaml`, `config/sources.yaml`, and `config/quality-gates.yaml`. Major claims require traceable evidence. History, Literature/Culture, Morocco, Palestine, Meknes, and Science keep their configured depth gates. Investigations may remain explicitly non-publication-ready.
+Use `config/editorial-depth.yaml`, `config/sources.yaml`, `config/quality-gates.yaml`, and `config/final-publication.yaml`. Major claims require traceable evidence. History, Literature/Culture, Morocco, Palestine, Meknes, and Science keep their configured depth gates. Investigations may remain explicitly non-publication-ready.
 
 Do not weaken validators to finish on time.
