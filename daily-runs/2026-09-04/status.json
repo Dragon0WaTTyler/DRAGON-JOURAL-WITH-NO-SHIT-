@@ -4,7 +4,7 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "RUNNING",
+  "publishing": "BLOCKED",
   "cover": "COMPLETE",
   "overall_status": "PENDING",
   "publication_source_package": "COMPLETE",
@@ -34,6 +34,6 @@
   "cover_asset_path": "editions/2026/09/2026-09-04/assets/cover.svg",
   "cover_fallback_reason": "IMAGE_INVOCATION_MODE_ERROR_NO_RETRY_ALLOWED: pure text-to-image generation was invoked with no referenced image target, but the image system classified the request as an edit requiring an existing image and explicitly prohibited retry.",
   "publishing_started_at": "2026-09-04T23:31:00+01:00",
-  "publishing_completed_at": null,
-  "publishing_blocking_reason": null
+  "publishing_completed_at": "2026-09-04T23:31:00+01:00",
+  "publishing_blocking_reason": "FINAL_PUBLICATION_BLOCKED: canonical Task 4 SVG fallback editions/2026/09/2026-09-04/assets/cover.svg is valid and read back successfully; assets/cover.webp is not required. Current edition.html and epub-content.xhtml are stale relative to the canonical edition.md, and repository contracts record scheduled_repository_executable_runtime=NOT_AVAILABLE with PDF/EPUB binary writes UNSUPPORTED. Required final PDF/EPUB generation, canonical-cover integration QA, binary persistence/read-back and publication-memory success gates cannot be completed in this Scheduled Work environment."
 }
