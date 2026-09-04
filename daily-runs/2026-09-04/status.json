@@ -1,7 +1,7 @@
 {
   "date": "2026-09-04",
   "timezone": "Africa/Casablanca",
-  "current_research": "RUNNING",
+  "current_research": "BLOCKED",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "COMPLETE",
@@ -19,5 +19,6 @@
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "blocking_reason": null,
   "current_research_started_at": "2026-09-04T21:59:00+01:00",
-  "current_research_blocking_reason": null
+  "current_research_completed_at": "2026-09-04T22:07:08+01:00",
+  "current_research_blocking_reason": "Required repository contracts are missing at the expected paths: SPEC-v1.md and agents/world.md. Fresh research packet was persisted and validated, but Task 1 quality gate cannot pass without reading all mandatory contracts."
 }
