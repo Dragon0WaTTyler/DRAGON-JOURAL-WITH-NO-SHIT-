@@ -1,0 +1,23 @@
+# DRAGON Task 4 — Cover Director
+
+Read prompts/production-master.md, AGENTS.md, config/scheduled-workflow.yaml, config/final-publication.yaml and design/DRAGON-COVER-STYLE.md at exact GitHub paths in Dragon0WaTTyler/DRAGON-JOURAL-WITH-NO-SHIT-.
+Use today's date in Africa/Casablanca. Own only cover-brief.json, the canonical cover asset and cover-related status fields. Require editorial COMPLETE and exact current read-back of edition.md, sources.json and editorial-report.json. Do not require publishing or manifest.json; both belong to downstream Task 5.
+
+Read the final lead, angle, evidence, sensitivity notes and secondary stories. Never research new claims or rewrite journalism. Select one mode (portrait dossier, symbolic editorial, satirical caricature, dramatic editorial) and one dominant concept. Visible typography: DRAGON, ISO YYYY-MM-DD date, one short Darija Latin headline and at most two teasers. Black/white/red, 3:4 portrait, large readable type, no Arabic script, no unrelated collage or fabricated documentary evidence.
+
+Persist/read back a compact brief first. Attempt a BRAND NEW text-to-image generation with one compact prompt and no edit references. Retry at most once with a simpler composition only if the tool allows retry. Inspect the actual image visually; never claim visual QA without seeing it.
+
+Automatic archival is mandatory. If the generated image's exact binary bytes can be archived and read back at the dated repository asset path, it may be AI_GENERATED. An image shown in chat, an expiring URL or a target filename is insufficient.
+If generation or binary archival fails/is unavailable, author an original self-contained editorial SVG, keeping the same lead and visual concept. Persist it as editions/YYYY/MM/YYYY-MM-DD/assets/cover.svg. Use xmlns, viewBox="0 0 900 1200", solid fills, paths/basic shapes and legible Latin text. No script, image, use, foreignObject, external href, CSS url(), external fonts or XML entities. Include the ISO date and DRAGON masthead visibly. Inspect its rendered image; if no visual rendering tool is available, report VISUAL_QA_UNAVAILABLE and BLOCK rather than invent PASS.
+
+For SVG_FALLBACK, image_generation_status remains FAIL or NOT_AVAILABLE; SVG is a real supported cover, never labelled successful image generation. Store a specific cover_fallback_reason. Preserve any generated attempt only as noncanonical metadata. Exactly one cover_asset_path is authoritative.
+
+cover-brief.json must include date, timezone, lead_story_id, main_headline, cover_mode, visual_metaphor, visual_facts_used, visual_elements_avoided, cover_asset_type (AI_GENERATED or SVG_FALLBACK), cover_asset_path (repository-relative inside this edition), image_generation_status, visual_qa_status, arabic_script_count, cover_fallback_reason, github_text_read_back evidence and handoff.ready_for_publication_builder. Lead must match editorial-report.json. Final manifest does not exist yet.
+
+After exact canonical cover/brief read-back and visual QA PASS, conditionally merge cover=COMPLETE, the exact cover type/path, image generation result, visual QA, completed timestamp and null cover blocker into latest status.json, preserving Tasks 1–3 and 5. Set cover_binary_archive=PERSISTED_CANONICAL_ASSET. For SVG, github_image_archive=NOT_APPLICABLE_SVG_TEXT_ASSET. Changed cover invalidates final publication. Do not set publishing COMPLETE.
+If neither cover path can pass, mark only cover BLOCKED with exact reason and final publication BLOCKED. Read back the status. Finish with status, date, asset path/type, generation/visual QA, archival/read-back evidence, and blockers. Do not invent commit SHAs.
+
+
+## Exact input lineage required by the binary validator
+
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.

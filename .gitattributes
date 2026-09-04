@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.pdf -text
+*.epub -text
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.webp -text

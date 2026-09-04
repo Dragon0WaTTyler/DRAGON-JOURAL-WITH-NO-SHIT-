@@ -12,7 +12,7 @@ def complete_status():
     s = fresh_production_status(DATE, last_updated="2026-09-03T07:00:00+01:00")
     s.update({
         "current_research":"COMPLETE","deep_research":"COMPLETE","editorial":"COMPLETE",
-        "publishing":"COMPLETE","cover":"COMPLETE","overall_status":"COMPLETE",
+        "publishing":"COMPLETE","cover":"COMPLETE","overall_status":"PENDING", "cover_asset_type":"AI_GENERATED",
         "editorial_gates_passed":True,"arabic_script_count":0,
         "publication_source_package":"COMPLETE","ready_for_codex_rendering":True,
         "image_generation_status":"PASS","visual_qa_status":"PASS",
@@ -24,7 +24,7 @@ class WorkflowStateTests(unittest.TestCase):
         s = fresh_production_status(DATE)
         self.assertEqual(s["pdf_binary"], "NOT_GENERATED_NO_RUNTIME")
         self.assertEqual(s["epub_binary"], "NOT_GENERATED_NO_RUNTIME")
-        self.assertEqual(s["binary_artifacts"], "PENDING_MANUAL_CODEX_RENDER")
+        self.assertEqual(s["binary_artifacts"], "PENDING_AUTOMATIC_RENDER")
         self.assertEqual(s["cover_binary_archive"], "PENDING_MANUAL_ARCHIVE")
 
     def test_editorial_complete_requires_zero_arabic(self):
@@ -42,7 +42,7 @@ class WorkflowStateTests(unittest.TestCase):
             (run/PUBLICATION_REPORT).write_text("{}")
             (run/COVER_BRIEF).write_text("{}")
             remote = ()
-            for stage in ("editorial","publishing","cover"):
+            for stage in ("current_research","deep_research","editorial","publishing","cover"):
                 remote += required_remote_paths(DATE, stage)
             errors = validate_state(s, DATE, edition_dir=edition, run_dir=run, remote_paths=remote)
         self.assertEqual(errors, [])
