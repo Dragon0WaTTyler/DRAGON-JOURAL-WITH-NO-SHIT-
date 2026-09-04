@@ -4,17 +4,18 @@
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
-  "publishing": "PENDING",
+  "publishing": "COMPLETE",
   "cover": "BLOCKED",
   "overall_status": "PENDING",
-  "publication_source_package": "PENDING",
+  "publication_source_package": "COMPLETE",
+  "publishing_completion_semantics": "PUBLICATION SOURCE PACKAGE COMPLETE",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_MANUAL_CODEX_RENDER",
-  "ready_for_codex_rendering": false,
+  "ready_for_codex_rendering": true,
   "image_generation_status": "PENDING",
   "visual_qa_status": "PENDING",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
-  "blocking_reason": "Cover Director requires editorial == COMPLETE and publishing == COMPLETE. Editorial is COMPLETE, but publishing is PENDING. Cover generation did not run."
+  "blocking_reason": null
 }
