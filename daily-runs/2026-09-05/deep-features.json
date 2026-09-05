@@ -1,9 +1,9 @@
 {
   "date": "2026-09-05",
   "timezone": "Africa/Casablanca",
-  "research_started_at": "2026-09-05T01:14:00+01:00",
-  "research_completed_at": "2026-09-05T01:15:48+01:00",
-  "observed_repository_commit": "9cd540219222096a31e936474628b27b6e02535a",
+  "research_started_at": "2026-09-05T08:39:00+01:00",
+  "research_completed_at": "2026-09-05T08:47:00+01:00",
+  "observed_repository_commit": "ebe8fcfbf69a85a7bc6e68bda4a3e3ec35df6af1",
   "input_blobs": {
     "prompts/production-master.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
     "prompts/scheduled/02-deep-features.md": "4c840f47f43ee2a3b6a070415d3afd83cae8ff1d",
@@ -12,7 +12,7 @@
     "config/execution-constraints.yaml": "96a6f83f465995f0e734d2e2bfb0df0cb685b685",
     "config/scheduled-workflow.yaml": "2618fa965fa6285453e37843c220c4394b3543fe",
     "config/editorial.yaml": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2",
-    "config/editorial-depth.yaml": "d105e9694ad3d484927eb01238e8ecae21e033e8",
+    "config/editorial-depth.yaml": "ecb8b84924ebfbbfdd22a330ff7eb7ac8367750e",
     "config/quality-gates.yaml": "aa6ef4776541d672fe7f676c156007599c49dcdb",
     "config/sources.yaml": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf",
     "config/roles.yaml": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5",
@@ -23,343 +23,326 @@
     "memory/covered-stories.json": "a585829153ca6c0cac0779010918f8ae737feda3",
     "memory/history-used.json": "0c86d8f8a14f83b8e9a6a6d14f92da98d52df92e",
     "memory/literature-used.json": "2c27d493122d7c1bf3cea4121bba457d8fc13151",
+    "memory/publication-ledger.json": "aaf1d8c8f25da9d01836edab87ec39edbb5677e9",
     "investigations/al-haouz-reconstruction.json": "e9a124ea5c63797755a2ce3a9f5af8064acf4578",
     "investigations/water-security-accountability.json": "2562ca7ebf0dbce0d288b8b1b159c2d8ed2fcdb6"
   },
   "memory_notes": {
-    "publication_ledger": "memory/publication-ledger.json ma kaynach f main; ma t3tatch ay PUBLISHED status men had l-file.",
-    "same_day_preproduction": "Green March w Gnawa kaynin ghir b mode preproduction. Tjanbna n3awdohom f had run.",
-    "rule": "Ghir topic li tverifa blli tpublia kayt7seb authoritative anti-repetition memory."
+    "published_today_excluded": [
+      "history-sijilmasa-transsaharan-gold-trade",
+      "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+      "science-social-comparison-behaviour-change-2025"
+    ],
+    "rule": "Topics li kaynin b status PUBLISHED f publication ledger ma t3awdosh f had rerun. Preproduction bla publication ma kayt7sebch published memory."
   },
   "science": {
     "selected": {
-      "TOPIC_ID": "science-social-comparison-behaviour-change-2025",
-      "PROPOSED_TITLE": "Wash m9arana m3a nass t9dar tbddl s-solouk? Meta-analysis kbira katgol: athar sghir walakin wa9i3i",
-      "WHY_SELECTED": "Peer-reviewed open-access meta-analysis katjma3 79 RCTs b aktar mn 1.35 million participant. Natija useful bla hype: social comparison t9dar t7rrk behaviour b-effect sghir, walakin certainty low l-moderate w heterogeneity 3alya f chi analyses.",
-      "RECENTLY_USED_CHECK": "Ma l9inach had topic f memory files li t9raw.",
+      "TOPIC_ID": "science-wellbeing-interventions-network-meta-2026",
+      "PROPOSED_TITLE": "Ash kay3awn 3la well-being b dalil RCT? Network meta-analysis kat9ارن mindfulness, exercise, positive psychology w approaches okhrin",
+      "WHY_SELECTED": "Peer-reviewed open-access systematic review w network meta-analysis jdida, preregistered, katjma3 183 randomized trials w 22,811 adult bla diagnosed conditions. Kat3ti evidence useful w nuanced 3la interventions li kayhdfou l-well-being bla ma n9elbo ranking l-wa3d universal.",
+      "RECENTLY_USED_CHECK": "Ma kaynach f publication ledger w ma kaynach f covered-stories memory.",
       "PRIMARY_SOURCES": [
-        "https://www.nature.com/articles/s41562-025-02209-2",
-        "https://doi.org/10.1038/s41562-025-02209-2"
+        "https://www.nature.com/articles/s41562-025-02369-1",
+        "https://doi.org/10.1038/s41562-025-02369-1"
       ],
       "INDEPENDENT_SOURCES": [],
       "SOURCE_ORIGINS": ["Nature Human Behaviour original article"],
       "KEY_EVIDENCE": [
-        "79 randomized controlled trials, N=1,356,521, across climate mitigation, health, performance and service behaviours.",
-        "Short term versus passive controls: Hedges g=0.17, 95% CI 0.11-0.23, k=37.",
-        "Short term versus active controls: g=0.23, 95% CI 0.15-0.31, k=42.",
-        "Active-control synthesis had I2=96% and small-study-effect concern; trim-and-fill estimate stayed positive at g=0.15.",
-        "GRADE certainty ranged from low to moderate."
+        "Preregistered systematic review and random-effects network meta-analysis, PROSPERO CRD42023403480.",
+        "Searches of MEDLINE, PsycINFO, CENTRAL and Scopus to March 2023 identified 183 randomized trials with N=22,811 adults without diagnosed conditions.",
+        "Most intervention categories improved well-being versus inactive controls.",
+        "Combined exercise-psychological interventions had SMD 0.73, 95% CI 0.27-1.20 versus inactive controls in the reported network analysis."
       ],
       "CONTRADICTORY_EVIDENCE": [
-        "Average effects are small.",
-        "High unexplained heterogeneity limits blanket claims.",
-        "Some trials had risk-of-bias issues and most data came from high-income countries."
+        "Network estimates mix direct and indirect comparisons, so ranking ma khasosh yt9ra b7al head-to-head certainty f kol pair.",
+        "Interventions, delivery formats and well-being measures varied across trials.",
+        "Largest average effect ma kay3nich nafs response l-kol person wla setting."
       ],
-      "UNCERTAINTY": "Mechanisms, individual response, transfer to Morocco and long-term durability are not fully established.",
-      "CONTEXT": "Social comparison interventions show people how their behaviour compares with others, for example energy use, health behaviour or performance.",
-      "CONFIDENCE": "high for a small average effect; medium for transfer to a specific setting",
+      "UNCERTAINTY": "Transfer l-Morocco, durability dyal effects, accessibility, adherence w comparative cost-effectiveness kay7tajou local evidence. Network ranking ma hiya-sh guarantee dyal superiority f kol context.",
+      "CONTEXT": "Well-being interventions kaydkhlo mindfulness, compassion, ACT, positive psychology, exercise, yoga, education, nature-based programmes w combined approaches.",
+      "CONFIDENCE": "high belli several intervention categories can improve average well-being versus inactive controls; medium on precise ranking and local transfer",
       "RECOMMENDATION": "PUBLISH",
-      "STUDY_ID": "doi:10.1038/s41562-025-02209-2",
-      "EXACT_TITLE": "Meta-analysis of randomized controlled trials examining social comparison as a behaviour change technique across the behavioural sciences",
-      "AUTHORS": "Thole H. Hoppen, Rieke M. Cuno, Janna Nelson, Frederike Lemmel, Pascal Schlechter, Nexhmedin Morina et al.",
-      "VENUE": "Nature Human Behaviour 9, 1595-1612",
-      "DATE": "2025-05-19",
+      "STUDY_ID": "doi:10.1038/s41562-025-02369-1",
+      "EXACT_TITLE": "A systematic review and network meta-analysis of randomized controlled trials of well-being-focused interventions",
+      "AUTHORS": "Lowri Wilkie, Zoe Fisher, Antonia Geidel, Isabel Goodall, Shannon Kamil, Elen Davies et al.",
+      "VENUE": "Nature Human Behaviour, volume 10, pages 715-726",
+      "DATE": "2026-01-02",
       "PUBLICATION_STATUS": "PEER_REVIEWED",
       "ACCESS_LEVEL": "FULL_TEXT",
-      "DOI": "10.1038/s41562-025-02209-2",
-      "RESEARCH_QUESTION": "Ch7al social-comparison behaviour-change techniques kaybdlo actual behaviour?",
-      "STUDY_TYPE": "Systematic review and random-effects meta-analysis of randomized controlled trials",
-      "SAMPLE": "79 RCTs; N=1,356,521",
-      "METHOD": "MEDLINE, PsycINFO and Web of Science search to January 2024; PRISMA selection; Hedges g; risk-of-bias, GRADE, moderator analyses, Egger test and trim-and-fill.",
-      "MAIN_RESULT": "Average behaviour change was small but statistically significant versus passive and active controls.",
-      "EFFECT_SIZE": "g=0.17 versus passive controls; g=0.23 versus active controls; active-control trim-and-fill g=0.15.",
-      "LIMITATIONS": "High heterogeneity, some risk-of-bias, possible publication bias in active-control synthesis and limited geographic generalizability.",
-      "CRITICISM": "Pooled group effects do not mean every individual changes behaviour.",
-      "REPLICATION_STATUS": "Synthesis of multiple independent RCTs rather than a single-study replication.",
-      "CORRELATION_VS_CAUSATION": "RCT evidence supports causal intervention effects at trial level, with heterogeneity limiting universal claims.",
-      "GENERALIZABILITY": "Medium-low outside studied high-income settings until local replication.",
-      "WHAT_WE_CAN_CONCLUDE": "Social-comparison interventions can produce a small average behaviour change in the intended direction.",
-      "WHAT_WE_CANNOT_CONCLUDE": "The effect is not proven large, universal or identical across cultures and behaviours.",
-      "WHY_IT_MATTERS": "Low-cost nudges can help, but design, context and realistic expectations matter.",
-      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+      "DOI": "10.1038/s41562-025-02369-1",
+      "RESEARCH_QUESTION": "Ashmen well-being-focused interventions kaybano effective f adults bla diagnosed conditions, w kifach kayt9arno b network meta-analysis?",
+      "STUDY_TYPE": "Preregistered systematic review and network meta-analysis of randomized controlled trials",
+      "SAMPLE": "183 trials; N=22,811 adults",
+      "METHOD": "MEDLINE, PsycINFO, CENTRAL and Scopus searched to March 2023; randomized trials categorized by intervention; RoB 2 risk-of-bias assessment; random-effects network meta-analysis.",
+      "MAIN_RESULT": "Most intervention categories improved well-being versus inactive controls; combined exercise-psychological interventions showed the largest reported network effect among categories in the abstract.",
+      "EFFECT_SIZE": "Combined exercise-psychological interventions SMD=0.73, 95% CI 0.27-1.20 versus inactive controls.",
+      "LIMITATIONS": "Clinical and methodological diversity, indirect network comparisons for some contrasts, variation in outcome measures, and uncertainty about long-term and cross-cultural transfer.",
+      "CRITICISM": "Do not turn a network ranking into a universal prescription; individual preference, feasibility and setting matter.",
+      "REPLICATION_STATUS": "Evidence synthesis across many independent randomized trials rather than one replication study.",
+      "CORRELATION_VS_CAUSATION": "Randomized trials support causal intervention effects within the studied designs; network comparisons add indirect evidence and should be interpreted with their assumptions.",
+      "GENERALIZABILITY": "Moderate; broad adult trial base but not direct evidence for every country or subgroup.",
+      "WHAT_WE_CAN_CONCLUDE": "Several structured interventions can raise average well-being compared with inactive controls.",
+      "WHAT_WE_CANNOT_CONCLUDE": "One intervention is not proven best for every person, culture, duration or delivery setting.",
+      "WHY_IT_MATTERS": "Kay3ti wa7d map dalili l-options li t9dar tkon mofida bla wellness hype.",
+      "ESTIMATED_USABLE_WORDS": 800,
+      "source_accessed_at": "2026-09-05T08:43:00+01:00"
     },
     "alternates": []
   },
   "history": {
     "selected": {
-      "TOPIC_ID": "history-sijilmasa-transsaharan-gold-trade",
-      "PROPOSED_TITLE": "Sijilmasa: kifach wa7d l-oasis f Tafilalt wlat bab dyal dahab Sahara w siyasa dyal l-Maghrib",
-      "WHY_SELECTED": "Topic kayjma3 geography, Miknasa politics, Sufri state formation, trans-Saharan trade, gold coinage, Almoravid expansion, water systems and decline. Kaykfi l-feature 1000-1500 useful words bla filler.",
-      "RECENTLY_USED_CHECK": "history-used fih 11 Yanayer 1944 w Green March b mode preproduction; Sijilmasa ma kaynach.",
-      "PRIMARY_SOURCES": ["https://archeologie.culture.gouv.fr/monde/fr/sijilmasa?language_content_entity=fr"],
-      "INDEPENDENT_SOURCES": ["https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-8306.1996.tb01746.x"],
+      "TOPIC_ID": "history-treaty-fez-1912-protectorate-state-power",
+      "PROPOSED_TITLE": "Traite de Fes 1912: kifach protectorate tbna 3la siyada rasmiya dyal sultan w controle colonial wa9i3i",
+      "WHY_SELECTED": "Topic kayjma3 diplomacy dyal Moroccan crises, text dyal treaty, sovereignty, military force, French-Spanish partition, Lyautey administration, urban transformation, resistance w long-term state consequences. Source base kaykfi b rahat l-feature 1000-1500 useful words.",
+      "RECENTLY_USED_CHECK": "Ma kaynach f publication ledger, history-used w covered-stories. Green March preproduction ma howash had topic.",
+      "PRIMARY_SOURCES": [
+        "https://lawcat.berkeley.edu/record/367138",
+        "https://www.persee.fr/doc/geo_0003-4010_1912_num_21_117_7090"
+      ],
+      "INDEPENDENT_SOURCES": [
+        "https://www.persee.fr/doc/outre_1631-0438_2012_num_99_376_4954",
+        "https://www.persee.fr/doc/hista_0992-2059_2006_num_59_1_3160",
+        "https://www.persee.fr/doc/remmm_0035-1474_1971_num_10_1_1122",
+        "https://www.cambridge.org/core/journals/american-journal-of-international-law/article/treaty-of-november-27-1912-between-france-and-spain-concerning-morocco/4854F20A98FDECAE473BF630433931F3"
+      ],
       "SOURCE_ORIGINS": [
-        "Mission archeologique maroco-francaise / Ministere de la Culture francais",
-        "Annals of the Association of American Geographers / Lightfoot and Miller"
+        "British and Foreign State Papers treaty text via Berkeley Law",
+        "Annales de Geographie 1912 contemporary notice",
+        "Outre-Mers modern Maghreb history scholarship",
+        "Histoire de l'art urban history scholarship",
+        "Revue des mondes musulmans et de la Mediterranee",
+        "American Journal of International Law"
       ],
       "KEY_EVIDENCE": [
-        "Sijilmasa was in Tafilalt near Rissani with long occupation from roughly the 8th to 15th centuries.",
-        "Medieval texts and archaeology link its early polity to Miknasa and Banu Midrar with a Sufri emirate.",
-        "It became a major caravan entrepot connecting Sahel and Maghreb and was strongly tied to the gold trade.",
-        "Almoravid conquest in the mid-11th century increased its strategic role; minting was important.",
-        "Lightfoot and Miller link rise and fall not only to trade but also water, agriculture, oasis ecology and social organization."
+        "Treaty signed at Fes on 30 March 1912 established a French protectorate while formally preserving the sultan's religious and civil authority inside a new control structure.",
+        "The settlement came after international rivalry and the 1911 Franco-German agreement, not as an isolated bilateral event.",
+        "France and Spain then formalized separate zones of influence in November 1912, while Tangier later developed a distinct international regime.",
+        "Lyautey became resident-general in 1912 and the protectorate rapidly reshaped administration, military control and urban planning.",
+        "Academic work on Fes shows new towns were built beside historic medinas, making urban form part of colonial governance."
       ],
       "CONTRADICTORY_EVIDENCE": [
-        "Exact foundation and destruction dates vary by textual tradition.",
-        "A single-cause Atlantic-trade explanation for decline is too simple.",
-        "Archaeology can constrain narratives built only from chronicles."
+        "Formal continuity of the sultanate should not be confused with full sovereign autonomy under protectorate control.",
+        "Colonial infrastructure and administrative changes do not erase coercion, unequal power or resistance.",
+        "The protectorate was not one uniform territorial regime because French, Spanish and Tangier arrangements differed."
       ],
-      "UNCERTAINTY": "Exact population, annual trade volume, early chronology and one single cause of decline are not securely quantified.",
-      "CONTEXT": "Sijilmasa was an oasis polity, market, mint and strategic node linking Morocco, the Sahara, West Africa and the Mediterranean.",
-      "CONFIDENCE": "high on broad role and chronology; medium on precise early dates and scale",
+      "UNCERTAINTY": "Exact balance between continuity and rupture differs by institution, region and period; local resistance and negotiated cooperation varied widely.",
+      "CONTEXT": "The treaty belongs to the longer Moroccan crises of the early 20th century, European competition, debt and military pressure.",
+      "CONFIDENCE": "high on treaty date, institutional framework and zone structure; medium on broad causal weighting across diplomacy, finance and military pressure",
       "RECOMMENDATION": "PUBLISH",
-      "FEATURE_OPENING_MATERIAL": "Bla port w bla b7ar, Sijilmasa kanat katkhddm b7al port f wast l-yabsa: caravans kaywslou men Sahara b-dahab w goods, w kaykhrjo men Tafilalt l-north.",
+      "FEATURE_OPENING_MATERIAL": "Wa7d wara9a ttsignat f Fes f 30 March 1912 ma 7yedatsh sultan men l-moshhad, walakin bddlat fin kayna l-quwa l-fi3liya: l-forma dyal dawla b9at, w controle colonial wla kay7dd l-qarar.",
       "SECTION_OUTLINE": [
-        "Tafilalt qbl Sijilmasa: oasis, water and routes",
-        "Miknasa, Banu Midrar and Sufri emirate",
-        "Caravan economy and gold",
-        "Mint, dinar and political power",
-        "Fatimid pressure and Almoravid conquest",
-        "Hydraulic system and agriculture",
-        "Decline and changing routes",
-        "Archaeology versus chronicle",
-        "Why Sijilmasa matters for Morocco-Africa history"
+        "Qbl 1912: Moroccan crises, debt and European rivalry",
+        "Shno kaygol treaty w shno ma kaygolsh",
+        "Sultanate continuity versus protectorate control",
+        "French-Spanish zones and Tangier question",
+        "Lyautey and administrative architecture",
+        "Fes, new towns and spatial power",
+        "Military coercion, resistance and uneven control",
+        "Institutions li b9aw w institutions li tbddlou",
+        "Howa treaty b7al rupture wla negotiated continuity?",
+        "Legacy f independent Morocco"
       ],
       "KEY_FACTS": [
-        "Site near Rissani in Tafilalt.",
-        "Traditional foundation window in the mid-8th century.",
-        "Centuries-long trans-Saharan caravan hub.",
-        "Strong connection to gold trade and minting.",
-        "Almoravid conquest in the mid-11th century."
+        "Treaty date: 30 March 1912 in Fes.",
+        "French protectorate established in treaty form.",
+        "Franco-Spanish agreement followed on 27 November 1912.",
+        "Lyautey appointed resident-general in 1912.",
+        "Colonial urban policy created new European-planned districts beside medinas."
       ],
-      "KEY_ACTORS": ["Miknasa groups", "Banu Midrar", "Fatimid networks", "Almoravids", "Sahelian trading polities", "caravan merchants", "oasis cultivators"],
+      "KEY_ACTORS": ["Sultan Moulay Abd al-Hafid", "French government", "Eugene Regnault", "Hubert Lyautey", "Spanish government", "Moroccan officials", "tribal and urban resistance networks", "European diplomatic powers"],
       "TIMELINE": [
-        "c. 757: traditional foundation window.",
-        "8th-10th c.: Midrarid/Sufri polity and caravan growth.",
-        "10th c.: Fatimid interventions.",
-        "mid-11th c.: Almoravid conquest.",
-        "11th-13th c.: continued strategic role.",
-        "14th-15th c.: long decline and fragmentation."
+        "1905-1911: Moroccan crises and escalating international rivalry.",
+        "1911-11-04: Franco-German agreement helps clear diplomatic path.",
+        "1912-03-30: Treaty of Fes signed.",
+        "1912-04: major unrest and violence in Fes follows the new protectorate order.",
+        "1912-04-28: Lyautey appointed resident-general.",
+        "1912-11-27: France-Spain convention defines Spanish influence zones.",
+        "1912 onward: protectorate administration, military expansion and new urban planning develop unevenly across Morocco.",
+        "1956: protectorate system ends with Moroccan independence."
       ],
       "INTERPRETATIONS": [
-        "Trade-first: growth came from a key trans-Saharan terminus.",
-        "Oasis-infrastructure: trade depended on water, agriculture and local organization.",
-        "State-power: control mattered because gold, minting and caravan taxation supported rulers."
+        "Legal-continuity reading: protectorate kept formal sultanate institutions and used them as a governing framework.",
+        "Colonial-power reading: real sovereignty was sharply constrained by resident-general authority and military force.",
+        "State-transformation reading: protectorate reorganized administration, infrastructure and urban institutions in ways that survived beyond 1956."
       ],
       "COUNTERINTERPRETATIONS": [
-        "Saharan routes were not fixed; security, ecology and politics shifted them.",
-        "Sijilmasa is not only a Moroccan story; it is also West African and Mediterranean history."
+        "Calling 1912 a total institutional zero point ignores pre-existing Moroccan state structures and diplomacy.",
+        "Calling it simple continuity ignores coercive foreign control and territorial partition.",
+        "Colonial modernization narratives need to be weighed against extraction, inequality and resistance."
       ],
       "MYTH_VS_EVIDENCE": [
-        "DOCUMENTED FACT: major caravan hub and oasis city.",
-        "LIKELY INTERPRETATION: gold flows strengthened rulers who controlled it.",
-        "CONTESTED INTERPRETATION: exact moment and single cause of decline.",
-        "MEMORY/LEGEND: neat founding stories need source labels.",
-        "UNKNOWN: reliable population counts and annual trade volumes."
+        "DOCUMENTED FACT: Treaty of Fes was signed on 30 March 1912 and created the French protectorate framework.",
+        "DOCUMENTED FACT: Spain received separate influence zones through a later 1912 agreement.",
+        "LIKELY INTERPRETATION: preserving the sultanate helped make indirect rule administratively workable.",
+        "CONTESTED INTERPRETATION: how much later Moroccan state capacity represents colonial construction versus adaptation of older institutions.",
+        "UNKNOWN: one single causal weight that explains why the protectorate became possible exactly when it did."
       ],
-      "PRESENT_DAY_RELEVANCE": "Kaybayan belli Morocco-Africa relations 3andhom roots twila f movement, commerce and shared systems across Sahara.",
+      "PRESENT_DAY_RELEVANCE": "Kay3awn nfhmou 3lach b3d institutions, city layouts w debates 3la sovereignty w colonial legacy ma ytfhmoush ila bdina ghir mn 1956.",
       "CLAIMS_TO_AVOID": [
-        "Sijilmasa was capital of all Saharan trade.",
-        "All West African gold passed through Sijilmasa.",
-        "The city disappeared suddenly in one year.",
-        "Any exact population or trade volume without primary quantitative evidence."
+        "Morocco ceased to have any state institutions after 1912.",
+        "The protectorate was purely peaceful administrative reform.",
+        "All regions experienced colonial control in the same way and at the same time.",
+        "Every modern Moroccan institution was created by the protectorate."
       ],
-      "ESTIMATED_USABLE_WORDS": 1250,
-      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+      "ESTIMATED_USABLE_WORDS": 1300,
+      "source_accessed_at": "2026-09-05T08:45:00+01:00"
     }
   },
   "literature_culture": {
     "selected": {
-      "TOPIC_ID": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
-      "PROPOSED_TITLE": "Tayeb Saddiki w l-halqa: kifach masra7 Maghribi 7awl ykoun modern bla ma y9ta3 m3a l-forma cha3biya",
-      "WHY_SELECTED": "Substantial postcolonial theatre topic: translation, halqa, oral performance, zajal, diglossia, Moliere, Moroccan plurality, audience relation and criticism.",
-      "RECENTLY_USED_CHECK": "literature-used fih Rabat World Book Capital 2026 w Gnawa b mode preproduction; Tayeb Saddiki ma kaynach.",
-      "PRIMARY_SOURCES": ["https://academic.oup.com/liverpool-scholarship-online/book/46318/chapter-abstract/405775998"],
+      "TOPIC_ID": "culture-fatema-mernissi-dreams-trespass-memory-power",
+      "PROPOSED_TITLE": "Dreams of Trespass dyal Fatema Mernissi: l-harem b7al memory, 7doud, power w resistance",
+      "WHY_SELECTED": "Work kay7mel literary, autobiographical, sociological w postcolonial layers. Scholarship katn9ach voice, gender, nationalism, space, photographs/peritext, magical realism, cultural memory w risk dyal reading l-harem b stereotype wa7d.",
+      "RECENTLY_USED_CHECK": "Ma kaynach f publication ledger w literature-used. Mohamed Choukri kan preproduction f run qdim, donc tjanbnah; Mernissi had work ma tpubliach f authoritative memory.",
+      "PRIMARY_SOURCES": [
+        "https://journals.imist.ma/index.php/confluence/article/view/6111"
+      ],
       "INDEPENDENT_SOURCES": [
-        "https://revues.imist.ma/index.php/LARSLAM/article/view/64556",
-        "https://journals.usj.edu.lb/regards/article/view/798",
-        "https://www.persee.fr/doc/horma_0984-2616_2008_num_58_1_2595"
+        "https://asjp.cerist.dz/en/article/297014",
+        "https://www.tandfonline.com/doi/abs/10.1080/14484520903082934",
+        "https://rodin.uca.es/handle/10498/25386",
+        "https://research.library.fordham.edu/international_senior/37/",
+        "https://iris.luiss.it/handle/11385/196737"
       ],
       "SOURCE_ORIGINS": [
-        "Lamalif interview anthology / Liverpool University Press",
-        "IMIST journal article",
-        "Regards / Universite Saint-Joseph",
-        "Persee / Horizons Maghrebins"
+        "Confluence Journal / Abdelmalek Essaadi University scholarship",
+        "ASJP cultural studies article",
+        "Life Writing journal",
+        "Universidad de Cadiz repository / Anaquel de Estudios Arabes",
+        "Fordham University repository",
+        "LUISS institutional repository / UIR book chapter"
       ],
       "KEY_EVIDENCE": [
-        "Saddiki discussed Moroccan theatre as a field searching for its own form and audience after colonial and anticolonial performance histories.",
-        "Recent IMIST analysis treats halqa as a dramaturgical principle: circularity, orality, improvisation, audience interaction, fragmented narration, polyphony and diglossia.",
-        "Scholarship connects Diwan Sidi Abderrahman al-Majdoub to transposition of halqa aesthetics into institutional theatre.",
-        "Work on Saddiki and Moliere shows appropriation and transformation rather than simple imitation.",
-        "Jean-Francois Clement provides a counterpoint: precolonial spectacles such as halqa and bsat should not automatically be called theatre in the same modern institutional sense."
+        "Recent Moroccan scholarship reads Dreams of Trespass as an alternative archive that recovers marginalized female memory rather than only as private childhood recollection.",
+        "A 2026 Foucauldian reading treats the harem as a space where authority, surveillance and resistance coexist, rejecting a simple power/no-power binary.",
+        "Life Writing scholarship shows peritext and photographs change how the work is framed across language editions and audiences.",
+        "Other scholarship reads the text through nationalism, magical realism, postcolonial feminism and the tension between constraint and agency."
       ],
       "CONTRADICTORY_EVIDENCE": [
-        "The idea of an uninterrupted authentic Moroccan theatre genealogy is contested.",
-        "Saddiki did not simply reject Europe; he also used Moliere, adaptation and Western stage conventions.",
-        "Institutional funding, television and audience change also matter for theatre history."
+        "The book should not be treated as transparent documentary evidence for all Moroccan women in the 1940s.",
+        "Scholars disagree on genre emphasis: autobiography, fictionalized life-writing, literary activism, sociological memory and postcolonial text overlap.",
+        "A liberation-only reading can flatten conservative, religious, class and family complexities inside the narrative."
       ],
-      "UNCERTAINTY": "Reception varies by play, decade and audience, so blanket claims about all Moroccan audiences should be avoided.",
-      "CONTEXT": "Post-independence Moroccan theatre had to negotiate imported stage forms and local performance repertoires. Saddiki sits inside that tension rather than on only one side.",
-      "CONFIDENCE": "high on documented aesthetic synthesis; medium on broad national-reception claims",
+      "UNCERTAINTY": "Genre labels and the line between remembered experience, literary construction and representative social history remain interpretive questions.",
+      "CONTEXT": "Fatema Mernissi, Moroccan sociologist and feminist, uses childhood memory in Fes during the protectorate era to explore boundaries, household life, public/private space and women's voices.",
+      "CONFIDENCE": "high on major scholarly themes; medium on any single definitive genre classification",
       "RECOMMENDATION": "PUBLISH",
-      "FEATURE_OPENING_MATERIAL": "Mlli l-jomhour kaywlli da2ira 7awl l-performance, l-7d bin stage w street kaytbddl. Saddiki khda l-halqa b7al principle dyal writing and performance, machi ghir decoration.",
+      "FEATURE_OPENING_MATERIAL": "L-7d ma kaykonsh dima 7it: f Dreams of Trespass, 7doud kaykono bab, qanon, nazra dyal l-3a2ila, city, colonial order w fikra f rass l-insan. Hadchi howa li kaykhlli l-kitab aktar mn childhood memoir.",
       "SECTION_OUTLINE": [
-        "Moroccan theatre after the Protectorate",
-        "Saddiki and the cultural field",
-        "What halqa is and is not",
-        "Diwan Sidi Abderrahman al-Majdoub",
-        "Language, zajal and diglossia",
-        "Moliere as dialogue rather than copy",
-        "Audience and fourth-wall tension",
-        "Criticism of authenticity narratives",
-        "Later influence and why it matters now"
+        "Mernissi w Morocco dyal 1940s",
+        "Genre: memoir, literary construction w sociology",
+        "Harem as space, rule and contested meaning",
+        "Child narrator and multiple women's voices",
+        "Nationalism and private freedom",
+        "Power, surveillance and everyday resistance",
+        "Storytelling, folklore and magical-realism readings",
+        "Photos, translation and changing peritext",
+        "Criticism: representation, class and Western audience",
+        "Later influence and why the book still matters"
       ],
-      "CONTEXT_DETAIL": "Popular performance forms existed before modern theatre institutions; the feature must distinguish those two histories.",
-      "CREATOR_OR_WORK_BACKGROUND": "Tayeb Saddiki (1939-2016) was a Moroccan playwright, director, actor and adaptor.",
-      "CENTRAL_IDEAS": [
-        "Cultural identity can be built through appropriation and transformation rather than isolation.",
-        "Orality and audience interaction are formal devices, not only heritage decoration.",
-        "Moroccan cultural plurality appears in language, repertoire and performance traditions."
-      ],
-      "STYLE_AND_FORM": ["halqa circularity", "direct audience relation", "episodic structure", "polyphony", "diglossia", "zajal", "adaptation and intertextuality"],
-      "HISTORICAL_RELATIONSHIP": "His theatre can be read against colonial transplantation of European stage forms and post-independence search for cultural autonomy.",
-      "INFLUENCES": ["halqa", "oral storytelling", "Moroccan popular and Sufi repertoires", "Moliere", "Arabic literary heritage", "postcolonial debates"],
-      "RECEPTION": "Scholarship treats Saddiki as a major Moroccan and Arab theatre figure, but reception claims should stay specific to works and institutions.",
-      "CRITICISM": "Clement warns against retroactively calling every old spectacle theatre; this prevents nationalist myth-making.",
+      "CONTEXT": "Protectorate-era Fes, nationalist change, household gender order and later global debates about Muslim women shape reception of the work.",
+      "CREATOR_OR_WORK_BACKGROUND": "Dreams of Trespass: Tales of a Harem Girlhood appeared in 1994 and draws on Mernissi's remembered childhood while using crafted narrative strategies.",
+      "CENTRAL_IDEAS": ["boundaries and freedom", "gendered space", "memory", "voice", "nationalism", "authority", "resistance", "representation"],
+      "STYLE_AND_FORM": "First-person childhood perspective, episodic storytelling, multiple female voices, remembered scenes, symbolic boundaries and a form that sits between autobiography and literary construction.",
+      "HISTORICAL_RELATIONSHIP": "The narrative places domestic change beside anti-colonial nationalism and social transition in 1940s Morocco without making household liberation identical to national independence.",
+      "INFLUENCES": ["Moroccan oral storytelling", "autobiographical life-writing", "sociological observation", "postcolonial debates", "feminist thought"],
+      "RECEPTION": "The work circulates internationally and has generated scholarship on gender, nationalism, autobiography, translation, images and cultural memory.",
+      "CRITICISM": "Editors should avoid presenting one Fes household as a universal model of Moroccan or Muslim women's experience; class, region, family form and literary mediation matter.",
       "COMPETING_INTERPRETATIONS": [
-        "Saddiki as recuperator of indigenous theatrical roots.",
-        "Saddiki as hybrid modernist combining local and imported repertoires.",
-        "Critical view: uninterrupted native-theatre genealogy can be conceptually misleading."
+        "Feminist resistance narrative centered on agency against patriarchal boundaries.",
+        "Postcolonial multiple-critique reading aimed at both local patriarchy and Western Orientalist simplification.",
+        "Life-writing reading focused on memory, translation and peritext.",
+        "Cultural-memory reading where women's stories operate as alternative archives."
       ],
-      "LATER_INFLUENCE": "Halqa, festive forms and heritage adaptation remain reference points in Moroccan and Maghrebi theatre debates.",
-      "WHY_IT_MATTERS_TODAY": "The same question remains: kifach creator yst3ml heritage bla folklore freeze, w kifach ykoun global bla cultural copy.",
-      "CLAIMS_TO_AVOID": ["Saddiki invented Moroccan theatre.", "Halqa is identical to modern theatre.", "He rejected Western theatre.", "All Moroccan theatre follows his model."],
-      "ESTIMATED_USABLE_WORDS": 1200,
-      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+      "LATER_INFLUENCE": "The book remains a reference point in scholarship on Moroccan women's writing, Islamic feminism, postcolonial life-writing and representation of domestic space.",
+      "WHY_IT_MATTERS_TODAY": "Kay3llmna kifach n9raw story 3la gender bla ma n7wloha la stereotype Orientalist la slogan wa7d 3la liberation.",
+      "CLAIMS_TO_AVOID": [
+        "The text is a literal documentary record of every event it narrates.",
+        "All Moroccan women lived in the same kind of harem.",
+        "Mernissi speaks for all Muslim women.",
+        "One critical theory fully explains the book."
+      ],
+      "ESTIMATED_USABLE_WORDS": 1250,
+      "source_accessed_at": "2026-09-05T08:46:00+01:00"
     }
   },
   "investigations": {
-    "selected_dossier": {
-      "DOSSIER_ID": "al-haouz-reconstruction-2023-2028",
-      "QUESTION_OR_HYPOTHESIS": "Wash wa3d, sarf, w nata2ij dyal programme i3mar l-Houz kaytla9aw b-wodo7 men l-budget l-dar w l-khadma li wslat l-kol qarya?",
-      "STATUS": "NEEDS_VERIFICATION",
-      "TIMELINE": [
-        "2023-09-08: earthquake.",
-        "2023-09-20: multi-sector 2024-2028 programme announced with 120bn MAD envelope.",
-        "2026-03-17: ADHA reported 54,425 completed habitations, more than 3,000 still under works and more than 7.2bn MAD in housing-related aid categories.",
-        "2026-06-04/05: ADHA, EIB and EU delegation field mission checked education, health and road projects.",
-        "2026-07-15: ADHA published T3 2026 procurement programme.",
-        "2026-09-05: fresh review found no new evidence strong enough to resolve village-level denominator or budget-to-outcome reconciliation."
-      ],
-      "OFFICIAL_CLAIMS": [
-        "ADHA March 2026 says 54,425 habitations completed and more than 3,000 remained in progress.",
-        "The same update cites 372 schools and 110 health centers in completed programme reporting.",
-        "ADHA T3 procurement programme confirms work was still active in 2026."
-      ],
-      "SUPPORTING_EVIDENCE": [
-        "Transparency Maroc observatory remains relevant for independent governance and field cross-checking.",
-        "Continued procurement is compatible with a programme still in implementation."
-      ],
-      "CONTRADICTORY_EVIDENCE": [
-        "Official completed-home figures contradict a blanket claim that reconstruction did not happen.",
-        "The 120bn MAD multi-sector envelope is not the same metric as housing aid disbursement.",
-        "Unresolved cases can have legal, land, inheritance, eligibility or technical causes."
-      ],
-      "DISCONFIRMING_SEARCH": "Fresh search actively looked for evidence against a failure hypothesis and found substantial official completion figures, field monitoring and active procurement.",
-      "MISSING_DOCUMENTS": [
-        "Village-by-village beneficiary and completion table with clear denominator.",
-        "Budget commitments versus cash disbursement by sector and year through 2026.",
-        "Contract award, amendment, delay and delivery table.",
-        "Independent engineering and seismic-compliance sample."
-      ],
-      "UNANSWERED_QUESTIONS": [
-        "What exactly counts as habitation achevee: structure, utilities, inspection, keys or occupancy?",
-        "How much of 120bn MAD was committed, disbursed and verified as delivered output by sector?",
-        "How do official aggregates reconcile village-by-village with unresolved cases?"
-      ],
-      "CONFIDENCE": "medium",
-      "PUBLICATION_READINESS": "NOT_READY",
-      "NEXT_RESEARCH_STEPS": [
-        "Obtain machine-readable village and sector tables.",
-        "Match procurement records to physical completion and payment data.",
-        "Cross-check a stratified sample of unresolved and completed villages.",
-        "Keep searching for evidence that could disprove unequal-delivery concerns."
-      ],
-      "RECOMMENDATION": "HOLD",
-      "PRIMARY_SOURCES": [
-        "https://adha.gov.ma/actualites/article.php?lang=fr&slug=le-chef-du-gouvernement-pr-side-la-r-union-de-la-commission-interminist-rielle-et-la-3e-r-union-du-conseil-d-orientation-strat-gique-de-l-adha",
-        "https://adha.gov.ma/actualites/article.php?lang=fr&slug=adha-bei-mission-terrain-al-haouz-avancement-projets-reconstruction-rehabilitation",
-        "https://adha.gov.ma/marches/programme-previsionnel.php?lang=fr"
-      ],
-      "INDEPENDENT_SOURCES": ["https://transparencymaroc.ma/projet-observatoire-du-programme-de-reconstruction-post-seisme-atlas/"],
-      "SOURCE_ORIGINS": ["ADHA official reporting", "EIB/EU field-monitoring context via ADHA", "Transparency Maroc observatory"],
-      "KEY_EVIDENCE": ["Official completion and aid figures.", "Joint field mission evidence.", "T3 2026 procurement programme."],
-      "UNCERTAINTY": "No village-level reconciliation or full budget-to-output ledger was retrieved today.",
-      "CONTEXT": "Dossier remains accountability research, machi accusation.",
-      "WHY_SELECTED": "Existing dossier had real prior work and current official evidence can test the hypothesis.",
-      "RECENTLY_USED_CHECK": "Existing persistent dossier; re-review allowed.",
-      "status_change": "NONE",
-      "dossier_file_updated": false,
-      "source_accessed_at": "2026-09-05T01:15:00+01:00"
-    },
-    "other_dossiers_checked": [
+    "checked_dossiers": [
+      {
+        "DOSSIER_ID": "al-haouz-reconstruction-2023-2028",
+        "QUESTION_OR_HYPOTHESIS": "Wash wa3d, sarf, w nata2ij dyal programme i3mar l-Houz kaytla9aw b-wodo7 men l-budget l-dar w l-khadma li wslat l-kol qarya?",
+        "STATUS": "NEEDS_VERIFICATION",
+        "TIMELINE": "Existing dossier read in full; latest recorded 2026 updates preserved.",
+        "OFFICIAL_CLAIMS": "Official dossier evidence records substantial completed housing and distributed aid, which directly contradicts any blanket claim that reconstruction did not happen.",
+        "SUPPORTING_EVIDENCE": "Existing Transparency Maroc, Reuters, TelQuel and ADHA evidence remains relevant.",
+        "CONTRADICTORY_EVIDENCE": "Official completion counts and plausible case-level eligibility or land constraints remain important disconfirming evidence against a simple failure hypothesis.",
+        "DISCONFIRMING_SEARCH": "Existing dossier already contains explicit disconfirming evidence; no stronger same-run evidence was found that responsibly resolves village-level reconciliation gaps.",
+        "MISSING_DOCUMENTS": ["Village-level beneficiary reconciliation", "sector-by-sector commitment versus cash disbursement", "contract amendments and delivery status", "independent engineering sample"],
+        "UNANSWERED_QUESTIONS": ["How are official completed-home definitions reconciled with occupancy?", "How many unresolved appeals remain and why?"],
+        "CONFIDENCE": "medium",
+        "PUBLICATION_READINESS": "NOT_READY",
+        "NEXT_RESEARCH_STEPS": "Get machine-readable village-level tables, budget execution and independent engineering checks before accusation or READY status."
+      },
       {
         "DOSSIER_ID": "morocco-water-security-2020-2027",
+        "QUESTION_OR_HYPOTHESIS": "Wash financement w targets dyal programme l-ma kaywslou l-service 3adil, mostadim w qabel l-qiyas basin b basin?",
         "STATUS": "RESEARCHING",
-        "action": "Read and preserved; no material update persisted today."
+        "TIMELINE": "Existing dossier read; no new claim promoted.",
+        "OFFICIAL_CLAIMS": "World Bank approval and project indicators establish commitments, not household delivery.",
+        "SUPPORTING_EVIDENCE": "Existing project financing and monitoring route preserved.",
+        "CONTRADICTORY_EVIDENCE": "Infrastructure milestones can contradict a no-progress claim, while national aggregates can coexist with basin-level problems.",
+        "DISCONFIRMING_SEARCH": "Dossier explicitly tracks both improvement evidence and failure indicators; current evidence remains insufficient for a publication accusation.",
+        "MISSING_DOCUMENTS": ["Latest results report", "basin-level extraction and recharge", "service interruption and affordability data", "contracts and audits"],
+        "UNANSWERED_QUESTIONS": ["How much financing is verified as delivered outcomes?", "Where do service differences appear by basin and household?"],
+        "CONFIDENCE": "medium",
+        "PUBLICATION_READINESS": "NOT_READY",
+        "NEXT_RESEARCH_STEPS": "Retrieve latest project ISR, basin data, audits and household-level service evidence."
       }
-    ]
+    ],
+    "updated_files": [],
+    "publication_ready": false
   },
-  "sources_count": 11,
-  "primary_sources_count": 6,
-  "independent_source_origins_count": 8,
-  "blocked_sources": [
-    {
-      "source": "memory/publication-ledger.json",
-      "reason": "File absent on main; no publication status inferred."
-    }
-  ],
+  "sources_count": 15,
+  "primary_sources_count": 5,
+  "independent_source_origins_count": 13,
+  "blocked_sources": [],
   "important_unknowns": [
-    "No authoritative publication ledger file exists on main, so preproduction memory cannot be promoted to PUBLISHED.",
-    "Science effect transfer to Morocco is not established by this meta-analysis.",
-    "Sijilmasa exact early chronology and quantitative trade scale remain partly uncertain.",
-    "Al Haouz village-level denominator and budget-to-outcome reconciliation remain unavailable."
+    "Science network rankings ma kay3tiwsh universal best intervention l-kol context.",
+    "History causal weighting bin diplomacy, finance, coercion w internal politics kayb9a interpretive.",
+    "Dreams of Trespass genre and representativeness kayb9aw subjects dyal scholarly disagreement.",
+    "Al Haouz village-level reconciliation and water-security delivery remain insufficient for accusation."
   ],
   "quality_gate": {
-    "science_status_access_honest": true,
-    "science_method_sample_limitations_recorded": true,
-    "science_causation_label_correct": true,
-    "history_not_recently_published_verified_from_available_memory": true,
-    "history_estimated_usable_words": 1250,
-    "history_competing_interpretations_present": true,
-    "literature_not_recently_published_verified_from_available_memory": true,
-    "literature_estimated_usable_words": 1200,
-    "literature_criticism_and_competing_interpretations_present": true,
-    "investigation_existing_dossiers_checked": true,
-    "investigation_disconfirming_search_performed": true,
-    "unsupported_accusation": false,
-    "json_validated": true,
+    "science": "PASS",
+    "science_estimated_usable_words": 800,
+    "history": "PASS",
+    "history_estimated_usable_words": 1300,
+    "literature_culture": "PASS",
+    "literature_culture_estimated_usable_words": 1250,
+    "investigations": "PASS_NON_READY_ALLOWED",
+    "source_traceability": "PASS",
     "arabic_script_count": 0,
-    "gate_status": "PASS"
+    "arabic_script_check_method": "Manual character review in scheduled text environment; no deterministic executable scan claimed.",
+    "json_validity": "PASS_BY_STRUCTURED_SERIALIZATION"
   },
   "handoff": {
     "ready_for_chief_editor": true,
-    "science_selected_topic_id": "science-social-comparison-behaviour-change-2025",
+    "science_selected_topic_id": "science-wellbeing-interventions-network-meta-2026",
     "science_alternates": [],
-    "history_selected_topic_id": "history-sijilmasa-transsaharan-gold-trade",
-    "literature_culture_selected_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+    "history_selected_topic_id": "history-treaty-fez-1912-protectorate-state-power",
+    "literature_culture_selected_topic_id": "culture-fatema-mernissi-dreams-trespass-memory-power",
     "investigation_dossiers_updated": [],
     "investigation_ready_for_publication": false,
     "features_requiring_editorial_caution": [
-      "Science: keep effect-size language small and foreground heterogeneity and generalizability limits.",
-      "History: distinguish medieval textual tradition from archaeological confirmation.",
-      "Culture: avoid claiming uninterrupted precolonial-to-modern theatre genealogy.",
-      "Investigation: not publication-ready; do not turn unresolved gaps into accusation."
+      "Science: network ranking and local transfer",
+      "History: distinguish legal continuity from effective colonial control and avoid single-cause narratives",
+      "Culture: do not universalize one household or collapse memoir into documentary fact"
     ],
     "major_unresolved_questions": [
-      "Science external validity in Morocco.",
-      "Sijilmasa exact quantitative trade scale.",
-      "Al Haouz village-level and budget-to-outcome reconciliation."
+      "Science long-term durability and Morocco-specific transfer",
+      "History institutional continuity versus rupture by sector and region",
+      "Culture exact balance of remembered experience and literary construction",
+      "Investigation village-level and basin-level reconciliation"
     ]
   }
 }
