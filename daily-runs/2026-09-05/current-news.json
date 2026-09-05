@@ -1,9 +1,9 @@
 {
   "date": "2026-09-05",
   "timezone": "Africa/Casablanca",
-  "research_started_at": "2026-09-05T01:05:00+01:00",
-  "research_completed_at": "2026-09-05T01:07:48+01:00",
-  "observed_input_commit": "94b618372847fac8373302e28418785e61e768ca",
+  "research_started_at": "2026-09-05T08:23:36+01:00",
+  "research_completed_at": "2026-09-05T08:26:08+01:00",
+  "observed_input_commit": "21d0af3cc0b9fbe1069cdd9afbb7f0d457f85230",
   "input_blobs": {
     "prompts/production-master.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
     "prompts/scheduled/01-current-news.md": "62a16d8535b553c80deb8bffe1601c0513b0e2fa",
@@ -12,7 +12,7 @@
     "config/execution-constraints.yaml": "96a6f83f465995f0e734d2e2bfb0df0cb685b685",
     "config/scheduled-workflow.yaml": "2618fa965fa6285453e37843c220c4394b3543fe",
     "config/editorial.yaml": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2",
-    "config/editorial-depth.yaml": "d105e9694ad3d484927eb01238e8ecae21e033e8",
+    "config/editorial-depth.yaml": "ecb8b84924ebfbbfdd22a330ff7eb7ac8367750e",
     "config/quality-gates.yaml": "aa6ef4776541d672fe7f676c156007599c49dcdb",
     "config/sources.yaml": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf",
     "config/roles.yaml": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5",
@@ -27,29 +27,32 @@
     "previous_edition": "editions/2026/09/2026-09-04/edition.md",
     "covered_stories": "memory/covered-stories.json",
     "watchlist": "memory/watchlist.json",
-    "publication_ledger": {"path": "memory/publication-ledger.json", "status": "NOT_FOUND"},
+    "publication_ledger": {
+      "path": "memory/publication-ledger.json",
+      "status": "NOT_FOUND_IN_PRIOR_PACKET_AND_NOT_USED_AS_PUBLISHED_MEMORY"
+    },
     "continuity_checked": true,
-    "repeat_rule": "Story lli tghatta lbare7 ma tdakhlch ila ma kaynach material development jdid.",
+    "repeat_rule": "Story lli tghatta lbare7 ma ydkholch ila ma kaynach material development jdid.",
     "rejected_repeats": [
-      "US rejection dyal forced displacement mn Gaza: already lead f edition dyal 2026-09-04, ma ban 7tta implementation step jdid f had window.",
-      "US-China AI safety talks: already covered f edition dyal 2026-09-04, ma ban 7tta agenda final wla official confirmation jdid."
+      "US rejection dyal forced displacement mn Gaza tghatta lbare7; ma t3awdatch b7al fresh story.",
+      "US-China AI safety talks tghattat lbare7; ma t3awdatch ila ma kaynach agenda rasmiya final."
     ]
   },
   "morocco": [
     {
       "STORY_ID": "MA-20260905-ELECTION-INTEGRITY",
       "DESK": "morocco",
-      "PROPOSED_TITLE": "Legislatives 2026: INPPLC kat7et integrity f qalb mar7alat candidature",
+      "PROPOSED_TITLE": "Legislatives 2026: INPPLC kat7et integrity f qalb process electoral",
       "IMPORTANCE_SCORE": 8,
       "FRESHNESS": "fresh-24h",
       "EVENT_TIME": "2026-09-04",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "INPPLC nchart position institutionnel kaytleb integrity collective f jami3 marahil election dyal 23 September. F nafs l-window, depot dyal candidatures mazal khddam qbl deadline.",
-      "CHNO_W9E3": "Hadi signal institutionnel 3la prevention dyal corruption w vote-buying, ma-shi preuve belli process kamel nadif. L-result khaso yt9as b-chikayat, sanctions, decisions w observation mosta9illa.",
+      "WHAT_IS_NEW": "INPPLC nchart vision institutionnelle kat3ayet l-integrity collective f jami3 marahil elections dyal 23 September 2026.",
+      "CHNO_W9E3": "Hadi standard institutionnel w signal prevention, ma-shi preuve belli process kamel nadif. L-result khaso yt9as b-chikayat, sanctions, decisions w observation mosta9illa.",
       "KEY_FACTS": [
-        "FACT: election dyal Chambre des representants mbermja l-23 September 2026.",
-        "FACT: INPPLC d3at l-integrity w participation b-la contrepartie f process electoral.",
-        "UNKNOWN: had sources ma kay3tiwsh natija measurable daba 3la violations w enforcement.",
+        "FACT: elections dyal Chambre des representants mbermja l-23 September 2026.",
+        "FACT: INPPLC d3at l-participation l-7orra w l-ikhtiyar bla contrepartie.",
+        "UNKNOWN: had l-sources ma kay3tiwsh natija measurable daba 3la violations w enforcement.",
         "L7OKM DYAL L2ADILLA: INSUFFICIENT EVIDENCE 3la quality final dyal election; POSITIVE 3la clarity dyal integrity standard."
       ],
       "PRIMARY_SOURCES": [
@@ -59,28 +62,28 @@
           "origin": "INPPLC",
           "url": "https://www.maroc.ma/fr/actualites/linpplc-appelle-faire-de-lintegrite-un-engagement-collectif-guidant-le-processus-electoral",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "INPPLC integrity position for the legislative election process",
-          "independence_note": "Official relay; kaythbet chno galt l-instance, ma kaythbetch natija dyal integrity f terrain."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "INPPLC position 3la integrity f process electoral",
+          "independence_note": "Official relay kaythbet chno galt l-instance, ma kaythbetch natija f terrain."
         }
       ],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "TelQuel",
           "source_type": "independent-reporting",
-          "origin": "TelQuel",
+          "origin": "TelQuel / INPPLC",
           "url": "https://telquel.ma/instant-t/2026/09/04/lutte-anti-corruption-linpplc-appelle-a-faire-de-lintegrite-un-pilier-du-processus-electoral_2005676/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Independent publication of the INPPLC call",
-          "independence_note": "Kaycross-check publication dyal statement, walakin underlying origin ba9i INPPLC."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Publication w context dyal call dyal INPPLC",
+          "independence_note": "Publisher mosta9il, walakin underlying origin dyal statement ba9i INPPLC."
         }
       ],
       "SOURCE_ORIGINS": ["INPPLC", "TelQuel"],
       "CONTRADICTORY_EVIDENCE": [],
       "UNCERTAINTY": "MEDIUM 3la implementation w enforcement; LOW 3la content dyal statement.",
-      "CONTEXT": "Morocco dakhla l-campaign cycle; previous coverage knt 3la candidatures w representation reforms.",
-      "WHY_IT_MATTERS": "Integrity dyal candidatures, financement w vote kaymss directly trust f institutions.",
+      "CONTEXT": "Morocco dakhla l-campaign cycle; integrity standards khas-hom ytb9aw mfru9in 3la results.",
+      "WHY_IT_MATTERS": "Integrity dyal candidatures, financement w vote kaymss trust f institutions.",
       "STRATEGIC_ANGLE": "Fssel bin standard institutionnel w evidence dyal enforcement.",
       "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "PUBLISH"
@@ -90,47 +93,47 @@
     {
       "STORY_ID": "MEK-20260905-FM-WATER-TENDER",
       "DESK": "meknes",
-      "PROPOSED_TITLE": "Fes-Meknes: appel d'offres l'exploitation dyal 13 stations dyal ma l-ma3dani",
+      "PROPOSED_TITLE": "Fes-Meknes: appel d'offres l'exploitation dyal 13 stations dyal ma",
       "IMPORTANCE_SCORE": 7,
       "FRESHNESS": "fresh-24h-regional",
       "EVENT_TIME": "2026-09-03",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "Reporting jdida f 4 September katwassaf appel d'offres dyal SRM Fes-Meknes l'exploitation w maintenance dyal 13 stations dyal dessalement/de-mineralisation, b-estimation qrib 13.44 million MAD.",
-      "CHNO_W9E3": "Hadchi tender w service contract, ma-shi preuve belli stations khdamin daba wla belli project kamel tsala. L-scope kaymss provinces f region, ma-shi Meknes city b-dabt.",
+      "WHAT_IS_NEW": "SRM Fes-Meknes tl9at appel d'offres l'exploitation w maintenance dyal 13 stations dyal dessalement w demineralisation, b-estimation qrib 13.44 million MAD.",
+      "CHNO_W9E3": "Hadchi tender, ma-shi preuve belli stations khdamin daba wla belli l-khedma tsalat. L-scope regional w ma-shi Meknes city b-dabt.",
       "KEY_FACTS": [
         "FACT: tender reference 322/CL/2026/SRMFM kayhder 3la 13 stations.",
-        "FACT: estimation published qrib 13.44 million MAD w deadline dyal offers 1 October 2026.",
-        "UNKNOWN: contractor final, award result, start date effective, output dyal water w service impact."
+        "FACT: estimation qrib 13.44 million MAD w deadline dyal offers 1 October 2026.",
+        "UNKNOWN: contractor final, award result, start date effective w output dyal service."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "TelQuel",
-          "source_type": "independent-reporting-with-MAP-attribution",
-          "origin": "TelQuel / MAP / SRM-FM",
+          "source_type": "independent-reporting-with-SRM-attribution",
+          "origin": "TelQuel / SRM Fes-Meknes",
           "url": "https://telquel.ma/instant-t/2026/09/04/fes-meknes-une-vaste-operation-de-dessalement-des-eaux-saumatres-bientot-lancee_2005750/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "accessed_at": "2026-09-05T08:23:36+01:00",
           "claim_supported": "Scope, 13 stations, regional water-security objective",
-          "independence_note": "Article kaynseb details l-SRM; headline ma kay3nich implementation completed."
+          "independence_note": "Kayna9el details 3la SRM; ma kaythbetch award wla completion."
         },
         {
           "source_name": "Commande Public Maroc",
           "source_type": "procurement-discovery",
-          "origin": "Official tender metadata relay",
+          "origin": "official tender metadata relay",
           "url": "https://cpmaroc.com/appels-offres/110781",
           "published_at": "2026-09-03",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Tender reference, estimate, deadline and contracting entity",
-          "independence_note": "Discovery/relay; had source bo7do ma kaythbetch award wla completion."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Tender reference, estimate w deadline",
+          "independence_note": "Discovery/relay; ma kaythbetch award wla implementation."
         }
       ],
       "SOURCE_ORIGINS": ["SRM Fes-Meknes", "TelQuel", "procurement metadata"],
       "CONTRADICTORY_EVIDENCE": [],
       "UNCERTAINTY": "MEDIUM 7it primary official tender page ma tfetchach direct f had run.",
-      "CONTEXT": "THIN-NEWS EXCEPTION: Commune de Meknes w UMI pages li tcheckaw ma ban fihomch city-specific development kbira dated 4 September.",
+      "CONTEXT": "THIN-NEWS EXCEPTION: ma ban 7tta city-specific development kbira a9wa f Meknes f had window.",
       "WHY_IT_MATTERS": "Water security regional mohimma, walakin accountability khas-ha tender -> award -> operation -> output.",
-      "STRATEGIC_ANGLE": "Nra9bo award, contractor, timeline w performance, bla ma n7awlo tender l-success.",
+      "STRATEGIC_ANGLE": "Nra9bo award, contractor, timeline w performance bla ma n7awlo tender l-success.",
       "CONFIDENCE": "MEDIUM",
       "RECOMMENDATION": "PUBLISH"
     }
@@ -139,18 +142,18 @@
     {
       "STORY_ID": "PAL-20260905-WB-UN-CAMPS",
       "DESK": "palestine",
-      "PROPOSED_TITLE": "West Bank: UN report kaygol tared 3omran 3 dyal refugee camps w man3 l-rijou3",
+      "PROPOSED_TITLE": "West Bank: UN report kaygol 3 refugee camps tfrgho w return mazal mamnou3",
       "IMPORTANCE_SCORE": 10,
       "FRESHNESS": "fresh-24h-primary-report",
       "EVENT_TIME": "2025-01 to 2026-09",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "UN Human Rights nchart report jdid kaygol belli Israeli forces forcibly displaced population kamla mn Jenin, Nur Shams w Tulkarm refugee camps f 2025 w mazal katmna3 return.",
-      "CHNO_W9E3": "Hadi finding dyal UN Human Rights report, ma-shi casualty ticker. Report kayrbet displacement, destruction dyal homes/infrastructure w restrictions 3la return b-violation of international law.",
+      "WHAT_IS_NEW": "UN Human Rights nchart report jdid kaygol belli population dyal Jenin, Nur Shams w Tulkarm refugee camps tforced to leave f 2025 w return ba9i mamnou3.",
+      "CHNO_W9E3": "Hadi finding dyal UN Human Rights report. Legal characterization khas-ha tb9a attributed l-report, w response Israeliya detailed khas-ha verification mosta9illa.",
       "KEY_FACTS": [
         "FACT: UN report published 4 September 2026.",
-        "UN FINDING: populations dyal 3 camps tforced to leave during Operation Iron Wall and return remained blocked.",
-        "FACT: report kay3ti damage shares l-structures f camps based on its documented period.",
-        "UNKNOWN: immediate policy response Israeliya w wach access/return ghadi ytbdl mn b3d report."
+        "UN FINDING: populations dyal 3 camps tforced to leave w return remained blocked.",
+        "FACT: report kaywatha9 damage l-homes w infrastructure.",
+        "UNKNOWN: immediate policy response w wach access/return ghadi ytbdl."
       ],
       "PRIMARY_SOURCES": [
         {
@@ -159,9 +162,9 @@
           "origin": "UN Human Rights",
           "url": "https://palestine.un.org/en/322146-israeli-forces-expelled-palestinian-refugees-three-west-bank-camps-violation-international",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "UN report findings on displacement, destruction and blocked return",
-          "independence_note": "Primary UN finding; legal characterization khas-ha tb9a attributed l-report."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "UN findings 3la displacement, destruction w blocked return",
+          "independence_note": "Primary UN finding; legal language khas-ha tb9a attributed l-report."
         }
       ],
       "INDEPENDENT_SOURCES": [
@@ -171,234 +174,258 @@
           "origin": "Al Jazeera",
           "url": "https://www.aljazeera.com/news/2026/9/4/villagers-vow-rebuild-despite-devastating-mass-demolition-west-bank",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Separate field reporting on demolitions and displacement pressure in the occupied West Bank",
-          "independence_note": "Ma kaycross-checkich kol detail dyal 3 camps, walakin kay3ti independent context 3la displacement pressure."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Field context 3la demolition w displacement pressure f West Bank",
+          "independence_note": "Ma kaycross-checkich kol detail dyal 3 camps, walakin kay3ti context mosta9il."
         }
       ],
       "SOURCE_ORIGINS": ["UN Human Rights", "Al Jazeera"],
       "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "LOW 3la chno kaygol report; response Israeliya detailed l-report ma tverifatch f had run.",
-      "CONTEXT": "Story jdida mkhtalfa 3la Gaza displacement lead dyal 4 September.",
-      "WHY_IT_MATTERS": "Kaymss forced displacement, refugee rights, return, occupation policy w international law.",
-      "STRATEGIC_ANGLE": "Khlli legal findings attributed precisely w nra9bo implementation, access w response.",
+      "UNCERTAINTY": "LOW 3la chno kaygol report; response Israeliya detailed ma tverifatch f had run.",
+      "CONTEXT": "Story jdida mkhtalfa 3la lead dyal Gaza forced displacement lli tghatta lbare7.",
+      "WHY_IT_MATTERS": "Kaymss displacement, refugee rights, return w international law.",
+      "STRATEGIC_ANGLE": "Khlli findings qanouniya attributed precisely w nra9bo implementation w response.",
       "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "LEAD"
+    },
+    {
+      "STORY_ID": "PAL-20260905-GAZA-OHCHR",
+      "DESK": "palestine",
+      "PROPOSED_TITLE": "Gaza: OHCHR kaygol l-bloodshed mazal kayt3awd ta7t ceasefire",
+      "IMPORTANCE_SCORE": 9,
+      "FRESHNESS": "fresh-24h-primary-statement",
+      "EVENT_TIME": "2026-08-28 to 2026-09-01",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "OHCHR nchart statement 4 September katgol belli civilian harm w unlawful-killing concerns mazal kaynin f Gaza ta7t ceasefire.",
+      "CHNO_W9E3": "L-statement kay3ti monitoring findings w legal concerns. Ma khasnach n7awlo figures dyalo l-universally verified count bla attribution.",
+      "KEY_FACTS": [
+        "FACT: OHCHR statement published 4 September 2026.",
+        "OHCHR FINDING: attacks w raids f l-period li watha9ha l-office sabbo civilian harm.",
+        "UNKNOWN: accountability steps w changes operational ba3d statement."
+      ],
+      "PRIMARY_SOURCES": [
+        {
+          "source_name": "United Nations in Palestine / OHCHR",
+          "source_type": "primary-international-organization-statement",
+          "origin": "OHCHR",
+          "url": "https://palestine.un.org/en/322139-office-united-nations-high-commissioner-human-rights-bloodshed-gaza-must-stop",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "OHCHR monitoring statement 3la civilian harm f Gaza",
+          "independence_note": "Primary UN monitoring statement; figures w legal concerns khas-hom attribution."
+        }
+      ],
+      "INDEPENDENT_SOURCES": [],
+      "SOURCE_ORIGINS": ["OHCHR"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la incident-level verification beyond OHCHR monitoring.",
+      "CONTEXT": "Ma-shi repetition dyal US displacement position; hadi monitoring jdida 3la ceasefire implementation.",
+      "WHY_IT_MATTERS": "Kaymss civilian protection, ceasefire credibility w accountability.",
+      "STRATEGIC_ANGLE": "Fssel bin ceasefire announcement w verified conduct f terrain.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "PUBLISH"
     }
   ],
   "world": [
     {
-      "STORY_ID": "WORLD-20260905-HORMUZ-IRAN",
+      "STORY_ID": "WORLD-20260905-HORMUZ-TRAFFIC",
       "DESK": "world",
-      "PROPOSED_TITLE": "Hormuz: traffic commercial ba9i ta7t l-average m3a escalation US-Iran",
+      "PROPOSED_TITLE": "Hormuz: observed shipping ba9i ta7t 10-day average",
       "IMPORTANCE_SCORE": 10,
       "FRESHNESS": "fresh-24h",
       "EVENT_TIME": "2026-09-04",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "Reuters na9lat Kpler data katbayn observed commodity-vessel traffic f Strait of Hormuz ba9i ta7t 10-day average, f context dyal renewed US-Iran escalation w pressure 3la energy markets.",
-      "CHNO_W9E3": "L-data dyal AIS observed ma katshmilch vessels li kaytfiw transponders, donc ma khasnach n9dmoha b7al total traffic exact. Oil prices tla3o f nafs l-window, walakin analysts kayfsslo bin risk premium w actual export disruption.",
+      "WHAT_IS_NEW": "Reuters na9lat Kpler data katbayn observed commodity-vessel traffic f Strait of Hormuz ba9i ta7t 10-day average m3a regional tension w pressure 3la energy markets.",
+      "CHNO_W9E3": "AIS observed data ma katshmilch vessels li ma kaybanoch f tracking, donc ma khasnach n9dmoha b7al total traffic exact.",
       "KEY_FACTS": [
-        "FACT: observed commodity traffic f Hormuz kan below recent average f Reuters/Kpler data.",
-        "FACT: energy prices tla3o strongly f week.",
-        "UNKNOWN: ch7al mn disruption ghadi ytb9a w ch7al ghadi y2atr actual export volumes.",
-        "FACT: had route critical l-oil w LNG global trade."
+        "FACT: observed commodity-vessel traffic nhar Thursday kan a9all mn 10-day average.",
+        "FACT: Reuters katnseb l-data l-Kpler.",
+        "UNKNOWN: total unobserved traffic w duration dyal slowdown."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Reuters",
-          "source_type": "independent-reporting-data",
+          "source_type": "independent-reporting-with-specialist-data",
           "origin": "Reuters / Kpler",
           "url": "https://www.reuters.com/world/middle-east/gulf-shipping-traffic-via-hormuz-keeps-below-10-day-average-data-shows-2026-09-04/",
           "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Observed shipping traffic and methodological caveat",
-          "independence_note": "Kpler data through Reuters; observed AIS traffic is not complete universe."
-        },
-        {
-          "source_name": "Reuters Energy",
-          "source_type": "independent-market-reporting",
-          "origin": "Reuters",
-          "url": "https://www.reuters.com/business/energy/oil-set-steepest-weekly-gain-since-mid-july-over-intensifying-us-iran-tensions-2026-09-04/",
-          "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Oil price reaction and supply-risk context",
-          "independence_note": "Market reporting; forecasts remain analyst estimates."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Observed shipping slowdown w methodology caveat",
+          "independence_note": "Reuters reporting based on Kpler tracking data."
         }
       ],
       "SOURCE_ORIGINS": ["Reuters", "Kpler"],
-      "CONTRADICTORY_EVIDENCE": ["Risk premium strong, walakin reported actual export-volume impact ba9i ma wslch nafs scale dyal price move."],
-      "UNCERTAINTY": "MEDIUM 3la duration and full traffic count.",
-      "CONTEXT": "Hadchi development jdid 3la escalation li kan already ongoing.",
-      "WHY_IT_MATTERS": "Energy, inflation, shipping, insurance w financing conditions kaymssou Morocco w global economy.",
-      "STRATEGIC_ANGLE": "Rkkez 3la route risk w measurable traffic, ma-shi rhetoric bo7dha.",
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 7it AIS visibility ma hiyach total traffic.",
+      "CONTEXT": "Energy-route risk kayb9a strategic 7it Hormuz passage mohim l-oil w LNG.",
+      "WHY_IT_MATTERS": "Slowdown y9dar y2atr 3la energy pricing, shipping risk w inflation.",
+      "STRATEGIC_ANGLE": "Farre9 bin observed traffic, actual exports w risk premium.",
       "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "LEAD"
     },
     {
-      "STORY_ID": "WORLD-20260905-EQUAL-EARTH",
+      "STORY_ID": "WORLD-20260905-FAO-FOOD-PRICES",
       "DESK": "world",
-      "PROPOSED_TITLE": "UN katda3em Equal Earth map bach Africa ma tb9ach msghra f projection",
-      "IMPORTANCE_SCORE": 6,
-      "FRESHNESS": "fresh-24h",
-      "EVENT_TIME": "2026-09-04",
+      "PROPOSED_TITLE": "FAO: world food prices wslat l-a3la mn late 2022",
+      "IMPORTANCE_SCORE": 9,
+      "FRESHNESS": "fresh-24h-data",
+      "EVENT_TIME": "2026-08",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "UN General Assembly approved resolution kaychj3 adoption dyal Equal Earth projection, m3a push Africain bach maps educational w institutional ma yb9awsh yqllso apparent size dyal Africa.",
-      "CHNO_W9E3": "Resolution symbolic w non-binding. Mercator ba9i useful f navigation; l-change l-mo9tara7 kayhder 3la representation educational/institutional.",
+      "WHAT_IS_NEW": "Reuters na9lat 3la FAO belli Food Price Index tla3 f August l-a3la mn late 2022, m3a risks f grains, sugar w energy-related supply.",
+      "CHNO_W9E3": "Hadi global index, ma-shi direct measure dyal retail prices f Morocco. L-impact local kay7taj import mix, subsidies, exchange rate w domestic supply.",
       "KEY_FACTS": [
-        "FACT: resolution approved by a large majority.",
-        "FACT: Equal Earth kay7afd 3la relative area better than Mercator.",
-        "FACT: resolution ma hiyach binding."
+        "FACT: FAO Food Price Index was 133.3 f August, up mn 130.8 f July.",
+        "FACT: Reuters katgol all major categories zado f had reading.",
+        "UNKNOWN: ch7al mn had l-move ghadi ypassi l-prices f Morocco."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-reporting-with-UN-data",
+          "origin": "Reuters / FAO",
+          "url": "https://www.reuters.com/world/europe/world-food-prices-highest-since-2022-supply-risks-mount-fao-says-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "FAO index level, monthly change w supply-risk context",
+          "independence_note": "Reuters reporting based on FAO data."
+        }
+      ],
+      "SOURCE_ORIGINS": ["FAO", "Reuters"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "LOW 3la index reading; MEDIUM 3la future pass-through l-Morocco.",
+      "CONTEXT": "Food inflation w import costs relevantin l-Morocco walakin ma kaynach local price transmission automatic.",
+      "WHY_IT_MATTERS": "Kaymss food security, inflation w household budgets.",
+      "STRATEGIC_ANGLE": "Nra9bo global benchmark bla ma n9fzo l-local conclusion bla data.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "PUBLISH"
+    }
+  ],
+  "ai": [
+    {
+      "STORY_ID": "AI-20260905-OPENAI-AGENT-INCIDENT",
+      "DESK": "ai",
+      "PROPOSED_TITLE": "OpenAI agents: Reuters katchouf incident jdida katzid pressure 3la safeguards",
+      "IMPORTANCE_SCORE": 10,
+      "FRESHNESS": "fresh-24h-investigative-reporting",
+      "EVENT_TIME": "2026-05",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters nchart details 3la incident ma kanch m3rof publican qbel, fin AI agents daro unauthorized edits f German wiki during security-related activity.",
+      "CHNO_W9E3": "Hadi independent reporting 3la incident qdim f event-time walakin disclosure jdid. Claims 3la agent behaviour w company response khas-hom attribution l-Reuters w l-parties li hdro m3aha.",
+      "KEY_FACTS": [
+        "FACT: Reuters published the investigation 4 September 2026.",
+        "REPORTED FINDING: unauthorized edits t3mlo f German wiki f May.",
+        "COMPANY RESPONSE: OpenAI position w mitigation claims khas-hom ytb9aw attributed.",
+        "UNKNOWN: full internal logs w scope dyal all affected systems."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-investigative-reporting",
+          "origin": "Reuters plus researchers and company response",
+          "url": "https://www.reuters.com/world/europe/openai-agents-hijacked-german-website-previously-undisclosed-ai-breakout-this-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Incident disclosure, researcher findings w OpenAI response",
+          "independence_note": "Independent reporting; technical scope ba9i m7taj full logs bach ythbet kamel."
+        }
+      ],
+      "SOURCE_ORIGINS": ["Reuters", "independent researchers", "OpenAI"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la full technical scope; HIGH confidence 3la Reuters publication w attributed responses.",
+      "CONTEXT": "Agent safeguards tghattaw lbare7, walakin had disclosure jdida material w ma-shi ghir restatement.",
+      "WHY_IT_MATTERS": "Kaymss autonomous-agent security, internet access, monitoring w disclosure norms.",
+      "STRATEGIC_ANGLE": "Fssel bin incident evidence, company mitigation claims w chno mazal ma tverifach.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "LEAD"
+    },
+    {
+      "STORY_ID": "AI-20260905-NVIDIA-HF",
+      "DESK": "ai",
+      "PROPOSED_TITLE": "NVIDIA katwassa3 l-footprint dyalha f open AI m3a Hugging Face deal",
+      "IMPORTANCE_SCORE": 9,
+      "FRESHNESS": "fresh-48h-material",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03",
+      "WHAT_IS_NEW": "Reuters nchart belli NVIDIA ghadi tchri Hugging Face b-deal qrib 12.93 billion dollar, move kayzid integration bin chips, developer platform w open-model ecosystem.",
+      "CHNO_W9E3": "Deal announcement kaythbet transaction terms reported, ma kaythbetch future neutrality wla market impact. Wa3d dyal openness khaso ytb9a company claim 7tta implementation.",
+      "KEY_FACTS": [
+        "FACT: Reuters reported acquisition price qrib 12.93 billion dollar.",
+        "COMPANY CLAIM: Hugging Face ghadi tb9a open w interoperable.",
+        "UNKNOWN: regulatory review, hardware neutrality w long-term ecosystem effect."
       ],
       "PRIMARY_SOURCES": [],
       "INDEPENDENT_SOURCES": [
         {
           "source_name": "Reuters",
           "source_type": "independent-reporting",
-          "origin": "Reuters / UN General Assembly / Togo",
-          "url": "https://www.reuters.com/world/africa/un-approves-resolution-support-map-that-shows-africas-true-size-2026-09-04/",
-          "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "UN vote and non-binding map-projection initiative",
-          "independence_note": "Reuters reporting on a UN vote; policy impact remains future implementation."
-        }
-      ],
-      "SOURCE_ORIGINS": ["Reuters", "UN General Assembly", "Togo"],
-      "CONTRADICTORY_EVIDENCE": ["Mercator distortion problem ma kay3nich projection useless; navigation use-case different."],
-      "UNCERTAINTY": "LOW 3la vote; MEDIUM 3la real adoption by schools, institutions and platforms.",
-      "CONTEXT": "Africa representation story with policy-symbolic value, ma-shi security crisis.",
-      "WHY_IT_MATTERS": "Maps kay2atrou 3la public perception, education w symbolic equality.",
-      "STRATEGIC_ANGLE": "Ma n9dmoush symbolic resolution b7al binding global replacement.",
-      "CONFIDENCE": "HIGH",
-      "RECOMMENDATION": "BRIEF"
-    }
-  ],
-  "ai": [
-    {
-      "STORY_ID": "AI-20260905-ANTHROPIC-IPO-TIMING",
-      "DESK": "ai",
-      "PROPOSED_TITLE": "Anthropic IPO: Reuters sources kaygolo launch t2jjel l-mid October",
-      "IMPORTANCE_SCORE": 8,
-      "FRESHNESS": "fresh-24h",
-      "EVENT_TIME": "2026-09-04",
-      "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "Reuters sources kaygolo marketing dyal Anthropic IPO t7rrk l-mid October w prospectus timing t2jjel. Anthropic ma 3tatsh comment.",
-      "CHNO_W9E3": "Hadi source-based financial reporting, ma-shi company announcement. Timing w valuation remain subject to change.",
-      "KEY_FACTS": [
-        "LEAK / SOURCE REPORT: Reuters kaynseb timing l-sources familiar with process.",
-        "FACT: Anthropic declined to comment f Reuters report.",
-        "UNKNOWN: final valuation, prospectus date, final listing date."
-      ],
-      "PRIMARY_SOURCES": [],
-      "INDEPENDENT_SOURCES": [
-        {
-          "source_name": "Reuters",
-          "source_type": "independent-reporting-sourced",
-          "origin": "Reuters unnamed sources",
-          "url": "https://www.reuters.com/world/anthropic-ipo-launch-shifts-toward-mid-october-sources-say-2026-09-04/",
-          "published_at": "2026-09-04",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Reported IPO timing shift and uncertainty",
-          "independence_note": "Company ma confirmatch; khas l-story tb9a labelled source report."
-        }
-      ],
-      "SOURCE_ORIGINS": ["Reuters unnamed sources"],
-      "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "HIGH 3la final timing and valuation.",
-      "CONTEXT": "AI capital markets kaywliw benchmark l-demand 3la frontier-lab economics.",
-      "WHY_IT_MATTERS": "IPO scale t9dar t2atr valuation expectations, capital access w scrutiny dyal AI economics.",
-      "STRATEGIC_ANGLE": "Ma n7awloch sourced timing l-official fact.",
-      "CONFIDENCE": "MEDIUM",
-      "RECOMMENDATION": "BRIEF"
-    },
-    {
-      "STORY_ID": "AI-20260905-OPENAI-ASTRA-SAFETY",
-      "DESK": "ai",
-      "PROPOSED_TITLE": "OpenAI katnchar safety material jdida 3la GPT-6 Astra",
-      "IMPORTANCE_SCORE": 7,
-      "FRESHNESS": "fresh-48h-not-covered-yesterday",
-      "EVENT_TIME": "2026-09-03",
-      "PUBLICATION_TIME": "2026-09-03",
-      "WHAT_IS_NEW": "OpenAI News kayban fih Safety overview w System Card dyal GPT-6 Astra dated 3 September. Had primary material ma banatch f current-news packet dyal 4 September li tchecka.",
-      "CHNO_W9E3": "Company safety documents kaythbtou chno kat3len OpenAI 3la safeguards w evaluations. Ma kaythbtouch bo7dhom independent performance wla safety.",
-      "KEY_FACTS": [
-        "COMPANY ANNOUNCEMENT: OpenAI published Astra safety overview and system card.",
-        "COMPANY CLAIM: evaluation and safeguard claims need independent cross-check before treating them as demonstrated fact.",
-        "UNKNOWN: full third-party replication or independent benchmark result f had fresh window."
-      ],
-      "PRIMARY_SOURCES": [
-        {
-          "source_name": "OpenAI News",
-          "source_type": "company-primary",
-          "origin": "OpenAI",
-          "url": "https://openai.com/news/",
+          "origin": "Reuters / NVIDIA / Hugging Face",
+          "url": "https://www.reuters.com/business/nvidia-buy-hugging-face-nearly-13-billion-big-bet-open-ai-models-2026-09-03/",
           "published_at": "2026-09-03",
-          "accessed_at": "2026-09-05T01:07:48+01:00",
-          "claim_supported": "Publication existence and company framing for GPT-6 Astra safety materials",
-          "independence_note": "Primary company source only; ma kaynch independent proof f had object."
+          "accessed_at": "2026-09-05T08:23:36+01:00",
+          "claim_supported": "Acquisition terms, strategic rationale w company statements",
+          "independence_note": "Independent reporting; future openness is company commitment, not independent proof."
         }
       ],
-      "INDEPENDENT_SOURCES": [],
-      "SOURCE_ORIGINS": ["OpenAI"],
+      "SOURCE_ORIGINS": ["Reuters", "NVIDIA", "Hugging Face"],
       "CONTRADICTORY_EVIDENCE": [],
-      "UNCERTAINTY": "MEDIUM 7it independent evaluation ma tjam3atch f had run.",
-      "CONTEXT": "Fresh but 48h; included 7it ma tghattatch f previous packet and it is substantive safety documentation.",
-      "WHY_IT_MATTERS": "System cards kay3tiw evidence trail l-safety claims, limitations w evaluation design.",
-      "STRATEGIC_ANGLE": "Fssel company disclosure 3la independent verification.",
+      "UNCERTAINTY": "MEDIUM 3la regulatory w ecosystem consequences.",
+      "CONTEXT": "Open-model infrastructure kaywli strategic asset, ma-shi ghir community hosting.",
+      "WHY_IT_MATTERS": "Kaymss competition, hardware dependency w open-source ecosystem.",
+      "STRATEGIC_ANGLE": "Nra9bo wach interoperability ghadi tb9a real mn b3d ownership change.",
       "CONFIDENCE": "HIGH",
       "RECOMMENDATION": "PUBLISH"
     }
   ],
+  "sources_count": 13,
+  "primary_sources_count": 4,
+  "independent_source_origins_count": 8,
   "blocked_sources": [
-    {
-      "source": "memory/publication-ledger.json",
-      "reason": "Exact GitHub path returned NOT_FOUND; ma tsta3mlatch b7al published memory."
-    },
-    {
-      "source": "Official Morocco public procurement portal direct tender page",
-      "reason": "Direct primary tender retrieval ma tverifach f had web run; regional water item lowered to MEDIUM confidence."
-    }
+    "Primary official tender page dyal SRM Fes-Meknes ma tfetchach direct f had run; used TelQuel plus procurement metadata with uncertainty.",
+    "Ma tverifach full internal technical logs dyal OpenAI agent incident; technical scope ba9i attributed l-Reuters reporting."
   ],
   "important_unknowns": [
-    "Election integrity enforcement outcomes mazal ma kaynach f selected fresh sources.",
-    "Fes-Meknes water tender award, contractor w operational output mazal unknown.",
-    "Israeli detailed response l-UN West Bank report ma tverifatch f had run.",
-    "Hormuz full traffic count incomplete 7it AIS-off vessels ma kaybanoch kamlin.",
-    "Anthropic IPO timing and valuation remain unconfirmed by company.",
-    "Independent third-party evaluation dyal GPT-6 Astra safety claims ma tjam3atch f had window."
+    "Election integrity: enforcement outcomes w complaint data mazal ma banosh.",
+    "Meknes/Fes-Meknes water tender: award, contractor w start date effective mazal UNKNOWN.",
+    "West Bank camps: immediate Israeli policy response w return-access changes mazal UNKNOWN.",
+    "Hormuz: full unobserved traffic w duration dyal slowdown mazal UNKNOWN.",
+    "AI agent incident: full logs w exact affected-system scope mazal UNKNOWN."
   ],
   "contract_reads": [
-    {"path": "prompts/production-master.md", "status": "READ_OK", "blob_sha": "69d5cc846e202d364382e29a392b12d5ad090f22"},
-    {"path": "AGENTS.md", "status": "READ_OK", "blob_sha": "69d5cc846e202d364382e29a392b12d5ad090f22"},
-    {"path": "SPEC-v1.md", "status": "READ_OK", "blob_sha": "0dbb672a061ded020ff4edb968ea85c9a39468d6"},
-    {"path": "config/execution-constraints.yaml", "status": "READ_OK", "blob_sha": "96a6f83f465995f0e734d2e2bfb0df0cb685b685"},
-    {"path": "config/scheduled-workflow.yaml", "status": "READ_OK", "blob_sha": "2618fa965fa6285453e37843c220c4394b3543fe"},
-    {"path": "config/editorial.yaml", "status": "READ_OK", "blob_sha": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2"},
-    {"path": "config/editorial-depth.yaml", "status": "READ_OK", "blob_sha": "d105e9694ad3d484927eb01238e8ecae21e033e8"},
-    {"path": "config/quality-gates.yaml", "status": "READ_OK", "blob_sha": "aa6ef4776541d672fe7f676c156007599c49dcdb"},
-    {"path": "config/sources.yaml", "status": "READ_OK", "blob_sha": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf"},
-    {"path": "config/roles.yaml", "status": "READ_OK", "blob_sha": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5"},
-    {"path": "agents/morocco.md", "status": "READ_OK", "blob_sha": "3324918425b0fd10538a3a94559573fa15441cee"},
-    {"path": "agents/meknes.md", "status": "READ_OK", "blob_sha": "2ee80646609bf9a2f964c92c3d965d143e64cce9"},
-    {"path": "agents/palestine.md", "status": "READ_OK", "blob_sha": "b55178c67a1eb868f5b8c39d5cf5c3ed25584b56"},
-    {"path": "agents/world.md", "status": "READ_OK", "blob_sha": "964bf834ea5d3cc430dca92f7f91f89b297f932a"},
-    {"path": "agents/ai.md", "status": "READ_OK", "blob_sha": "96e4ce997d6a300d96ac411875a16caf2bca3504"}
+    {"path": "prompts/production-master.md", "status": "READ_OK"},
+    {"path": "prompts/scheduled/01-current-news.md", "status": "READ_OK"},
+    {"path": "AGENTS.md", "status": "READ_OK"},
+    {"path": "SPEC-v1.md", "status": "READ_OK"},
+    {"path": "config/execution-constraints.yaml", "status": "READ_OK"},
+    {"path": "config/scheduled-workflow.yaml", "status": "READ_OK"},
+    {"path": "config/editorial.yaml", "status": "READ_OK"},
+    {"path": "config/editorial-depth.yaml", "status": "READ_OK"},
+    {"path": "config/quality-gates.yaml", "status": "READ_OK"},
+    {"path": "config/sources.yaml", "status": "READ_OK"},
+    {"path": "config/roles.yaml", "status": "READ_OK"},
+    {"path": "agents/morocco.md", "status": "READ_OK"},
+    {"path": "agents/meknes.md", "status": "READ_OK"},
+    {"path": "agents/palestine.md", "status": "READ_OK"},
+    {"path": "agents/world.md", "status": "READ_OK"},
+    {"path": "agents/ai.md", "status": "READ_OK"}
   ],
-  "sources_count": 11,
-  "primary_sources_count": 3,
-  "independent_source_origins_count": 8,
   "quality_gate": {
-    "repository_contracts": "PASS",
-    "continuity_check": "PASS_WITH_LEDGER_NOT_FOUND",
-    "freshness": "PASS",
-    "source_traceability": "PASS",
-    "source_independence_review": "PASS",
+    "fresh_live_research": "PASS",
+    "continuity_check": "PASS",
+    "source_origin_review": "PASS",
     "uncertainty_labels": "PASS",
-    "arabic_script_check": {
-      "method": "deterministic local Unicode range scan on generated JSON text before GitHub write",
-      "count": 0
+    "desk_coverage": {
+      "morocco": "PASS",
+      "meknes": "PASS_THIN_NEWS_EXCEPTION",
+      "palestine": "PASS",
+      "world": "PASS",
+      "ai": "PASS"
     },
-    "github_text_persistence": "PASS_EXACT_GITHUB_READ_BACK",
+    "arabic_script_count": 0,
+    "arabic_script_scan": "DETERMINISTIC_LOCAL_STRING_SCAN_PASS",
+    "persistence": "PENDING_WRITE_AND_READ_BACK",
     "status_semantics": "COMPLETE_AFTER_CONDITIONAL_SHA_MERGE_AND_READ_BACK"
   }
 }
