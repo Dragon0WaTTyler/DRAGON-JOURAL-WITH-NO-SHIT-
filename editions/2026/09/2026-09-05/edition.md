@@ -4,7 +4,7 @@
 
 ### West Bank: rapport UN kaygol 3 camps tfrgho mn sokkanhom w rjou3 mazal mamnou3
 
-**Chno w9e3:** UN Human Rights nchar 4 September rapport kaygol belli sokkan dyal Jenin, Nur Shams w Tulkarm refugee camps tforcedaw ykhrejo f Operation Iron Wall, w belli l-rjou3 b9a mamnou3 f l-period li kayghattiha rapport. L-rapport kayrbet hadchi b-destruction dyal dyor w infrastructure w kay3ti legal assessment dyalo. Had legal characterization khas-ha tb9a attributed l-UN, ma-shi presented b7al wa7d l-7okm final mn jami3 parties. [S01]
+**Chno w9e3:** UN Human Rights nchar 4 September rapport kaygol belli sokkan dyal Jenin, Nur Shams w Tulkarm refugee camps tforcedaw ykhrejo during Operation Iron Wall, w belli l-rjou3 b9a mamnou3 f l-period li kayghattiha rapport. L-rapport kayrbet hadchi b-destruction dyal dyor w infrastructure w kay9ddem legal assessment dyalo. Had legal characterization khas-ha tb9a attributed l-UN, ma-shi presented b7al wa7d l-7okm final mn jami3 parties. [S01]
 
 **3lach hadchi mohim:** hadchi kaymss wa7d su2al akbar mn casualty count: wach displacement li bda f wa9t operation amniya kaywli arrangement twil mlli nass ma kay9droush yrj3o? Ila access l-dyur, l-madaris, l-khadamat w l-milkiya b9a msdoud, l-athar kaywli demographic, qanouni w siyasi. Reporting mosta9il mn West Bank kaybayan ta howa pressure dyal demolitions w displacement, walakin ma kaycross-checkich kol detail dyal had 3 camps. [S02]
 
@@ -30,7 +30,7 @@
 
 **Chno w9e3:** Reuters sources kaygolo launch dyal Anthropic IPO t7rrk l-mid October; company ma 3tatch confirmation. F nafs waqt, OpenAI nchart safety overview w system card jdod 3la GPT-6 Astra. [S07][S08]
 
-**3lach hadchi mohim:** juj stories kay3tiw nafs lesson b-jouj forms. F l-IPO, source reporting ma khasosh yt7awel l-date final. F safety, company system card kaythbet chno company kat3len w kifach katsifet evaluations dyalha, ma kaythbetch independent safety bo7do.
+**3lach hadchi mohim:** f l-IPO, source reporting ma khasosh yt7awel l-date final. F safety, company system card kaythbet chno company kat3len w kifach katsifet evaluations dyalha, ma kaythbetch independent safety bo7do.
 
 **Chno nra9bo daba:** prospectus rasmi l-Anthropic, final valuation w listing timetable; w f Astra, independent tests, replication w benchmarks barra mn company.
 
@@ -128,6 +128,8 @@ L-siyasi dimension howa wach temporary security operation katkhlli behind new fa
 
 Chno khas nra9bo daba? Awalan response Israeli detailed 3la report, machi ghir general rejection ila jat. Taniyan ay access changes l-residents. Talitan satellite, field w engineering documentation 3la damage. Rabi3an court cases w diplomatic follow-up. Khamsan funding w permissions l-reconstruction. Had signals ghadi yfr9o bin wa7d report kayb9a documentation w wa7d report kaywli catalyst l-policy.
 
+Kayn ta wa7d l-far9 bin displacement statistic w right-to-return question. L-rapport kayhder 3la camps fin status dyal refugee aslan 3ando history twila. Ila return l-camp nafso t3tal wla tman3, hadchi ma kay7ellsh original refugee question; kayzid 3lih layer jdida dyal displacement. Hadi hiya 3lach wording khaso yb9a precise w attribution wazi7.
+
 F Palestine coverage, l-qarar editorial hna howa ma n9llloch story l-casualty ticker, w ma nzidouch claims li packet ma 3tash. L-mohim howa displacement, return, law, infrastructure w future dyal communities.
 
 ## L-3alam
@@ -218,11 +220,11 @@ Had l-paper mofiida 7it kat3ti antidote l-jouj extremes: "social comparison ma k
 
 ### Sijilmasa: port bla b7ar f Tafilalt
 
-Ila tkhaylna port, kanchoufo b7ar, docks w ships. Sijilmasa ma kan 3andha la b7ar la ships, walakin khddmat qaroun twil b7al port f wast l-yabsa. F Tafilalt, qrib Rissani, caravans kano kaywslou mn Sahara b-goods w dahab, w kaykmmlo l-Maghrib w Mediterranean networks. Archaeology w medieval texts kaykhlliw broad role dyal Sijilmasa wazi7, m3a uncertainty f exact early chronology w scale. [S11][S12]
+Ila tkhaylna port, kanchoufo b7ar, docks w ships. Sijilmasa ma kan 3andha la b7ar la ships, walakin khddmat qroun twal b7al port f wast l-yabsa. F Tafilalt, qrib Rissani, caravans kano kaywslou mn Sahara b-goods w dahab, w kaykmmlo l-Maghrib w Mediterranean networks. Archaeology w medieval texts kaykhlliw broad role dyal Sijilmasa wazi7, m3a uncertainty f exact early chronology w scale. [S11][S12]
 
 Traditional foundation window kayt7et qrib 757. Sources kayrbto early polity b-Miknasa groups w Banu Midrar, m3a Sufri orientation. Hadi ma hiyach ghir detail madhhabi. F 8th w 9th centuries, state formation f frontier oasis kan kay3ni control dyal water, market, security w routes. Ideology, tribe w commerce kano kaytdakhlo.
 
-Sijilmasa t9owat 7it geography dyalha katjma3 constraint w opportunity. Oasis kay3ti water w agriculture f environment qas7a, w route position kay3ti caravan access. Trade ma y9drch ykoun bla local food, animals, storage, maintenance, guides w political protection. Hna kayban 3lach explanation "dahab bna l-mdina" bo7dha ناقصة—walakin b-Latin: na9sa. Dahab mohim, walakin system ecological w social howa li khlla trade ydoum.
+Sijilmasa t9owat 7it geography dyalha katjma3 constraint w opportunity. Oasis kay3ti water w agriculture f environment qas7a, w route position kay3ti caravan access. Trade ma y9drch ykoun bla local food, animals, storage, maintenance, guides w political protection. Hna kayban 3lach explanation "dahab bna l-mdina" bo7dha na9sa. Dahab mohim, walakin system ecological w social howa li khlla trade ydoum.
 
 Medieval trans-Saharan trade rbat West African polities b-Maghrib w Mediterranean. Gold kan wa7d mn commodities strategic. Sijilmasa wlat entrepot fin caravans t9dr tbdl load, finance, information w protection. L-city ma kanatch "capital of all Saharan trade", w ma kaynach evidence belli kol dahab dyal West Africa dza menha. Routes kano multiple w kaytbddlo m3a politics, security w ecology.
 
@@ -230,7 +232,7 @@ Minting kayzid layer dyal power. Mlli city 3andha role f gold flows w coinage, l
 
 F 10th century, Fatimid pressure w interventions kaybano belli Sijilmasa ma kanatch isolated oasis. Kbar powers kano kaychoufo fiha strategic value. Network li katchof mn Sahara l-north kan kaykhlli city part mn competition broader 3la routes w legitimacy.
 
-F mid-11th century, Almoravids conquered Sijilmasa. Hadi mar7ala mohimma 7it Almoravid expansion aslan مرتبطة—nktboha b-Latin: mrabtta—b-Saharan mobility, religious movement w state formation. Control dyal Sijilmasa 3ta access l-node economic w strategic, w city b9at 3andha qima f centuries li b3d.
+F mid-11th century, Almoravids conquered Sijilmasa. Hadi mar7ala mohimma 7it Almoravid expansion aslan mrabtta b-Saharan mobility, religious movement w state formation. Control dyal Sijilmasa 3ta access l-node economic w strategic, w city b9at 3andha qima f centuries li b3d.
 
 Walakin ta wa7d city ma kat3ich b-trade bo7do. Lightfoot w Miller kayrbtou rise w decline dyal Sijilmasa b-water, agriculture, oasis ecology w social organization. [S12] Had approach kayna9ed romantic image dyal caravans kayjiw w ymsiw b7al ila local society ghir backdrop. F reality, hydraulic system, land, labour w maintenance homa infrastructure l-7a9i9iya dyal caravan economy.
 
@@ -250,7 +252,7 @@ Sijilmasa ta hiya lesson f infrastructure. City famous b-dahab, walakin power dy
 
 Myth vs evidence khaso yb9a wazi7. Documented broad fact: Sijilmasa major caravan hub w oasis city. Likely interpretation: gold flows zado strategic value l-rulers li controlawha. Contested: exact founding details, exact destruction moment, one single cause dyal decline. Unknown: reliable population counts w annual trade volumes.
 
-L-feature ma kay7tajsh legend bash ykoun qwi. L-7a9i9a aslan cinematic: wa7d mdina f Tafilalt, ma 3andha b7ar, walakin qaroun katwasl economies w powers 3abr Sahara. W f l-nihaya, l-story katgol belli geography ma kat7kemsh bo7dha; institutions w maintenance homa li kay7awlo oasis l-node dyal tarikh.
+L-feature ma kay7tajsh legend bash ykoun qwi. L-7a9i9a aslan cinematic: wa7d mdina f Tafilalt, ma 3andha b7ar, walakin qroun katwasl economies w powers 3abr Sahara. W f l-nihaya, l-story katgol belli geography ma kat7kemsh bo7dha; institutions w maintenance homa li kay7awlo oasis l-node dyal tarikh.
 
 ## Adab w Taqafa
 
@@ -272,7 +274,7 @@ Language ta hiya part mn form. Diglossia f Morocco ma hiyach obstacle khas artis
 
 Zajal w oral heritage kay3tiw rhythm w memory, walakin khatar kayn ila heritage t7awel l-token. Ila creator y7et wa7d chant w costume qdim bach y3ti "authentic" label bla ma form tbdl, hadchi y9dar ykoun folklore freeze. Saddiki mohim 7it strongest readings kaychoufou integration deeper mn surface.
 
-Moliere presence katزيد—b-Latin: katzid—complexity. Adaptation ma katsawich copy. Text y9dar ytdkhel f linguistic, social w performance system jdid. Character relations, humour, timing w class codes y9dro ytbdlo. Hna hybridity ma hiyach compromise d3if; t9dar tkon production dyal ma3na jdid.
+Moliere presence katzid complexity. Adaptation ma katsawich copy. Text y9dar ytdkhel f linguistic, social w performance system jdid. Character relations, humour, timing w class codes y9dro ytbdlo. Hna hybridity ma hiyach compromise d3if; t9dar tkon production dyal ma3na jdid.
 
 Walakin authenticity narrative 3andha criticism qwi. Jean-Francois Clement kay7der mn retroactive idea li kat3ayet 3la kol precolonial spectacle "theatre" b-nafs institutional sense modern. [S16] Halqa w bsat 3andhom histories dyalhom. Ila smmihom theatre automatically, momkin n9sro differences bach nsaybo genealogy nationalist mratba.
 
@@ -296,7 +298,7 @@ L-halqa hna katwli metaphor w technique f nafs waqt. Metaphor 3la audience li qr
 
 Chno b9a mn influence Saddiki? Halqa, festive forms w heritage adaptation ba9yin references f Moroccan w Maghrebi theatre debates. Ma n9droush n9olo kol wa7d kaytb3 model dyalo. N9drou n9olo su2alat li kan kaykhdem 3lihom mazal homa su2alat l-field.
 
-W hadchi howa l-teaser l-a9wa: modernity ma hiyach opposite dyal heritage. L-opposite dyal creativity howa imitation—imitation dyal foreign form wla imitation dyal past. Saddiki's work mohim 7it kaybayan possibility talta: heritage ydkhl l-modern stage b7al material kayt7rek, ma-shi fossil.
+W hadchi howa l-teaser l-a9wa: modernity ma hiyach opposite dyal heritage. L-opposite dyal creativity howa imitation, imitation dyal foreign form wla imitation dyal past. Saddiki's work mohim 7it kaybayan possibility talta: heritage ydkhl l-modern stage b7al material kayt7rek, ma-shi fossil.
 
 ## Investigations
 
@@ -322,7 +324,7 @@ Donc editorial decision huwa HOLD. Ma kaynach exposé. Ma kaynach implication dy
 
 4. **Anthropic IPO:** prospectus, timetable rasmi w company confirmation. 7tta yban document, mid-October tb9a source-reported timing. [S07]
 
-5. **Fes-Meknes water tender:** deadline 1 October ba3ida chwiya, walakin ay official clarification 3la scope/location dyal 13 stations t9dar t7ssen accountability local qbl award. [S17][S18]
+5. **Fes-Meknes water tender:** ay official clarification 3la scope/location dyal 13 stations t9dar t7ssen accountability local qbl award. [S17][S18]
 
 ### 7a9i9a mofaji2a dyal lyoum
 
@@ -330,7 +332,7 @@ Sijilmasa ma kanatch ghir market 3la route dyal dahab. Scholarship katbayan bell
 
 ### Sou2al dyal lyoum
 
-Ila institution katnchar standard mzyan—integrity f election, safety f AI, wla legal finding f conflict—ch7al mn trust khasna n3tiw l-statement qbl ma nshofo independent evidence dyal implementation?
+Ila institution katnchar standard mzyan, integrity f election, safety f AI, wla legal finding f conflict, ch7al mn trust khasna n3tiw l-statement qbl ma nshofo independent evidence dyal implementation?
 
 ## Masadir
 
