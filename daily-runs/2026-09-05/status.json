@@ -3,7 +3,7 @@
   "timezone": "Africa/Casablanca",
   "current_research": "COMPLETE",
   "deep_research": "COMPLETE",
-  "editorial": "PENDING",
+  "editorial": "RUNNING",
   "publishing": "PENDING",
   "cover": "PENDING",
   "overall_status": "PENDING",
@@ -23,5 +23,8 @@
   "current_research_blocking_reason": null,
   "deep_research_started_at": "2026-09-05T01:14:00+01:00",
   "deep_research_completed_at": "2026-09-05T01:19:02+01:00",
-  "deep_research_blocking_reason": null
+  "deep_research_blocking_reason": null,
+  "editorial_started_at": "2026-09-05T01:22:00+01:00",
+  "editorial_completed_at": null,
+  "editorial_blocking_reason": null
 }
