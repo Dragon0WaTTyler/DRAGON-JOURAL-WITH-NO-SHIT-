@@ -1,0 +1,36 @@
+@page { size: A4; margin: 15mm 14mm 17mm; }
+:root { font-family: Georgia, "Times New Roman", serif; color: #111; background: #fff; }
+* { box-sizing: border-box; }
+html { direction: ltr; }
+body { margin: 0 auto; max-width: 1040px; padding: 24px; line-height: 1.48; font-size: 17px; background: #fff; color: #111; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+nav { border-top: 4px solid #b5121b; border-bottom: 1px solid #111; padding: 10px 0; margin: 0 0 24px; font: 700 0.78rem/1.5 Arial, Helvetica, sans-serif; }
+nav a { display: inline-block; margin: 0 12px 4px 0; }
+h1, h2, h3 { font-family: Arial, Helvetica, sans-serif; line-height: 1.08; margin-top: 0; color: #0e0e0e; }
+h1 { font-size: 3rem; font-weight: 900; letter-spacing: -0.045em; border-top: 14px solid #111; border-bottom: 5px solid #b5121b; padding: 14px 0 12px; margin-bottom: 26px; }
+h2 { font-size: 2rem; font-weight: 900; border-top: 5px solid #111; border-bottom: 2px solid #b5121b; padding: 9px 0 7px; margin: 34px 0 18px; break-after: avoid-page; }
+h3 { font-size: 1.3rem; font-weight: 850; margin: 22px 0 9px; break-after: avoid-page; }
+section { margin-bottom: 26px; }
+article { break-inside: auto; }
+p { margin: 0 0 0.82em; orphans: 3; widows: 3; }
+strong { font-family: Arial, Helvetica, sans-serif; font-weight: 800; }
+code { font-family: "Courier New", monospace; font-size: 0.9em; }
+ol { margin: 0.5em 0 1.1em 1.3em; padding: 0; }
+li { margin: 0 0 0.7em; orphans: 3; widows: 3; }
+#lwajha > article:first-of-type h3 { font-size: 1.7rem; }
+@media (min-width: 860px) {
+  body { padding: 38px; }
+}
+@media print {
+  body { max-width: none; padding: 0; font-size: 10.3pt; line-height: 1.38; }
+  nav { display: none; }
+  h1 { font-size: 29pt; }
+  h2 { font-size: 18pt; margin-top: 7mm; }
+  h3 { font-size: 12.5pt; }
+  section { column-count: 2; column-gap: 8mm; column-rule: 0.3pt solid #bbb; }
+  section > h2 { column-span: all; }
+  #lwajha, #lyoum, #masadir { column-count: 1; }
+  article, p, li { break-inside: auto; }
+  h2, h3 { break-after: avoid-page; }
+  a { text-decoration: none; }
+}
