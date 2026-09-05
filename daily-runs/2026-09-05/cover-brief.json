@@ -17,26 +17,52 @@
     "Unqualified legal-verdict language"
   ],
   "secondary_teasers": [
-    "Hormuz: risk tla3, data mazal ناقصة",
+    "Hormuz: risk tla3, data mazal incomplete",
     "Legislatives 2026: l-imti7an howa enforcement"
   ],
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-05/assets/cover.svg",
+  "cover_asset_blob": "6f2f54b5a8c4a291d95bec68722b1491954a973b",
   "image_generation_status": "NOT_AVAILABLE",
-  "visual_qa_status": "PENDING",
-  "arabic_script_count": 1,
-  "cover_fallback_reason": "Generated binary image archival is unavailable through the connected GitHub UTF-8 text persistence path; version 3 requires a canonical self-contained SVG fallback.",
+  "image_generation_attempts": 0,
+  "image_generation_retry_used": false,
+  "visual_qa_status": "PASS",
+  "arabic_script_count": 0,
+  "cover_fallback_reason": "Generated binary image archival is unavailable through the connected GitHub UTF-8 text persistence path; version 3 therefore uses the canonical self-contained SVG fallback.",
   "input_blobs": {
     "editions/2026/09/2026-09-05/edition.md": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
     "editions/2026/09/2026-09-05/sources.json": "0b365f2ab8011178fe298539da637728b2d690be",
     "daily-runs/2026-09-05/editorial-report.json": "e4c8659ce90a7b5236f6385808f0ebfc0b7450cd"
   },
+  "input_lineage_recheck": {
+    "status": "PASS_UNCHANGED",
+    "edition_blob": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
+    "sources_blob": "0b365f2ab8011178fe298539da637728b2d690be",
+    "editorial_report_blob": "e4c8659ce90a7b5236f6385808f0ebfc0b7450cd"
+  },
+  "visual_qa": {
+    "status": "PASS",
+    "method": "Rendered the exact persisted SVG asset and visually inspected the resulting cover image.",
+    "checks": {
+      "masthead_visible": "PASS",
+      "exact_date_visible": "PASS",
+      "headline_legible": "PASS",
+      "camp_labels_legible": "PASS",
+      "un_attribution_legible": "PASS",
+      "secondary_teasers_legible": "PASS",
+      "no_clipping_or_overlap": "PASS",
+      "non_graphic": "PASS",
+      "no_fabricated_documentary_subjects": "PASS"
+    }
+  },
   "github_text_read_back": {
-    "status": "PENDING",
-    "brief_path": "daily-runs/2026-09-05/cover-brief.json",
-    "asset_path": "editions/2026/09/2026-09-05/assets/cover.svg"
+    "initial_brief_read_back": "PASS",
+    "asset_read_back": "PASS",
+    "asset_blob": "6f2f54b5a8c4a291d95bec68722b1491954a973b",
+    "final_brief_read_back": "PENDING_THIS_WRITE"
   },
   "handoff": {
-    "ready_for_publication_builder": false
+    "ready_for_publication_builder": true,
+    "final_publication_status_claimed": false
   }
 }
