@@ -5,7 +5,7 @@
   "deep_research": "COMPLETE",
   "editorial": "COMPLETE",
   "publishing": "PENDING",
-  "cover": "RUNNING",
+  "cover": "COMPLETE",
   "overall_status": "PENDING",
   "publication_source_package": "PENDING",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
@@ -13,9 +13,9 @@
   "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
   "ready_for_codex_rendering": false,
   "image_generation_status": "NOT_AVAILABLE",
-  "visual_qa_status": "PENDING",
+  "visual_qa_status": "PASS",
   "github_image_archive": "NOT_APPLICABLE_SVG_TEXT_ASSET",
-  "cover_binary_archive": "PENDING",
+  "cover_binary_archive": "NOT_APPLICABLE_SVG_FALLBACK",
   "blocking_reason": null,
   "final_publication_status": "PENDING",
   "current_research_started_at": "2026-09-05T01:05:00+01:00",
@@ -28,9 +28,9 @@
   "editorial_completed_at": "2026-09-05T01:32:00+01:00",
   "editorial_blocking_reason": null,
   "cover_started_at": "2026-09-05T01:32:00+01:00",
-  "cover_completed_at": null,
+  "cover_completed_at": "2026-09-05T01:35:00+01:00",
   "cover_blocking_reason": null,
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-05/assets/cover.svg",
-  "cover_fallback_reason": "GitHub scheduled connector supports UTF-8 text persistence but not generated binary image archival; version 3 therefore requires a canonical self-contained SVG fallback."
+  "cover_fallback_reason": "Generated binary image archival is unavailable through the connected GitHub UTF-8 text persistence path; version 3 therefore uses the canonical self-contained SVG fallback."
 }
