@@ -108,6 +108,14 @@ class EditorialDepthTests(unittest.TestCase):
         self.assertEqual(report["chief_editor_regeneration_requests"], [])
         self.assertGreaterEqual(report["total_word_count"], 4000)
 
+    def test_production_l_mghrib_heading_maps_to_morocco(self):
+        text = markdown().replace("## L-Mghreb — dossier", "## L-Mghrib")
+        report = evaluate(text, POLICY)
+        morocco = report["per_section_word_counts"]["morocco"]
+        self.assertEqual(morocco["heading"], "L-Mghrib")
+        self.assertGreaterEqual(morocco["word_count"], 700)
+        self.assertTrue(morocco["pass"])
+
     def test_meknes_thin_news_exception_is_explicit(self):
         text = markdown(meknes=20).replace(
             "## Meknes Radar — dossier\n\n",
@@ -127,3 +135,4 @@ class EditorialDepthTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
