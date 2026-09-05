@@ -34,10 +34,14 @@ investigations:
 section_aliases:
   history: ["tarikh l-mghreb", "history"]
   literature_culture: ["adab", "literature", "culture"]
-  morocco: ["l-mghreb", "morocco"]
+  # The production edition uses the Darija Latin heading "L-Mghrib".
+  # Keep the older transliteration as a compatibility alias for fixtures and
+  # previously authored editions.
+  morocco: ["l-mghrib", "l-mghreb", "morocco"]
   palestine: ["filastin", "palestine"]
   meknes: ["meknes"]
   world: ["l-3alam", "world"]
   ai: ["ai w technology", "ai", "technology"]
   science: ["science"]
   investigations: ["investigations"]
+
