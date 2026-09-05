@@ -1,39 +1,38 @@
 {
   "date": "2026-09-05",
   "timezone": "Africa/Casablanca",
-  "editorial_started_at": "2026-09-05T01:22:00+01:00",
-  "editorial_completed_at": "2026-09-05T01:32:00+01:00",
-  "observed_repository_commit_at_final_prerequisite_read": "8297ed446c91a8762d7ba63d9c31d0be3b8f25e8",
+  "editorial_started_at": "2026-09-05T09:16:00+01:00",
+  "editorial_completed_at": "2026-09-05T09:24:00+01:00",
   "input_blobs": {
-    "daily-runs/2026-09-05/current-news.json": "6a41a67e45e9f43a556033908cf01e2515493e9d",
-    "daily-runs/2026-09-05/deep-features.json": "c23efcacf12046d47a7e95980902b9c7e5a5c52c"
+    "daily-runs/2026-09-05/current-news.json": "d053fdc25afc6cb11f25e60818f65f46bd06c077",
+    "daily-runs/2026-09-05/deep-features.json": "0c7b5f00a513abfad8e3ca27cbf17151f8a0679b"
   },
   "input_lineage_recheck": {
     "status": "PASS_UNCHANGED",
-    "current_news_blob": "6a41a67e45e9f43a556033908cf01e2515493e9d",
-    "deep_features_blob": "c23efcacf12046d47a7e95980902b9c7e5a5c52c"
+    "current_news_blob": "d053fdc25afc6cb11f25e60818f65f46bd06c077",
+    "deep_features_blob": "0c7b5f00a513abfad8e3ca27cbf17151f8a0679b"
   },
   "edition_path": "editions/2026/09/2026-09-05/edition.md",
   "sources_path": "editions/2026/09/2026-09-05/sources.json",
   "output_blobs": {
-    "editions/2026/09/2026-09-05/edition.md": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
-    "editions/2026/09/2026-09-05/sources.json": "0b365f2ab8011178fe298539da637728b2d690be"
+    "editions/2026/09/2026-09-05/edition.md": "4bd94e183a7cdc349b6334562fbae9c6564f6188",
+    "editions/2026/09/2026-09-05/sources.json": "a18cf8543b5a95709d6b77e40f6f914a696e6135"
   },
-  "total_word_count": 5860,
+  "total_word_count": 5191,
   "section_word_counts": {
-    "Lwajha": 736,
-    "Lyoum f joumla wa7da": 32,
-    "L-Mghrib": 779,
-    "Meknes": 213,
-    "Filastin": 530,
-    "L-3alam": 433,
-    "AI w Technology": 445,
-    "Science": 531,
-    "Tarikh l-Mghreb": 845,
-    "Adab w Taqafa": 890,
-    "Investigations": 189,
-    "Saf7at Lkhtam": 196,
-    "Masadir": 15
+    "Lwajha": 654,
+    "Lyoum f joumla wa7da": 30,
+    "L-Mghrib": 702,
+    "Meknes": 192,
+    "Filastin": 504,
+    "L-3alam": 264,
+    "AI w Technology": 359,
+    "Science": 511,
+    "Tarikh l-Mghreb": 815,
+    "Adab w Taqafa": 820,
+    "Investigations": 138,
+    "Saf7at Lkhtam": 168,
+    "Masadir": 8
   },
   "depth_gate": {
     "total_hard_minimum": 4000,
@@ -44,102 +43,87 @@
     "literature_culture_hard_minimum": 800,
     "meknes_hard_minimum": 300,
     "meknes_exception_used": true,
-    "meknes_exception_reason": "Task 1 documented a legitimate THIN-NEWS EXCEPTION: no major verified Meknes-city-specific development in the fresh window; regional SRM Fes-Meknes water tender retained without padding or false localization.",
-    "max_paragraph_word_count": 66,
+    "meknes_exception_reason": "Task 1 explicitly recorded PASS_THIN_NEWS_EXCEPTION because no stronger verified Meknes-city-specific fresh development was available; the regional SRM Fes-Meknes tender is kept narrow and not falsely localized.",
     "status": "PASS"
   },
   "lead_story_id": "PAL-20260905-WB-UN-CAMPS",
   "lead_story_headline": "West Bank: rapport UN kaygol 3 camps tfrgho mn sokkanhom w rjou3 mazal mamnou3",
   "lead_story_section": "Filastin",
-  "editorial_angle": "Treat the UN finding on displacement and blocked return as a humanitarian, legal and political development while keeping legal characterizations explicitly attributed and separating verified findings from unknown future policy response.",
+  "editorial_angle": "Lead on the verified UN finding about displacement and blocked return while keeping legal characterizations attributed and separating the report itself from unverified future policy response.",
   "emotional_tone": "serious, restrained, evidence-led",
   "visual_facts": [
-    "The named refugee camps are Jenin, Nur Shams and Tulkarm.",
+    "The three named refugee camps are Jenin, Nur Shams and Tulkarm.",
     "UN Human Rights published the cited report on 2026-09-04.",
-    "Displacement and blocked return are presented as findings attributed to the UN report.",
-    "The edition does not establish a verified image of a specific resident or a single documentary scene for the three camps."
+    "Displacement and blocked return are presented as findings attributed to the UN report."
   ],
   "visual_elements_to_avoid": [
     "Unverified identifiable residents presented as people from the three named camps.",
-    "Invented documentary photographs or fabricated demolition scenes.",
-    "Imagery that converts an attributed UN legal assessment into an unqualified judicial verdict.",
-    "Graphic victim imagery or unsupported military scenes."
+    "Invented documentary destruction scenes.",
+    "Graphic victim imagery.",
+    "Imagery that turns an attributed UN legal assessment into an unqualified final judicial verdict."
   ],
-  "cover_sensitivity_notes": "Keep the cover factual and non-graphic. Do not fabricate victims, named individuals, military units or destruction not tied to verified visual evidence. Attribute the legal finding to UN Human Rights rather than presenting it as an independent final judgment.",
+  "cover_sensitivity_notes": "Keep any later cover factual and non-graphic; do not fabricate victims, named individuals, military units or destruction not tied to verified visual evidence.",
   "secondary_story_ids": [
-    "WORLD-20260905-HORMUZ-IRAN",
+    "WORLD-20260905-HORMUZ-TRAFFIC",
     "MA-20260905-ELECTION-INTEGRITY",
-    "AI-20260905-OPENAI-ASTRA-SAFETY",
-    "history-sijilmasa-transsaharan-gold-trade",
-    "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
-    "science-social-comparison-behaviour-change-2025"
+    "AI-20260905-OPENAI-AGENT-INCIDENT",
+    "science-wellbeing-interventions-network-meta-2026",
+    "history-treaty-fez-1912-protectorate-state-power",
+    "culture-fatema-mernissi-dreams-trespass-memory-power"
   ],
   "secondary_story_headlines": [
-    "Hormuz: l-khatar ma b9ach ghir hdra, walakin l-data mazal incomplete",
-    "Legislatives 2026: INPPLC kat3li standard dyal integrity, l-imti7an howa enforcement",
-    "GPT-6 Astra: system card kay3ti evidence 3la company claims, ma-shi independent verdict",
-    "Sijilmasa: port bla b7ar f Tafilalt",
-    "Tayeb Saddiki w l-halqa: kifach masra7 modern y9dar ykoun Maghribi bla ma yjmd heritage",
-    "M9arana m3a nass t9dar tbddl s-solouk, walakin l-effect sghir w context kay7kem"
+    "Hormuz: observed shipping ba9i ta7t recent average",
+    "Legislatives 2026: INPPLC kat7et integrity f qalb process",
+    "AI agents: disclosure jdida katzid pressure 3la safeguards",
+    "Ash kay3awn 3la well-being? 183 RCT kay3tiw map, ma-shi prescription wa7da",
+    "Traite de Fes 1912: kifach bqat dawla f l-forma w tbdlat l-quwa f l-wa9e3",
+    "Dreams of Trespass: l-7doud, memory w power f kitab Fatema Mernissi"
   ],
-  "history_topic_id": "history-sijilmasa-transsaharan-gold-trade",
-  "history_teaser": "Sijilmasa khddmat qroun b7al port f l-yabsa: trade dyal Sahara kan m3alla9 b-dahab, walakin ta b-lma, zra3a, minting, security w state power.",
-  "literature_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
-  "literature_teaser": "Tayeb Saddiki sta3mel l-halqa, orality, zajal w adaptation bach ybni masra7 modern bla myth dyal purity w bla copy sahl mn Europe.",
-  "science_topic_id": "science-social-comparison-behaviour-change-2025",
+  "history_topic_id": "history-treaty-fez-1912-protectorate-state-power",
+  "history_teaser": "Traite de Fes 1912 kaybayan kifach sultanate bqat f l-forma f nafs l-wa9t li effective colonial control t9wa.",
+  "literature_topic_id": "culture-fatema-mernissi-dreams-trespass-memory-power",
+  "literature_teaser": "Dreams of Trespass kay9ra l-7doud b7al space, rule, memory w power bla ma y7awel household wa7d l-model universal.",
+  "science_topic_id": "science-wellbeing-interventions-network-meta-2026",
   "stories_rejected": [
-    {
-      "id": "repeat-gaza-us-forced-displacement",
-      "reason": "Task 1 marked it as a previous-day lead with no material implementation development in the fresh window."
-    },
-    {
-      "id": "repeat-us-china-ai-safety-talks",
-      "reason": "Task 1 marked it as already covered with no new confirmed agenda or official material development."
-    }
+    {"id":"repeat-gaza-us-forced-displacement","reason":"Task 1 marked it already covered without a material fresh development."},
+    {"id":"repeat-us-china-ai-safety-talks","reason":"Task 1 marked it already covered without a new confirmed agenda."},
+    {"id":"history-sijilmasa-transsaharan-gold-trade","reason":"Publication ledger memory in Task 2 marks it published today; the rerun selected a fresh history topic."},
+    {"id":"culture-tayeb-saddiki-halqa-modern-moroccan-theatre","reason":"Publication ledger memory in Task 2 marks it published today; the rerun selected a fresh culture topic."},
+    {"id":"science-social-comparison-behaviour-change-2025","reason":"Publication ledger memory in Task 2 marks it published today; the rerun selected a fresh science topic."}
   ],
   "stories_held": [
-    {
-      "id": "al-haouz-reconstruction-2023-2028",
-      "reason": "Investigation remains NEEDS_VERIFICATION / NOT_READY; edition includes only a restrained dossier-status update and does not manufacture an expose."
-    }
+    {"id":"al-haouz-reconstruction-2023-2028","reason":"NEEDS_VERIFICATION / NOT_READY; no exposé manufactured."},
+    {"id":"morocco-water-security-2020-2027","reason":"RESEARCHING / NOT_READY; kept as dossier context only."}
   ],
-  "investigation_dossiers_considered": [
-    "al-haouz-reconstruction-2023-2028",
-    "morocco-water-security-2020-2027"
-  ],
+  "investigation_dossiers_considered": ["al-haouz-reconstruction-2023-2028","morocco-water-security-2020-2027"],
   "investigation_selected_for_final_publication": false,
   "fact_check_status": "PASS",
   "fact_check_notes": [
-    "Material claims were constrained to the Task 1 and Task 2 records and their exact source URLs.",
-    "UN legal findings remain attributed to UN Human Rights.",
-    "Hormuz AIS/Kpler coverage retains the incomplete-observation caveat.",
-    "Anthropic IPO timing remains source-reported rather than company-confirmed.",
-    "GPT-6 Astra safety material is labeled company-primary and not independent verification.",
-    "Al Haouz official completion evidence and unresolved transparency gaps are both preserved without accusation."
+    "Material claims are constrained to the two verified current research packets and their recorded exact URLs.",
+    "UN/OHCHR legal findings remain explicitly attributed.",
+    "Hormuz AIS/Kpler reporting retains the incomplete-observation caveat.",
+    "The OpenAI agent incident is labeled independent Reuters reporting with technical scope still limited by unavailable full internal logs.",
+    "The NVIDIA/Hugging Face openness statement is treated as a future company commitment, not a verified outcome.",
+    "Science network rankings are not presented as universal superiority.",
+    "History distinguishes legal continuity from effective colonial control.",
+    "Mernissi is not universalized as documentary evidence for all Moroccan women."
   ],
   "darija_status": "PASS",
   "arabic_script_count": 0,
   "language_check": {
-    "method": "Deterministic Unicode-range scan on the exact generated edition text before the final GitHub write, followed by exact GitHub blob read-back of the persisted edition.",
-    "ranges_checked": [
-      "U+0600-U+06FF",
-      "U+0750-U+077F",
-      "U+08A0-U+08FF",
-      "U+FB50-U+FDFF",
-      "U+FE70-U+FEFF"
-    ],
-    "count": 0,
-    "repair_performed": true
+    "method": "Deterministic Unicode-range scan executed on the exact authored edition payload before persistence; GitHub returned the persisted edition blob SHA for that payload.",
+    "ranges_checked": ["U+0600-U+06FF","U+0750-U+077F","U+08A0-U+08FF","U+FB50-U+FDFF","U+FE70-U+FEFF"],
+    "count": 0
   },
   "citation_gate": {
-    "edition_source_id_range": "S01-S23",
+    "edition_source_id_range": "S01-S19",
     "all_cited_source_ids_resolve": true,
     "exact_urls_preserved_from_research_packets": true,
     "status": "PASS"
   },
-  "source_count": 23,
-  "primary_source_count": 10,
-  "independent_origin_count": 17,
+  "source_count": 19,
+  "primary_source_count": 7,
+  "independent_origin_count": 15,
   "quality_scores": {
     "Front Page": 9,
     "Morocco": 8,
@@ -147,7 +131,7 @@
     "Palestine": 9,
     "World": 8,
     "AI": 8,
-    "Science": 9,
+    "Science": 8,
     "Tarikh": 9,
     "Adab/Culture": 9,
     "Investigations": 8,
@@ -157,19 +141,11 @@
   },
   "quality_gate_status": "PASS",
   "memory_candidates": {
-    "front_page_story_ids": [
-      "PAL-20260905-WB-UN-CAMPS",
-      "WORLD-20260905-HORMUZ-IRAN",
-      "MA-20260905-ELECTION-INTEGRITY",
-      "AI-20260905-OPENAI-ASTRA-SAFETY",
-      "history-sijilmasa-transsaharan-gold-trade",
-      "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
-      "science-social-comparison-behaviour-change-2025"
-    ],
-    "history_topic_id": "history-sijilmasa-transsaharan-gold-trade",
-    "literature_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
-    "science_topic_id": "science-social-comparison-behaviour-change-2025",
-    "investigation_ids": ["al-haouz-reconstruction-2023-2028"],
+    "front_page_story_ids": ["PAL-20260905-WB-UN-CAMPS","WORLD-20260905-HORMUZ-TRAFFIC","MA-20260905-ELECTION-INTEGRITY","AI-20260905-OPENAI-AGENT-INCIDENT","science-wellbeing-interventions-network-meta-2026","history-treaty-fez-1912-protectorate-state-power","culture-fatema-mernissi-dreams-trespass-memory-power"],
+    "history_topic_id": "history-treaty-fez-1912-protectorate-state-power",
+    "literature_topic_id": "culture-fatema-mernissi-dreams-trespass-memory-power",
+    "science_topic_id": "science-wellbeing-interventions-network-meta-2026",
+    "investigation_ids": [],
     "publication_state": "CANDIDATES_ONLY_NOT_PUBLISHED_BY_TASK_3"
   },
   "handoff": {
