@@ -1,0 +1,404 @@
+{
+  "date": "2026-09-05",
+  "timezone": "Africa/Casablanca",
+  "research_started_at": "2026-09-05T01:05:00+01:00",
+  "research_completed_at": "2026-09-05T01:07:48+01:00",
+  "observed_input_commit": "94b618372847fac8373302e28418785e61e768ca",
+  "input_blobs": {
+    "prompts/production-master.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
+    "prompts/scheduled/01-current-news.md": "62a16d8535b553c80deb8bffe1601c0513b0e2fa",
+    "AGENTS.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
+    "SPEC-v1.md": "0dbb672a061ded020ff4edb968ea85c9a39468d6",
+    "config/execution-constraints.yaml": "96a6f83f465995f0e734d2e2bfb0df0cb685b685",
+    "config/scheduled-workflow.yaml": "2618fa965fa6285453e37843c220c4394b3543fe",
+    "config/editorial.yaml": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2",
+    "config/editorial-depth.yaml": "d105e9694ad3d484927eb01238e8ecae21e033e8",
+    "config/quality-gates.yaml": "aa6ef4776541d672fe7f676c156007599c49dcdb",
+    "config/sources.yaml": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf",
+    "config/roles.yaml": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5",
+    "agents/morocco.md": "3324918425b0fd10538a3a94559573fa15441cee",
+    "agents/meknes.md": "2ee80646609bf9a2f964c92c3d965d143e64cce9",
+    "agents/palestine.md": "b55178c67a1eb868f5b8c39d5cf5c3ed25584b56",
+    "agents/world.md": "964bf834ea5d3cc430dca92f7f91f89b297f932a",
+    "agents/ai.md": "96e4ce997d6a300d96ac411875a16caf2bca3504"
+  },
+  "continuity": {
+    "previous_current_news": "daily-runs/2026-09-04/current-news.json",
+    "previous_edition": "editions/2026/09/2026-09-04/edition.md",
+    "covered_stories": "memory/covered-stories.json",
+    "watchlist": "memory/watchlist.json",
+    "publication_ledger": {"path": "memory/publication-ledger.json", "status": "NOT_FOUND"},
+    "continuity_checked": true,
+    "repeat_rule": "Story lli tghatta lbare7 ma tdakhlch ila ma kaynach material development jdid.",
+    "rejected_repeats": [
+      "US rejection dyal forced displacement mn Gaza: already lead f edition dyal 2026-09-04, ma ban 7tta implementation step jdid f had window.",
+      "US-China AI safety talks: already covered f edition dyal 2026-09-04, ma ban 7tta agenda final wla official confirmation jdid."
+    ]
+  },
+  "morocco": [
+    {
+      "STORY_ID": "MA-20260905-ELECTION-INTEGRITY",
+      "DESK": "morocco",
+      "PROPOSED_TITLE": "Legislatives 2026: INPPLC kat7et integrity f qalb mar7alat candidature",
+      "IMPORTANCE_SCORE": 8,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "INPPLC nchart position institutionnel kaytleb integrity collective f jami3 marahil election dyal 23 September. F nafs l-window, depot dyal candidatures mazal khddam qbl deadline.",
+      "CHNO_W9E3": "Hadi signal institutionnel 3la prevention dyal corruption w vote-buying, ma-shi preuve belli process kamel nadif. L-result khaso yt9as b-chikayat, sanctions, decisions w observation mosta9illa.",
+      "KEY_FACTS": [
+        "FACT: election dyal Chambre des representants mbermja l-23 September 2026.",
+        "FACT: INPPLC d3at l-integrity w participation b-la contrepartie f process electoral.",
+        "UNKNOWN: had sources ma kay3tiwsh natija measurable daba 3la violations w enforcement.",
+        "L7OKM DYAL L2ADILLA: INSUFFICIENT EVIDENCE 3la quality final dyal election; POSITIVE 3la clarity dyal integrity standard."
+      ],
+      "PRIMARY_SOURCES": [
+        {
+          "source_name": "Maroc.ma / INPPLC relay",
+          "source_type": "official-institutional-relay",
+          "origin": "INPPLC",
+          "url": "https://www.maroc.ma/fr/actualites/linpplc-appelle-faire-de-lintegrite-un-engagement-collectif-guidant-le-processus-electoral",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "INPPLC integrity position for the legislative election process",
+          "independence_note": "Official relay; kaythbet chno galt l-instance, ma kaythbetch natija dyal integrity f terrain."
+        }
+      ],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "TelQuel",
+          "source_type": "independent-reporting",
+          "origin": "TelQuel",
+          "url": "https://telquel.ma/instant-t/2026/09/04/lutte-anti-corruption-linpplc-appelle-a-faire-de-lintegrite-un-pilier-du-processus-electoral_2005676/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Independent publication of the INPPLC call",
+          "independence_note": "Kaycross-check publication dyal statement, walakin underlying origin ba9i INPPLC."
+        }
+      ],
+      "SOURCE_ORIGINS": ["INPPLC", "TelQuel"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 3la implementation w enforcement; LOW 3la content dyal statement.",
+      "CONTEXT": "Morocco dakhla l-campaign cycle; previous coverage knt 3la candidatures w representation reforms.",
+      "WHY_IT_MATTERS": "Integrity dyal candidatures, financement w vote kaymss directly trust f institutions.",
+      "STRATEGIC_ANGLE": "Fssel bin standard institutionnel w evidence dyal enforcement.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "PUBLISH"
+    }
+  ],
+  "meknes": [
+    {
+      "STORY_ID": "MEK-20260905-FM-WATER-TENDER",
+      "DESK": "meknes",
+      "PROPOSED_TITLE": "Fes-Meknes: appel d'offres l-exploitation dyal 13 stations dyal ma l-ma3dani",
+      "IMPORTANCE_SCORE": 7,
+      "FRESHNESS": "fresh-24h-regional",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reporting jdida f 4 September katwassaf appel d'offres dyal SRM Fes-Meknes l-exploitation w maintenance dyal 13 stations dyal dessalement/de-mineralisation, b-estimation qrib 13.44 million MAD.",
+      "CHNO_W9E3": "Hadchi tender w service contract, ma-shi preuve belli stations khdamin daba wla belli project kamel tsala. L-scope kaymss provinces f region, ma-shi Meknes city b-dabt.",
+      "KEY_FACTS": [
+        "FACT: tender reference 322/CL/2026/SRMFM kayhder 3la 13 stations.",
+        "FACT: estimation published qrib 13.44 million MAD w deadline dyal offers 1 October 2026.",
+        "UNKNOWN: contractor final, award result, start date effective, output dyal water w service impact."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "TelQuel",
+          "source_type": "independent-reporting-with-MAP-attribution",
+          "origin": "TelQuel / MAP / SRM-FM",
+          "url": "https://telquel.ma/instant-t/2026/09/04/fes-meknes-une-vaste-operation-de-dessalement-des-eaux-saumatres-bientot-lancee_2005750/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Scope, 13 stations, regional water-security objective",
+          "independence_note": "Article kaynseb details l-SRM; headline ma kay3nich implementation completed."
+        },
+        {
+          "source_name": "Commande Public Maroc",
+          "source_type": "procurement-discovery",
+          "origin": "Official tender metadata relay",
+          "url": "https://cpmaroc.com/appels-offres/110781",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Tender reference, estimate, deadline and contracting entity",
+          "independence_note": "Discovery/relay; had source bo7do ma kaythbetch award wla completion."
+        }
+      ],
+      "SOURCE_ORIGINS": ["SRM Fes-Meknes", "TelQuel", "procurement metadata"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 7it primary official tender page ma tfetchach direct f had run.",
+      "CONTEXT": "THIN-NEWS EXCEPTION: Commune de Meknes w UMI pages li tcheckaw ma ban fihomch city-specific development kbira dated 4 September.",
+      "WHY_IT_MATTERS": "Water security regional mohimma, walakin accountability khas-ha tender -> award -> operation -> output.",
+      "STRATEGIC_ANGLE": "Nra9bo award, contractor, timeline w performance, bla ma n7awlo tender l-success.",
+      "CONFIDENCE": "MEDIUM",
+      "RECOMMENDATION": "PUBLISH"
+    }
+  ],
+  "palestine": [
+    {
+      "STORY_ID": "PAL-20260905-WB-UN-CAMPS",
+      "DESK": "palestine",
+      "PROPOSED_TITLE": "West Bank: UN report kaygol tared 3omran 3 dyal refugee camps w man3 l-rijou3",
+      "IMPORTANCE_SCORE": 10,
+      "FRESHNESS": "fresh-24h-primary-report",
+      "EVENT_TIME": "2025-01 to 2026-09",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "UN Human Rights nchart report jdid kaygol belli Israeli forces forcibly displaced population kamla mn Jenin, Nur Shams w Tulkarm refugee camps f 2025 w mazal katmna3 return.",
+      "CHNO_W9E3": "Hadi finding dyal UN Human Rights report, ma-shi casualty ticker. Report kayrbet displacement, destruction dyal homes/infrastructure w restrictions 3la return b-violation of international law.",
+      "KEY_FACTS": [
+        "FACT: UN report published 4 September 2026.",
+        "UN FINDING: populations dyal 3 camps tforced to leave during Operation Iron Wall and return remained blocked.",
+        "FACT: report kay3ti damage shares l-structures f camps based on its documented period.",
+        "UNKNOWN: immediate policy response Israeliya w wach access/return ghadi ytbdl mn b3d report."
+      ],
+      "PRIMARY_SOURCES": [
+        {
+          "source_name": "United Nations in Palestine / UN Human Rights",
+          "source_type": "primary-international-organization-report",
+          "origin": "UN Human Rights",
+          "url": "https://palestine.un.org/en/322146-israeli-forces-expelled-palestinian-refugees-three-west-bank-camps-violation-international",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "UN report findings on displacement, destruction and blocked return",
+          "independence_note": "Primary UN finding; legal characterization khas-ha tb9a attributed l-report."
+        }
+      ],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Al Jazeera",
+          "source_type": "independent-reporting",
+          "origin": "Al Jazeera",
+          "url": "https://www.aljazeera.com/news/2026/9/4/villagers-vow-rebuild-despite-devastating-mass-demolition-west-bank",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Separate field reporting on demolitions and displacement pressure in the occupied West Bank",
+          "independence_note": "Ma kaycross-checkich kol detail dyal 3 camps, walakin kay3ti independent context 3la displacement pressure."
+        }
+      ],
+      "SOURCE_ORIGINS": ["UN Human Rights", "Al Jazeera"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "LOW 3la chno kaygol report; response Israeliya detailed l-report ma tverifatch f had run.",
+      "CONTEXT": "Story jdida mkhtalfa 3la Gaza displacement lead dyal 4 September.",
+      "WHY_IT_MATTERS": "Kaymss forced displacement, refugee rights, return, occupation policy w international law.",
+      "STRATEGIC_ANGLE": "Khlli legal findings attributed precisely w nra9bo implementation, access w response.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "LEAD"
+    }
+  ],
+  "world": [
+    {
+      "STORY_ID": "WORLD-20260905-HORMUZ-IRAN",
+      "DESK": "world",
+      "PROPOSED_TITLE": "Hormuz: traffic commercial ba9i ta7t l-average m3a escalation US-Iran",
+      "IMPORTANCE_SCORE": 10,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters na9lat Kpler data katbayn observed commodity-vessel traffic f Strait of Hormuz ba9i ta7t 10-day average, f context dyal renewed US-Iran escalation w pressure 3la energy markets.",
+      "CHNO_W9E3": "L-data dyal AIS observed ma katshmilch vessels li kaytfiw transponders, donc ma khasnach n9dmoha b7al total traffic exact. Oil prices tla3o f nafs l-window, walakin analysts kayfsslo bin risk premium w actual export disruption.",
+      "KEY_FACTS": [
+        "FACT: observed commodity traffic f Hormuz kan below recent average f Reuters/Kpler data.",
+        "FACT: energy prices tla3o strongly f week.",
+        "UNKNOWN: ch7al mn disruption ghadi ytb9a w ch7al ghadi y2atr actual export volumes.",
+        "FACT: had route critical l-oil w LNG global trade."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-reporting-data",
+          "origin": "Reuters / Kpler",
+          "url": "https://www.reuters.com/world/middle-east/gulf-shipping-traffic-via-hormuz-keeps-below-10-day-average-data-shows-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Observed shipping traffic and methodological caveat",
+          "independence_note": "Kpler data through Reuters; observed AIS traffic is not complete universe."
+        },
+        {
+          "source_name": "Reuters Energy",
+          "source_type": "independent-market-reporting",
+          "origin": "Reuters",
+          "url": "https://www.reuters.com/business/energy/oil-set-steepest-weekly-gain-since-mid-july-over-intensifying-us-iran-tensions-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Oil price reaction and supply-risk context",
+          "independence_note": "Market reporting; forecasts remain analyst estimates."
+        }
+      ],
+      "SOURCE_ORIGINS": ["Reuters", "Kpler"],
+      "CONTRADICTORY_EVIDENCE": ["Risk premium strong, walakin reported actual export-volume impact ba9i ma wslch nafs scale dyal price move."],
+      "UNCERTAINTY": "MEDIUM 3la duration and full traffic count.",
+      "CONTEXT": "Hadchi development jdid 3la escalation li kan already ongoing.",
+      "WHY_IT_MATTERS": "Energy, inflation, shipping, insurance w financing conditions kaymssou Morocco w global economy.",
+      "STRATEGIC_ANGLE": "Rkkez 3la route risk w measurable traffic, ma-shi rhetoric bo7dha.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "LEAD"
+    },
+    {
+      "STORY_ID": "WORLD-20260905-EQUAL-EARTH",
+      "DESK": "world",
+      "PROPOSED_TITLE": "UN katda3em Equal Earth map bach Africa ma tb9ach msghra f projection",
+      "IMPORTANCE_SCORE": 6,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "UN General Assembly approved resolution kaychj3 adoption dyal Equal Earth projection, m3a push Africain bach maps educational w institutional ma yb9awsh yqllso apparent size dyal Africa.",
+      "CHNO_W9E3": "Resolution symbolic w non-binding. Mercator ba9i useful f navigation; l-change l-mo9tara7 kayhder 3la representation educational/institutional.",
+      "KEY_FACTS": [
+        "FACT: resolution approved by a large majority.",
+        "FACT: Equal Earth kay7afd 3la relative area better than Mercator.",
+        "FACT: resolution ma hiyach binding."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-reporting",
+          "origin": "Reuters / UN General Assembly / Togo",
+          "url": "https://www.reuters.com/world/africa/un-approves-resolution-support-map-that-shows-africas-true-size-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "UN vote and non-binding map-projection initiative",
+          "independence_note": "Reuters reporting on a UN vote; policy impact remains future implementation."
+        }
+      ],
+      "SOURCE_ORIGINS": ["Reuters", "UN General Assembly", "Togo"],
+      "CONTRADICTORY_EVIDENCE": ["Mercator distortion problem ma kay3nich projection useless; navigation use-case different."],
+      "UNCERTAINTY": "LOW 3la vote; MEDIUM 3la real adoption by schools, institutions and platforms.",
+      "CONTEXT": "Africa representation story with policy-symbolic value, ma-shi security crisis.",
+      "WHY_IT_MATTERS": "Maps kay2atrou 3la public perception, education w symbolic equality.",
+      "STRATEGIC_ANGLE": "Ma n9dmoush symbolic resolution b7al binding global replacement.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "BRIEF"
+    }
+  ],
+  "ai": [
+    {
+      "STORY_ID": "AI-20260905-ANTHROPIC-IPO-TIMING",
+      "DESK": "ai",
+      "PROPOSED_TITLE": "Anthropic IPO: Reuters sources kaygolo launch t2jjel l-mid October",
+      "IMPORTANCE_SCORE": 8,
+      "FRESHNESS": "fresh-24h",
+      "EVENT_TIME": "2026-09-04",
+      "PUBLICATION_TIME": "2026-09-04",
+      "WHAT_IS_NEW": "Reuters sources kaygolo marketing dyal Anthropic IPO t7rrk l-mid October w prospectus timing t2jjel. Anthropic ma 3tatsh comment.",
+      "CHNO_W9E3": "Hadi source-based financial reporting, ma-shi company announcement. Timing w valuation remain subject to change.",
+      "KEY_FACTS": [
+        "LEAK / SOURCE REPORT: Reuters kaynseb timing l-sources familiar with process.",
+        "FACT: Anthropic declined to comment f Reuters report.",
+        "UNKNOWN: final valuation, prospectus date, final listing date."
+      ],
+      "PRIMARY_SOURCES": [],
+      "INDEPENDENT_SOURCES": [
+        {
+          "source_name": "Reuters",
+          "source_type": "independent-reporting-sourced",
+          "origin": "Reuters unnamed sources",
+          "url": "https://www.reuters.com/world/anthropic-ipo-launch-shifts-toward-mid-october-sources-say-2026-09-04/",
+          "published_at": "2026-09-04",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Reported IPO timing shift and uncertainty",
+          "independence_note": "Company ma confirmatch; khas l-story tb9a labelled source report."
+        }
+      ],
+      "SOURCE_ORIGINS": ["Reuters unnamed sources"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "HIGH 3la final timing and valuation.",
+      "CONTEXT": "AI capital markets kaywliw benchmark l-demand 3la frontier-lab economics.",
+      "WHY_IT_MATTERS": "IPO scale t9dar t2atr valuation expectations, capital access w scrutiny dyal AI economics.",
+      "STRATEGIC_ANGLE": "Ma n7awloch sourced timing l-official fact.",
+      "CONFIDENCE": "MEDIUM",
+      "RECOMMENDATION": "BRIEF"
+    },
+    {
+      "STORY_ID": "AI-20260905-OPENAI-ASTRA-SAFETY",
+      "DESK": "ai",
+      "PROPOSED_TITLE": "OpenAI katnchar safety material jdida 3la GPT-6 Astra",
+      "IMPORTANCE_SCORE": 7,
+      "FRESHNESS": "fresh-48h-not-covered-yesterday",
+      "EVENT_TIME": "2026-09-03",
+      "PUBLICATION_TIME": "2026-09-03",
+      "WHAT_IS_NEW": "OpenAI News kayban fih Safety overview w System Card dyal GPT-6 Astra dated 3 September. Had primary material ma banatch f current-news packet dyal 4 September li tchecka.",
+      "CHNO_W9E3": "Company safety documents kaythbtou chno kat3len OpenAI 3la safeguards w evaluations. Ma kaythbtouch bo7dhom independent performance wla safety.",
+      "KEY_FACTS": [
+        "COMPANY ANNOUNCEMENT: OpenAI published Astra safety overview and system card.",
+        "COMPANY CLAIM: evaluation and safeguard claims need independent cross-check before treating them as demonstrated fact.",
+        "UNKNOWN: full third-party replication or independent benchmark result f had fresh window."
+      ],
+      "PRIMARY_SOURCES": [
+        {
+          "source_name": "OpenAI News",
+          "source_type": "company-primary",
+          "origin": "OpenAI",
+          "url": "https://openai.com/news/",
+          "published_at": "2026-09-03",
+          "accessed_at": "2026-09-05T01:07:48+01:00",
+          "claim_supported": "Publication existence and company framing for GPT-6 Astra safety materials",
+          "independence_note": "Primary company source only; ma kaynch independent proof f had object."
+        }
+      ],
+      "INDEPENDENT_SOURCES": [],
+      "SOURCE_ORIGINS": ["OpenAI"],
+      "CONTRADICTORY_EVIDENCE": [],
+      "UNCERTAINTY": "MEDIUM 7it independent evaluation ma tjam3atch f had run.",
+      "CONTEXT": "Fresh but 48h; included 7it ma tghattatch f previous packet and it is substantive safety documentation.",
+      "WHY_IT_MATTERS": "System cards kay3tiw evidence trail l-safety claims, limitations w evaluation design.",
+      "STRATEGIC_ANGLE": "Fssel company disclosure 3la independent verification.",
+      "CONFIDENCE": "HIGH",
+      "RECOMMENDATION": "PUBLISH"
+    }
+  ],
+  "blocked_sources": [
+    {
+      "source": "memory/publication-ledger.json",
+      "reason": "Exact GitHub path returned NOT_FOUND; ma tsta3mlatch b7al published memory."
+    },
+    {
+      "source": "Official Morocco public procurement portal direct tender page",
+      "reason": "Direct primary tender retrieval ma tverifach f had web run; regional water item lowered to MEDIUM confidence."
+    }
+  ],
+  "important_unknowns": [
+    "Election integrity enforcement outcomes mazal ma kaynach f selected fresh sources.",
+    "Fes-Meknes water tender award, contractor w operational output mazal unknown.",
+    "Israeli detailed response l-UN West Bank report ma tverifatch f had run.",
+    "Hormuz full traffic count incomplete 7it AIS-off vessels ma kaybanoch kamlin.",
+    "Anthropic IPO timing and valuation remain unconfirmed by company.",
+    "Independent third-party evaluation dyal GPT-6 Astra safety claims ma tjam3atch f had window."
+  ],
+  "contract_reads": [
+    {"path": "prompts/production-master.md", "status": "READ_OK", "blob_sha": "69d5cc846e202d364382e29a392b12d5ad090f22"},
+    {"path": "AGENTS.md", "status": "READ_OK", "blob_sha": "69d5cc846e202d364382e29a392b12d5ad090f22"},
+    {"path": "SPEC-v1.md", "status": "READ_OK", "blob_sha": "0dbb672a061ded020ff4edb968ea85c9a39468d6"},
+    {"path": "config/execution-constraints.yaml", "status": "READ_OK", "blob_sha": "96a6f83f465995f0e734d2e2bfb0df0cb685b685"},
+    {"path": "config/scheduled-workflow.yaml", "status": "READ_OK", "blob_sha": "2618fa965fa6285453e37843c220c4394b3543fe"},
+    {"path": "config/editorial.yaml", "status": "READ_OK", "blob_sha": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2"},
+    {"path": "config/editorial-depth.yaml", "status": "READ_OK", "blob_sha": "d105e9694ad3d484927eb01238e8ecae21e033e8"},
+    {"path": "config/quality-gates.yaml", "status": "READ_OK", "blob_sha": "aa6ef4776541d672fe7f676c156007599c49dcdb"},
+    {"path": "config/sources.yaml", "status": "READ_OK", "blob_sha": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf"},
+    {"path": "config/roles.yaml", "status": "READ_OK", "blob_sha": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5"},
+    {"path": "agents/morocco.md", "status": "READ_OK", "blob_sha": "3324918425b0fd10538a3a94559573fa15441cee"},
+    {"path": "agents/meknes.md", "status": "READ_OK", "blob_sha": "2ee80646609bf9a2f964c92c3d965d143e64cce9"},
+    {"path": "agents/palestine.md", "status": "READ_OK", "blob_sha": "b55178c67a1eb868f5b8c39d5cf5c3ed25584b56"},
+    {"path": "agents/world.md", "status": "READ_OK", "blob_sha": "964bf834ea5d3cc430dca92f7f91f89b297f932a"},
+    {"path": "agents/ai.md", "status": "READ_OK", "blob_sha": "96e4ce997d6a300d96ac411875a16caf2bca3504"}
+  ],
+  "sources_count": 11,
+  "primary_sources_count": 3,
+  "independent_source_origins_count": 8,
+  "quality_gate": {
+    "repository_contracts": "PASS",
+    "continuity_check": "PASS_WITH_LEDGER_NOT_FOUND",
+    "freshness": "PASS",
+    "source_traceability": "PASS",
+    "source_independence_review": "PASS",
+    "uncertainty_labels": "PASS",
+    "arabic_script_check": {
+      "method": "deterministic local Unicode range scan on generated JSON text before GitHub write",
+      "count": 0
+    },
+    "github_text_persistence": "PENDING_READ_BACK",
+    "status_semantics": "PENDING_FINAL_MERGE"
+  }
+}
