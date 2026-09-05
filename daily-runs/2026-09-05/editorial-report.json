@@ -1,0 +1,187 @@
+{
+  "date": "2026-09-05",
+  "timezone": "Africa/Casablanca",
+  "editorial_started_at": "2026-09-05T01:22:00+01:00",
+  "editorial_completed_at": "2026-09-05T01:32:00+01:00",
+  "observed_repository_commit_at_final_prerequisite_read": "8297ed446c91a8762d7ba63d9c31d0be3b8f25e8",
+  "input_blobs": {
+    "daily-runs/2026-09-05/current-news.json": "6a41a67e45e9f43a556033908cf01e2515493e9d",
+    "daily-runs/2026-09-05/deep-features.json": "c23efcacf12046d47a7e95980902b9c7e5a5c52c"
+  },
+  "input_lineage_recheck": {
+    "status": "PASS_UNCHANGED",
+    "current_news_blob": "6a41a67e45e9f43a556033908cf01e2515493e9d",
+    "deep_features_blob": "c23efcacf12046d47a7e95980902b9c7e5a5c52c"
+  },
+  "edition_path": "editions/2026/09/2026-09-05/edition.md",
+  "sources_path": "editions/2026/09/2026-09-05/sources.json",
+  "output_blobs": {
+    "editions/2026/09/2026-09-05/edition.md": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
+    "editions/2026/09/2026-09-05/sources.json": "0b365f2ab8011178fe298539da637728b2d690be"
+  },
+  "total_word_count": 5860,
+  "section_word_counts": {
+    "Lwajha": 736,
+    "Lyoum f joumla wa7da": 32,
+    "L-Mghrib": 779,
+    "Meknes": 213,
+    "Filastin": 530,
+    "L-3alam": 433,
+    "AI w Technology": 445,
+    "Science": 531,
+    "Tarikh l-Mghreb": 845,
+    "Adab w Taqafa": 890,
+    "Investigations": 189,
+    "Saf7at Lkhtam": 196,
+    "Masadir": 15
+  },
+  "depth_gate": {
+    "total_hard_minimum": 4000,
+    "morocco_hard_minimum": 700,
+    "palestine_hard_minimum": 500,
+    "science_hard_minimum": 500,
+    "history_hard_minimum": 800,
+    "literature_culture_hard_minimum": 800,
+    "meknes_hard_minimum": 300,
+    "meknes_exception_used": true,
+    "meknes_exception_reason": "Task 1 documented a legitimate THIN-NEWS EXCEPTION: no major verified Meknes-city-specific development in the fresh window; regional SRM Fes-Meknes water tender retained without padding or false localization.",
+    "max_paragraph_word_count": 66,
+    "status": "PASS"
+  },
+  "lead_story_id": "PAL-20260905-WB-UN-CAMPS",
+  "lead_story_headline": "West Bank: rapport UN kaygol 3 camps tfrgho mn sokkanhom w rjou3 mazal mamnou3",
+  "lead_story_section": "Filastin",
+  "editorial_angle": "Treat the UN finding on displacement and blocked return as a humanitarian, legal and political development while keeping legal characterizations explicitly attributed and separating verified findings from unknown future policy response.",
+  "emotional_tone": "serious, restrained, evidence-led",
+  "visual_facts": [
+    "The named refugee camps are Jenin, Nur Shams and Tulkarm.",
+    "UN Human Rights published the cited report on 2026-09-04.",
+    "Displacement and blocked return are presented as findings attributed to the UN report.",
+    "The edition does not establish a verified image of a specific resident or a single documentary scene for the three camps."
+  ],
+  "visual_elements_to_avoid": [
+    "Unverified identifiable residents presented as people from the three named camps.",
+    "Invented documentary photographs or fabricated demolition scenes.",
+    "Imagery that converts an attributed UN legal assessment into an unqualified judicial verdict.",
+    "Graphic victim imagery or unsupported military scenes."
+  ],
+  "cover_sensitivity_notes": "Keep the cover factual and non-graphic. Do not fabricate victims, named individuals, military units or destruction not tied to verified visual evidence. Attribute the legal finding to UN Human Rights rather than presenting it as an independent final judgment.",
+  "secondary_story_ids": [
+    "WORLD-20260905-HORMUZ-IRAN",
+    "MA-20260905-ELECTION-INTEGRITY",
+    "AI-20260905-OPENAI-ASTRA-SAFETY",
+    "history-sijilmasa-transsaharan-gold-trade",
+    "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+    "science-social-comparison-behaviour-change-2025"
+  ],
+  "secondary_story_headlines": [
+    "Hormuz: l-khatar ma b9ach ghir hdra, walakin l-data mazal incomplete",
+    "Legislatives 2026: INPPLC kat3li standard dyal integrity, l-imti7an howa enforcement",
+    "GPT-6 Astra: system card kay3ti evidence 3la company claims, ma-shi independent verdict",
+    "Sijilmasa: port bla b7ar f Tafilalt",
+    "Tayeb Saddiki w l-halqa: kifach masra7 modern y9dar ykoun Maghribi bla ma yjmd heritage",
+    "M9arana m3a nass t9dar tbddl s-solouk, walakin l-effect sghir w context kay7kem"
+  ],
+  "history_topic_id": "history-sijilmasa-transsaharan-gold-trade",
+  "history_teaser": "Sijilmasa khddmat qroun b7al port f l-yabsa: trade dyal Sahara kan m3alla9 b-dahab, walakin ta b-lma, zra3a, minting, security w state power.",
+  "literature_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+  "literature_teaser": "Tayeb Saddiki sta3mel l-halqa, orality, zajal w adaptation bach ybni masra7 modern bla myth dyal purity w bla copy sahl mn Europe.",
+  "science_topic_id": "science-social-comparison-behaviour-change-2025",
+  "stories_rejected": [
+    {
+      "id": "repeat-gaza-us-forced-displacement",
+      "reason": "Task 1 marked it as a previous-day lead with no material implementation development in the fresh window."
+    },
+    {
+      "id": "repeat-us-china-ai-safety-talks",
+      "reason": "Task 1 marked it as already covered with no new confirmed agenda or official material development."
+    }
+  ],
+  "stories_held": [
+    {
+      "id": "al-haouz-reconstruction-2023-2028",
+      "reason": "Investigation remains NEEDS_VERIFICATION / NOT_READY; edition includes only a restrained dossier-status update and does not manufacture an expose."
+    }
+  ],
+  "investigation_dossiers_considered": [
+    "al-haouz-reconstruction-2023-2028",
+    "morocco-water-security-2020-2027"
+  ],
+  "investigation_selected_for_final_publication": false,
+  "fact_check_status": "PASS",
+  "fact_check_notes": [
+    "Material claims were constrained to the Task 1 and Task 2 records and their exact source URLs.",
+    "UN legal findings remain attributed to UN Human Rights.",
+    "Hormuz AIS/Kpler coverage retains the incomplete-observation caveat.",
+    "Anthropic IPO timing remains source-reported rather than company-confirmed.",
+    "GPT-6 Astra safety material is labeled company-primary and not independent verification.",
+    "Al Haouz official completion evidence and unresolved transparency gaps are both preserved without accusation."
+  ],
+  "darija_status": "PASS",
+  "arabic_script_count": 0,
+  "language_check": {
+    "method": "Deterministic Unicode-range scan on the exact generated edition text before the final GitHub write, followed by exact GitHub blob read-back of the persisted edition.",
+    "ranges_checked": [
+      "U+0600-U+06FF",
+      "U+0750-U+077F",
+      "U+08A0-U+08FF",
+      "U+FB50-U+FDFF",
+      "U+FE70-U+FEFF"
+    ],
+    "count": 0,
+    "repair_performed": true
+  },
+  "citation_gate": {
+    "edition_source_id_range": "S01-S23",
+    "all_cited_source_ids_resolve": true,
+    "exact_urls_preserved_from_research_packets": true,
+    "status": "PASS"
+  },
+  "source_count": 23,
+  "primary_source_count": 10,
+  "independent_origin_count": 17,
+  "quality_scores": {
+    "Front Page": 9,
+    "Morocco": 8,
+    "Meknes": 7,
+    "Palestine": 9,
+    "World": 8,
+    "AI": 8,
+    "Science": 9,
+    "Tarikh": 9,
+    "Adab/Culture": 9,
+    "Investigations": 8,
+    "Darija": 9,
+    "Sources": 9,
+    "Coherence": 9
+  },
+  "quality_gate_status": "PASS",
+  "memory_candidates": {
+    "front_page_story_ids": [
+      "PAL-20260905-WB-UN-CAMPS",
+      "WORLD-20260905-HORMUZ-IRAN",
+      "MA-20260905-ELECTION-INTEGRITY",
+      "AI-20260905-OPENAI-ASTRA-SAFETY",
+      "history-sijilmasa-transsaharan-gold-trade",
+      "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+      "science-social-comparison-behaviour-change-2025"
+    ],
+    "history_topic_id": "history-sijilmasa-transsaharan-gold-trade",
+    "literature_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+    "science_topic_id": "science-social-comparison-behaviour-change-2025",
+    "investigation_ids": ["al-haouz-reconstruction-2023-2028"],
+    "publication_state": "CANDIDATES_ONLY_NOT_PUBLISHED_BY_TASK_3"
+  },
+  "handoff": {
+    "ready_for_cover_director": true,
+    "edition_final_editorial_copy": true,
+    "sources_json_valid": true,
+    "source_ids_resolve": true,
+    "cover_handoff_fields_complete": true,
+    "arabic_script_count": 0,
+    "github_persistence_read_back": true,
+    "task5_manifest_written": false,
+    "final_publication_status_claimed": false,
+    "binary_publication_claimed": false
+  }
+}
