@@ -90,12 +90,12 @@
     {
       "STORY_ID": "MEK-20260905-FM-WATER-TENDER",
       "DESK": "meknes",
-      "PROPOSED_TITLE": "Fes-Meknes: appel d'offres l-exploitation dyal 13 stations dyal ma l-ma3dani",
+      "PROPOSED_TITLE": "Fes-Meknes: appel d'offres l'exploitation dyal 13 stations dyal ma l-ma3dani",
       "IMPORTANCE_SCORE": 7,
       "FRESHNESS": "fresh-24h-regional",
       "EVENT_TIME": "2026-09-03",
       "PUBLICATION_TIME": "2026-09-04",
-      "WHAT_IS_NEW": "Reporting jdida f 4 September katwassaf appel d'offres dyal SRM Fes-Meknes l-exploitation w maintenance dyal 13 stations dyal dessalement/de-mineralisation, b-estimation qrib 13.44 million MAD.",
+      "WHAT_IS_NEW": "Reporting jdida f 4 September katwassaf appel d'offres dyal SRM Fes-Meknes l'exploitation w maintenance dyal 13 stations dyal dessalement/de-mineralisation, b-estimation qrib 13.44 million MAD.",
       "CHNO_W9E3": "Hadchi tender w service contract, ma-shi preuve belli stations khdamin daba wla belli project kamel tsala. L-scope kaymss provinces f region, ma-shi Meknes city b-dabt.",
       "KEY_FACTS": [
         "FACT: tender reference 322/CL/2026/SRMFM kayhder 3la 13 stations.",
@@ -398,7 +398,7 @@
       "method": "deterministic local Unicode range scan on generated JSON text before GitHub write",
       "count": 0
     },
-    "github_text_persistence": "PENDING_READ_BACK",
-    "status_semantics": "PENDING_FINAL_MERGE"
+    "github_text_persistence": "PASS_EXACT_GITHUB_READ_BACK",
+    "status_semantics": "COMPLETE_AFTER_CONDITIONAL_SHA_MERGE_AND_READ_BACK"
   }
 }
