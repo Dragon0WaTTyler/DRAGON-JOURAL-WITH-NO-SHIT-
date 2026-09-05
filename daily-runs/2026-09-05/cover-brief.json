@@ -1,0 +1,42 @@
+{
+  "date": "2026-09-05",
+  "timezone": "Africa/Casablanca",
+  "lead_story_id": "PAL-20260905-WB-UN-CAMPS",
+  "main_headline": "3 camps: rjou3 mazal mamnou3",
+  "cover_mode": "symbolic editorial",
+  "visual_metaphor": "Three stark camp-name blocks behind one closed red gate, showing blocked return without depicting victims or a fabricated documentary scene.",
+  "visual_facts_used": [
+    "The named refugee camps are Jenin, Nur Shams and Tulkarm.",
+    "UN Human Rights published the cited report on 2026-09-04.",
+    "Displacement and blocked return are findings attributed to the UN report."
+  ],
+  "visual_elements_avoided": [
+    "Identifiable residents presented as people from the named camps",
+    "Fabricated demolition or combat scenes",
+    "Graphic victim imagery",
+    "Unqualified legal-verdict language"
+  ],
+  "secondary_teasers": [
+    "Hormuz: risk tla3, data mazal ناقصة",
+    "Legislatives 2026: l-imti7an howa enforcement"
+  ],
+  "cover_asset_type": "SVG_FALLBACK",
+  "cover_asset_path": "editions/2026/09/2026-09-05/assets/cover.svg",
+  "image_generation_status": "NOT_AVAILABLE",
+  "visual_qa_status": "PENDING",
+  "arabic_script_count": 1,
+  "cover_fallback_reason": "Generated binary image archival is unavailable through the connected GitHub UTF-8 text persistence path; version 3 requires a canonical self-contained SVG fallback.",
+  "input_blobs": {
+    "editions/2026/09/2026-09-05/edition.md": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
+    "editions/2026/09/2026-09-05/sources.json": "0b365f2ab8011178fe298539da637728b2d690be",
+    "daily-runs/2026-09-05/editorial-report.json": "e4c8659ce90a7b5236f6385808f0ebfc0b7450cd"
+  },
+  "github_text_read_back": {
+    "status": "PENDING",
+    "brief_path": "daily-runs/2026-09-05/cover-brief.json",
+    "asset_path": "editions/2026/09/2026-09-05/assets/cover.svg"
+  },
+  "handoff": {
+    "ready_for_publication_builder": false
+  }
+}
