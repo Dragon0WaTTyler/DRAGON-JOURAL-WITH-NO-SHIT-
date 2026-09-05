@@ -2,7 +2,7 @@ name: Publish DRAGON binaries
 on:
   push:
     branches: [main]
-    paths: ['daily-runs/**', 'editions/**', 'scripts/publication_*.py', 'scripts/auto_publish.py', '.github/workflows/publish.yml']
+    paths: ['daily-runs/**', 'editions/**', 'config/editorial-depth.yaml', 'scripts/publication_*.py', 'scripts/auto_publish.py', '.github/workflows/publish.yml']
   schedule:
     - cron: '17,47 * * * *'
   workflow_dispatch:
@@ -58,3 +58,4 @@ jobs:
           else
             python scripts/auto_publish.py
           fi
+
