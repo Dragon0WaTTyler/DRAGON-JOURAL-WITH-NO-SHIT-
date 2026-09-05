@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-labelledby="title desc">
+  <title id="title">DRAGON 2026-09-05 cover</title>
+  <desc id="desc">Symbolic editorial cover about blocked return to Jenin, Nur Shams and Tulkarm refugee camps, based on attributed UN Human Rights findings.</desc>
+  <rect width="900" height="1200" fill="#f4f1ea"/>
+  <rect x="0" y="0" width="900" height="190" fill="#111111"/>
+  <text x="54" y="126" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="112" font-weight="900" letter-spacing="3">DRAGON</text>
+  <text x="844" y="72" fill="#d61920" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="end">2026-09-05</text>
+
+  <text x="54" y="280" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="900">3 camps:</text>
+  <text x="54" y="350" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="62" font-weight="900">rjou3 mazal mamnou3</text>
+  <rect x="54" y="378" width="270" height="12" fill="#d61920"/>
+
+  <rect x="92" y="492" width="716" height="382" fill="#ffffff" stroke="#111111" stroke-width="7"/>
+  <rect x="128" y="548" width="186" height="122" fill="#111111"/>
+  <rect x="357" y="548" width="186" height="122" fill="#111111"/>
+  <rect x="586" y="548" width="186" height="122" fill="#111111"/>
+  <text x="221" y="621" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="33" font-weight="800" text-anchor="middle">JENIN</text>
+  <text x="450" y="610" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800" text-anchor="middle">NUR</text>
+  <text x="450" y="642" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800" text-anchor="middle">SHAMS</text>
+  <text x="679" y="621" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800" text-anchor="middle">TULKARM</text>
+
+  <rect x="175" y="704" width="550" height="34" fill="#d61920"/>
+  <rect x="175" y="738" width="34" height="116" fill="#d61920"/>
+  <rect x="691" y="738" width="34" height="116" fill="#d61920"/>
+  <line x1="274" y1="738" x2="274" y2="854" stroke="#d61920" stroke-width="22"/>
+  <line x1="368" y1="738" x2="368" y2="854" stroke="#d61920" stroke-width="22"/>
+  <line x1="462" y1="738" x2="462" y2="854" stroke="#d61920" stroke-width="22"/>
+  <line x1="556" y1="738" x2="556" y2="854" stroke="#d61920" stroke-width="22"/>
+  <line x1="650" y1="738" x2="650" y2="854" stroke="#d61920" stroke-width="22"/>
+  <rect x="376" y="765" width="148" height="61" rx="8" fill="#111111"/>
+  <text x="450" y="805" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="800" text-anchor="middle">RETURN</text>
+
+  <text x="54" y="945" fill="#d61920" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="900">UN HUMAN RIGHTS — FINDINGS ATTRIBUTED</text>
+  <line x1="54" y1="976" x2="846" y2="976" stroke="#111111" stroke-width="3"/>
+
+  <text x="54" y="1037" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">Hormuz: risk tla3, data mazal incomplete</text>
+  <text x="54" y="1085" fill="#111111" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">Legislatives 2026: l-imti7an howa enforcement</text>
+
+  <rect x="0" y="1143" width="900" height="57" fill="#d61920"/>
+  <text x="54" y="1179" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700">SYMBOLIC EDITORIAL — NON-DOCUMENTARY ILLUSTRATION</text>
+</svg>
