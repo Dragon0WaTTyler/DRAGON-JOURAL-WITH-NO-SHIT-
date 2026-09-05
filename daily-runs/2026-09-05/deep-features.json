@@ -1,0 +1,365 @@
+{
+  "date": "2026-09-05",
+  "timezone": "Africa/Casablanca",
+  "research_started_at": "2026-09-05T01:14:00+01:00",
+  "research_completed_at": "2026-09-05T01:15:48+01:00",
+  "observed_repository_commit": "9cd540219222096a31e936474628b27b6e02535a",
+  "input_blobs": {
+    "prompts/production-master.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
+    "prompts/scheduled/02-deep-features.md": "4c840f47f43ee2a3b6a070415d3afd83cae8ff1d",
+    "AGENTS.md": "69d5cc846e202d364382e29a392b12d5ad090f22",
+    "SPEC-v1.md": "0dbb672a061ded020ff4edb968ea85c9a39468d6",
+    "config/execution-constraints.yaml": "96a6f83f465995f0e734d2e2bfb0df0cb685b685",
+    "config/scheduled-workflow.yaml": "2618fa965fa6285453e37843c220c4394b3543fe",
+    "config/editorial.yaml": "27c36a5ed072d9e1d7be52e6edfa22af31d8e6f2",
+    "config/editorial-depth.yaml": "d105e9694ad3d484927eb01238e8ecae21e033e8",
+    "config/quality-gates.yaml": "aa6ef4776541d672fe7f676c156007599c49dcdb",
+    "config/sources.yaml": "268a4e1cc795eca701e605fe9d86b6d9ab56c9cf",
+    "config/roles.yaml": "313ddd9afa62090f2ffecb33f7397b9b1a95e7e5",
+    "agents/science.md": "dc21951add215fb9308f01c2ccbd3dba9e9d0296",
+    "agents/history.md": "70d5620af11ffa5a99fb0a839d77b8fee1484342",
+    "agents/literature-culture.md": "eda41bd15f311858842d53b0b03b7030eb0f540d",
+    "agents/investigations.md": "5e9d2dc35d62194bf295926bbbcae973ec029729",
+    "memory/covered-stories.json": "a585829153ca6c0cac0779010918f8ae737feda3",
+    "memory/history-used.json": "0c86d8f8a14f83b8e9a6a6d14f92da98d52df92e",
+    "memory/literature-used.json": "2c27d493122d7c1bf3cea4121bba457d8fc13151",
+    "investigations/al-haouz-reconstruction.json": "e9a124ea5c63797755a2ce3a9f5af8064acf4578",
+    "investigations/water-security-accountability.json": "2562ca7ebf0dbce0d288b8b1b159c2d8ed2fcdb6"
+  },
+  "memory_notes": {
+    "publication_ledger": "memory/publication-ledger.json ma kaynach f main; ma t3tatch ay PUBLISHED status men had l-file.",
+    "same_day_preproduction": "Green March w Gnawa kaynin ghir b mode preproduction. Tjanbna n3awdohom f had run.",
+    "rule": "Ghir topic li tverifa blli tpublia kayt7seb authoritative anti-repetition memory."
+  },
+  "science": {
+    "selected": {
+      "TOPIC_ID": "science-social-comparison-behaviour-change-2025",
+      "PROPOSED_TITLE": "Wash m9arana m3a nass t9dar tbddl s-solouk? Meta-analysis kbira katgol: athar sghir walakin wa9i3i",
+      "WHY_SELECTED": "Peer-reviewed open-access meta-analysis katjma3 79 RCTs b aktar mn 1.35 million participant. Natija useful bla hype: social comparison t9dar t7rrk behaviour b-effect sghir, walakin certainty low l-moderate w heterogeneity 3alya f chi analyses.",
+      "RECENTLY_USED_CHECK": "Ma l9inach had topic f memory files li t9raw.",
+      "PRIMARY_SOURCES": [
+        "https://www.nature.com/articles/s41562-025-02209-2",
+        "https://doi.org/10.1038/s41562-025-02209-2"
+      ],
+      "INDEPENDENT_SOURCES": [],
+      "SOURCE_ORIGINS": ["Nature Human Behaviour original article"],
+      "KEY_EVIDENCE": [
+        "79 randomized controlled trials, N=1,356,521, across climate mitigation, health, performance and service behaviours.",
+        "Short term versus passive controls: Hedges g=0.17, 95% CI 0.11-0.23, k=37.",
+        "Short term versus active controls: g=0.23, 95% CI 0.15-0.31, k=42.",
+        "Active-control synthesis had I2=96% and small-study-effect concern; trim-and-fill estimate stayed positive at g=0.15.",
+        "GRADE certainty ranged from low to moderate."
+      ],
+      "CONTRADICTORY_EVIDENCE": [
+        "Average effects are small.",
+        "High unexplained heterogeneity limits blanket claims.",
+        "Some trials had risk-of-bias issues and most data came from high-income countries."
+      ],
+      "UNCERTAINTY": "Mechanisms, individual response, transfer to Morocco and long-term durability are not fully established.",
+      "CONTEXT": "Social comparison interventions show people how their behaviour compares with others, for example energy use, health behaviour or performance.",
+      "CONFIDENCE": "high for a small average effect; medium for transfer to a specific setting",
+      "RECOMMENDATION": "PUBLISH",
+      "STUDY_ID": "doi:10.1038/s41562-025-02209-2",
+      "EXACT_TITLE": "Meta-analysis of randomized controlled trials examining social comparison as a behaviour change technique across the behavioural sciences",
+      "AUTHORS": "Thole H. Hoppen, Rieke M. Cuno, Janna Nelson, Frederike Lemmel, Pascal Schlechter, Nexhmedin Morina et al.",
+      "VENUE": "Nature Human Behaviour 9, 1595-1612",
+      "DATE": "2025-05-19",
+      "PUBLICATION_STATUS": "PEER_REVIEWED",
+      "ACCESS_LEVEL": "FULL_TEXT",
+      "DOI": "10.1038/s41562-025-02209-2",
+      "RESEARCH_QUESTION": "Ch7al social-comparison behaviour-change techniques kaybdlo actual behaviour?",
+      "STUDY_TYPE": "Systematic review and random-effects meta-analysis of randomized controlled trials",
+      "SAMPLE": "79 RCTs; N=1,356,521",
+      "METHOD": "MEDLINE, PsycINFO and Web of Science search to January 2024; PRISMA selection; Hedges g; risk-of-bias, GRADE, moderator analyses, Egger test and trim-and-fill.",
+      "MAIN_RESULT": "Average behaviour change was small but statistically significant versus passive and active controls.",
+      "EFFECT_SIZE": "g=0.17 versus passive controls; g=0.23 versus active controls; active-control trim-and-fill g=0.15.",
+      "LIMITATIONS": "High heterogeneity, some risk-of-bias, possible publication bias in active-control synthesis and limited geographic generalizability.",
+      "CRITICISM": "Pooled group effects do not mean every individual changes behaviour.",
+      "REPLICATION_STATUS": "Synthesis of multiple independent RCTs rather than a single-study replication.",
+      "CORRELATION_VS_CAUSATION": "RCT evidence supports causal intervention effects at trial level, with heterogeneity limiting universal claims.",
+      "GENERALIZABILITY": "Medium-low outside studied high-income settings until local replication.",
+      "WHAT_WE_CAN_CONCLUDE": "Social-comparison interventions can produce a small average behaviour change in the intended direction.",
+      "WHAT_WE_CANNOT_CONCLUDE": "The effect is not proven large, universal or identical across cultures and behaviours.",
+      "WHY_IT_MATTERS": "Low-cost nudges can help, but design, context and realistic expectations matter.",
+      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+    },
+    "alternates": []
+  },
+  "history": {
+    "selected": {
+      "TOPIC_ID": "history-sijilmasa-transsaharan-gold-trade",
+      "PROPOSED_TITLE": "Sijilmasa: kifach wa7d l-oasis f Tafilalt wlat bab dyal dahab Sahara w siyasa dyal l-Maghrib",
+      "WHY_SELECTED": "Topic kayjma3 geography, Miknasa politics, Sufri state formation, trans-Saharan trade, gold coinage, Almoravid expansion, water systems and decline. Kaykfi l-feature 1000-1500 useful words bla filler.",
+      "RECENTLY_USED_CHECK": "history-used fih 11 Yanayer 1944 w Green March b mode preproduction; Sijilmasa ma kaynach.",
+      "PRIMARY_SOURCES": ["https://archeologie.culture.gouv.fr/monde/fr/sijilmasa?language_content_entity=fr"],
+      "INDEPENDENT_SOURCES": ["https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-8306.1996.tb01746.x"],
+      "SOURCE_ORIGINS": [
+        "Mission archeologique maroco-francaise / Ministere de la Culture francais",
+        "Annals of the Association of American Geographers / Lightfoot and Miller"
+      ],
+      "KEY_EVIDENCE": [
+        "Sijilmasa was in Tafilalt near Rissani with long occupation from roughly the 8th to 15th centuries.",
+        "Medieval texts and archaeology link its early polity to Miknasa and Banu Midrar with a Sufri emirate.",
+        "It became a major caravan entrepot connecting Sahel and Maghreb and was strongly tied to the gold trade.",
+        "Almoravid conquest in the mid-11th century increased its strategic role; minting was important.",
+        "Lightfoot and Miller link rise and fall not only to trade but also water, agriculture, oasis ecology and social organization."
+      ],
+      "CONTRADICTORY_EVIDENCE": [
+        "Exact foundation and destruction dates vary by textual tradition.",
+        "A single-cause Atlantic-trade explanation for decline is too simple.",
+        "Archaeology can constrain narratives built only from chronicles."
+      ],
+      "UNCERTAINTY": "Exact population, annual trade volume, early chronology and one single cause of decline are not securely quantified.",
+      "CONTEXT": "Sijilmasa was an oasis polity, market, mint and strategic node linking Morocco, the Sahara, West Africa and the Mediterranean.",
+      "CONFIDENCE": "high on broad role and chronology; medium on precise early dates and scale",
+      "RECOMMENDATION": "PUBLISH",
+      "FEATURE_OPENING_MATERIAL": "Bla port w bla b7ar, Sijilmasa kanat katkhddm b7al port f wast l-yabsa: caravans kaywslou men Sahara b-dahab w goods, w kaykhrjo men Tafilalt l-north.",
+      "SECTION_OUTLINE": [
+        "Tafilalt qbl Sijilmasa: oasis, water and routes",
+        "Miknasa, Banu Midrar and Sufri emirate",
+        "Caravan economy and gold",
+        "Mint, dinar and political power",
+        "Fatimid pressure and Almoravid conquest",
+        "Hydraulic system and agriculture",
+        "Decline and changing routes",
+        "Archaeology versus chronicle",
+        "Why Sijilmasa matters for Morocco-Africa history"
+      ],
+      "KEY_FACTS": [
+        "Site near Rissani in Tafilalt.",
+        "Traditional foundation window in the mid-8th century.",
+        "Centuries-long trans-Saharan caravan hub.",
+        "Strong connection to gold trade and minting.",
+        "Almoravid conquest in the mid-11th century."
+      ],
+      "KEY_ACTORS": ["Miknasa groups", "Banu Midrar", "Fatimid networks", "Almoravids", "Sahelian trading polities", "caravan merchants", "oasis cultivators"],
+      "TIMELINE": [
+        "c. 757: traditional foundation window.",
+        "8th-10th c.: Midrarid/Sufri polity and caravan growth.",
+        "10th c.: Fatimid interventions.",
+        "mid-11th c.: Almoravid conquest.",
+        "11th-13th c.: continued strategic role.",
+        "14th-15th c.: long decline and fragmentation."
+      ],
+      "INTERPRETATIONS": [
+        "Trade-first: growth came from a key trans-Saharan terminus.",
+        "Oasis-infrastructure: trade depended on water, agriculture and local organization.",
+        "State-power: control mattered because gold, minting and caravan taxation supported rulers."
+      ],
+      "COUNTERINTERPRETATIONS": [
+        "Saharan routes were not fixed; security, ecology and politics shifted them.",
+        "Sijilmasa is not only a Moroccan story; it is also West African and Mediterranean history."
+      ],
+      "MYTH_VS_EVIDENCE": [
+        "DOCUMENTED FACT: major caravan hub and oasis city.",
+        "LIKELY INTERPRETATION: gold flows strengthened rulers who controlled it.",
+        "CONTESTED INTERPRETATION: exact moment and single cause of decline.",
+        "MEMORY/LEGEND: neat founding stories need source labels.",
+        "UNKNOWN: reliable population counts and annual trade volumes."
+      ],
+      "PRESENT_DAY_RELEVANCE": "Kaybayan belli Morocco-Africa relations 3andhom roots twila f movement, commerce and shared systems across Sahara.",
+      "CLAIMS_TO_AVOID": [
+        "Sijilmasa was capital of all Saharan trade.",
+        "All West African gold passed through Sijilmasa.",
+        "The city disappeared suddenly in one year.",
+        "Any exact population or trade volume without primary quantitative evidence."
+      ],
+      "ESTIMATED_USABLE_WORDS": 1250,
+      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+    }
+  },
+  "literature_culture": {
+    "selected": {
+      "TOPIC_ID": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+      "PROPOSED_TITLE": "Tayeb Saddiki w l-halqa: kifach masra7 Maghribi 7awl ykoun modern bla ma y9ta3 m3a l-forma cha3biya",
+      "WHY_SELECTED": "Substantial postcolonial theatre topic: translation, halqa, oral performance, zajal, diglossia, Moliere, Moroccan plurality, audience relation and criticism.",
+      "RECENTLY_USED_CHECK": "literature-used fih Rabat World Book Capital 2026 w Gnawa b mode preproduction; Tayeb Saddiki ma kaynach.",
+      "PRIMARY_SOURCES": ["https://academic.oup.com/liverpool-scholarship-online/book/46318/chapter-abstract/405775998"],
+      "INDEPENDENT_SOURCES": [
+        "https://revues.imist.ma/index.php/LARSLAM/article/view/64556",
+        "https://journals.usj.edu.lb/regards/article/view/798",
+        "https://www.persee.fr/doc/horma_0984-2616_2008_num_58_1_2595"
+      ],
+      "SOURCE_ORIGINS": [
+        "Lamalif interview anthology / Liverpool University Press",
+        "IMIST journal article",
+        "Regards / Universite Saint-Joseph",
+        "Persee / Horizons Maghrebins"
+      ],
+      "KEY_EVIDENCE": [
+        "Saddiki discussed Moroccan theatre as a field searching for its own form and audience after colonial and anticolonial performance histories.",
+        "Recent IMIST analysis treats halqa as a dramaturgical principle: circularity, orality, improvisation, audience interaction, fragmented narration, polyphony and diglossia.",
+        "Scholarship connects Diwan Sidi Abderrahman al-Majdoub to transposition of halqa aesthetics into institutional theatre.",
+        "Work on Saddiki and Moliere shows appropriation and transformation rather than simple imitation.",
+        "Jean-Francois Clement provides a counterpoint: precolonial spectacles such as halqa and bsat should not automatically be called theatre in the same modern institutional sense."
+      ],
+      "CONTRADICTORY_EVIDENCE": [
+        "The idea of an uninterrupted authentic Moroccan theatre genealogy is contested.",
+        "Saddiki did not simply reject Europe; he also used Moliere, adaptation and Western stage conventions.",
+        "Institutional funding, television and audience change also matter for theatre history."
+      ],
+      "UNCERTAINTY": "Reception varies by play, decade and audience, so blanket claims about all Moroccan audiences should be avoided.",
+      "CONTEXT": "Post-independence Moroccan theatre had to negotiate imported stage forms and local performance repertoires. Saddiki sits inside that tension rather than on only one side.",
+      "CONFIDENCE": "high on documented aesthetic synthesis; medium on broad national-reception claims",
+      "RECOMMENDATION": "PUBLISH",
+      "FEATURE_OPENING_MATERIAL": "Mlli l-jomhour kaywlli da2ira 7awl l-performance, l-7d bin stage w street kaytbddl. Saddiki khda l-halqa b7al principle dyal writing and performance, machi ghir decoration.",
+      "SECTION_OUTLINE": [
+        "Moroccan theatre after the Protectorate",
+        "Saddiki and the cultural field",
+        "What halqa is and is not",
+        "Diwan Sidi Abderrahman al-Majdoub",
+        "Language, zajal and diglossia",
+        "Moliere as dialogue rather than copy",
+        "Audience and fourth-wall tension",
+        "Criticism of authenticity narratives",
+        "Later influence and why it matters now"
+      ],
+      "CONTEXT_DETAIL": "Popular performance forms existed before modern theatre institutions; the feature must distinguish those two histories.",
+      "CREATOR_OR_WORK_BACKGROUND": "Tayeb Saddiki (1939-2016) was a Moroccan playwright, director, actor and adaptor.",
+      "CENTRAL_IDEAS": [
+        "Cultural identity can be built through appropriation and transformation rather than isolation.",
+        "Orality and audience interaction are formal devices, not only heritage decoration.",
+        "Moroccan cultural plurality appears in language, repertoire and performance traditions."
+      ],
+      "STYLE_AND_FORM": ["halqa circularity", "direct audience relation", "episodic structure", "polyphony", "diglossia", "zajal", "adaptation and intertextuality"],
+      "HISTORICAL_RELATIONSHIP": "His theatre can be read against colonial transplantation of European stage forms and post-independence search for cultural autonomy.",
+      "INFLUENCES": ["halqa", "oral storytelling", "Moroccan popular and Sufi repertoires", "Moliere", "Arabic literary heritage", "postcolonial debates"],
+      "RECEPTION": "Scholarship treats Saddiki as a major Moroccan and Arab theatre figure, but reception claims should stay specific to works and institutions.",
+      "CRITICISM": "Clement warns against retroactively calling every old spectacle theatre; this prevents nationalist myth-making.",
+      "COMPETING_INTERPRETATIONS": [
+        "Saddiki as recuperator of indigenous theatrical roots.",
+        "Saddiki as hybrid modernist combining local and imported repertoires.",
+        "Critical view: uninterrupted native-theatre genealogy can be conceptually misleading."
+      ],
+      "LATER_INFLUENCE": "Halqa, festive forms and heritage adaptation remain reference points in Moroccan and Maghrebi theatre debates.",
+      "WHY_IT_MATTERS_TODAY": "The same question remains: kifach creator yst3ml heritage bla folklore freeze, w kifach ykoun global bla cultural copy.",
+      "CLAIMS_TO_AVOID": ["Saddiki invented Moroccan theatre.", "Halqa is identical to modern theatre.", "He rejected Western theatre.", "All Moroccan theatre follows his model."],
+      "ESTIMATED_USABLE_WORDS": 1200,
+      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+    }
+  },
+  "investigations": {
+    "selected_dossier": {
+      "DOSSIER_ID": "al-haouz-reconstruction-2023-2028",
+      "QUESTION_OR_HYPOTHESIS": "Wash wa3d, sarf, w nata2ij dyal programme i3mar l-Houz kaytla9aw b-wodo7 men l-budget l-dar w l-khadma li wslat l-kol qarya?",
+      "STATUS": "NEEDS_VERIFICATION",
+      "TIMELINE": [
+        "2023-09-08: earthquake.",
+        "2023-09-20: multi-sector 2024-2028 programme announced with 120bn MAD envelope.",
+        "2026-03-17: ADHA reported 54,425 completed habitations, more than 3,000 still under works and more than 7.2bn MAD in housing-related aid categories.",
+        "2026-06-04/05: ADHA, EIB and EU delegation field mission checked education, health and road projects.",
+        "2026-07-15: ADHA published T3 2026 procurement programme.",
+        "2026-09-05: fresh review found no new evidence strong enough to resolve village-level denominator or budget-to-outcome reconciliation."
+      ],
+      "OFFICIAL_CLAIMS": [
+        "ADHA March 2026 says 54,425 habitations completed and more than 3,000 remained in progress.",
+        "The same update cites 372 schools and 110 health centers in completed programme reporting.",
+        "ADHA T3 procurement programme confirms work was still active in 2026."
+      ],
+      "SUPPORTING_EVIDENCE": [
+        "Transparency Maroc observatory remains relevant for independent governance and field cross-checking.",
+        "Continued procurement is compatible with a programme still in implementation."
+      ],
+      "CONTRADICTORY_EVIDENCE": [
+        "Official completed-home figures contradict a blanket claim that reconstruction did not happen.",
+        "The 120bn MAD multi-sector envelope is not the same metric as housing aid disbursement.",
+        "Unresolved cases can have legal, land, inheritance, eligibility or technical causes."
+      ],
+      "DISCONFIRMING_SEARCH": "Fresh search actively looked for evidence against a failure hypothesis and found substantial official completion figures, field monitoring and active procurement.",
+      "MISSING_DOCUMENTS": [
+        "Village-by-village beneficiary and completion table with clear denominator.",
+        "Budget commitments versus cash disbursement by sector and year through 2026.",
+        "Contract award, amendment, delay and delivery table.",
+        "Independent engineering and seismic-compliance sample."
+      ],
+      "UNANSWERED_QUESTIONS": [
+        "What exactly counts as habitation achevee: structure, utilities, inspection, keys or occupancy?",
+        "How much of 120bn MAD was committed, disbursed and verified as delivered output by sector?",
+        "How do official aggregates reconcile village-by-village with unresolved cases?"
+      ],
+      "CONFIDENCE": "medium",
+      "PUBLICATION_READINESS": "NOT_READY",
+      "NEXT_RESEARCH_STEPS": [
+        "Obtain machine-readable village and sector tables.",
+        "Match procurement records to physical completion and payment data.",
+        "Cross-check a stratified sample of unresolved and completed villages.",
+        "Keep searching for evidence that could disprove unequal-delivery concerns."
+      ],
+      "RECOMMENDATION": "HOLD",
+      "PRIMARY_SOURCES": [
+        "https://adha.gov.ma/actualites/article.php?lang=fr&slug=le-chef-du-gouvernement-pr-side-la-r-union-de-la-commission-interminist-rielle-et-la-3e-r-union-du-conseil-d-orientation-strat-gique-de-l-adha",
+        "https://adha.gov.ma/actualites/article.php?lang=fr&slug=adha-bei-mission-terrain-al-haouz-avancement-projets-reconstruction-rehabilitation",
+        "https://adha.gov.ma/marches/programme-previsionnel.php?lang=fr"
+      ],
+      "INDEPENDENT_SOURCES": ["https://transparencymaroc.ma/projet-observatoire-du-programme-de-reconstruction-post-seisme-atlas/"],
+      "SOURCE_ORIGINS": ["ADHA official reporting", "EIB/EU field-monitoring context via ADHA", "Transparency Maroc observatory"],
+      "KEY_EVIDENCE": ["Official completion and aid figures.", "Joint field mission evidence.", "T3 2026 procurement programme."],
+      "UNCERTAINTY": "No village-level reconciliation or full budget-to-output ledger was retrieved today.",
+      "CONTEXT": "Dossier remains accountability research, machi accusation.",
+      "WHY_SELECTED": "Existing dossier had real prior work and current official evidence can test the hypothesis.",
+      "RECENTLY_USED_CHECK": "Existing persistent dossier; re-review allowed.",
+      "status_change": "NONE",
+      "dossier_file_updated": false,
+      "source_accessed_at": "2026-09-05T01:15:00+01:00"
+    },
+    "other_dossiers_checked": [
+      {
+        "DOSSIER_ID": "morocco-water-security-2020-2027",
+        "STATUS": "RESEARCHING",
+        "action": "Read and preserved; no material update persisted today."
+      }
+    ]
+  },
+  "sources_count": 11,
+  "primary_sources_count": 6,
+  "independent_source_origins_count": 8,
+  "blocked_sources": [
+    {
+      "source": "memory/publication-ledger.json",
+      "reason": "File absent on main; no publication status inferred."
+    }
+  ],
+  "important_unknowns": [
+    "No authoritative publication ledger file exists on main, so preproduction memory cannot be promoted to PUBLISHED.",
+    "Science effect transfer to Morocco is not established by this meta-analysis.",
+    "Sijilmasa exact early chronology and quantitative trade scale remain partly uncertain.",
+    "Al Haouz village-level denominator and budget-to-outcome reconciliation remain unavailable."
+  ],
+  "quality_gate": {
+    "science_status_access_honest": true,
+    "science_method_sample_limitations_recorded": true,
+    "science_causation_label_correct": true,
+    "history_not_recently_published_verified_from_available_memory": true,
+    "history_estimated_usable_words": 1250,
+    "history_competing_interpretations_present": true,
+    "literature_not_recently_published_verified_from_available_memory": true,
+    "literature_estimated_usable_words": 1200,
+    "literature_criticism_and_competing_interpretations_present": true,
+    "investigation_existing_dossiers_checked": true,
+    "investigation_disconfirming_search_performed": true,
+    "unsupported_accusation": false,
+    "json_validated": true,
+    "arabic_script_count": 0,
+    "gate_status": "PASS"
+  },
+  "handoff": {
+    "ready_for_chief_editor": true,
+    "science_selected_topic_id": "science-social-comparison-behaviour-change-2025",
+    "science_alternates": [],
+    "history_selected_topic_id": "history-sijilmasa-transsaharan-gold-trade",
+    "literature_culture_selected_topic_id": "culture-tayeb-saddiki-halqa-modern-moroccan-theatre",
+    "investigation_dossiers_updated": [],
+    "investigation_ready_for_publication": false,
+    "features_requiring_editorial_caution": [
+      "Science: keep effect-size language small and foreground heterogeneity and generalizability limits.",
+      "History: distinguish medieval textual tradition from archaeological confirmation.",
+      "Culture: avoid claiming uninterrupted precolonial-to-modern theatre genealogy.",
+      "Investigation: not publication-ready; do not turn unresolved gaps into accusation."
+    ],
+    "major_unresolved_questions": [
+      "Science external validity in Morocco.",
+      "Sijilmasa exact quantitative trade scale.",
+      "Al Haouz village-level and budget-to-outcome reconciliation."
+    ]
+  }
+}
