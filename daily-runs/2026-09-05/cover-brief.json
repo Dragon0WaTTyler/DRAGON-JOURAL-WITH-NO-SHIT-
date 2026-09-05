@@ -4,65 +4,23 @@
   "lead_story_id": "PAL-20260905-WB-UN-CAMPS",
   "main_headline": "3 camps: rjou3 mazal mamnou3",
   "cover_mode": "symbolic editorial",
-  "visual_metaphor": "Three stark camp-name blocks behind one closed red gate, showing blocked return without depicting victims or a fabricated documentary scene.",
-  "visual_facts_used": [
-    "The named refugee camps are Jenin, Nur Shams and Tulkarm.",
-    "UN Human Rights published the cited report on 2026-09-04.",
-    "Displacement and blocked return are findings attributed to the UN report."
-  ],
-  "visual_elements_avoided": [
-    "Identifiable residents presented as people from the named camps",
-    "Fabricated demolition or combat scenes",
-    "Graphic victim imagery",
-    "Unqualified legal-verdict language"
-  ],
-  "secondary_teasers": [
-    "Hormuz: risk tla3, data mazal incomplete",
-    "Legislatives 2026: l-imti7an howa enforcement"
-  ],
+  "visual_metaphor": "Three named camp blocks behind one closed red gate: a restrained editorial symbol for blocked return, not a documentary scene.",
+  "visual_facts_used": ["Jenin, Nur Shams and Tulkarm are the three named refugee camps.", "Blocked return is attributed to the UN Human Rights report published 2026-09-04."],
+  "visual_elements_avoided": ["identifiable residents", "fabricated destruction or combat", "graphic victims", "unqualified legal-verdict language"],
+  "secondary_teasers": ["Hormuz: traffic ba9i ta7t recent average", "Legislatives 2026: l-imti7an howa enforcement"],
   "cover_asset_type": "SVG_FALLBACK",
   "cover_asset_path": "editions/2026/09/2026-09-05/assets/cover.svg",
-  "cover_asset_blob": "6f2f54b5a8c4a291d95bec68722b1491954a973b",
-  "image_generation_status": "NOT_AVAILABLE",
+  "image_generation_status": "PENDING_ATTEMPT",
   "image_generation_attempts": 0,
   "image_generation_retry_used": false,
-  "visual_qa_status": "PASS",
+  "visual_qa_status": "PENDING",
   "arabic_script_count": 0,
-  "cover_fallback_reason": "Generated binary image archival is unavailable through the connected GitHub UTF-8 text persistence path; version 3 therefore uses the canonical self-contained SVG fallback.",
+  "cover_fallback_reason": "Binary image archival through the connected GitHub text persistence path is unavailable; any generated image attempt cannot become canonical unless exact bytes can be archived and read back.",
   "input_blobs": {
-    "editions/2026/09/2026-09-05/edition.md": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
-    "editions/2026/09/2026-09-05/sources.json": "0b365f2ab8011178fe298539da637728b2d690be",
-    "daily-runs/2026-09-05/editorial-report.json": "e4c8659ce90a7b5236f6385808f0ebfc0b7450cd"
+    "editions/2026/09/2026-09-05/edition.md": "4bd94e183a7cdc349b6334562fbae9c6564f6188",
+    "editions/2026/09/2026-09-05/sources.json": "a18cf8543b5a95709d6b77e40f6f914a696e6135",
+    "daily-runs/2026-09-05/editorial-report.json": "0eae4349cd037d50c2d4c1b9fe386a86d661039c"
   },
-  "input_lineage_recheck": {
-    "status": "PASS_UNCHANGED",
-    "edition_blob": "7de3f77d2a76f061111f7cab5e1f4dcda94a4c57",
-    "sources_blob": "0b365f2ab8011178fe298539da637728b2d690be",
-    "editorial_report_blob": "e4c8659ce90a7b5236f6385808f0ebfc0b7450cd"
-  },
-  "visual_qa": {
-    "status": "PASS",
-    "method": "Rendered the exact persisted SVG asset and visually inspected the resulting cover image.",
-    "checks": {
-      "masthead_visible": "PASS",
-      "exact_date_visible": "PASS",
-      "headline_legible": "PASS",
-      "camp_labels_legible": "PASS",
-      "un_attribution_legible": "PASS",
-      "secondary_teasers_legible": "PASS",
-      "no_clipping_or_overlap": "PASS",
-      "non_graphic": "PASS",
-      "no_fabricated_documentary_subjects": "PASS"
-    }
-  },
-  "github_text_read_back": {
-    "initial_brief_read_back": "PASS",
-    "asset_read_back": "PASS",
-    "asset_blob": "6f2f54b5a8c4a291d95bec68722b1491954a973b",
-    "final_brief_read_back": "PENDING_THIS_WRITE"
-  },
-  "handoff": {
-    "ready_for_publication_builder": true,
-    "final_publication_status_claimed": false
-  }
+  "github_text_read_back": {"initial_brief_read_back": "PENDING_THIS_WRITE"},
+  "handoff": {"ready_for_publication_builder": false, "final_publication_status_claimed": false}
 }
