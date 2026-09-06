@@ -3,7 +3,7 @@ on:
   pull_request:
   push:
     branches: [main, 'fix/**']
-    paths: ['scripts/**', 'tests/**', 'config/**', 'requirements.txt', '.github/workflows/**']
+    paths: ['scripts/**', 'tests/**', 'config/**', 'prompts/**', 'templates/**', 'design/**', 'AGENTS.md', 'SPEC-v1.md', 'requirements.txt', '.github/workflows/**']
 permissions:
   contents: read
 jobs:

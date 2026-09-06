@@ -37,6 +37,10 @@ Each stage owns its stage value, started/completed timestamps and blocking reaso
 Read all prerequisite artifacts at one observed commit if supported, and record source commit/blob IDs returned by GitHub. Never invent hashes. Before completion reread inputs; changed upstream inputs invalidate the stage. COMPLETE alone is not a freshness test.
 Missing prerequisites mean BLOCKED for that attempt; a future scheduled invocation may retry the same role after exact read-back. A time gap between jobs is not a dependency guarantee. Configure recovery invocations in the existing ChatGPT schedules where available; the binary workflow cannot run a missed research/editorial job.
 
+## Finality guard
+
+Before any same-date write, read status.json. If `final_publication_status=COMPLETE`, `overall_status=COMPLETE`, `github_binary_read_back=PASS`, and the recorded PDF and EPUB paths still exist at their recorded identity, the edition is final. An ordinary scheduled retry returns `ALREADY_PUBLISHED` without writing editorial, cover, source-package, status, or memory files. Do not turn a completed historical edition into a draft. A real correction is an explicit correction run with new canonical inputs and a complete new publication cycle.
+
 ## Editorial gates
 
 edition.md is the sole editorial authority; sources.json maps exact URLs. Task 3 owns those files and editorial-report.json, not the final manifest. Task 5 owns manifest.json.

@@ -82,5 +82,19 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertGreaterEqual(len(self.architecture["section_inventory"]), 20)
         self.assertEqual(self.architecture["edition"]["hard_min_words"], 10000)
 
+    def test_finality_guard_protects_published_editions(self):
+        required = [
+            ROOT / "prompts" / "production-master.md",
+            ROOT / "AGENTS.md",
+            ROOT / "SPEC-v1.md",
+            ROOT / "prompts" / "scheduled" / "03-chief-editor.md",
+            ROOT / "prompts" / "scheduled" / "04-cover.md",
+            ROOT / "prompts" / "scheduled" / "05-publication.md",
+        ]
+        for path in required:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("FINALITY GUARD" if "scheduled" in path.parts else "Finality guard", text, path)
+            self.assertIn("ALREADY_PUBLISHED", text, path)
+
 if __name__ == "__main__":
     unittest.main()
