@@ -1,13 +1,13 @@
 {
   "date": "2026-09-06",
   "timezone": "Africa/Casablanca",
-  "current_research": "COMPLETE",
-  "current_research_started_at": "2026-09-06T07:53:42+01:00",
-  "current_research_completed_at": "2026-09-06T08:09:00+01:00",
+  "current_research": "RUNNING",
+  "current_research_started_at": "2026-09-06T15:07:00+01:00",
+  "current_research_completed_at": null,
   "current_research_blocking_reason": null,
   "current_research_artifact": "daily-runs/2026-09-06/current-news.json",
   "current_research_artifact_blob": "7ef575f7073259851a566b27be3cd0837ac72182",
-  "current_research_github_read_back": "PASS",
+  "current_research_github_read_back": "PENDING",
   "deep_research": "COMPLETE",
   "deep_research_started_at": "2026-09-06T08:39:19+01:00",
   "deep_research_completed_at": "2026-09-06T08:49:00+01:00",
@@ -35,5 +35,5 @@
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "blocking_reason": null,
-  "final_publication_status": "BLOCKED"
+  "final_publication_status": "PENDING"
 }
