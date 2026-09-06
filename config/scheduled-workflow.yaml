@@ -1,12 +1,12 @@
 version: 4
 contract: chatgpt-editorial-plus-automatic-github-binary-publication-v4-newspaper
-enabled: false
-activation: contract-only-no-scheduled-task-created
+enabled: true
+activation: chatgpt-scheduled-tasks-active
 timezone: Africa/Casablanca
 scheduling:
-  current_mode: chatgpt-scheduled-work-supported-manual-activation-only
+  current_mode: chatgpt-scheduled-production-active
   schedule_config: config/schedule.yaml
-  schedule_config_required_enabled: false
+  schedule_config_required_enabled: true
   super_jobs:
   - task_number: 1
     local_time: 07:45

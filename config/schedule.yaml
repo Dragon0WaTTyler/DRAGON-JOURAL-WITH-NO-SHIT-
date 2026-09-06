@@ -1,6 +1,6 @@
-enabled: false
-mode: manual-until-cloud-pilot-passes
+enabled: true
+mode: chatgpt-scheduled-production-active
 timezone: Africa/Casablanca
-local_time: "10:00"
+super_jobs: 5
 hard_requirement: cloud-only
-note: Do not activate recurring production runs before the PC-off test passes.
+note: Five ChatGPT scheduled jobs are active; GitHub Actions performs only deterministic binary publication after Task 5.

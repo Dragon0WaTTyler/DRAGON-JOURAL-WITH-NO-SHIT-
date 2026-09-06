@@ -24,11 +24,13 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertEqual([(j["id"], j["task_number"], j["local_time"]) for j in jobs], EXPECTED)
         self.assertEqual(len(self.roles["roles"]), 13)
 
-    def test_timezone_and_schedule_disabled(self):
+    def test_timezone_and_chatgpt_schedule_active(self):
         self.assertEqual(self.workflow["timezone"], "Africa/Casablanca")
         self.assertTrue(all(j["timezone"] == "Africa/Casablanca" for j in self.workflow["jobs"]))
-        self.assertFalse(self.workflow["enabled"])
-        self.assertFalse(self.schedule["enabled"])
+        self.assertTrue(self.workflow["enabled"])
+        self.assertTrue(self.schedule["enabled"])
+        self.assertEqual(self.workflow["activation"], "chatgpt-scheduled-tasks-active")
+        self.assertEqual(self.workflow["scheduling"]["current_mode"], "chatgpt-scheduled-production-active")
 
     def test_publication_builder_is_text_only(self):
         job = self.workflow["jobs"][4]

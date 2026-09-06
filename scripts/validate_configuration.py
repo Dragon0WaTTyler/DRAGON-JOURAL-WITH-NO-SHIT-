@@ -38,8 +38,7 @@ def load_yaml(path: Path) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--allow-enabled", action="store_true")
-    args = parser.parse_args()
+    parser.parse_args()
     errors: list[str] = []
 
     try:
@@ -61,12 +60,17 @@ def main() -> int:
     if roles.get("language") != "darija-latin":
         errors.append("role registry language must be darija-latin")
 
-    if not args.allow_enabled and schedule.get("enabled") is not False:
-        errors.append("config/schedule.yaml must remain disabled")
+    if schedule.get("enabled") is not True:
+        errors.append("config/schedule.yaml must declare active ChatGPT scheduling")
     if schedule.get("timezone") != "Africa/Casablanca":
         errors.append("config/schedule.yaml timezone must remain Africa/Casablanca")
-    if workflow.get("enabled") is not False:
-        errors.append("scheduled-workflow contract must not itself enable scheduling")
+    if workflow.get("enabled") is not True:
+        errors.append("scheduled-workflow contract must declare active ChatGPT scheduling")
+    if workflow.get("activation") != "chatgpt-scheduled-tasks-active":
+        errors.append("scheduled-workflow activation must reflect the five active ChatGPT tasks")
+    scheduling = workflow.get("scheduling", {})
+    if scheduling.get("current_mode") != "chatgpt-scheduled-production-active" or scheduling.get("schedule_config_required_enabled") is not True:
+        errors.append("scheduled-workflow must require the active ChatGPT schedule configuration")
     if workflow.get("timezone") != "Africa/Casablanca":
         errors.append("scheduled-workflow timezone must be Africa/Casablanca")
 
@@ -230,7 +234,7 @@ def main() -> int:
         print("CONFIGURATION FAIL")
         print("\n".join(errors))
         return 1
-    print("CONFIGURATION PASS: 13 roles, five tested super-jobs, schedule disabled, text-only publication source semantics")
+    print("CONFIGURATION PASS: 13 roles, five active ChatGPT super-jobs, text-only publication source semantics")
     return 0
 
 

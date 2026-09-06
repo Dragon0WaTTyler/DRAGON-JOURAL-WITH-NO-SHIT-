@@ -14,7 +14,7 @@ instead of cutting verified prose. See `config/edition-architecture.yaml` and
 
 ## Setup once
 
-1. Replace the five existing ChatGPT scheduled prompts with the corresponding files in prompts/scheduled/ (see prompts/scheduled/README.md). Keep Africa/Casablanca. Cover is Task 4; Publishing is Task 5.
+1. The five active ChatGPT scheduled tasks read the corresponding files in prompts/scheduled/ (see prompts/scheduled/README.md). Keep Africa/Casablanca. Cover is Task 4; Publishing is Task 5.
 2. Merge this configuration on main and enable GitHub Actions with contents-write permission. Branch rules must allow github-actions[bot] publication commits. The workflow needs no PAT or model secret; it uses the repository GITHUB_TOKEN.
 3. Run the five jobs once and inspect the first automatic edition. Configure supported recovery invocations for editorial jobs that miss prerequisites. An inactive or unsupported ChatGPT schedule cannot be repaired by the binary workflow.
 
