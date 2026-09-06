@@ -1,0 +1,46 @@
+name: Validate reader language
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'editions/**/edition.md'
+      - '.github/workflows/reader-language.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reject Arabic script in today's reader edition
+        shell: bash
+        run: |
+          edition_date=$(TZ=Africa/Casablanca date +%F)
+          file="editions/${edition_date:0:4}/${edition_date:5:2}/${edition_date}/edition.md"
+          if [ ! -f "$file" ]; then
+            echo "No reader edition is present for ${edition_date}."
+            exit 0
+          fi
+          FILE="$file" python - <<'PY'
+          import os
+          from pathlib import Path
+
+          text = Path(os.environ["FILE"]).read_text(encoding="utf-8")
+          ranges = ((0x0600, 0x06FF), (0x0750, 0x077F), (0x08A0, 0x08FF),
+                    (0xFB50, 0xFDFF), (0xFE70, 0xFEFF))
+          found = [character for character in text
+                   if any(start <= ord(character) <= end for start, end in ranges)]
+          if found:
+              raise SystemExit(f"Arabic-script characters found: {len(found)}")
+          print("Reader language gate passed: Arabic-script count is zero.")
+          PY

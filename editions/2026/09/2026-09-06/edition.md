@@ -36,17 +36,17 @@ F had l-mar7ala, l-reader khas yb9a m3a tlata dyal l-as2ila: fin kayn nass rasmi
 
 Tahrir: DRAGON
 
-L-call centers f l-Mghreb bnao wa7d part mn business model 3la services mوجهة l-souq fransawi, w ay taghyir f qawa3id dyal outbound calling f France y9der ywsal direct l-khdma hna. Reporting dyal 5 September kaybayan belli ban jdid 3la cold-calling kaydir pressure 3la companies w kaykhelli industry groups y7sbo ch7al mn jobs aw activity li t9der tkoun exposed. L-ahem howa belli had l-ar9am ma katmatalch layoffs li wa9e3o daba. Homa estimates dyal exposure, w kayn ta ikhtilaf bin federations 3la ch7al mn l-qita3 li m3alla9 b had type dyal calling. [S03]
+L-call centers f l-Mghreb bnao wa7d part mn business model 3la services mwajaha l-souq fransawi, w ay taghyir f qawa3id dyal outbound calling f France y9der ywsal direct l-khdma hna. Reporting dyal 5 September kaybayan belli ban jdid 3la cold-calling kaydir pressure 3la companies w kaykhelli industry groups y7sbo ch7al mn jobs aw activity li t9der tkoun exposed. L-ahem howa belli had l-ar9am ma katmatalch layoffs li wa9e3o daba. Homa estimates dyal exposure, w kayn ta ikhtilaf bin federations 3la ch7al mn l-qita3 li m3alla9 b had type dyal calling. [S03]
 
-Had l-far9 mohim iqtisadiyan. Ila wa7d federation kat9der risk b-number kbir w wa7d okhra kat3ti ta9dir a9all, l-journalism ma khasoch ykhtar l-number l-akbar 7it kay3ti headline a9wa. Khas n9raw l-range b7al dalil 3la uncertainty. Outcome ghadi yt3amed 3la kifach companies ybddlou contracts, wach clients ghadi ymchiw l-inbound service, digital support, sales b-consent, aw markets okhrin, w wach transition ghadi tkoun sريعة ola twila. Hado kamlin ma t7smoch f l-source. [S03]
+Had l-far9 mohim iqtisadiyan. Ila wa7d federation kat9der risk b-number kbir w wa7d okhra kat3ti ta9dir a9all, l-journalism ma khasoch ykhtar l-number l-akbar 7it kay3ti headline a9wa. Khas n9raw l-range b7al dalil 3la uncertainty. Outcome ghadi yt3amed 3la kifach companies ybddlou contracts, wach clients ghadi ymchiw l-inbound service, digital support, sales b-consent, aw markets okhrin, w wach transition ghadi tkoun sria ola twila. Hado kamlin ma t7smoch f l-source. [S03]
 
 L-Mghreb 3ndo advantage f language, timezone, costs w experience f francophone outsourcing, walakin had advantage ma kay3nich immunity mn regulation barra. Hadi wa7d l-lesson kbar f services export: qita3 y9der ykoun physically f Casablanca, Rabat aw mdina okhra, walakin wa7d l-qanoun f Paris ybdel economics dyalo. L-risk ma kayji-ch ghir mn competition bin countries; y9der yji mn changing business practices, privacy rules, consumer-protection law w automation. [S03]
 
-Mn jiha l-khdma, ma khasnach ndkhlou f panic. L-source kay9oul threat w exposure, ma kay9oulch belli 10,000 job t7ydo. 7ta ila had number tdkker f reporting, khas yb9a attributed l-industry estimate. L-jawab الحقيقي ghadi yban mn indicators li n9dro nra9bohom: hiring, layoffs, new contracts, closures, transition l-services okhrin, w statements mn companies wa7da b wa7da. Bla had l-data, l-edition katb9a f l-level li supported. [S03]
+Mn jiha l-khdma, ma khasnach ndkhlou f panic. L-source kay9oul threat w exposure, ma kay9oulch belli 10,000 job t7ydo. 7ta ila had number tdkker f reporting, khas yb9a attributed l-industry estimate. L-jawab l7a9i9i ghadi yban mn indicators li n9dro nra9bohom: hiring, layoffs, new contracts, closures, transition l-services okhrin, w statements mn companies wa7da b wa7da. Bla had l-data, l-edition katb9a f l-level li supported. [S03]
 
 F policy, hadchi yfta7 sou2al 3la diversification. Ila qita3 m3alla9 bzaf b-country wa7da w sales method wa7ed, shock regulatory y9der ykoun 3ndo impact disproportionate. Ma 3ndnach daba evidence bach n9olo belli strategy wataniya f outsourcing khas-ha ttbdel b tariqa mo3ayana, walakin kayn basis bach n9olo diversification dyal clients, tasks w markets wla sou2al iqtisadi real. [S03]
 
-W kayn ta factor dyal automation. AI w self-service kay9dro yضغطو 3la some call-center tasks, walakin ma kaynch f had source measurement dyal had effect. Dkhl automation f had l-qissa b7al fact sabab ban fransawi ghadi ykoun khlat bin trends. Li tverifa hna howa change regulatory fransawi w estimates dyal exposure; automation ghadi tb9a context 3am, ma-shi sabab mthbet f had development. [S03]
+W kayn ta factor dyal automation. AI w self-service kay9dro ydeghtou 3la some call-center tasks, walakin ma kaynch f had source measurement dyal had effect. Dkhl automation f had l-qissa b7al fact sabab ban fransawi ghadi ykoun khlat bin trends. Li tverifa hna howa change regulatory fransawi w estimates dyal exposure; automation ghadi tb9a context 3am, ma-shi sabab mthbet f had development. [S03]
 
 L-mohim daba howa nra9bo chno ghadi yban mn l-qita3 f weeks w months jayin: contracts renewed ola la, recruitment kayt7arek kifach, w wach companies ghadi t3awed t9ssm activity. 7ta dak sa3a, l-khabar kayb9a warning iqtisadi, ma-shi bilan dyal khsara wa9i3a. [S03]
 
@@ -58,25 +58,25 @@ Reporting dyal 5 September kay9oul belli Morocco ghadi yda3m import dyal soft wh
 
 #### N9s sardines dyal Morocco kayban f supermarkets Almaniya
 
-Retail reporting f Germany kaybayan availability problems m3a sardines li jayyin mn Morocco. Hadchi signal 3la supply squeeze f wa7d export product, walakin ma kaynach f handoff stock assessment watani aw trend twil bach n9olo belli l-mokhزون kaymchi l-ihiyar. L-item kayb9a brief dyal supply w export, m3a darora dyal data aktar qbl ay kholasa 3la resource sustainability. [S04]
+Retail reporting f Germany kaybayan availability problems m3a sardines li jayyin mn Morocco. Hadchi signal 3la supply squeeze f wa7d export product, walakin ma kaynach f handoff stock assessment watani aw trend twil bach n9olo belli l-makhzoun kaymchi l-ihiyar. L-item kayb9a brief dyal supply w export, m3a darora dyal data aktar qbl ay kholasa 3la resource sustainability. [S04]
 
 ## Se77a
 
 ### AMO non-salaried: l-ar9am katbayan pressure structurel 3la t-tawazon
 
-*Ar9am men CNSS li tna9lo f reporting kaybayan belli benefits f scheme dyal non-salaried faw9 contributions; hadchi warning مالي mohim, walakin ma kay3nich bo7do belli system ghadi ywa9ef aw belli kol AMO 3ndo nafs l-mochkil.*
+*Ar9am men CNSS li tna9lo f reporting kaybayan belli benefits f scheme dyal non-salaried faw9 contributions; hadchi warning mali mohim, walakin ma kay3nich bo7do belli system ghadi ywa9ef aw belli kol AMO 3ndo nafs l-mochkil.*
 
 Tahrir: DRAGON
 
-Wa7d ratio kay9der ydir headline kbir: benefits-to-contributions 1.57 f scheme AMO dyal non-salaried, 7sab reporting 3la results dyal CNSS board. B-ma3na basit, l-mablagh li kaykhrj f benefits kayfout dak li kaydkhol mn contributions f had scheme, w had l-far9 howa li kaykhelli l-source ywasfo b-deficit structurel. Walakin l-ratio khaso yt9ra b-d9a. Hada ma-shi balance sheet kamel dyal ga3 AMO f l-Mghreb, ma-shi ta forecast rasmi belli system ghadi yfalli, w ma-shi dalil bo7do 3la sabab wa7ed. Hna kayn indicator مالي jdid li khaso ytkhdem b-context. [S05]
+Wa7d ratio kay9der ydir headline kbir: benefits-to-contributions 1.57 f scheme AMO dyal non-salaried, 7sab reporting 3la results dyal CNSS board. B-ma3na basit, l-mablagh li kaykhrj f benefits kayfout dak li kaydkhol mn contributions f had scheme, w had l-far9 howa li kaykhelli l-source ywasfo b-deficit structurel. Walakin l-ratio khaso yt9ra b-d9a. Hada ma-shi balance sheet kamel dyal ga3 AMO f l-Mghreb, ma-shi ta forecast rasmi belli system ghadi yfalli, w ma-shi dalil bo7do 3la sabab wa7ed. Hna kayn indicator mali jdid li khaso ytkhdem b-context. [S05]
 
 L-sou2al l-awal howa financement. Insurance sociale kat3ich 3la mizan bin contributions, number dyal beneficiaries, cost dyal soins, structure dyal risk, state transfers ila kaynin, w qawa3id dyal eligibility w reimbursement. Ila benefits katfout contributions b-far9 kbir, l-scheme kay7taj source akhor dyal balance: reserves, transfers, reform dyal contributions, cost control, aw mix mn had l-options. Reporting li 3ndna ma kay3tinach decision finale chno ghadi ytdar, donc ma n9droch n9dmo wa7d policy scenario b7al wa9i3. [S05]
 
-L-sou2al tani howa coverage. CNSS tna9lat 3liha ar9am okhrin kay9olo 25.08 million AMO beneficiaries w 4.24 million workers f rolls f 2025. Had l-ar9am kaybayan scale dyal social insurance, walakin coverage scale w financial balance ma homach nafs l-indicator. T9der tkoun 3ndk توسع f beneficiaries w f nafs l-wa9t pressure 3la wa7d sub-scheme. Hadi hiya 3lach khas l-reader ma ykhlatch bin success dyal inclusion w sustainability dyal financing. [S06]
+L-sou2al tani howa coverage. CNSS tna9lat 3liha ar9am okhrin kay9olo 25.08 million AMO beneficiaries w 4.24 million workers f rolls f 2025. Had l-ar9am kaybayan scale dyal social insurance, walakin coverage scale w financial balance ma homach nafs l-indicator. T9der tkoun 3ndk twasso3 f beneficiaries w f nafs l-wa9t pressure 3la wa7d sub-scheme. Hadi hiya 3lach khas l-reader ma ykhlatch bin success dyal inclusion w sustainability dyal financing. [S06]
 
 F scheme dyal non-salaried b-dabt, structure dyal dakhil t9der tkoun akthar complex 7it income ma kaykounch dima salaried stable b nafs tari9a. Walakin ma 3ndnach f handoff data tafsili 3la compliance, arrears, distribution dyal contributions, age profile, aw utilization li ykhalina n7dddo sabab. Ay explanation wa7da b7al "nas ma kaykhlsoch" aw "soins ghaliin" ghadi tkoun speculation ila ma t3zzzat b-document. Li tverifa howa l-pressure f ratio, ma-shi tashkhis kamel l-sabab. [S05]
 
-L-ahem l-siyasi w l-ijtima3i howa belli AMO ma b9ach programme sghir. Expansion dyal coverage kay3ni ay imbalance مالي t9der ywsal l-households, providers w budget public ila ma t3aljch. F nafs l-wa9t, reform ma khas-hach ttbna 3la number wa7ed bla ma n3rfo l-trend dyal snin, reserves, transfers w composition dyal spending. L-journalism hna kaydir wa7d l-7aja basita walakin daroriya: kaygol fin kayna l-alarm, w kaygol ta fin kayn l-faragh f evidence. [S05] [S06]
+L-ahem l-siyasi w l-ijtima3i howa belli AMO ma b9ach programme sghir. Expansion dyal coverage kay3ni ay imbalance mali t9der ywsal l-households, providers w budget public ila ma t3aljch. F nafs l-wa9t, reform ma khas-hach ttbna 3la number wa7ed bla ma n3rfo l-trend dyal snin, reserves, transfers w composition dyal spending. L-journalism hna kaydir wa7d l-7aja basita walakin daroriya: kaygol fin kayna l-alarm, w kaygol ta fin kayn l-faragh f evidence. [S05] [S06]
 
 Kayn ta sou2al dyal timing. Board figures kay3tiw snapshot w indicator, walakin sustainability kat7taj trajectory. Wach ratio 1.57 jdida wla kat3awd trend? Wach kayn improvement aw worsening? Wach contributions ghadi ytl3o m3a formalization? Wach reimbursements kaytbdlo? Hado as2ila li ma tverifawsh f source li 3ndna. Bla series zamania, ma n9droch n9olo trend direction b-ya9in. [S05]
 
@@ -90,7 +90,7 @@ Daba l-3in khas-ha tb9a 3la tlata dyal l-indicators: trend dyal contributions vs
 
 #### CNSS kat3len 25.08 million AMO beneficiaries
 
-Reporting 3la CNSS board kay9oul 25.08 million AMO beneficiaries w 4.24 million workers f rolls f 2025. Hado ar9am dyal scale, ma-shi dalil bo7dhom 3la quality dyal access aw sustainability. L-edition katsta3melhom b7al baseline: coverage wlat kbira, w hadchi kayzid l-ahammia dyal ay sou2al مالي 3la sub-schemes. [S06]
+Reporting 3la CNSS board kay9oul 25.08 million AMO beneficiaries w 4.24 million workers f rolls f 2025. Hado ar9am dyal scale, ma-shi dalil bo7dhom 3la quality dyal access aw sustainability. L-edition katsta3melhom b7al baseline: coverage wlat kbira, w hadchi kayzid l-ahammia dyal ay sou2al mali 3la sub-schemes. [S06]
 
 ## Bi2a w Manakh
 
@@ -142,7 +142,7 @@ Reporting m3a attribution l-ONDA kay9oul belli Mohammed V airport daz mn nearly 
 
 #### Qawa3id jdod l-electric scooters w e-bikes
 
-Reporting kay9oul belli amendments dyal decree ncharo f Official Gazette w kaymssou electric scooters, e-bikes w chi vehicles dyal public force. Bla nass l-qanouni kamel f had handoff, l-edition ma kat3tich legal advice aw detail dyal kol obligation. L-reader li kay7taj compliance d9i9 khas yرجع l-decree rasmi; hna l-khabar howa belli framework tbdl. [S11]
+Reporting kay9oul belli amendments dyal decree ncharo f Official Gazette w kaymssou electric scooters, e-bikes w chi vehicles dyal public force. Bla nass l-qanouni kamel f had handoff, l-edition ma kat3tich legal advice aw detail dyal kol obligation. L-reader li kay7taj compliance d9i9 khas yrje3 l-decree rasmi; hna l-khabar howa belli framework tbdl. [S11]
 
 ## Meknes w Fes-Meknes
 
@@ -166,7 +166,7 @@ Hna khas wa7d distinction kbira: description diplomasiya, designation qanouniya,
 
 L-mohim l-tani howa context dyal settler violence. L-qadiya ma katmssch ghir rhetoric; katmss security, movement, land, farming w relation bin Palestinian communities, settlers, Israeli authorities w international actors. Reporting fieldi mn Al Jazeera f nafs nhar kayhder 3la flags, outposts w pressure 3la roads, walakin broader legal claims f dak report khas-hom cross-check. Hadi 3lach l-edition katst3mlo b7al attributed field context, ma-shi source wa7ed l-kol conclusion. [S14]
 
-Tasri7 Huckabee y9der ykoun mohim 7it US diplomats kay7awlo ydirou line akthar wad7 3la violence li ma kaynch justification lih. Walakin l-reader khas y3ref chno ma tverifach: ma 3ndnach f had packet sanctions jdod, prosecutions jdod, change f military deployment, aw policy package jdida li tied مباشرة had wording b-action. Hada ma kayn9ssch mn ahammia dyal l-kalima; kay7edded scope dyal l-khabar. [S13]
+Tasri7 Huckabee y9der ykoun mohim 7it US diplomats kay7awlo ydirou line akthar wad7 3la violence li ma kaynch justification lih. Walakin l-reader khas y3ref chno ma tverifach: ma 3ndnach f had packet sanctions jdod, prosecutions jdod, change f military deployment, aw policy package jdida li tied mobachara had wording b-action. Hada ma kayn9ssch mn ahammia dyal l-kalima; kay7edded scope dyal l-khabar. [S13]
 
 F diplomacy, language t9der tkun prelude l-action, aw t9der tb9a pressure bla implementation. Bach n3rfo fin ghadi tmchi, khas nra9bo statements rasmiya okhra, measures 3la individuals aw groups, coordination m3a Israeli authorities, w data 3la incidents. Ma n9droch n9dmo had future b7al fact. [S13]
 
@@ -182,7 +182,7 @@ Chno y9der ybdl l-story mn rhetoric l-policy howa action measurable: sanctions, 
 
 #### Israeli flags w outposts kaywss3o pressure 3la West Bank roads
 
-Field report dyal Al Jazeera kaywssf flags, outposts w testimonies 3la pressure f West Bank roads. Hada source fieldi wa7ed, donc broader legal aw scale claims khas-hom cross-check. Li n9dro n9olo b-thi9a howa belli report kayوثق had patterns f sites li zaroha reporters; ma n9droch n3mmo hadchi 3la ga3 West Bank bla data zyada. [S14]
+Field report dyal Al Jazeera kaywssf flags, outposts w testimonies 3la pressure f West Bank roads. Hada source fieldi wa7ed, donc broader legal aw scale claims khas-hom cross-check. Li n9dro n9olo b-thi9a howa belli report kaywatte9 had patterns f sites li zaroha reporters; ma n9droch n3mmo hadchi 3la ga3 West Bank bla data zyada. [S14]
 
 #### Netanyahu kay3awd remarks 3la Qatar w Gaza funding
 
@@ -202,7 +202,7 @@ Tahrir: DRAGON
 
 Niger w France kay3icho relation m9taw3a mn wa9t transformations siyasya w 3askariya f Sahel. F had context, accusation dyal Niger belli France 7arrkat aw sa3dat failed mutiny ma t9drch ttsrraf b7al fact ila ma kaynach evidence mossta9il. Al Jazeera reporting kayn9el accusation w denial fransawi li wasfoh b "pure fantasy". Editorially, l-qadiya hiya conflict bin two official claims, ma-shi verdict. [S17]
 
-Had distinction mohim 7it accusations dyal foreign interference 3ndha weight kbir. Ila t9ddmat bla proof, t9der tzid escalation, t9llb public opinion w tkhlli diplomacy as3ab. Ila kayn proof, khas yban mn documents, intelligence corroboration, testimony multiple, aw investigation credible. L-handoff li 3ndna ma fihch had l-level, donc l-edition ma katnسبch l-failed mutiny l-France. [S17]
+Had distinction mohim 7it accusations dyal foreign interference 3ndha weight kbir. Ila t9ddmat bla proof, t9der tzid escalation, t9llb public opinion w tkhlli diplomacy as3ab. Ila kayn proof, khas yban mn documents, intelligence corroboration, testimony multiple, aw investigation credible. L-handoff li 3ndna ma fihch had l-level, donc l-edition ma katnsbch l-failed mutiny l-France. [S17]
 
 F nafs lwa9t, denial fransawi ma kay7semch l-qadiya bo7do. Official denial howa position, ma-shi independent verification. Hna l-sou2al ma kaytsalash b "France 9alat la". Khas nra9bo evidence mn outside two governments. 7ta dak sa3a, l-language daroriya hiya "Niger kayttham" w "France katnfi". [S17]
 
@@ -224,11 +224,11 @@ Field reporting kayrbet deadly collapse f illegal aw disused mining site b-econo
 
 #### Kinshasa: wedding venue fire under investigation
 
-Fire f wedding venue f Kinshasa khlla victims, w authorities 7ello investigation. Cause mazal ma t7smtch, donc ay كلام 3la negligence, electrical fault aw arson ghadi ykoun speculation. L-brief kayb9a m3a l-ma3louma li mthbeta: serious urban fire, deaths reported, investigation open. [S19]
+Fire f wedding venue f Kinshasa khlla victims, w authorities 7ello investigation. Cause mazal ma t7smtch, donc ay klam 3la negligence, electrical fault aw arson ghadi ykoun speculation. L-brief kayb9a m3a l-ma3louma li mthbeta: serious urban fire, deaths reported, investigation open. [S19]
 
 #### Morocco kay3ti Mali 1,000 tonnes DAP fertilizer
 
-Reporting kay9oul belli Morocco سلم Mali 1,000 tonnes dyal DAP fertilizer f Bamako. Hadi material cooperation step, walakin impact 3la yields aw food security ma t9asch f had source. L-edition ma kat7awel donation l-success agricultural; katn9el l-quantity w katkhlli outcome l-data li jay. [S20]
+Reporting kay9oul belli Morocco sallam Mali 1,000 tonnes dyal DAP fertilizer f Bamako. Hadi material cooperation step, walakin impact 3la yields aw food security ma t9asch f had source. L-edition ma kat7awel donation l-success agricultural; katn9el l-quantity w katkhlli outcome l-data li jay. [S20]
 
 ## L-3alam
 
@@ -238,23 +238,23 @@ Reporting kay9oul belli Morocco سلم Mali 1,000 tonnes dyal DAP fertilizer f B
 
 Tahrir: DRAGON
 
-Election day kaykhelli temptation kbir bach l-media yktb l-qissa li kaytwa9e3 qbl ma l-count ykml. F Saxony-Anhalt, Reuters reporting dyal 6 September kay9oul belli AfD kat9leb 3la landmark state victory, w hadchi kay3ti l-vote ahammia wataniya. Walakin wa9t research, final count ma kanch ma3rouf. Hna editorial rule basit: n9dro nشرح stakes, polls aw positioning ila source kayn9lha, walakin ma nعلنch winner qbl official result. [S21]
+Election day kaykhelli temptation kbir bach l-media yktb l-qissa li kaytwa9e3 qbl ma l-count ykml. F Saxony-Anhalt, Reuters reporting dyal 6 September kay9oul belli AfD kat9leb 3la landmark state victory, w hadchi kay3ti l-vote ahammia wataniya. Walakin wa9t research, final count ma kanch ma3rouf. Hna editorial rule basit: n9dro nshar7 stakes, polls aw positioning ila source kayn9lha, walakin ma n3lench winner qbl official result. [S21]
 
 Ahammia dyal state election katji mn potential precedent. Ila far-right party twsl l-level li y9der ychkel aw ydomini government f wa7d state, hadchi y9der y2atr 3la coalition strategies, national debate w relation bin federal parties. Walakin "y9der" hiya kalima daroriya; outcome ma khasoch ytsna3 mn expectation. [S21]
 
-Germany 3andha federal structure li states fihom institutions w politics dyalhom, donc state result y9der ykoun signal, walakin ma kayttrj3ch automatiquement l-national election. Voters, turnout, candidate dynamics w local issues y9dro ykouno mokhtalfin. Hadi 3lach l-edition ma kat9olsh belli Saxony-Anhalt ghadi tحدد Germany kamla. [S21]
+Germany 3andha federal structure li states fihom institutions w politics dyalhom, donc state result y9der ykoun signal, walakin ma kayttrj3ch automatiquement l-national election. Voters, turnout, candidate dynamics w local issues y9dro ykouno mokhtalfin. Hadi 3lach l-edition ma kat9olsh belli Saxony-Anhalt ghadi t7edded Germany kamla. [S21]
 
-L-sou2al l-akbar howa coalition arithmetic. 7ta ila party tjib plurality, government formation t9der t3tamed 3la willingness dyal parties okhrin yta3awno aw yرفضo. Ma 3ndnach final seats f packet, donc ma n9droch nktbo scenarios b7al facts. Li kayn howa wa7d election 3ndo potential breakthrough w national attention. [S21]
+L-sou2al l-akbar howa coalition arithmetic. 7ta ila party tjib plurality, government formation t9der t3tamed 3la willingness dyal parties okhrin yta3awno aw yrfdou. Ma 3ndnach final seats f packet, donc ma n9droch nktbo scenarios b7al facts. Li kayn howa wa7d election 3ndo potential breakthrough w national attention. [S21]
 
-Kayn ta sou2al dyal language. "Far-right" hiya classification editorial/international widely used for AfD, walakin l-khabar khas yركز 3la behavior siyasi, votes w coalition dynamics, ma-shi demonization. Nafs l-wa9t, false neutrality ma kat3nich nms7o classification li source reliable katst3mlha. [S21]
+Kayn ta sou2al dyal language. "Far-right" hiya classification editorial/international widely used for AfD, walakin l-khabar khas yrakkaz 3la behavior siyasi, votes w coalition dynamics, ma-shi demonization. Nafs l-wa9t, false neutrality ma kat3nich nms7o classification li source reliable katst3mlha. [S21]
 
-F Europe, result y9der ytsst3mel f n9ach 3la migration, economy, energy w relation m3a EU. Walakin ma n9droch nnsbo motive wa7ed l-ga3 voters. Election result kaygol ch7al mn votes; ma kayشرحch bo7do 3lach kol wa7d swet. [S21]
+F Europe, result y9der ytsst3mel f n9ach 3la migration, economy, energy w relation m3a EU. Walakin ma n9droch nnsbo motive wa7ed l-ga3 voters. Election result kaygol ch7al mn votes; ma kayshar7ch bo7do 3lach kol wa7d swet. [S21]
 
 L-edition katb9a aware belli l-story t9der ttbdel f sa3at. Ila final count khrej mn ba3d research window, had nashra ma khas-hach tktb natija ma tverifatch f packet. Hada a7san mn "being first" b-ma3louma mumkin tkoun ghalta. [S21]
 
 Mlli natija tban, l-as2ila li khas ttb3 hiya turnout, seat distribution, coalition options w response dyal federal parties. Hado homa li ghadi y7awlo election mn suspense l-political consequence. [S21]
 
-Daba, wa9i3a l-yom hiya belli voters kayصوتو f wa7d state li y9der y3ti AfD landmark breakthrough, walakin l-verdict kayb9a l-count. [S21]
+Daba, wa9i3a l-yom hiya belli voters kaysawtou f wa7d state li y9der y3ti AfD landmark breakthrough, walakin l-verdict kayb9a l-count. [S21]
 
 ### Hormuz ta7t pressure: leverage dyal Iran katna9s walakin risk dyal escalation ba9i
 
@@ -262,29 +262,29 @@ Daba, wa9i3a l-yom hiya belli voters kayصوتو f wa7d state li y9der y3ti AfD 
 
 Tahrir: DRAGON
 
-Strait of Hormuz kayb9a wa7d chokepoint li markets w governments kayراقboh 7it passage dyal energy kay3tih weight strategic kbir. Reuters analysis dyal 6 September kaygol belli leverage dyal Iran f Hormuz katna9s ta7t US economic squeeze. Hadi assessment, ma-shi measurement mechanical li t9der t9ol "leverage n9sat b X%". L-edition katn9el direction dyal analysis w kat7afd 3la uncertainty. [S22]
+Strait of Hormuz kayb9a wa7d chokepoint li markets w governments kayra9boh 7it passage dyal energy kay3tih weight strategic kbir. Reuters analysis dyal 6 September kaygol belli leverage dyal Iran f Hormuz katna9s ta7t US economic squeeze. Hadi assessment, ma-shi measurement mechanical li t9der t9ol "leverage n9sat b X%". L-edition katn9el direction dyal analysis w kat7afd 3la uncertainty. [S22]
 
-Leverage ma katji-ch ghir mn military capability. Katji ta mn economy, diplomacy, ability dyal escalation, tolerance dyal costs, w expectations dyal markets. Ila economy mضغطa, government y9der yواجه constraints akbar, walakin pressure t9der ta tzid incentives l-risk. Hna ma kaynach equation basita. [S22]
+Leverage ma katji-ch ghir mn military capability. Katji ta mn economy, diplomacy, ability dyal escalation, tolerance dyal costs, w expectations dyal markets. Ila economy mdghouta, government y9der ywajeh constraints akbar, walakin pressure t9der ta tzid incentives l-risk. Hna ma kaynach equation basita. [S22]
 
-Reuters assessment kayrbet squeeze b-waning leverage, walakin ma n9droch n7awlo hadchi l-prediction belli Iran ghadi yتنازل. States t9der tاختار escalation, compromise, delay aw mixed tactics. Outcome dyal talks aw confrontation unknown. [S22]
+Reuters assessment kayrbet squeeze b-waning leverage, walakin ma n9droch n7awlo hadchi l-prediction belli Iran ghadi ytanazel. States t9der takhtar escalation, compromise, delay aw mixed tactics. Outcome dyal talks aw confrontation unknown. [S22]
 
-F nafs nhar, reporting okhor kayn9el Iranian officials kayw3do b-economic measures w kayhdro 3la retaliation a9sa ila t3awdat attacks. Hadi official messaging, ma-shi evidence belli measures ghadi tnجح aw retaliation ghadi tوقع. Walakin katbayan belli l-rhetoric mazal qwi w risk perception ma khasoch ytn9s ghir 7it leverage mضغطa. [S23]
+F nafs nhar, reporting okhor kayn9el Iranian officials kayw3do b-economic measures w kayhdro 3la retaliation a9sa ila t3awdat attacks. Hadi official messaging, ma-shi evidence belli measures ghadi tnja7 aw retaliation ghadi twe9e3. Walakin katbayan belli l-rhetoric mazal qwi w risk perception ma khasoch ytn9s ghir 7it leverage mdghouta. [S23]
 
-For global economy, Hormuz risk kay2atr 3la oil prices, shipping insurance w investor sentiment. Walakin l-edition ma 3ndhach f had packet real-time market model bach t9ol ch7al prices ghadi ytbdlo. N9dro nشرح channel, ma nقدرosh nخرج forecast. [S22]
+For global economy, Hormuz risk kay2atr 3la oil prices, shipping insurance w investor sentiment. Walakin l-edition ma 3ndhach f had packet real-time market model bach t9ol ch7al prices ghadi ytbdlo. N9dro nshar7 channel, ma nqedroush nkhrrjou forecast. [S22]
 
-Geopolitically, l-pressure economic y9der ykoun tool dyal negotiation, walakin ila الطرف l-mضغط yshof belli kayfقد leverage b-ser3a, t9der tbdl incentives dyalo. Hadi possibility analytical, ma-shi fact 3la decision-makers. L-source ma kay3tinach access l-internal deliberations. [S22]
+Geopolitically, l-pressure economic y9der ykoun tool dyal negotiation, walakin ila ttaraf l-mdghout yshof belli kayf9ed leverage b-ser3a, t9der tbdl incentives dyalo. Hadi possibility analytical, ma-shi fact 3la decision-makers. L-source ma kay3tinach access l-internal deliberations. [S22]
 
 L-sou2al li khas ytb3 ma-shi "wach Iran qwiya wla da3ifa" b-jomla wa7da. Khas nra9bo shipping incidents, military deployments, sanctions enforcement, oil exports, diplomatic contacts w official statements. Leverage multidimensional, w wa7d metric ma kaykfi-ch. [S22]
 
-Hna ta discipline dyal language daroriya. "Wanes" f assessment ma kat3nich "disappeared". Risk dyal misreading kayji ila headline yqلب gradual pressure l-collapse. L-edition katb9a 3la wording: leverage katna9s, risk dyal escalation ba9i. [S22]
+Hna ta discipline dyal language daroriya. "Wanes" f assessment ma kat3nich "disappeared". Risk dyal misreading kayji ila headline yqleb gradual pressure l-collapse. L-edition katb9a 3la wording: leverage katna9s, risk dyal escalation ba9i. [S22]
 
-F l-kholasa, Reuters kay3ti assessment credible 3la squeeze li kaydyy9 options dyal Tehran, walakin official rhetoric w strategic location dyal Hormuz kayخليw l-qadiya open. Hadi wa7d situation li khas-ha ttab3 evidence, ma-shi certainty. [S22] [S23]
+F l-kholasa, Reuters kay3ti assessment credible 3la squeeze li kaydyy9 options dyal Tehran, walakin official rhetoric w strategic location dyal Hormuz kaykhalliw l-qadiya open. Hadi wa7d situation li khas-ha ttab3 evidence, ma-shi certainty. [S22] [S23]
 
 ### Briefs
 
 #### Iran kayw3ed b-economic measures w harsher retaliation
 
-Iranian officials 9alo belli ghadi y3aljo economic issues w belli ay attacks jdod y9dro yjibou retaliation a9sa. Hadi statements, ma-shi outcomes. L-edition katn9elhom b-attribution w ma katfترضch belli l-measures ghadi tnجح aw escalation ghadi tوقع. [S23]
+Iranian officials 9alo belli ghadi y3aljo economic issues w belli ay attacks jdod y9dro yjibou retaliation a9sa. Hadi statements, ma-shi outcomes. L-edition katn9elhom b-attribution w ma katftrdch belli l-measures ghadi tnja7 aw escalation ghadi twe9e3. [S23]
 
 ## Business w Charikat
 
@@ -306,17 +306,17 @@ Shareholders dyal Dominion w NextEra waf9o 3la merger, 7sab Reuters. Hadi wa7d g
 
 Tahrir: DRAGON
 
-US w China homa jouj actors kbar f AI ecosystem, w relation binathom katجمع competition f chips, models, infrastructure w national security. Reuters reporting dyal 4 September kay9oul belli kayn preparation l-AI safety dialogue f mid-September. Hadi ma-shi meeting completed, ma-shi agreement, w timing y9der ytbdl. L-edition katst3mel future conditional b-d9a. [S26]
+US w China homa jouj actors kbar f AI ecosystem, w relation binathom katjma3 competition f chips, models, infrastructure w national security. Reuters reporting dyal 4 September kay9oul belli kayn preparation l-AI safety dialogue f mid-September. Hadi ma-shi meeting completed, ma-shi agreement, w timing y9der ytbdl. L-edition katst3mel future conditional b-d9a. [S26]
 
-Ahammia dyal dialogue katji mn wa7d contradiction apparent: juj dawla kayتنافسو b-shidda, walakin risks dyal advanced AI y9dro y3bro borders. Incidents, cyber misuse, model-control questions aw misunderstandings y9dro ykhlliw communication useful 7ta bin rivals. Walakin useful ma kat3nich easy. [S26]
+Ahammia dyal dialogue katji mn wa7d contradiction apparent: juj dawla kaytnafsou b-shidda, walakin risks dyal advanced AI y9dro y3bro borders. Incidents, cyber misuse, model-control questions aw misunderstandings y9dro ykhlliw communication useful 7ta bin rivals. Walakin useful ma kat3nich easy. [S26]
 
 Ma 3ndnach f handoff agenda rasmiya kamla, participants final, aw draft commitments. Donc ma n9droch nktbo belli juj countries ghadi ytaf9o 3la standards mo3ayana. Reporting kaygol preparation dyal talks, w hadchi howa limit dyal fact. [S26]
 
 F governance, dialogue y9der ykoun 3la incident communication, evaluation concepts, frontier-model risks aw export-control misunderstandings, walakin hado examples mumkinin, ma-shi agenda verified. L-edition ma khas-hach tmla l-faragh b-policy wish list. [S26]
 
-L-mohim tani howa l-far9 bin safety w industrial competition. 7ta ila talks nج7o, restrictions 3la chips, investment aw data t9der tb9a. Coordination selective t9der t3ich m3a rivalry. Hadi pattern maشي guarantee, walakin katfssr 3lach talks ma kat3nich thaw f relation kamla. [S26]
+L-mohim tani howa l-far9 bin safety w industrial competition. 7ta ila talks nj7ou, restrictions 3la chips, investment aw data t9der tb9a. Coordination selective t9der t3ich m3a rivalry. Hadi pattern ma-shi guarantee, walakin katfssr 3lach talks ma kat3nich thaw f relation kamla. [S26]
 
-For companies, ay framework US-China y9der y2atr 3la compliance w model deployment, walakin ma kaynach details l-yom. Donc ma nربطوش had report direct b-company valuations aw product roadmaps. [S26]
+For companies, ay framework US-China y9der y2atr 3la compliance w model deployment, walakin ma kaynach details l-yom. Donc ma nrbtoush had report direct b-company valuations aw product roadmaps. [S26]
 
 Verification li khas tji mn ba3d hiya: confirmation rasmi, date, participants, agenda, w ay readout mn meeting ila wa9e3. Ila talks t2ajlo aw tlghaw, story tbdl. Hadi 3lach headline kaygol kaywjjdo, ma kaygolch taf9o. [S26]
 
@@ -328,11 +328,11 @@ L-kholasa: reporting reliable kaybayan preparation l-talks, w l-ahammia hiya pos
 
 #### Nvidia katbet 3la open models b-Hugging Face deal
 
-Reuters kay9oul Nvidia ghadi tchri Hugging Face b-deal kbir, wa7d move li kaywssa3 presence dyalha f open-model infrastructure. Promises 3la interoperability aw neutrality kayb9aw company claims 7ta yبان implementation. L-deal fact reported; future ecosystem impact mazal ma t9asch. [S27]
+Reuters kay9oul Nvidia ghadi tchri Hugging Face b-deal kbir, wa7d move li kaywssa3 presence dyalha f open-model infrastructure. Promises 3la interoperability aw neutrality kayb9aw company claims 7ta yban implementation. L-deal fact reported; future ecosystem impact mazal ma t9asch. [S27]
 
 #### Anthropic IPO launch kaymchi l-mid October
 
-Reuters sources kay9olo belli timing dyal Anthropic IPO launch t7رك l-mid October. Hadi sourced timing report, ma-shi final filing aw pricing. IPO schedules y9dro ytbdlo, donc l-edition katn9el timing b7al tentative. [S28]
+Reuters sources kay9olo belli timing dyal Anthropic IPO launch t7arrek l-mid October. Hadi sourced timing report, ma-shi final filing aw pricing. IPO schedules y9dro ytbdlo, donc l-edition katn9el timing b7al tentative. [S28]
 
 ## 3ilm w Dirasat
 
@@ -342,7 +342,7 @@ Reuters sources kay9olo belli timing dyal Anthropic IPO launch t7رك l-mid Octo
 
 Tahrir: DRAGON
 
-L-paper nchar f 20 March 2026 f BMC Psychology, w PubMed kayfهرسو b-DOI 10.1186/s40359-026-04264-4. Research question kaydor 3la kifach behavioral routines, time use, late-night digital engagement w psychosocial supports kayrtabto b-perceived academic standing 3nd secondary students f l-Mghreb. [S31] [S32]
+L-paper nchar f 20 March 2026 f BMC Psychology, w PubMed kayfahrso b-DOI 10.1186/s40359-026-04264-4. Research question kaydor 3la kifach behavioral routines, time use, late-night digital engagement w psychosocial supports kayrtabto b-perceived academic standing 3nd secondary students f l-Mghreb. [S31] [S32]
 
 L-kalima l-ahem hiya perceived. Outcome ma-shi necessarily standardized exam score. W design li tverifa f handoff observational/self-report, donc ila students li 3ndhom routines mo3ayana kay9olo standing a7san, ma n9droch ngolo routine hiya li sbabat natija. Association ma-shi causation. [S31]
 
@@ -352,7 +352,7 @@ What can be concluded howa kayna evidence observational Maghribiya katrbet routi
 
 L-study mohim 7it local evidence kat3awn n9rbo n9ach dyal digital habits mn context Maghribi, walakin generalizability mazal m7doda bla sample details. Ma n9droch n3mmo 3la ga3 talamid, ga3 regions aw ga3 school types. [S31]
 
-Ma l9inach f handoff independent methodological critique specific l-paper wla replication specific. Absence dyal critique ma kat3nich study perfect; kat3ni ghir ma 3ndnach source bach nزيدو criticism attributed. L-limitations li n9dro n9olohom homa li baynin mn design w access level. [S31]
+Ma l9inach f handoff independent methodological critique specific l-paper wla replication specific. Absence dyal critique ma kat3nich study perfect; kat3ni ghir ma 3ndnach source bach nzidou criticism attributed. L-limitations li n9dro n9olohom homa li baynin mn design w access level. [S31]
 
 F practice, l-study t9der tkon start dyal sou2alat mzyana 3la sleep, routines w self-regulation, ma-shi prescription. Qbl ay policy aw advice qawi, khas full paper, sample, instruments, effect sizes w perhaps replication. [S31] [S32]
 
@@ -362,11 +362,11 @@ F practice, l-study t9der tkon start dyal sou2alat mzyana 3la sleep, routines w 
 
 #### El Bakkali tani f Diamond League final
 
-Morocco World News na9lat result dyal Brussels: Soufiane El Bakkali sala tani f Diamond League final. Hada result sportif mباشر, w ma 3ndnach uncertainty material 3la placement reported. L-brief kayb9a 3la natija bla ma y7awlha l-judgment 3la season kaml. [S29]
+Morocco World News na9lat result dyal Brussels: Soufiane El Bakkali sala tani f Diamond League final. Hada result sportif mobachir, w ma 3ndnach uncertainty material 3la placement reported. L-brief kayb9a 3la natija bla ma y7awlha l-judgment 3la season kaml. [S29]
 
 #### US Open day 7: seeds w upsets kay7dddo round 4
 
-Reuters roundup dyal day seven f US Open kayوثق third-round results w matchups li t7dddo l-round four. Tournament mazal kaykml, donc hadchi snapshot dyal stage, ma-shi conclusion 3la champion. [S30]
+Reuters roundup dyal day seven f US Open kaywatte9 third-round results w matchups li t7dddo l-round four. Tournament mazal kaykml, donc hadchi snapshot dyal stage, ma-shi conclusion 3la champion. [S30]
 
 ## Adab
 
@@ -376,33 +376,33 @@ Reuters roundup dyal day seven f US Open kayوثق third-round results w matchup
 
 Tahrir: DRAGON
 
-Mohamed Choukri wla wa7d mn l-asma2 li ma ymknch n9raw l-adab l-Maghribi l7adith bla ma nمرّo mn 3ndhom. For Bread Alone m3rof b-autobiographical framing, walakin had l-wasf ma khasoch yghalطna: autobiography f l-adab ma-shi police report, w l-narrated self ma-shi nafs l-person historical f kol detail. Hadi wa7d l-far9 li Task 2 7der mnha, w hiya b-dabt fin kaybda n9ach l-form. [S35] [S36]
+Mohamed Choukri wla wa7d mn l-asma2 li ma ymknch n9raw l-adab l-Maghribi l7adith bla ma nmerrro mn 3ndhom. For Bread Alone m3rof b-autobiographical framing, walakin had l-wasf ma khasoch yghalTna: autobiography f l-adab ma-shi police report, w l-narrated self ma-shi nafs l-person historical f kol detail. Hadi wa7d l-far9 li Task 2 7der mnha, w hiya b-dabt fin kaybda n9ach l-form. [S35] [S36]
 
-L-work kaytربط b-poverty, exclusion, literacy, memory w social violence, walakin ahammia dyalo maشي f katalog dyal suffering. L-qowa l-adabiya katji mn choice dyal voice, directness, pacing w way li tajriba katwlli narrative. Ila qrina l-kitab ghir b7al testimony, n9dro nf9do l-bina2 l-adabi; ila qrinah ghir b7al fiction detached, n9dro nms7o social reality li kay3tih tension. [S35] [S36]
+L-work kaytrbet b-poverty, exclusion, literacy, memory w social violence, walakin ahammia dyalo ma-shi f katalog dyal suffering. L-qowa l-adabiya katji mn choice dyal voice, directness, pacing w way li tajriba katwlli narrative. Ila qrina l-kitab ghir b7al testimony, n9dro nf9do l-bina2 l-adabi; ila qrinah ghir b7al fiction detached, n9dro nms7o social reality li kay3tih tension. [S35] [S36]
 
 Choukri kayji mn context dyal Morocco w Tangier f twentieth century, wa7d space li kan fih multilingual circulation, poverty, migration, colonial/postcolonial memory w contact m3a publishers w writers mn barra. Hada context mohim, walakin ma khasoch ytwllem l-exotic postcard. Tangier ma hiyach ghir backdrop "international"; f work li kaytna9ch l-hamish, mdina katb9a space dyal inequalities w movement. [S36]
 
-Autobiographical writing katطرح wa7d sou2al 3la memory. Memory ma katخدمش b7al camera. Writer kayختار, kayرتب, kayعطي l-events shape. Hadi ma kat3nich belli l-work "kaddab"; kat3ni belli genre 3ndo craft. Reader li kay9leb 3la truth khaso يفرق bin truth dyal experience, truth historical li t9der tverifa, w truth literary li katji mn structure w voice. [S35] [S36]
+Autobiographical writing katTra7 wa7d sou2al 3la memory. Memory ma katkhddamch b7al camera. Writer kaykhtar, kayretteb, kay3ti l-events shape. Hadi ma kat3nich belli l-work "kaddab"; kat3ni belli genre 3ndo craft. Reader li kay9leb 3la truth khaso yferre9 bin truth dyal experience, truth historical li t9der tverifa, w truth literary li katji mn structure w voice. [S35] [S36]
 
-L-lougha w translation homa part mn reception. For Bread Alone daret circulation international b-translations, w hadchi y9der يفتح audience kbir walakin ta ybdl frame li readers kaydkhlo bih l-work. Publisher copy, translator choices w market expectations y9dro yركزو 3la "shock" aw "taboo" aktar mn literary form. Task 2 7der mn had risk dyal exoticization f reception. [S35]
+L-lougha w translation homa part mn reception. For Bread Alone daret circulation international b-translations, w hadchi y9der yfta7 audience kbir walakin ta ybdl frame li readers kaydkhlo bih l-work. Publisher copy, translator choices w market expectations y9dro yrakkazou 3la "shock" aw "taboo" aktar mn literary form. Task 2 7der mn had risk dyal exoticization f reception. [S35]
 
 Hna khas editorial discipline m3a copyright. Ma ghadi-ch nreproduciw passages twal, w ma ghadi-ch nbniw article 3la quote wa7da. Analysis kaymchi mn metadata, biography references w themes li supported b-sources, m3a paraphrase. [S35] [S36]
 
-Wa7d interpretation katshof l-kitab b7al testimony 3la life f l-hamish. Taniya katshوفو b7al crafted literary autobiography. Talta katركز 3la kifach translation w international publishing wassto l-image dyalo. Had readings ma khas-homch ytlghaw b-b3diyathom; y9dro y3tiw layers mokhtalfa l-nafs l-work. [S35] [S36]
+Wa7d interpretation katshof l-kitab b7al testimony 3la life f l-hamish. Taniya katshoufo b7al crafted literary autobiography. Talta katrakkaz 3la kifach translation w international publishing wassto l-image dyalo. Had readings ma khas-homch ytlghaw b-b3diyathom; y9dro y3tiw layers mokhtalfa l-nafs l-work. [S35] [S36]
 
-Criticism t9der tswel ta 3la ethics dyal reading. Wach reader barra mn context kaychouf person f l-kitab b7al "case" exotic? Wach suffering katwlli spectacle? Wach reputation dyal book katdkhl kol page qbl ma reader y9raha? Hado as2ila ta2wiliya, ma-shi facts 3la intent dyal Choukri. L-edition kat9dmhom b7al n9ach, ma katnسبhomch l-author. [S36]
+Criticism t9der tswel ta 3la ethics dyal reading. Wach reader barra mn context kaychouf person f l-kitab b7al "case" exotic? Wach suffering katwlli spectacle? Wach reputation dyal book katdkhl kol page qbl ma reader y9raha? Hado as2ila ta2wiliya, ma-shi facts 3la intent dyal Choukri. L-edition kat9dmhom b7al n9ach, ma katnsbhomch l-author. [S36]
 
-L-literacy katb9a theme qwiya 7it writing itself t9der ttsra b7al act dyal self-making. Wa7d person li kaydkhol l-literature mn conditions dyal exclusion kayبدل relation m3a memory w m3a public voice. Walakin ma khasnach ndيرو romantic myth dyal "genius from nothing"; biography 3andha context, institutions, people w routes dyal publishing. [S36]
+L-literacy katb9a theme qwiya 7it writing itself t9der ttsra b7al act dyal self-making. Wa7d person li kaydkhol l-literature mn conditions dyal exclusion kaybddel relation m3a memory w m3a public voice. Walakin ma khasnach ndirou romantic myth dyal "genius from nothing"; biography 3andha context, institutions, people w routes dyal publishing. [S36]
 
-L-work kayb9a reference 7it kaykhelli sou2al l-hamish ykhrj mn sociology l-adab bla ma yضيع complexity. Poverty ma katb9ach statistic, walakin ta ma katwllish decoration. Narration katkhlli reader yواجه lived world, w critique kaykhllih yswel kifach had world tbnat f text. [S35]
+L-work kayb9a reference 7it kaykhelli sou2al l-hamish ykhrj mn sociology l-adab bla ma ydayye3 complexity. Poverty ma katb9ach statistic, walakin ta ma katwllish decoration. Narration katkhlli reader ywajeh lived world, w critique kaykhllih yswel kifach had world tbnat f text. [S35]
 
-F Morocco l-yom, relevance dyal had l-work ma katji-ch mn annah "controversial" w safi. Katji mn as2ila li mazal mftou7a: chkoun kayktb l-hamish, chkoun kayترجم, chkoun kayحدد chno li ytsmma literature "authentic", w kifach global market kay9ra works mn janoub. Had as2ila ma kaynach jawabat wa7da, walakin Choukri kayb9a point of entry qwi. [S35] [S36]
+F Morocco l-yom, relevance dyal had l-work ma katji-ch mn annah "controversial" w safi. Katji mn as2ila li mazal mftou7a: chkoun kayktb l-hamish, chkoun kayterjem, chkoun kay7edded chno li ytsmma literature "authentic", w kifach global market kay9ra works mn janoub. Had as2ila ma kaynach jawabat wa7da, walakin Choukri kayb9a point of entry qwi. [S35] [S36]
 
-Kayn ta wa7d tension bin dignity w exposure. Autobiographical writing y9der y3ti voice l-experience li normally ma katsma3ch, walakin y9der ta yفتح private pain l-market w judgement public. Critic ma khasoch y7ل had tension b-sahla. Hadi wa7d l-qima dyal l-work: kaykhelli l-qari uncomfortable b-tariqa li tطلب thought, ma-shi voyeurism. [S35] [S36]
+Kayn ta wa7d tension bin dignity w exposure. Autobiographical writing y9der y3ti voice l-experience li normally ma katsma3ch, walakin y9der ta yfta7 private pain l-market w judgement public. Critic ma khasoch y7ell had tension b-sahla. Hadi wa7d l-qima dyal l-work: kaykhelli l-qari uncomfortable b-tariqa li tTleb thought, ma-shi voyeurism. [S35] [S36]
 
-Legacy dyal Choukri ma khasoch yt9as ghir b-number dyal translations aw notoriety. Kayt9as ta b-sou2alat li b9aw m3a readers w writers 3la autobiography, class, language w right to narrate. Claims d9i9a 3la direct influence 3la writers mo3ayanin khas-ha attribution li ma 3ndnach hna, donc l-edition ma katخترعch lineage. [S36]
+Legacy dyal Choukri ma khasoch yt9as ghir b-number dyal translations aw notoriety. Kayt9as ta b-sou2alat li b9aw m3a readers w writers 3la autobiography, class, language w right to narrate. Claims d9i9a 3la direct influence 3la writers mo3ayanin khas-ha attribution li ma 3ndnach hna, donc l-edition ma katkhter3ch lineage. [S36]
 
-B-nnissba l-reader li ma 9rach l-kitab, ahsan madkhal ma-shi wa7d quote shocking. Hwa y9ra l-work b7al literary construction f context, yفرق bin memory w record, w yلاحظ kifach translation w reception kayشاركو f maana li kitab kayakhod f 3alam. Hadi hiya l-qira2a li t7mi l-adab mn reduction l-sensation. [S35] [S36]
+B-nnissba l-reader li ma 9rach l-kitab, ahsan madkhal ma-shi wa7d quote shocking. Hwa y9ra l-work b7al literary construction f context, yferre9 bin memory w record, w yla7edh kifach translation w reception kaysharkou f maana li kitab kayakhod f 3alam. Hadi hiya l-qira2a li t7mi l-adab mn reduction l-sensation. [S35] [S36]
 
 ## Tarikh l-Mghreb
 
@@ -414,31 +414,31 @@ Tahrir: DRAGON
 
 Ila qrina 1912 ghir b-jomla "France colonized Morocco", n9dro nf9do kifach process tbnat w kifach legal form ma kanch nafs l-wa9e3 dyal ssolta. Treaty text li kayna f Yale Avalon Project w reference historical dyal Britannica kay3tiw juj zwaya: nass l-mo3ahada w context li kay7et-ha f history dyal protectorate. [S33] [S34]
 
-Qbl 1912, l-Mghreb kan ta7t pressure European kaykbar mn decades: agreements, debt, competition bin powers, crises diplomasiya w military intervention. Hada ma kay3nich belli protectorate kan "inevitable" b7al natural law; kay3ni ghir belli 30 March ma kanch event bla prehistory. Decisions dyal states w actors ba9yin decisions, walakin l-field li tdaro fih kan mضغط. [S34]
+Qbl 1912, l-Mghreb kan ta7t pressure European kaykbar mn decades: agreements, debt, competition bin powers, crises diplomasiya w military intervention. Hada ma kay3nich belli protectorate kan "inevitable" b7al natural law; kay3ni ghir belli 30 March ma kanch event bla prehistory. Decisions dyal states w actors ba9yin decisions, walakin l-field li tdaro fih kan mdghout. [S34]
 
-Mo3ahadat Fas tsignat f 30 March 1912. Framework li tbnat khlla Sultanate w chi institutions formalement kaynin, walakin French authorities khdaw power was3 f administration w policy. Hna kayn l-far9 bin formal sovereignty w effective power. Ila reader qra kalimat protectorate b7al "sovereignty b9at kamla", ghadi yghلط; ila qraha b7al "ga3 institutions tm7aw f nhar wa7ed", ghadi yghلط ta howa. [S33] [S34]
+Mo3ahadat Fas tsignat f 30 March 1912. Framework li tbnat khlla Sultanate w chi institutions formalement kaynin, walakin French authorities khdaw power was3 f administration w policy. Hna kayn l-far9 bin formal sovereignty w effective power. Ila reader qra kalimat protectorate b7al "sovereignty b9at kamla", ghadi yghlaT; ila qraha b7al "ga3 institutions tm7aw f nhar wa7ed", ghadi yghlaT ta howa. [S33] [S34]
 
-Sultan Moulay Abd al-Hafid kan actor markazi f moment dyal signing, walakin l-qissa ma katn9ssrch fih wa7do. Makhzen, French state, Spanish state, European diplomacy w Moroccan resistance actors kamlin kaydkhlo f chronology li jaya. Power ma tbdlch b-one signature f vacuum; tbdl b-administration, military presence, fiscal controls w institutions li tbdaw yترسخو. [S33] [S34]
+Sultan Moulay Abd al-Hafid kan actor markazi f moment dyal signing, walakin l-qissa ma katn9ssrch fih wa7do. Makhzen, French state, Spanish state, European diplomacy w Moroccan resistance actors kamlin kaydkhlo f chronology li jaya. Power ma tbdlch b-one signature f vacuum; tbdl b-administration, military presence, fiscal controls w institutions li tbdaw yterssekhou. [S33] [S34]
 
-France ma kanatch l-power wa7da li katهم l-Mghreb. Spanish zones w Tangier 3andhom arrangements mokhtalfa, w hadchi kaymna3 wa7d image simple dyal country kamla ta7t nafs legal regime. L-edition ma katفصلch kol treaty derivative hna, walakin katأكد l-principle: geography dyal colonial rule kanat layered. [S34]
+France ma kanatch l-power wa7da li kathemm l-Mghreb. Spanish zones w Tangier 3andhom arrangements mokhtalfa, w hadchi kaymna3 wa7d image simple dyal country kamla ta7t nafs legal regime. L-edition ma katfsselch kol treaty derivative hna, walakin kat2akked l-principle: geography dyal colonial rule kanat layered. [S34]
 
-Ba3d treaty, Resident-General w colonial administration wlaw central f effective governance, walakin Sultan b9a symbol w institution formel. Hadi هي l-bنية li kayناقشوha historians: واش protectorate preserve sovereignty because form b9a, aw واش reality dyal decision-making katbayan transfer colonial kbir? Jawab l-edition howa ma nختاروش one slogan. Formal continuity w effective subordination y9dro ykouno s7i7in f nafs lwa9t ila 7ddedna chno kan3niw b-kol wa7da. [S33] [S34]
+Ba3d treaty, Resident-General w colonial administration wlaw central f effective governance, walakin Sultan b9a symbol w institution formel. Hadi hiya l-bniya li kayna9shouha historians: wach protectorate preserve sovereignty because form b9a, aw wach reality dyal decision-making katbayan transfer colonial kbir? Jawab l-edition howa ma nkhtaroush one slogan. Formal continuity w effective subordination y9dro ykouno s7i7in f nafs lwa9t ila 7ddedna chno kan3niw b-kol wa7da. [S33] [S34]
 
-Resistance ma khas-hach ttsma7 mn narrative. 1912 ma kanch moment li population kamla qblat framework jdida. Resistance w contestation tkmlo b-shkal mokhtalif f regions w periods. Task 2 ma 3tatch hna detailed battle chronology, donc ma ghadi-ch nzido names w dates mn memory bla source. Li mohim howa nثبت belli implementation colonial kan contested, ma-shi transition administrative neutral. [S34]
+Resistance ma khas-hach ttsma7 mn narrative. 1912 ma kanch moment li population kamla qblat framework jdida. Resistance w contestation tkmlo b-shkal mokhtalif f regions w periods. Task 2 ma 3tatch hna detailed battle chronology, donc ma ghadi-ch nzido names w dates mn memory bla source. Li mohim howa nthbett belli implementation colonial kan contested, ma-shi transition administrative neutral. [S34]
 
-Wa7d myth howa belli 1912 wa9e3a wa7da 9ta3at history b-sekkina. Evidence kaybayan accumulation qblha w process ba3dha. Myth tani howa belli protectorate khlla sovereignty unchanged 7it Sultan b9a. Evidence dyal effective administrative power kaymna3 had l-qira2a. F nafs lwa9t, myth thaleth y9der ykoun belli Makhzen qbl 1912 kan modern centralized state b-nafs form li n3rfo l-yom; had ta هو simplification. [S33] [S34]
+Wa7d myth howa belli 1912 wa9e3a wa7da 9ta3at history b-sekkina. Evidence kaybayan accumulation qblha w process ba3dha. Myth tani howa belli protectorate khlla sovereignty unchanged 7it Sultan b9a. Evidence dyal effective administrative power kaymna3 had l-qira2a. F nafs lwa9t, myth thaleth y9der ykoun belli Makhzen qbl 1912 kan modern centralized state b-nafs form li n3rfo l-yom; had ta howa simplification. [S33] [S34]
 
 Chronology ba3d 1912 katmchi l-decades dyal protectorate, institutions colonial, resistance w transformations ijtima3iya w iqtisadiya, 7ta 1956 w end dyal protectorate w restoration dyal independence. Hna ma n9droch nkhtazlo 44 3am f wa7d paragraph, walakin kayn line fundamental: sovereignty form w practice t3awdo tbnaw 3la tul had period. [S34]
 
-L-mo3ahada katb9a relevant l-yom 7it debates 3la dawla, administration, land, law w sovereignty kayرجعو bzzaf l-colonial legacies. Walakin relevance ma kat3nich belli kol institution l-yom direct product dyal 1912. Historical causation khas-ha evidence institution b-institution. L-edition katst3mel treaty b7al lens, ma-shi master explanation l-kolchi. [S33] [S34]
+L-mo3ahada katb9a relevant l-yom 7it debates 3la dawla, administration, land, law w sovereignty kayrj3ou bzzaf l-colonial legacies. Walakin relevance ma kat3nich belli kol institution l-yom direct product dyal 1912. Historical causation khas-ha evidence institution b-institution. L-edition katst3mel treaty b7al lens, ma-shi master explanation l-kolchi. [S33] [S34]
 
-Power relations f 1912 kaybano ta f language diplomatic. Treaty framework kan kayقدّم protectorate b-form li yb9i Sultan w reforms, walakin balance material dyal force ma kanch mosawi. Hna reader y9der يفهم 3lach legal text wahdo ma kaykfi-ch: documents kayقولولنا chno tssignat, history kayسول chno tطبق, bsh7al mn coercion, w chkoun kan 3ndo ability y9arrer. [S33] [S34]
+Power relations f 1912 kaybano ta f language diplomatic. Treaty framework kan kay9eddem protectorate b-form li yb9i Sultan w reforms, walakin balance material dyal force ma kanch mosawi. Hna reader y9der yefhem 3lach legal text wahdo ma kaykfi-ch: documents kay9ouloulna chno tssignat, history kayswel chno ttbbe9, bsh7al mn coercion, w chkoun kan 3ndo ability y9arrer. [S33] [S34]
 
-Competing interpretations ma khas-homch ytsawرو b7al wa7d s7i7 w wa7d ghalat b-darora. Legal historian y9der yركز 3la continuity dyal Sultanate; colonial historian y9der yركز 3la transfer dyal effective decision-making. Ila kol wa7d kayشرح level mokhtalif, juj readings y9dro yكملو b3diyathom. Conflict kaybda ila formal label yst3mel bach ynfi power reality, aw ila power reality tst3mel bach tm7i kol continuity institutionnelle. [S33] [S34]
+Competing interpretations ma khas-homch ytsawrou b7al wa7d s7i7 w wa7d ghalat b-darora. Legal historian y9der yrakkaz 3la continuity dyal Sultanate; colonial historian y9der yrakkaz 3la transfer dyal effective decision-making. Ila kol wa7d kayshar7 level mokhtalif, juj readings y9dro ykamlou b3diyathom. Conflict kaybda ila formal label yst3mel bach ynfi power reality, aw ila power reality tst3mel bach tm7i kol continuity institutionnelle. [S33] [S34]
 
-L-qira2a l-mzyana l-Treaty of Fes katطلب nmsko jouj 7wayj f nafs lwa9t: l-Mghreb ma dkhlch protectorate mn vacuum, w protectorate ma kanch ghir technical reform pact. Kan wa7d turning point f sovereignty w governance f context dyal pressure imperial kbir. [S33] [S34]
+L-qira2a l-mzyana l-Treaty of Fes katTlab nmsko jouj 7wayj f nafs lwa9t: l-Mghreb ma dkhlch protectorate mn vacuum, w protectorate ma kanch ghir technical reform pact. Kan wa7d turning point f sovereignty w governance f context dyal pressure imperial kbir. [S33] [S34]
 
-B had l-manظور, 30 March 1912 ma katb9ach date f textbook. Katwlli sou2al: kifach state t9der tb9a formally kayna w f nafs lwa9t تفقد جزء كبير mn capacity dyal decision? Had sou2al kay3awn reader yفرق bin symbols dyal sovereignty w institutions li katmارس power actual. [S33] [S34]
+B had l-mandhour, 30 March 1912 ma katb9ach date f textbook. Katwlli sou2al: kifach state t9der tb9a formally kayna w f nafs lwa9t tf9ed joz2 kbir mn capacity dyal decision? Had sou2al kay3awn reader yferre9 bin symbols dyal sovereignty w institutions li katmarss power actual. [S33] [S34]
 
 ## Mo7asaba w Ta7qiq
 
@@ -448,11 +448,11 @@ B had l-manظور, 30 March 1912 ma katb9ach date f textbook. Katwlli sou2al: ki
 
 Tahrir: DRAGON
 
-Dossier Al Haouz kayبدأ b-far9 darori bin aggregate housing numbers w reconstruction kamla sector b-sector. ADHA dashboard kay9oul 54,425 homes completed w 7.23 billion MAD f aid. Reporting f March 2026 kayn9el ta belli aktar mn 3,000 homes kano mazal ongoing. Hado official-origin figures, w ma l9inach f Task 2 audit independent kafi bach nثبت aw ننفي count project b-project. [S37] [S39]
+Dossier Al Haouz kaybda b-far9 darori bin aggregate housing numbers w reconstruction kamla sector b-sector. ADHA dashboard kay9oul 54,425 homes completed w 7.23 billion MAD f aid. Reporting f March 2026 kayn9el ta belli aktar mn 3,000 homes kano mazal ongoing. Hado official-origin figures, w ma l9inach f Task 2 audit independent kafi bach nthbett aw nnfi count project b-project. [S37] [S39]
 
-F June, EU/EIB support zada financing w grants l-reconstruction w community projects. Hada kaybayan program ba9i kayتحرك, walakin ma kayقولش bo7do wach project mo3ayan kaml. [S38]
+F June, EU/EIB support zada financing w grants l-reconstruction w community projects. Hada kaybayan program ba9i kayt7arrek, walakin ma kay9oulsh bo7do wach project mo3ayan kaml. [S38]
 
-F August, tenders jdod l-reconstruction dyal several mosques f Al Haouz kano mazal kayخرجو. Hadi evidence belli chi sectoral works ba9yin active. Ma katنفي-ch housing figure; katنفي ghir wa7d claim wassi3 ila chi wa7d gal "ga3 reconstruction salat". [S40] [S41]
+F August, tenders jdod l-reconstruction dyal several mosques f Al Haouz kano mazal kaykhrjou. Hadi evidence belli chi sectoral works ba9yin active. Ma katnfi-ch housing figure; katnfi ghir wa7d claim wassi3 ila chi wa7d gal "ga3 reconstruction salat". [S40] [S41]
 
 Dossier mazal kay7taj project-level completion list b-commune, independent audit matching beneficiaries w units, w ledger sector-by-sector. Bla had documents, ma n9droch n9olo wrongdoing, inflation dyal figures aw success kamel. [S37] [S40] [S41]
 
@@ -464,6 +464,6 @@ Verdict editorial l-yom: official housing progress kayban substantial f data li 
 
 Tahrir: DRAGON
 
-L-yom kayn arba3a dyal service signals li khas yb9aw واضحين bla exaggeration. L-awal weather: heat wave w thunderstorms mذكورين f warning attributed l-DGM, w forecast y9der ytbdl. Tani logistics: port truckers announced open-ended strike mn 14 September, walakin action mazal ma bdat-ch w negotiations t9der تبدلها. Talet mobility: qawa3id jdod 3la electric scooters w e-bikes tna9lo b7al amendments ncharo f Official Gazette, donc details legal khas-hom nass rasmi qbl compliance decisions. Rabe3 Meknes: ENS Meknes 3andha notice current l-candidats l-oral f Licence en education. [S07] [S09] [S11] [S12]
+L-yom kayn arba3a dyal service signals li khas yb9aw wad7in bla exaggeration. L-awal weather: heat wave w thunderstorms mdkoorin f warning attributed l-DGM, w forecast y9der ytbdl. Tani logistics: port truckers announced open-ended strike mn 14 September, walakin action mazal ma bdat-ch w negotiations t9der tbeddelha. Talet mobility: qawa3id jdod 3la electric scooters w e-bikes tna9lo b7al amendments ncharo f Official Gazette, donc details legal khas-hom nass rasmi qbl compliance decisions. Rabe3 Meknes: ENS Meknes 3andha notice current l-candidats l-oral f Licence en education. [S07] [S09] [S11] [S12]
 
-Had radar ma kayعطي-ch prediction. Kay3ti dates w states li mthbetin daba: warning meteo current, strike threatened for 14 September, mobility framework changed, w admissions notice available. L-reader li kayهمو wa7d mn had items khaso ytab3 source rasmi aw update jdida 7it kol wa7d fih component y9der ytbdl b-wa9t.
+Had radar ma kay3ti-ch prediction. Kay3ti dates w states li mthbetin daba: warning meteo current, strike threatened for 14 September, mobility framework changed, w admissions notice available. L-reader li kayhemmou wa7d mn had items khaso ytab3 source rasmi aw update jdida 7it kol wa7d fih component y9der ytbdl b-wa9t.

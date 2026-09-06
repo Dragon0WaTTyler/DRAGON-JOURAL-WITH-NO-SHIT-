@@ -485,6 +485,14 @@ ARABIC_SCRIPT_COUNT = 0
 
 Do not mark COMPLETE while count > 0.
 
+Run the deterministic Unicode scan against the persisted `edition.md` whenever
+the available runtime can do so. If that runtime cannot materialize the exact
+GitHub file solely because direct GitHub network/DNS access is unavailable,
+the completion retry may instead use a successful GitHub Actions check named
+`Validate reader language` for the current main revision, after confirming the
+edition.md Git blob is unchanged. Record the proof in editorial-report.json.
+A pending, failed, stale, different-revision or unavailable check is not proof.
+
 ==================================================
 21. FACT-CHECK
 ==================================================
