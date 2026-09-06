@@ -40,6 +40,10 @@ Each desk reads the exact current GitHub file and SHA, merges only owned fields,
 Each stage owns its stage value, started/completed timestamps and blocking reason, plus its documented report fields. Any changed canonical input sets final_publication_status and overall_status PENDING using the same conditional merge.
 Read all prerequisite artifacts at one observed commit if supported, and record source commit/blob IDs returned by GitHub. Never invent hashes. Before completion reread inputs; changed upstream inputs invalidate the stage. COMPLETE alone is not a freshness test.
 Missing prerequisites mean BLOCKED for that attempt; a future scheduled invocation may retry the same role after exact read-back. A time gap between jobs is not a dependency guarantee. Configure recovery invocations in the existing ChatGPT schedules where available; the binary workflow cannot run a missed research/editorial job.
+An ordinary dependency block never authorizes a role to pause, disable, delete or
+alter any recurring ChatGPT schedule. Record the exact blocker, preserve the
+schedule, and retry on its next invocation. Only the user may change recurring
+schedule state.
 
 ## Finality guard
 

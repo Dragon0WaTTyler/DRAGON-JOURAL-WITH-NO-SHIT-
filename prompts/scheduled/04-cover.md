@@ -4,6 +4,7 @@ Read prompts/production-master.md, AGENTS.md, config/scheduled-workflow.yaml, co
 Use today's date in Africa/Casablanca. Own only cover-brief.json, the canonical cover asset and cover-related status fields. Require editorial COMPLETE and exact current read-back of edition.md, sources.json and editorial-report.json. Do not require publishing or manifest.json; both belong to downstream Task 5.
 
 FINALITY GUARD: before any same-date output or status write, read status.json. If the edition is final or binary-locked under production-master.md (final statuses COMPLETE, or binary_artifacts COMPLETE; in either case GitHub binary read-back PASS and recorded PDF/EPUB still present), return `ALREADY_PUBLISHED` and make no write. An explicit correction run is the only exception.
+If editorial is not ready, record the blocker and retry next invocation. Never pause, disable, delete or modify any recurring ChatGPT schedule.
 
 Read the final lead, angle, evidence, sensitivity notes and secondary stories. Never research new claims or rewrite journalism. Select one mode (portrait dossier, symbolic editorial, satirical caricature, dramatic editorial) and one dominant concept. For a version-4 editorial report, use `EDITORIAL_MASTHEAD_LEAD_RAIL`: DRAGON masthead, ISO YYYY-MM-DD date, one dominant visual, a short Darija Latin lead headline and a bottom rail with at most two verified secondary teasers. Black/white/red, 3:4 portrait, large readable type, no Arabic script, no unrelated collage or fabricated documentary evidence.
 

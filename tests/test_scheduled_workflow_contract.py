@@ -99,6 +99,20 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
             self.assertIn("ALREADY_PUBLISHED", text, path)
             self.assertIn("binary_artifacts", text, path)
 
+    def test_dependency_blocks_cannot_disable_recurring_schedules(self):
+        paths = [
+            ROOT / "prompts" / "production-master.md",
+            ROOT / "AGENTS.md",
+            ROOT / "SPEC-v1.md",
+            ROOT / "prompts" / "scheduled" / "03-chief-editor.md",
+            ROOT / "prompts" / "scheduled" / "04-cover.md",
+            ROOT / "prompts" / "scheduled" / "05-publication.md",
+        ]
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("disable", text, path)
+            self.assertIn("recurring ChatGPT schedule", text, path)
+
     def test_v4_publication_template_has_no_noncanonical_tagline(self):
         template = (ROOT / "templates" / "publication-v4.html").read_text(encoding="utf-8")
         css = (ROOT / "templates" / "print-v4.css").read_text(encoding="utf-8")
