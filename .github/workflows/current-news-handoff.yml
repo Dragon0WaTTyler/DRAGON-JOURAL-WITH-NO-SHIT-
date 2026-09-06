@@ -1,0 +1,39 @@
+name: Validate current-news handoff
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'daily-runs/**/current-news.json'
+      - 'daily-runs/**/status.json'
+      - 'scripts/current_news_handoff.py'
+      - '.github/workflows/current-news-handoff.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate every current-news handoff changed in this revision
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(daily-runs/*/current-news.json)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo 'No current-news handoff is present.'
+            exit 0
+          fi
+          for file in "${files[@]}"; do
+            echo "Validating $file"
+            python scripts/current_news_handoff.py "$file"
+          done

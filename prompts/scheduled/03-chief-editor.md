@@ -121,9 +121,20 @@ For a version-4 current-news handoff, run
 before setting editorial RUNNING. Require `quality_gate` to record the 30/4/20
 inventory counts and `current_news_handoff_validation=PASS`; never treat an
 `inventory_floor` object, a claimed candidate count, a generic source URL, or
-an incomplete GitHub read-back as equivalent evidence. If the validation fails,
-BLOCK Task 3 with `CURRENT_NEWS_HANDOFF_INVALID` and its exact reason. Do not
-repair Task 1's packet, invent sources, or use an unverified candidate.
+an incomplete GitHub read-back as equivalent evidence.
+
+If this scheduled runtime cannot materialize the exact GitHub file solely
+because its direct GitHub network/DNS access is unavailable, it may use the
+independent GitHub Actions check named `Validate current-news handoff` instead.
+That fallback is valid only when the check is successful for the current main
+revision, the exact GitHub read-back shows status.current_research_artifact_blob
+equals the current-news.json Git blob, and the packet records the same
+30/4/20 gate plus `current_news_handoff_validation=PASS`. Record which proof
+was used in editorial-report.json. A pending, failed, stale, different-revision
+or unavailable check is not proof. If neither local validation nor this exact
+Actions proof is available, BLOCK Task 3 with `CURRENT_NEWS_HANDOFF_INVALID`
+and its exact reason. Do not repair Task 1's packet, invent sources, or use an
+unverified candidate.
 
 If any check fails:
 
