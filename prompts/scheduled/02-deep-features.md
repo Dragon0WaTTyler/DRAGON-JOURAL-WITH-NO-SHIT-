@@ -206,8 +206,10 @@ SECONDARY_SUMMARY_ONLY
 
 Never imply full-paper access when only an abstract was available.
 
-Select ONE primary Science candidate.
-Keep strong alternates if useful.
+Provide one or two responsibly supported Science candidates when available.
+The Chief Editor, not Task 2, decides whether any becomes a lead, explainer,
+data item or brief. If the source sweep finds no publishable Science item,
+record `NO_PUBLISHABLE_ITEM` and the reason rather than manufacturing one.
 
 ==================================================
 TARIKH L-MGHREB
@@ -274,10 +276,10 @@ PRESENT_DAY_RELEVANCE
 CLAIMS_TO_AVOID
 ESTIMATED_USABLE_WORDS
 
-If ESTIMATED_USABLE_WORDS < 800:
-discard topic and choose another.
-
-No HOLD exception for History.
+If ESTIMATED_USABLE_WORDS < 800, classify it as a shorter item or reject it.
+History may be `NO_PUBLISHABLE_ITEM` when the source sweep cannot support a
+responsible feature. Record that sweep and reason; do not force a replacement
+topic merely to fill a daily slot.
 
 ==================================================
 ADAB & CULTURE
@@ -348,10 +350,9 @@ WHY_IT_MATTERS_TODAY
 CLAIMS_TO_AVOID
 ESTIMATED_USABLE_WORDS
 
-If <800 useful words:
-discard and choose another topic.
-
-No HOLD exception for Literature/Culture.
+If a candidate cannot support 800 useful words, classify it as a shorter item
+or reject it. Culture/Adab may be `NO_PUBLISHABLE_ITEM` when no responsible
+feature is available; record the source sweep rather than inventing filler.
 
 Do not reproduce copyrighted passages.
 Prefer paraphrase and analysis.
@@ -476,7 +477,7 @@ important_unknowns
 handoff
 architecture_candidates
 
-Each selected feature must include:
+Each proposed feature must include:
 
 TOPIC_ID
 SECTION_ID
@@ -500,9 +501,10 @@ ALTERNATE
 HOLD
 REJECT
 
-Selected History must be PUBLISH-ready research.
-Selected Literature/Culture must be PUBLISH-ready research.
-Selected Science must be responsibly supported.
+Any PUBLISH-recommended History or Literature/Culture feature must be
+PUBLISH-ready research. Any PUBLISH-recommended Science item must be
+responsibly supported. A no-item outcome is valid only with an honest source
+sweep and `NO_PUBLISHABLE_ITEM` reason.
 Investigation may remain non-ready.
 
 architecture_candidates records every supported version-4 candidate with its
@@ -528,13 +530,10 @@ handoff = {
   major_unresolved_questions
 }
 
-ready_for_chief_editor = true only if:
-
-- Science has a supported selected topic
-- History estimated usable depth >=800
-- Literature/Culture estimated usable depth >=800
-- quality gate passes
-- JSON valid
+ready_for_chief_editor = true only if every deep desk has either supported
+candidates or an auditable `NO_PUBLISHABLE_ITEM` source sweep, and the quality
+gate passes and JSON is valid. It does not require a daily Science, History or
+Literature/Culture feature.
 - GitHub write succeeds
 - GitHub read-back succeeds
 
@@ -609,9 +608,9 @@ BLOCKING RULE
 
 Use reasonable fallback before BLOCKED:
 
-Science weak today -> choose stronger relatively recent work.
-History too thin -> choose another topic.
-Culture too narrow -> choose another topic.
+Science weak today -> supply a cautious short item or record no publishable item.
+History too thin -> supply a shorter supported item or record no publishable item.
+Culture too narrow -> supply a shorter supported item or record no publishable item.
 Investigation non-ready -> NOT a blocker.
 
 BLOCK only when mandatory deep-feature research cannot responsibly
@@ -666,11 +665,8 @@ Verify:
 - valid JSON
 - today's Casablanca date
 - current research timestamp
-- selected Science topic exists
-- selected History topic exists
-- selected Literature/Culture topic exists
-- History depth >=800
-- Literature/Culture depth >=800
+- every deep desk has candidates or an auditable no-item source sweep
+- any PUBLISH History/Literature feature has depth >=800
 - handoff exists and is ready
 - unrelated status fields preserved
 - deep_research = COMPLETE

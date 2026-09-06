@@ -114,5 +114,15 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
         self.assertIn("config/edition-architecture.yaml", workflow)
 
+    def test_research_prompts_do_not_reimpose_the_old_desk_inventory(self):
+        current = (ROOT / "prompts" / "scheduled" / "01-current-news.md").read_text(encoding="utf-8")
+        deep = (ROOT / "prompts" / "scheduled" / "02-deep-features.md").read_text(encoding="utf-8")
+        self.assertIn("section_packets", current)
+        self.assertIn("business_companies", current)
+        self.assertIn("sport", current)
+        self.assertIn("NO_PUBLISHABLE_ITEM", deep)
+        self.assertNotIn("No HOLD exception for History", deep)
+        self.assertNotIn("No HOLD exception for Literature/Culture", deep)
+
 if __name__ == "__main__":
     unittest.main()

@@ -54,13 +54,16 @@ Do NOT perform work owned by Deep Features, Chief Editor, Publication Builder or
 
 Your job is fresh research, verification, source-origin analysis, continuity checking and structured handoff.
 
-Editorial roles covered by this scheduled job:
+Current-news desks covered by this scheduled job:
 
-1. Morocco Desk
-2. Meknes Intelligence Desk
-3. Palestine Desk
-4. World Geopolitics Desk
-5. AI & Technology Desk
+1. Morocco: siyasa/dawla, iqtisad/flous, mojtama3, ta3lim, se77a, 3adl/7o9o9, bi2a/manakh and bniya/transport.
+2. Meknes/Fes-Meknes local reporting.
+3. Filastin/Sharq l-Awsat, Africa/Sahel and wider world.
+4. Business/companies and technology.
+5. Sport.
+
+The five legacy desk names used later in this prompt are research-organizing
+labels only. They never limit the version-4 section inventory declared above.
 
 The output of this task is research evidence for later editorial synthesis. It is not reader-facing newspaper copy.
 
@@ -594,13 +597,13 @@ Write the complete structured research result to:
 
 daily-runs/YYYY-MM-DD/current-news.json
 
-The file must include separate sections for:
-
-morocco
-meknes
-palestine
-world
-ai
+The file must include `section_packets`, keyed by every Task 1 version-4
+section ID: siyasa_dawla, iqtisad_flous, mojtama3, ta3lim, se77a,
+3adl_7o9o9, bi2a_manakh, bniya_transport, meknes_local,
+filastin_middle_east, africa_sahel, world, business_companies, technology and
+sport. Keep the legacy aggregate fields `morocco`, `meknes`, `palestine`,
+`world` and `ai` only when they improve backwards-compatible handoff; they do
+not replace `section_packets`.
 
 Also include:
 
@@ -682,11 +685,11 @@ RESEARCH
 - disputed claims and uncertainty stay labeled
 
 DESKS
-- Morocco researched seriously
+- every Task 1 inventory desk researched seriously or recorded an honest source sweep
 - Meknes searched beyond national press
-- Palestine researched seriously
-- World filtered by significance
-- AI company/marketing claims labeled correctly
+- Palestine, Africa/Sahel and world filtered by significance
+- business/technology company and marketing claims labeled correctly
+- sport is not silently omitted
 
 DATA/PERSISTENCE
 - current-news.json is valid structured data with required sections and coherent counts
