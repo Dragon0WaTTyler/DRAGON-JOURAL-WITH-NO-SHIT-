@@ -102,5 +102,11 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertIn("YYYY-MM-DD · Africa/Casablanca", template)
         self.assertNotIn("Jarida youmiya", template)
 
+    def test_chief_editor_labels_legacy_depth_and_briefing_handoff(self):
+        prompt = (ROOT / "prompts" / "scheduled" / "03-chief-editor.md").read_text(encoding="utf-8")
+        self.assertIn("VERSION-4 TOTAL: 10,000+ useful words", prompt)
+        self.assertIn("legacy archive safety floor", prompt)
+        self.assertIn("Never copy their labels into `edition.md`", prompt)
+
 if __name__ == "__main__":
     unittest.main()

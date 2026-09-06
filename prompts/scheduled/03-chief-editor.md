@@ -183,14 +183,17 @@ For each front-page item provide:
 
 HEADLINE
 
-Chno w9e3:
-short explanation
+`Chno w9e3` (internal handoff note):
+short factual explanation
 
-3lach hadchi mohim:
+`3lach hadchi mohim` (internal handoff note):
 clear significance
 
-Chno nra9bo daba:
+`Chno nra9bo daba` (internal handoff note):
 only when meaningful
+
+These three notes belong only to the cover/editorial handoff in
+`editorial-report.json`. Never copy their labels into `edition.md`.
 
 Also include:
 
@@ -248,10 +251,11 @@ Reader-facing section headings must be Darija Latin.
 Respect config/editorial-depth.yaml. Repository config is authoritative.
 
 Legacy depth minimums remain enforced, and version-4 architecture adds a
-10,000-word edition floor plus its lead/brief/format mix. Expected legacy
-minimums approximately:
+10,000-word edition floor plus its lead/brief/format mix. `4000` below is a
+legacy archive safety floor only; it never authorizes a version-4 edition below
+10,000 useful words. Required minimums are:
 
-TOTAL: 4000+ useful words
+VERSION-4 TOTAL: 10,000+ useful words
 MOROCCO: 700+
 MEKNES: 300+ unless legitimate THIN-NEWS EXCEPTION
 PALESTINE: 500+
