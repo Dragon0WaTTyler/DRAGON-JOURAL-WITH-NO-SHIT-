@@ -11,6 +11,10 @@ For every non-brief version-4 article, write connected narrative paragraphs: lea
 
 Version 4 adds one Task 3 artifact: `daily-runs/YYYY-MM-DD/edition-plan.json`.
 Read config/edition-architecture.yaml and templates/edition-architecture.md.
+Start every version-4 `edition.md` with the exact canonical reader-facing
+masthead `# DRAGON`, followed by today's `YYYY-MM-DD · Africa/Casablanca` line,
+before its first H2 section. Task 5 may style these canonical tokens, but may
+not invent a different visible masthead, date or tagline.
 Write and persist the plan before edition.md. It declares every inventory section
 as ACTIVE or SKIPPED with a specific reason, then gives each selected article an
 exact headline, story_id, approved format and word budget. The target is a

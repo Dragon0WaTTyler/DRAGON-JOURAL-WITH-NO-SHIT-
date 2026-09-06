@@ -212,6 +212,8 @@ def main() -> int:
         errors.append("edition architecture must prohibit legacy briefing templates in reader-facing articles")
     if architecture.get("edition", {}).get("hard_min_words") != 10000:
         errors.append("version-4 edition architecture hard minimum must be 10000 words")
+    if architecture.get("edition", {}).get("masthead") != "DRAGON" or architecture.get("edition", {}).get("date_timezone") != "Africa/Casablanca":
+        errors.append("version-4 edition architecture must define the canonical reader masthead and timezone")
 
     expected_depth = {
         "edition": 4000, "history": 800, "literature_culture": 800,

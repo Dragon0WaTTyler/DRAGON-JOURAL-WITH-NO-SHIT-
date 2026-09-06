@@ -48,6 +48,10 @@ verified reader-facing item that day; it never authorizes filler.
 ## Reader-facing Markdown shape
 
 ```markdown
+# DRAGON
+
+YYYY-MM-DD · Africa/Casablanca
+
 ## Siyasa w Dawla
 
 ### Exact reader-facing H3 headline

@@ -25,7 +25,7 @@ def narrative_words(count: int, paragraphs: int) -> str:
 
 def fixture():
     sections = []
-    markdown = ["# DRAGON"]
+    markdown = ["# DRAGON", DATE + " · Africa/Casablanca"]
     formats = ["lead_article"] * 4 + ["standard_article"] * 6
     inventory = ARCHITECTURE["section_inventory"]
     for index, item in enumerate(inventory):
@@ -75,6 +75,13 @@ class EditionArchitectureTests(unittest.TestCase):
         report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
         self.assertEqual(report["validation_status"], "FAIL")
         self.assertTrue(any("inventory section" in error for error in report["errors"]))
+
+    def test_canonical_masthead_date_and_timezone_are_required(self):
+        plan, markdown = fixture()
+        markdown = markdown.replace("# DRAGON\n\n" + DATE + " · Africa/Casablanca", "# Not DRAGON", 1)
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("canonical DRAGON masthead" in error for error in report["errors"]))
 
     def test_active_article_needs_byline_and_citation(self):
         plan, markdown = fixture()

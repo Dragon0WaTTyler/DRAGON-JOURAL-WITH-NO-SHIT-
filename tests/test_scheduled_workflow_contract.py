@@ -97,5 +97,10 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
             self.assertIn("ALREADY_PUBLISHED", text, path)
             self.assertIn("binary_artifacts", text, path)
 
+    def test_v4_publication_template_has_no_noncanonical_tagline(self):
+        template = (ROOT / "templates" / "publication-v4.html").read_text(encoding="utf-8")
+        self.assertIn("YYYY-MM-DD · Africa/Casablanca", template)
+        self.assertNotIn("Jarida youmiya", template)
+
 if __name__ == "__main__":
     unittest.main()

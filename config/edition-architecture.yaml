@@ -6,6 +6,8 @@ byline: "Tahrir: DRAGON"
 # analysis, service material, briefs and long-form. It is not a collection of
 # identical summaries, nor a fixed page-count product.
 edition:
+  masthead: "DRAGON"
+  date_timezone: "Africa/Casablanca"
   hard_min_words: 10000
   target_words: "10000-16000"
   lead_articles: [4, 6]

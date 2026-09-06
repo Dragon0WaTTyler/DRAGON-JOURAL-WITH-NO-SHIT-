@@ -97,6 +97,14 @@ def validate_plan(
     if plan.get("edition_architecture_version") != 4:
         errors.append("edition plan must declare edition_architecture_version 4")
 
+    edition_rule = architecture["edition"]
+    masthead = edition_rule.get("masthead", "DRAGON")
+    intro = markdown.split("##", 1)[0]
+    if not re.search(rf"(?m)^#\s+{re.escape(str(masthead))}\s*$", intro):
+        errors.append("edition must start with the canonical DRAGON masthead")
+    if edition_date not in intro or edition_rule.get("date_timezone") not in intro:
+        errors.append("edition masthead must show the canonical date and timezone")
+
     expected = {item["id"]: item for item in architecture["section_inventory"]}
     entries = plan.get("sections")
     if not isinstance(entries, list):
@@ -191,7 +199,6 @@ def validate_plan(
         if active_count < int(rule["minimum_active"]):
             errors.append(f"coverage rule {rule['id']} needs {rule['minimum_active']} active sections, has {active_count}")
 
-    edition_rule = architecture["edition"]
     for label, count in (("lead_article", format_count["lead_article"]), ("brief", format_count["brief"]), ("long_form", format_count["long_form"])):
         config_key = {"lead_article": "lead_articles", "brief": "briefs", "long_form": "long_form_features"}[label]
         low, high = _range(edition_rule, config_key)
