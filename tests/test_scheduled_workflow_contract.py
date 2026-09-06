@@ -142,6 +142,8 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertIn("section_packets", current)
         self.assertIn("business_companies", current)
         self.assertIn("sport", current)
+        self.assertIn("at least 30 distinct", current)
+        self.assertIn("publishable_candidate_count", current)
         self.assertIn("NO_PUBLISHABLE_ITEM", deep)
         self.assertNotIn("No HOLD exception for History", deep)
         self.assertNotIn("No HOLD exception for Literature/Culture", deep)

@@ -605,6 +605,30 @@ sport. Keep the legacy aggregate fields `morocco`, `meknes`, `palestine`,
 `world` and `ai` only when they improve backwards-compatible handoff; they do
 not replace `section_packets`.
 
+### V4 INVENTORY FLOOR — REQUIRED
+
+This packet is the source inventory for a full newspaper, not a short daily
+digest. Before marking the desk COMPLETE, provide **at least 30 distinct,
+source-backed candidates** whose `RECOMMENDATION` is `LEAD`, `PUBLISH` or
+`BRIEF`. At least 4 must be lead-capable and at least 20 must be brief-capable.
+The Chief Editor needs enough distinct material to select four to six leads,
+six to ten secondary articles and fifteen to thirty short briefs without
+duplicating one event under different headlines.
+
+Research every Task 1 section independently. As a normal daily target, collect
+two or more candidates for each active section; work deeper in the large desks
+(Morocco politics/economy/society, Palestine, world, business, technology and
+sport) until the 30-candidate floor is met. A `NO_PUBLISHABLE_ITEM` is allowed
+only after the documented serious source sweep finds no fresh, verified
+development. It is never a shortcut for ending research early.
+
+Each candidate must have a unique `story_id`, a materially distinct event or
+decision, at least one exact source URL, and the exact `section_id` it supports.
+Do not count a syndicated rewrite, a duplicate angle on the same event, or a
+background explainer as another candidate. Record `publishable_candidate_count`,
+`lead_capable_candidate_count`, and `brief_capable_candidate_count` in
+`quality_gate` so Task 3 can reject an insufficient handoff before drafting.
+
 Also include:
 
 research_started_at
@@ -686,6 +710,9 @@ RESEARCH
 
 DESKS
 - every Task 1 inventory desk researched seriously or recorded an honest source sweep
+- at least 30 distinct source-backed `LEAD`/`PUBLISH`/`BRIEF` candidates, including
+  at least 4 lead-capable and 20 brief-capable candidates; every shortfall is a
+  BLOCKED research result, never a reason for Task 3 to invent or duplicate copy
 - Meknes searched beyond national press
 - Palestine, Africa/Sahel and world filtered by significance
 - business/technology company and marketing claims labeled correctly
