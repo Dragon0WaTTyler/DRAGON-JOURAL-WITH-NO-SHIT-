@@ -15,10 +15,39 @@
   "deep_research_artifact": "daily-runs/2026-09-06/deep-features.json",
   "deep_research_artifact_blob": "f8a825045b220adee84777f2312ed5b6526d93a3",
   "deep_research_github_read_back": "PASS",
-  "editorial": "BLOCKED",
+  "editorial": "COMPLETE",
   "editorial_started_at": "2026-09-06T15:49:54+01:00",
-  "editorial_completed_at": "2026-09-06T15:49:54+01:00",
-  "editorial_blocking_reason": "DARIJA_LATIN_GATE_FAILED: exact GitHub read-back of editions/2026/09/2026-09-06/edition.md contains Arabic-script characters inside reader-facing prose (visible examples include `mوجهة`, `sريعة`, `الحقيقي`, `yضغطو`, `l-mokhزون`, `مالي`, and `توسع`). The V4 contract requires Arabic-script count zero before editorial COMPLETE. Direct container GitHub access remains unavailable, so a deterministic full-file Unicode scan could not be executed in this run; Task 3 must not claim arabic_script_count=0 or COMPLETE. The V4 current-news prerequisite itself is now valid through the authorized GitHub Actions fallback on main revision b26269e3464c2c694cf242523aa25e4cbcf1051b, with current-news blob b5c760cecf73d67a2dfcf41368cee22218b934bc and recorded 30/4/20 PASS. Draft Task-3 artifacts edition-plan.json, edition.md and sources.json were persisted but are not canonical COMPLETE outputs; retry Task 3 and repair/rescan the edition before creating editorial-report.json or marking COMPLETE.",
+  "editorial_completed_at": "2026-09-06T21:10:38+01:00",
+  "editorial_blocking_reason": null,
+  "editorial_gates_passed": true,
+  "arabic_script_count": 0,
+  "editorial_artifacts": {
+    "edition": "editions/2026/09/2026-09-06/edition.md",
+    "sources": "editions/2026/09/2026-09-06/sources.json",
+    "report": "daily-runs/2026-09-06/editorial-report.json",
+    "edition_plan": "daily-runs/2026-09-06/edition-plan.json"
+  },
+  "editorial_remote_read_back": "PASS",
+  "remote_read_back": {
+    "status": "PASS",
+    "commit": "922540e90b5e58482178174ed70569c02109ea1e",
+    "paths": [
+      "daily-runs/2026-09-06/current-news.json",
+      "daily-runs/2026-09-06/deep-features.json",
+      "editions/2026/09/2026-09-06/edition.md",
+      "editions/2026/09/2026-09-06/sources.json",
+      "daily-runs/2026-09-06/editorial-report.json",
+      "daily-runs/2026-09-06/edition-plan.json"
+    ],
+    "blobs": {
+      "daily-runs/2026-09-06/current-news.json": "b5c760cecf73d67a2dfcf41368cee22218b934bc",
+      "daily-runs/2026-09-06/deep-features.json": "f8a825045b220adee84777f2312ed5b6526d93a3",
+      "editions/2026/09/2026-09-06/edition.md": "a28188a503f6282430cd183024d4f238179e55db",
+      "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
+      "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca",
+      "daily-runs/2026-09-06/edition-plan.json": "831668bc1d231ccc8b2066406346370fe3f4f909"
+    }
+  },
   "publishing": "BLOCKED",
   "publishing_blocking_reason": "EDITORIAL_AND_COVER_PREREQUISITES_NOT_COMPLETE: status.editorial is PENDING and status.cover is BLOCKED; current canonical editorial-report.json is not available, so Task 5 cannot validate current editorial lineage or canonical archived cover and must not rebuild publication outputs.",
   "cover": "BLOCKED",
