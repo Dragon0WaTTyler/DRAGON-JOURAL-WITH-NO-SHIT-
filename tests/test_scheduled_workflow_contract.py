@@ -108,5 +108,9 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertIn("legacy archive safety floor", prompt)
         self.assertIn("Never copy their labels into `edition.md`", prompt)
 
+    def test_publisher_revalidates_when_v4_architecture_changes(self):
+        workflow = (ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
+        self.assertIn("config/edition-architecture.yaml", workflow)
+
 if __name__ == "__main__":
     unittest.main()
