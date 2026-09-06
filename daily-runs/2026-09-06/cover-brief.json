@@ -6,7 +6,7 @@
   "lead_story_id": "MA-CNSS-DEFICIT",
   "main_headline": "AMO non-salaried: l-ar9am katbayan pressure structurel 3la t-tawazon",
   "cover_mode": "symbolic editorial",
-  "visual_metaphor": "A stark editorial balance: a simplified medical cross and AMO ledger blocks tilt against a heavy deficit bar, using only abstract geometric forms and no documentary subjects.",
+  "visual_metaphor": "A stark editorial balance: a simplified medical cross and AMO ledger blocks tilt against a heavy pressure bar, using only abstract geometric forms and no documentary subjects.",
   "visual_facts_used": [
     "CNSS AMO financing pressure is the lead data point.",
     "The cover uses only abstract graphical systems, not a claimed documentary scene."
@@ -32,18 +32,18 @@
       "headline": "US w China kaywjjdo l-AI safety dialogue: coordination mo7tamal f wa9t dyal competition"
     }
   ],
-  "cover_asset_type": null,
-  "cover_asset_path": null,
-  "image_generation_status": "PENDING",
-  "visual_qa_status": "PENDING",
+  "cover_asset_type": "SVG_FALLBACK",
+  "cover_asset_path": "editions/2026/09/2026-09-06/assets/cover.svg",
+  "image_generation_status": "FAIL",
+  "visual_qa_status": "PASS",
   "arabic_script_count": 0,
-  "cover_fallback_reason": null,
+  "cover_fallback_reason": "Two permitted compact image-generation attempts produced noncanonical execution-status/dashboard compositions rather than the requested editorial cover, and the connected GitHub path does not support durable binary image archival. A self-contained SVG fallback was therefore authored, rendered and visually inspected, then persisted as the canonical cover.",
   "hierarchy_qa": {
-    "masthead_legible": "PENDING",
-    "date_legible": "PENDING",
-    "lead_legible": "PENDING",
-    "rail_legible": "PENDING",
-    "overlap_or_clipping": "PENDING"
+    "masthead_legible": "PASS",
+    "date_legible": "PASS",
+    "lead_legible": "PASS",
+    "rail_legible": "PASS",
+    "overlap_or_clipping": "PASS"
   },
   "input_blobs": {
     "editions/2026/09/2026-09-06/edition.md": "a28188a503f6282430cd183024d4f238179e55db",
@@ -51,18 +51,34 @@
     "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca"
   },
   "github_text_read_back": {
-    "status": "PENDING",
-    "path": "daily-runs/2026-09-06/cover-brief.json",
-    "blob": null
+    "status": "PASS",
+    "initial_brief_path": "daily-runs/2026-09-06/cover-brief.json",
+    "initial_brief_blob": "47dae469d63e154209bec8a89bae705288b52b73",
+    "canonical_asset_path": "editions/2026/09/2026-09-06/assets/cover.svg",
+    "canonical_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
+    "final_brief_read_back": "REQUIRED_AFTER_THIS_WRITE"
   },
   "generation_attempt": {
     "requested": true,
-    "attempts": 0,
+    "attempts": 2,
+    "retry_limit_respected": true,
     "canonical": false,
-    "note": "Brand-new compact generation will be attempted after brief read-back; binary archival capability will be evaluated separately."
+    "result": "NONCANONICAL_VISUAL_MISMATCH_AND_BINARY_ARCHIVAL_UNAVAILABLE"
+  },
+  "canonical_asset_qa": {
+    "view_box": "0 0 900 1200",
+    "aspect_ratio": "3:4",
+    "self_contained": true,
+    "external_resources": false,
+    "script": false,
+    "foreign_object": false,
+    "image_or_use_elements": false,
+    "rendered_visual_inspection": "PASS",
+    "github_asset_read_back": "PASS",
+    "github_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152"
   },
   "handoff": {
-    "ready_for_publication_builder": false,
-    "reason": "Canonical cover asset and visual QA are pending."
+    "ready_for_publication_builder": true,
+    "reason": "Canonical same-day SVG fallback is persisted, exact asset read-back passed, visual QA passed, and upstream input blobs were re-read unchanged before completion."
   }
 }
