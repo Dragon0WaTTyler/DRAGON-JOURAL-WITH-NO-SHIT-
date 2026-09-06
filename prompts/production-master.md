@@ -63,7 +63,7 @@ Missing prerequisites mean BLOCKED for that attempt; a future scheduled invocati
 
 ## Finality guard
 
-Before any same-date write, read status.json. If `final_publication_status=COMPLETE`, `overall_status=COMPLETE`, `github_binary_read_back=PASS`, and the recorded PDF and EPUB paths still exist at their recorded identity, the edition is final. An ordinary scheduled retry must return `ALREADY_PUBLISHED` without writing editorial, cover, source-package, status, or memory files. It must not turn a completed historical edition into a draft. A real correction uses an explicit correction run with new canonical inputs and a complete new publication cycle; it never masquerades as a routine retry.
+Before any same-date write, read status.json. The edition is final when `final_publication_status=COMPLETE`, `overall_status=COMPLETE`, `github_binary_read_back=PASS`, and the recorded PDF and EPUB paths still exist at their recorded identity. It is also locked when `binary_artifacts=COMPLETE`, `github_binary_read_back=PASS`, and those paths exist: this preserves a binary archive even if an earlier stale retry already damaged its final status fields. An ordinary scheduled retry must return `ALREADY_PUBLISHED` without writing editorial, cover, source-package, status, or memory files. It must not turn a completed historical edition into a draft. A real correction uses an explicit correction run with new canonical inputs and a complete new publication cycle; it never masquerades as a routine retry.
 
 ## Editorial gates
 

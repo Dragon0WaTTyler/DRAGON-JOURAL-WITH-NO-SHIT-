@@ -95,6 +95,7 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertIn("FINALITY GUARD" if "scheduled" in path.parts else "Finality guard", text, path)
             self.assertIn("ALREADY_PUBLISHED", text, path)
+            self.assertIn("binary_artifacts", text, path)
 
 if __name__ == "__main__":
     unittest.main()
