@@ -31,6 +31,7 @@ gates:
     - varied_reader_facing_article_formats
     - narrative_paragraph_minimums
     - no_legacy_briefing_card_in_articles
+    - plan_to_html_semantic_article_mapping
     - flexible_page_budget_no_content_truncation
   language:
     required:

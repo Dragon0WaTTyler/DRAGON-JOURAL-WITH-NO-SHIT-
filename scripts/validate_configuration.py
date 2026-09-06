@@ -190,6 +190,7 @@ def main() -> int:
         required_architecture_gates = {
             "narrative_paragraph_minimums",
             "no_legacy_briefing_card_in_articles",
+            "plan_to_html_semantic_article_mapping",
         }
         present_architecture_gates = set(quality["gates"]["newspaper_architecture"].get("required", []))
         if not required_architecture_gates.issubset(present_architecture_gates):

@@ -35,7 +35,9 @@ unperformed original reporting. Use `Tahrir: DRAGON` unless a truthful named
 editorial persona is configured.
 
 Task 5 preserves the plan as a canonical input, uses semantic article/brief/
-sidebar structure, and creates flexible print pages. The binary validator
+sidebar structure, and creates flexible print pages. Its HTML maps every plan
+story ID, section ID and format to a semantic article before binary rendering.
+The binary validator
 enforces version 4 only when `editorial-report.json` declares it, so historical
 editions remain immutable legacy records.
 

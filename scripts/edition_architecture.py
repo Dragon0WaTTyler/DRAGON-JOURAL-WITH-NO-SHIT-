@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,68 @@ from scripts.editorial_depth import count_words
 
 H2 = re.compile(r"^##\s+(.+?)\s*$")
 H3_OR_DEEPER = re.compile(r"^(#{3,6})\s+(.+?)\s*$")
+
+FORMAT_CLASS = {
+    "lead_article": "article--lead",
+    "standard_article": "article--standard",
+    "long_form": "article--long-form",
+    "analysis": "article--analysis",
+    "explainer": "article--explainer",
+    "fact_check": "article--fact-check",
+    "data_story": "sidebar",
+    "opinion": "article--opinion",
+    "interview_qa": "article--interview",
+    "brief": "brief",
+    "timeline": "sidebar",
+}
+
+
+class _SemanticArticleParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.articles: list[dict[str, str]] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
+        if tag == "article":
+            item = {key: value or "" for key, value in attrs}
+            item["_tag"] = tag
+            self.articles.append(item)
+
+
+def validate_semantic_html(plan: dict[str, Any], html: str) -> list[str]:
+    """Ensure each planned v4 item is represented as a semantic newspaper article."""
+    parser = _SemanticArticleParser()
+    parser.feed(html)
+    records: dict[str, dict[str, str]] = {}
+    errors: list[str] = []
+    for article in parser.articles:
+        story_id = article.get("data-story-id", "")
+        if not story_id:
+            continue
+        if story_id in records:
+            errors.append(f"semantic HTML has duplicate data-story-id {story_id}")
+        records[story_id] = article
+    for section in plan.get("sections", []):
+        if not isinstance(section, dict) or section.get("status") != "ACTIVE":
+            continue
+        section_id = section.get("section_id")
+        for article in section.get("articles", []):
+            if not isinstance(article, dict):
+                continue
+            story_id, fmt = article.get("story_id"), article.get("format")
+            record = records.get(story_id)
+            if not record:
+                errors.append(f"semantic HTML is missing article for story_id {story_id}")
+                continue
+            if record.get("data-format") != fmt:
+                errors.append(f"semantic HTML data-format does not match plan for {story_id}")
+            if record.get("data-section-id") != section_id:
+                errors.append(f"semantic HTML data-section-id does not match plan for {story_id}")
+            classes = set(record.get("class", "").split())
+            expected_class = FORMAT_CLASS.get(fmt)
+            if expected_class and expected_class not in classes:
+                errors.append(f"semantic HTML lacks {expected_class} class for {story_id}")
+    return errors
 
 
 def load_architecture(path: Path) -> dict[str, Any]:

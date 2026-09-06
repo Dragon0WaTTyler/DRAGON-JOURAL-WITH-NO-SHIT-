@@ -15,7 +15,7 @@ from scripts.publication_inputs import validate_inputs, canonical_date, safe_ass
 from scripts.publication_renderer import build_epub, validate_epub, render, read_json, write_json, restricted_fetcher
 from scripts.auto_publish import publish, git, candidates, verify_remote
 from scripts.workflow_state import fresh_production_status, validate_state, initialize_production_run
-from scripts.edition_architecture import load_architecture
+from scripts.edition_architecture import FORMAT_CLASS, load_architecture
 
 DATE = "2026-09-05"
 ROOT = Path(__file__).resolve().parents[1]
@@ -95,7 +95,7 @@ def v4_fixture(root):
         "bniya_transport": "standard_article", "meknes_local": "standard_article", "filastin_middle_east": "standard_article", "science": "standard_article",
         "adab": "long_form", "history": "long_form",
     }
-    plan_sections, markdown = [], ["# DRAGON", V4_DATE + " · Africa/Casablanca"]
+    plan_sections, markdown, semantic_sections = [], ["# DRAGON", V4_DATE + " · Africa/Casablanca"], []
     for item in architecture["section_inventory"]:
         section_id, fmt = item["id"], article_formats.get(item["id"], "brief")
         rule = architecture["formats"][fmt]
@@ -109,21 +109,35 @@ def v4_fixture(root):
         body.append(_v4_words(low, rule.get("narrative_paragraphs", 1)) + " [S01]")
         if section_id == "investigations":
             body.append("NEEDS_VERIFICATION: dossier test mazel kaytsenna dalil kafi.")
-        plan_sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified test material supports this desk.", "articles": [{"story_id": "v4-" + section_id, "headline": headline, "format": fmt, "word_budget": low}]})
-        markdown.extend(["## " + item["reader_heading"], "### " + headline, "\n\n".join(body)])
+        article = {"story_id": "v4-" + section_id, "headline": headline, "format": fmt, "word_budget": low}
+        plan_sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified test material supports this desk.", "articles": [article]})
+        semantic_articles = [(article, "\n\n".join(body))]
+        markdown.extend(["## " + item["reader_heading"], "### " + headline, semantic_articles[0][1]])
         if section_id == "front":
             for extra in range(6):
                 brief_headline = f"V4 front brief {extra}"
-                plan_sections[-1]["articles"].append({"story_id": f"v4-front-brief-{extra}", "headline": brief_headline, "format": "brief", "word_budget": 80})
-                markdown.extend(["### " + brief_headline, _v4_words(80, 1) + " [S01]"])
+                brief = {"story_id": f"v4-front-brief-{extra}", "headline": brief_headline, "format": "brief", "word_budget": 80}
+                brief_body = _v4_words(80, 1) + " [S01]"
+                plan_sections[-1]["articles"].append(brief)
+                semantic_articles.append((brief, brief_body))
+                markdown.extend(["### " + brief_headline, brief_body])
+        semantic_sections.append((item, semantic_articles))
     markdown_text = "\n\n".join(markdown)
     (edition / "edition.md").write_text(markdown_text, encoding="utf-8")
     plan = {"date": V4_DATE, "timezone": "Africa/Casablanca", "edition_architecture_version": 4, "edition_word_budget": 14000, "sections": plan_sections}
     write_json(run / "edition-plan.json", plan)
     base = {"date": V4_DATE, "timezone": "Africa/Casablanca"}
     write_json(edition / "sources.json", base | {"sources": [{"source_id": "S01", "exact_url": "https://example.org/v4-source"}]})
-    rendered = MarkdownIt().render(markdown_text)
-    document = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ary-Latn" dir="ltr"><head><title>DRAGON</title></head><body><nav><a href="https://example.org/v4-source">source</a></nav><main>' + rendered + '</main></body></html>'
+    semantic_html = ["<h1>DRAGON</h1>", f"<p>{V4_DATE} · Africa/Casablanca</p>"]
+    for item, articles in semantic_sections:
+        semantic_html.append(f'<section class="edition-section" data-section-id="{item["id"]}"><h2>{item["reader_heading"]}</h2>')
+        for article, body_text in articles:
+            css_class = FORMAT_CLASS[article["format"]]
+            semantic_html.append(
+                f'<article class="article {css_class}" data-story-id="{article["story_id"]}" data-section-id="{item["id"]}" data-format="{article["format"]}"><h3>{article["headline"]}</h3>{MarkdownIt().render(body_text)}</article>'
+            )
+        semantic_html.append("</section>")
+    document = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ary-Latn" dir="ltr"><head><title>DRAGON</title></head><body><nav><a href="https://example.org/v4-source">source</a></nav><main>' + "".join(semantic_html) + '</main></body></html>'
     for name in ("edition.html", "epub-content.xhtml"):
         (edition / name).write_text(document, encoding="utf-8")
     shutil.copy(ROOT / "templates/print-v4.css", edition / "print.css")
@@ -173,6 +187,14 @@ class AutomaticPublicationTests(unittest.TestCase):
         self.assertEqual(observed_cover, cover)
         self.assertIn(f"daily-runs/{V4_DATE}/edition-plan.json", hashes)
         self.assertIn("config/edition-architecture.yaml", hashes)
+
+    def test_v4_package_rejects_article_without_plan_semantics(self):
+        root = self.root / "v4-semantic-failure"
+        edition, _, _ = v4_fixture(root)
+        html = edition / "edition.html"
+        html.write_text(html.read_text(encoding="utf-8").replace('data-format="lead_article"', 'data-format="brief"', 1), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "semantic HTML failed"):
+            validate_inputs(root, V4_DATE)
 
     def test_stale_html_is_rejected(self):
         path = self.edition / "edition.html"

@@ -13,6 +13,8 @@ configuration in canonical binary inputs. Legacy reports without
 rejected.
 The validator also enforces connected narrative paragraph minimums and rejects
 non-brief articles built around all three legacy briefing labels.
+The publication validator also maps every planned story ID, section ID and
+format to a semantic HTML article before binary rendering.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.
