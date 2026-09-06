@@ -17,7 +17,9 @@
   "deep_research_github_read_back": "PASS",
   "editorial": "PENDING",
   "publishing": "PENDING",
-  "cover": "PENDING",
+  "cover": "BLOCKED",
+  "cover_started_at": "2026-09-06T09:48:07+01:00",
+  "cover_blocking_reason": "EDITORIAL_PREREQUISITE_NOT_COMPLETE: status.editorial is PENDING and daily-runs/2026-09-06/editorial-report.json is absent on main; Task 4 cannot create or validate a cover until current editorial artifacts are COMPLETE and readable.",
   "overall_status": "PENDING",
   "publication_source_package": "PENDING",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
@@ -29,5 +31,5 @@
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
   "blocking_reason": null,
-  "final_publication_status": "PENDING"
+  "final_publication_status": "BLOCKED"
 }
