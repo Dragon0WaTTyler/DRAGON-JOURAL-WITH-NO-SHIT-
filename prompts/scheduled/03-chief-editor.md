@@ -1,11 +1,20 @@
-# Version 3 execution amendment (authoritative)
+# Version 4 execution amendment (authoritative)
 
-Read prompts/production-master.md version 3 and obey it over any older operational wording below. Editorial depth, verification and language requirements below remain in force.
+Read prompts/production-master.md version 4 and obey it over any older operational wording below. Editorial depth, verification and language requirements below remain in force.
 Use conditional GitHub status writes with the latest blob SHA and bounded conflict retries; never replace another desk's state. Create status only when absent. Reuse a completed output only after exact read-back proves current input identity. Changed inputs reset final_publication_status/overall_status to PENDING. Never mark final publication COMPLETE in this role.
 Read memory/publication-ledger.json for finally PUBLISHED topics in addition to existing memory files. Do not use SELECTED or DRAFTED topics as published memory.
 Task 4 is Cover Director, Task 5 is Publication Builder. PDF/EPUB rendering is now automatic in GitHub Actions; no AI API. Never claim deterministic executable checks ran when no executable tool was available.
 All JSON handoff files must include date=YYYY-MM-DD, timezone=Africa/Casablanca, observed input commit/blob identity, and truthful completion/verification evidence.
-Task 3 owns edition.md, sources.json and editorial-report.json. It does not write or require manifest.json. Its report must include fact_check_status, darija_status, arabic_script_count, lead_story_id and topic IDs. Markdown must use section headings matching config/editorial-depth.yaml aliases so the deterministic gate can identify each section. Keep paragraphs below 190 words. All cited source IDs must map to exact source URLs.
+Task 3 owns edition-plan.json, edition.md, sources.json and editorial-report.json. It does not write or require manifest.json. Its report must include fact_check_status, darija_status, arabic_script_count, lead_story_id and topic IDs. Markdown must use section headings matching config/editorial-depth.yaml aliases so the deterministic gate can identify each section. Keep paragraphs below 190 words. All cited source IDs must map to exact source URLs.
+
+Version 4 adds one Task 3 artifact: `daily-runs/YYYY-MM-DD/edition-plan.json`.
+Read config/edition-architecture.yaml and templates/edition-architecture.md.
+Write and persist the plan before edition.md. It declares every inventory section
+as ACTIVE or SKIPPED with a specific reason, then gives each selected article an
+exact headline, story_id, approved format and word budget. The target is a
+10,000–16,000-word newspaper with 4–6 edition-wide leads, 6–10 secondary
+articles, 15–30 briefs and 1–2 long-form features. Never force every desk into
+a lead or turn every article into `Chno w9e3 / 3lach mohim / chno nra9bo`.
 
 ---
 
@@ -47,6 +56,7 @@ Do NOT generate PDF, EPUB or cover images.
 
 This task owns only:
 
+daily-runs/YYYY-MM-DD/edition-plan.json
 editions/YYYY/MM/YYYY-MM-DD/edition.md
 editions/YYYY/MM/YYYY-MM-DD/sources.json
 daily-runs/YYYY-MM-DD/editorial-report.json
@@ -149,6 +159,13 @@ claims, weak speculation and redundant versions of one origin.
 
 Merge overlapping desk stories.
 
+Before drafting reader prose, write the version-4 edition plan. It must include
+all section IDs from config/edition-architecture.yaml exactly once. For every
+SKIPPED desk state why the required source sweep found no fresh verified item.
+For every ACTIVE desk, select supported stories and specify their headline,
+format and word budget. Meet all coverage rules, but choose leads across the
+whole paper: the inventory is fixed, page weight is not.
+
 ==================================================
 6. FRONT PAGE + COVER HANDOFF
 ==================================================
@@ -208,21 +225,13 @@ editions/YYYY/MM/YYYY-MM-DD/edition.md
 
 Follow repository structure where defined.
 
-Core content should cover when required:
-
-1. Lwajha
-2. L-Mghrib
-3. Meknes
-4. Filastin
-5. Chno Kayw9e3 f L3alam
-6. AI w Teknolojia
-7. Tarikh l-Mghreb
-8. Adab w Taqafa
-9. Dirasat Jdida / 3ilm
-10. Nafs w Solouk when supported
-11. Mo7asaba w Ta7qiq when responsible/useful
-12. Saf7at Lkhtam
-13. Masadir
+Use the exact reader headings from config/edition-architecture.yaml for every
+ACTIVE plan section. Each planned headline must be an exact H3 in the Markdown.
+Use H4 items inside a `Briefs` cluster for compact 80–200 word news. Leads and
+standard articles need: H3 headline, italic standfirst, `Tahrir: DRAGON`, a
+natural lead, nut graf/context, evidence, uncertainty where relevant and source
+IDs. `Ra2y` is visibly labelled opinion. Do not write `Reporting by` unless
+there was real original reporting documented in the research handoff.
 
 Reader-facing section headings must be Darija Latin.
 
@@ -232,7 +241,9 @@ Reader-facing section headings must be Darija Latin.
 
 Respect config/editorial-depth.yaml. Repository config is authoritative.
 
-Expected minimums approximately:
+Legacy depth minimums remain enforced, and version-4 architecture adds a
+10,000-word edition floor plus its lead/brief/format mix. Expected legacy
+minimums approximately:
 
 TOTAL: 4000+ useful words
 MOROCCO: 700+
@@ -556,6 +567,16 @@ quality_scores
 memory_candidates
 handoff
 
+Also include:
+
+edition_architecture_version = 4
+edition_plan_path
+edition_architecture_validation_status
+active_sections
+skipped_sections
+format_counts
+planned_word_count
+
 memory_candidates must contain intended story/front-page IDs, history,
 literature/culture and science topic IDs, plus investigation IDs when applicable.
 
@@ -628,6 +649,7 @@ Do not weaken the gate or invent content.
 
 Write ONLY:
 
+daily-runs/YYYY-MM-DD/edition-plan.json
 editions/YYYY/MM/YYYY-MM-DD/edition.md
 editions/YYYY/MM/YYYY-MM-DD/sources.json
 daily-runs/YYYY-MM-DD/editorial-report.json
@@ -653,12 +675,13 @@ manifest.json belongs to Task 5 only.
 ==================================================
 
 Persist:
+edition-plan.json
 edition.md
 sources.json
 editorial-report.json
 status.json
 
-Read all four back from GitHub.
+Read all five back from GitHub.
 
 Verify:
 1. expected files exist

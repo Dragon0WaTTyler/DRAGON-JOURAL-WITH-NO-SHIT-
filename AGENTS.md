@@ -1,4 +1,19 @@
-# DRAGON production contract — version 3
+# DRAGON production contract — version 4
+
+## Version 4 editorial architecture — authoritative amendment
+
+Read `config/edition-architecture.yaml` and `templates/edition-architecture.md`
+before producing a new daily edition. DRAGON now uses a fixed inventory of
+active-or-explained sections, a persisted `edition-plan.json`, varied article
+formats and a 10,000–16,000-word flexible newspaper budget. The plan must cover
+every inventory section exactly once and cannot silently omit a desk.
+
+Task 1 owns broad current-news discovery; Task 2 owns long-form and knowledge
+depth; Task 3 selects and writes four to six edition-wide leads, six to ten
+secondary articles, fifteen to thirty briefs and one or two long-form pieces.
+Do not make every section a long essay or use one visible summary template for
+all articles. `Tahrir:` is an editorial byline, never a false claim of field
+reporting. Task 5 treats `edition-plan.json` as an immutable publication input.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.
@@ -47,4 +62,4 @@ Use only PENDING, BLOCKED, COMPLETE for final status. Reasons go in separate fie
 
 ## Exact input lineage required by the binary validator
 
-Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset; version-4 runs also map edition-plan.json. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.

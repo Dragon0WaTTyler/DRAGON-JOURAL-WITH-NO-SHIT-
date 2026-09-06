@@ -1,0 +1,93 @@
+version: 4
+language: darija-latin
+byline: "Tahrir: DRAGON"
+
+# The daily edition is a newspaper: a changing mix of leads, reporting,
+# analysis, service material, briefs and long-form. It is not a collection of
+# identical summaries, nor a fixed page-count product.
+edition:
+  hard_min_words: 10000
+  target_words: "10000-16000"
+  lead_articles: [4, 6]
+  secondary_articles: [6, 10]
+  briefs: [15, 30]
+  long_form_features: [1, 2]
+  interior_page_target: [17, 27]
+  overflow_rule: "add_pages_before_cutting_verified_editorial_prose"
+
+formats:
+  lead_article:
+    words: [1000, 1500]
+    requires: [headline, standfirst, byline, nut_graf, citations]
+  standard_article:
+    words: [700, 1000]
+    requires: [headline, standfirst, byline, citations]
+  long_form:
+    words: [1500, 2200]
+    requires: [headline, standfirst, byline, context, uncertainty, citations]
+  analysis:
+    words: [900, 1400]
+    requires: [headline, standfirst, byline, evidence, uncertainty, citations]
+  explainer:
+    words: [700, 1200]
+    requires: [headline, standfirst, byline, chronology_or_steps, citations]
+  fact_check:
+    words: [500, 900]
+    requires: [headline, claim, verdict, evidence, citations]
+  data_story:
+    words: [350, 800]
+    requires: [headline, data_source, explanation, citations]
+  opinion:
+    words: [600, 1000]
+    requires: [headline, byline, opinion_label, citations]
+  interview_qa:
+    words: [700, 1400]
+    requires: [headline, byline, interview_subject, attribution]
+  brief:
+    words: [80, 200]
+    requires: [headline, citations]
+  timeline:
+    words: [250, 600]
+    requires: [headline, chronology, citations]
+
+# Every id must appear once in edition-plan.json. ACTIVE means it has a
+# supported article, brief cluster, data item or sidebar. SKIPPED requires a
+# reader-safe editorial reason; it is never silently omitted.
+section_inventory:
+  - {id: front, reader_heading: Lwajha, required_presence: true, group: front}
+  - {id: siyasa_dawla, reader_heading: Siyasa w Dawla, required_presence: true, group: morocco}
+  - {id: iqtisad_flous, reader_heading: I9tisad w Flous, required_presence: true, group: morocco}
+  - {id: mojtama3, reader_heading: Mojtama3, required_presence: true, group: morocco}
+  - {id: ta3lim, reader_heading: Ta3lim, required_presence: true, group: morocco}
+  - {id: se77a, reader_heading: Se77a, required_presence: true, group: morocco}
+  - {id: 3adl_7o9o9, reader_heading: 3adl w 7o9o9, required_presence: true, group: morocco}
+  - {id: bi2a_manakh, reader_heading: Bi2a w Manakh, required_presence: true, group: morocco}
+  - {id: bniya_transport, reader_heading: Bniya Ta7tiya w Transport, required_presence: true, group: morocco}
+  - {id: meknes_local, reader_heading: Meknes w Fes-Meknes, required_presence: true, group: local}
+  - {id: filastin_middle_east, reader_heading: Filastin w Sharq l-Awsat, required_presence: true, group: world}
+  - {id: africa_sahel, reader_heading: Africa w Sahel, required_presence: true, group: world}
+  - {id: world, reader_heading: L-3alam, required_presence: true, group: world}
+  - {id: business_companies, reader_heading: Business w Charikat, required_presence: true, group: economy_technology}
+  - {id: technology, reader_heading: AI w Teknolojia, required_presence: true, group: economy_technology}
+  - {id: science, reader_heading: 3ilm w Dirasat, required_presence: true, group: knowledge}
+  - {id: sport, reader_heading: Sport, required_presence: true, group: life}
+  - {id: culture, reader_heading: Taqafa, required_presence: true, group: life}
+  - {id: adab, reader_heading: Adab, required_presence: true, group: depth}
+  - {id: history, reader_heading: Tarikh l-Mghreb, required_presence: true, group: depth}
+  - {id: investigations, reader_heading: Mo7asaba w Ta7qiq, required_presence: true, group: depth}
+  - {id: opinion, reader_heading: Ra2y, required_presence: true, group: back_pages}
+  - {id: service, reader_heading: Data w Chno Nra9bo, required_presence: true, group: back_pages}
+
+coverage_rules:
+  - id: morocco_breadth
+    sections: [siyasa_dawla, iqtisad_flous, mojtama3, ta3lim, se77a, 3adl_7o9o9, bi2a_manakh, bniya_transport]
+    minimum_active: 3
+  - id: world_breadth
+    sections: [filastin_middle_east, africa_sahel, world]
+    minimum_active: 2
+  - id: reader_life
+    sections: [sport, culture, science]
+    minimum_active: 2
+  - id: accountability_and_service
+    sections: [investigations, opinion, service]
+    minimum_active: 2

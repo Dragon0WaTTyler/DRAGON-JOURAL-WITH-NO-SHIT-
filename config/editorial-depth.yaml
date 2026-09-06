@@ -37,11 +37,15 @@ section_aliases:
   # The production edition uses the Darija Latin heading "L-Mghrib".
   # Keep the older transliteration as a compatibility alias for fixtures and
   # previously authored editions.
-  morocco: ["l-mghrib", "l-mghreb", "morocco"]
-  palestine: ["filastin", "palestine"]
-  meknes: ["meknes"]
+  morocco: ["l-mghrib", "l-mghreb", "morocco", "siyasa w dawla", "i9tisad w flous", "mojtama3", "ta3lim", "se77a", "3adl w 7o9o9", "bi2a w manakh", "bniya ta7tiya w transport"]
+  palestine: ["filastin", "filastin w sharq l-awsat", "palestine"]
+  meknes: ["meknes", "meknes w fes-meknes"]
   world: ["l-3alam", "world"]
   ai: ["ai w technology", "ai", "technology"]
   science: ["science"]
   investigations: ["investigations"]
+
+# Version-4 Morocco coverage is distributed across several domestic desks.
+# Their useful prose is intentionally aggregated for the existing hard minimum.
+aggregate_sections: [morocco]
 

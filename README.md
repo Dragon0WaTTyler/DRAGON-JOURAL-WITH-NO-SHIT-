@@ -2,6 +2,16 @@
 
 Five ChatGPT editorial jobs produce a daily Darija Latin newspaper. GitHub Actions validates and renders the archived sources to PDF and EPUB, then verifies the committed binary bytes before marking the edition published. No model API is used.
 
+## Editorial architecture
+
+Version 4 turns DRAGON from a fixed digest into a flexible newspaper. Each new
+edition starts with `daily-runs/YYYY-MM-DD/edition-plan.json`: every desk in the
+section inventory is ACTIVE or has a documented skip reason, while the Chief
+Editor selects a mix of 4–6 leads, 6–10 secondary articles, 15–30 briefs and
+1–2 long-form features. The 10,000–16,000-word target expands the page count
+instead of cutting verified prose. See `config/edition-architecture.yaml` and
+`templates/edition-architecture.md`.
+
 ## Setup once
 
 1. Replace the five existing ChatGPT scheduled prompts with the corresponding files in prompts/scheduled/ (see prompts/scheduled/README.md). Keep Africa/Casablanca. Cover is Task 4; Publishing is Task 5.

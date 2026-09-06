@@ -17,6 +17,7 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         cls.workflow = yaml.safe_load((ROOT/"config/scheduled-workflow.yaml").read_text())
         cls.schedule = yaml.safe_load((ROOT/"config/schedule.yaml").read_text())
         cls.roles = yaml.safe_load((ROOT/"config/roles.yaml").read_text())
+        cls.architecture = yaml.safe_load((ROOT/"config/edition-architecture.yaml").read_text())
 
     def test_exactly_five_jobs_and_thirteen_roles(self):
         jobs = self.workflow["jobs"]
@@ -72,6 +73,14 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
                     "external_paid_services_allowed",
                     "self_hosted_runner_allowed","local_pc_dependency_allowed"):
             self.assertFalse(c[key])
+
+    def test_version_four_plan_is_owned_by_chief_editor(self):
+        chief = self.workflow["jobs"][2]
+        paths = {item["path"] for item in chief["outputs"]}
+        self.assertIn("daily-runs/YYYY-MM-DD/edition-plan.json", paths)
+        self.assertEqual(self.architecture["version"], 4)
+        self.assertGreaterEqual(len(self.architecture["section_inventory"]), 20)
+        self.assertEqual(self.architecture["edition"]["hard_min_words"], 10000)
 
 if __name__ == "__main__":
     unittest.main()

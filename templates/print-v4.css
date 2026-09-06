@@ -1,0 +1,33 @@
+@page {
+  size: A4;
+  margin: 14mm 13mm 16mm;
+  @bottom-center { content: "DRAGON · " counter(page); font: 8pt sans-serif; }
+}
+
+:root { --ink: #111; --paper: #fffdf8; --red: #b3131b; --line: #b8b1a5; }
+* { box-sizing: border-box; }
+body { margin: 0; color: var(--ink); background: var(--paper); font: 10.5pt/1.48 Georgia, serif; }
+.paper-header { border-block: 5px solid var(--ink); margin-bottom: 8mm; padding: 3mm 0; }
+.paper-header h1 { margin: 0; font: 900 38pt/0.82 Arial, sans-serif; letter-spacing: -2px; }
+.paper-header .date, .tagline { margin: 2mm 0 0; font: 8.5pt/1.2 Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.edition-section { break-before: page; }
+.edition-section:first-child { break-before: auto; }
+.section-header { border-top: 3px solid var(--red); border-bottom: 1px solid var(--ink); margin: 0 0 4mm; }
+h2 { margin: 1.5mm 0; font: 800 19pt/1 Arial, sans-serif; letter-spacing: -.04em; }
+article { break-inside: avoid-page; }
+.article--lead { column-count: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+.article--lead h3, .article--lead .standfirst, .article--lead .byline { column-span: all; }
+h3 { margin: 0 0 2mm; font: 800 16pt/1.08 Arial, sans-serif; letter-spacing: -.025em; }
+h4 { margin: 0 0 1mm; font: 800 10.5pt/1.15 Arial, sans-serif; }
+.standfirst { margin: 0 0 2mm; font-size: 12pt; font-weight: 600; line-height: 1.3; }
+.byline { margin: 0 0 3mm; color: var(--red); font: 800 8.5pt/1 Arial, sans-serif; letter-spacing: .05em; text-transform: uppercase; }
+p { margin: 0 0 2.7mm; orphans: 3; widows: 3; }
+.brief-cluster { border-top: 2px solid var(--ink); margin-top: 6mm; padding-top: 2mm; column-count: 3; column-gap: 5mm; }
+.brief-cluster > h3 { column-span: all; font-size: 13pt; }
+.brief { border-top: 1px solid var(--line); padding-top: 2mm; }
+.sidebar { break-inside: avoid-page; border: 2px solid var(--red); margin: 5mm 0; padding: 3mm; font: 9pt/1.4 Arial, sans-serif; }
+.sidebar--data { background: #f6efe4; }
+a { color: inherit; overflow-wrap: anywhere; text-decoration-color: var(--red); }
+nav { display: none; }
+.paper-footer { border-top: 1px solid var(--ink); margin-top: 8mm; padding-top: 2mm; font: 8pt Arial, sans-serif; }
+@media screen { body { max-width: 980px; margin: auto; padding: 24px; } }

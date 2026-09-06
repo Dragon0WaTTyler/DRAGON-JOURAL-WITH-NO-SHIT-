@@ -1,11 +1,18 @@
-# Version 3 execution amendment (authoritative)
+# Version 4 execution amendment (authoritative)
 
-Read prompts/production-master.md version 3 and obey it over any older operational wording below. Editorial depth, verification and language requirements below remain in force.
+Read prompts/production-master.md version 4 and obey it over any older operational wording below. Editorial depth, verification and language requirements below remain in force.
 Use conditional GitHub status writes with the latest blob SHA and bounded conflict retries; never replace another desk's state. Create status only when absent. Reuse a completed output only after exact read-back proves current input identity. Changed inputs reset final_publication_status/overall_status to PENDING. Never mark final publication COMPLETE in this role.
 Read memory/publication-ledger.json for finally PUBLISHED topics in addition to existing memory files. Do not use SELECTED or DRAFTED topics as published memory.
 Task 4 is Cover Director, Task 5 is Publication Builder. PDF/EPUB rendering is now automatic in GitHub Actions; no AI API. Never claim deterministic executable checks ran when no executable tool was available.
 All JSON handoff files must include date=YYYY-MM-DD, timezone=Africa/Casablanca, observed input commit/blob identity, and truthful completion/verification evidence.
-Task 3 owns edition.md, sources.json and editorial-report.json. It does not write or require manifest.json. Its report must include fact_check_status, darija_status, arabic_script_count, lead_story_id and topic IDs. Markdown must use section headings matching config/editorial-depth.yaml aliases so the deterministic gate can identify each section. Keep paragraphs below 190 words. All cited source IDs must map to exact source URLs.
+Task 3 owns edition-plan.json, edition.md, sources.json and editorial-report.json. It does not write or require manifest.json. Its report must include fact_check_status, darija_status, arabic_script_count, lead_story_id and topic IDs. Markdown must use section headings matching config/editorial-depth.yaml aliases so the deterministic gate can identify each section. Keep paragraphs below 190 words. All cited source IDs must map to exact source URLs.
+
+Version 4 supplies depth without forcing four daily essays. Produce science,
+culture/Adab, history and accountability candidates tagged with the section_id
+from config/edition-architecture.yaml. Offer one or two evidence-ready
+long-form candidates across the desk, plus shorter explainers, data items or
+briefs where useful. A history or Adab feature is selected by the Chief Editor;
+it must not crowd out verified current reporting merely to satisfy a template.
 
 ---
 

@@ -49,6 +49,7 @@ def main() -> int:
         constraints = load_yaml(ROOT / "config/execution-constraints.yaml")
         depth = load_yaml(ROOT / "config/editorial-depth.yaml")
         quality = load_yaml(ROOT / "config/quality-gates.yaml")
+        architecture = load_yaml(ROOT / "config/edition-architecture.yaml")
     except (OSError, ValueError, yaml.YAMLError) as exc:
         print(f"CONFIGURATION FAIL: {exc}")
         return 1
@@ -118,6 +119,9 @@ def main() -> int:
         errors.append("Task 3 must have the zero Arabic-script hard gate")
     if not any("repeat the repair loop" in x and "exactly zero" in x for x in chief_responsibilities):
         errors.append("Task 3 must require same-run repair/rescan")
+    chief_outputs = {item.get("path") for item in chief.get("outputs", []) if isinstance(item, dict)}
+    if "daily-runs/YYYY-MM-DD/edition-plan.json" not in chief_outputs:
+        errors.append("Task 3 must persist the version-4 edition plan")
 
     builder = next((j for j in jobs or [] if j.get("id") == "publication-builder"), {})
     if builder.get("id") != "publication-builder" or builder.get("label") != "PUBLICATION BUILDER":
@@ -176,6 +180,22 @@ def main() -> int:
         errors.append("quality gates must include scheduled_publication_source")
     if "manual_binary_render" not in quality.get("gates", {}):
         errors.append("quality gates must separate manual binary rendering")
+    if "newspaper_architecture" not in quality.get("gates", {}):
+        errors.append("quality gates must include the newspaper architecture gate")
+
+    inventory = architecture.get("section_inventory")
+    expected_formats = {
+        "lead_article", "standard_article", "long_form", "analysis", "explainer",
+        "fact_check", "data_story", "opinion", "interview_qa", "brief", "timeline",
+    }
+    if architecture.get("version") != 4 or not isinstance(inventory, list) or len(inventory) < 20:
+        errors.append("edition architecture must provide the complete version-4 inventory")
+    elif len({item.get("id") for item in inventory}) != len(inventory):
+        errors.append("edition architecture section IDs must be unique")
+    if set(architecture.get("formats", {})) != expected_formats:
+        errors.append("edition architecture must define every approved reader format")
+    if architecture.get("edition", {}).get("hard_min_words") != 10000:
+        errors.append("version-4 edition architecture hard minimum must be 10000 words")
 
     expected_depth = {
         "edition": 4000, "history": 800, "literature_culture": 800,

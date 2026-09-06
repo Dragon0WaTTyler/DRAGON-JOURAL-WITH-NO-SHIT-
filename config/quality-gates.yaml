@@ -1,4 +1,4 @@
-version: 3
+version: 4
 gates:
   research:
     required:
@@ -22,6 +22,14 @@ gates:
     - morocco_hard_minimum
     - science_hard_minimum
     - meknes_exception_or_minimum
+  newspaper_architecture:
+    required:
+    - edition_plan_before_reader_prose
+    - complete_section_inventory_or_skip_reasons
+    - morocco_world_life_accountability_coverage
+    - edition_wide_lead_brief_long_form_mix
+    - varied_reader_facing_article_formats
+    - flexible_page_budget_no_content_truncation
   language:
     required:
     - darija_latin
@@ -40,6 +48,7 @@ gates:
     - zero_arabic_script
     - resolved_source_links
     - github_text_read_back
+    - edition_plan_lineage_when_version_4
   scheduled_cover:
     required:
     - compact_cover_brief

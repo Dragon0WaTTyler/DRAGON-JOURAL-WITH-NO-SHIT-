@@ -116,6 +116,15 @@ class EditorialDepthTests(unittest.TestCase):
         self.assertGreaterEqual(morocco["word_count"], 700)
         self.assertTrue(morocco["pass"])
 
+    def test_version_four_domestic_desks_aggregate_into_morocco_gate(self):
+        text = markdown(morocco=1).replace(
+            "## L-Mghreb — dossier\n\n" + body("morocco", 1),
+            "## Siyasa w Dawla\n\n" + body("siyasa", 350) + "\n\n## I9tisad w Flous\n\n" + body("iqtisad", 350),
+        )
+        report = evaluate(text, POLICY)
+        self.assertEqual(report["per_section_word_counts"]["morocco"]["word_count"], 700)
+        self.assertTrue(report["per_section_word_counts"]["morocco"]["pass"])
+
     def test_meknes_thin_news_exception_is_explicit(self):
         text = markdown(meknes=20).replace(
             "## Meknes Radar — dossier\n\n",

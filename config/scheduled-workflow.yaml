@@ -1,5 +1,5 @@
-version: 3
-contract: chatgpt-editorial-plus-automatic-github-binary-publication
+version: 4
+contract: chatgpt-editorial-plus-automatic-github-binary-publication-v4-newspaper
 enabled: false
 activation: contract-only-no-scheduled-task-created
 timezone: Africa/Casablanca
@@ -160,6 +160,7 @@ jobs:
   responsibilities:
   - read repository memory and previous edition before selecting work
   - perform fresh live research
+  - sweep the version-4 current-news inventory, recording a specific no-item reason for each unsupported desk
   - create structured research packets, not final newspaper prose
   - verify major claims and preserve source URLs and provenance
   - distinguish facts, claims, estimates, disputed claims, and unknowns
@@ -181,7 +182,7 @@ jobs:
   - literature-culture
   - investigations
   responsibilities:
-  - research Science, History, Literature/Culture, and Investigations deeply
+  - research Science, Culture/Adab, History, and Investigations deeply; provide one or two viable long-form candidates rather than compulsory essays in every category
   - obey editorial-depth minimums without padding
   - keep unresolved investigations explicitly non-publication-ready
   - persist UTF-8 text to GitHub and read it back
@@ -206,7 +207,9 @@ jobs:
     - deep_research == COMPLETE
     if_not_met: STOP
   responsibilities:
-  - combine and rank research packets into one coherent edition
+  - combine and rank research packets into one coherent newspaper edition
+  - persist edition-plan.json with every version-4 inventory section ACTIVE or SKIPPED before writing edition.md
+  - select four to six edition-wide leads, six to ten secondary articles, fifteen to thirty briefs and one to two long-form features
   - fact-check claims, numbers, dates, attributions, and citations
   - apply editorial-depth and reader-facing gates
   - perform natural Moroccan Darija Latin cleanup
@@ -221,6 +224,8 @@ jobs:
     is safe
   - persist canonical text artifacts and read them back
   outputs:
+  - path: daily-runs/YYYY-MM-DD/edition-plan.json
+    kind: text
   - path: daily-runs/YYYY-MM-DD/editorial-report.json
     kind: text
   - path: editions/YYYY/MM/YYYY-MM-DD/edition.md
@@ -302,6 +307,7 @@ jobs:
   - create XHTML-compatible EPUB source
   - persist all publication-source text to GitHub and read it back
   - do not generate or claim Scheduled Work PDF or EPUB binaries
+  - validate edition-plan.json as a canonical v4 input when editorial-report declares version 4
   - rebuild directly from edition.md; exact normalized visible prose must match in
     order
   - all sources.json URLs must be clickable without adding non-canonical prose

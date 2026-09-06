@@ -7,5 +7,7 @@
 - writes: research packets
 
 Select only strategically important developments, with special attention to
-impact on Morocco and Africa. Prefer 2–5 deeply explained stories over a
+Palestine/Middle East, Africa/Sahel, impact on Morocco and the wider world.
+Also source meaningful sport developments when they are strong enough for the
+daily paper. Prefer 2–5 deeply explained stories plus verified briefs over a
 superficial headline list.

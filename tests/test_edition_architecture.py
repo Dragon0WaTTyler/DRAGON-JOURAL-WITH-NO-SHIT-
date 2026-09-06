@@ -1,0 +1,104 @@
+import json
+import tempfile
+import unittest
+from pathlib import Path
+
+from scripts.edition_architecture import load_architecture, validate_daily_architecture, validate_plan
+
+
+ROOT = Path(__file__).parents[1]
+DATE = "2099-01-01"
+ARCHITECTURE = load_architecture(ROOT / "config" / "edition-architecture.yaml")
+
+
+def words(count: int) -> str:
+    return " ".join(f"kalma{index}" for index in range(count))
+
+
+def fixture():
+    sections = []
+    markdown = ["# DRAGON"]
+    formats = ["lead_article"] * 4 + ["standard_article"] * 6
+    inventory = ARCHITECTURE["section_inventory"]
+    for index, item in enumerate(inventory):
+        section_id = item["id"]
+        fmt = "long_form" if section_id == "history" else (formats.pop(0) if formats else "brief")
+        headline = f"Headline {section_id}"
+        low = ARCHITECTURE["formats"][fmt]["words"][0]
+        body = []
+        if "standfirst" in ARCHITECTURE["formats"][fmt]["requires"]:
+            body.append("*Standfirst kay3ti ma3na dyal had l-mawdo3.*")
+        if "byline" in ARCHITECTURE["formats"][fmt]["requires"]:
+            body.append("Tahrir: DRAGON")
+        body.append(words(low))
+        body.append("[S01]")
+        article = {"story_id": f"story-{section_id}", "headline": headline, "format": fmt, "word_budget": low}
+        sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified material supports this desk.", "articles": [article]})
+        markdown.extend([f"## {item['reader_heading']}", f"### {headline}", "\n\n".join(body)])
+
+    # The inventory has 12 brief sections. Add three source-backed front briefs
+    # to meet the daily brief floor without turning every desk into an essay.
+    for index in range(3):
+        headline = f"Front brief {index}"
+        sections[0]["articles"].append({"story_id": f"front-brief-{index}", "headline": headline, "format": "brief", "word_budget": 80})
+        markdown.extend([f"### {headline}", words(80), "[S01]"])
+    plan = {
+        "date": DATE,
+        "timezone": "Africa/Casablanca",
+        "edition_architecture_version": 4,
+        "edition_word_budget": 12000,
+        "sections": sections,
+    }
+    return plan, "\n\n".join(markdown)
+
+
+class EditionArchitectureTests(unittest.TestCase):
+    def test_real_architecture_accepts_balanced_newspaper_plan(self):
+        plan, markdown = fixture()
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "PASS", report["errors"])
+        self.assertEqual(report["format_counts"]["lead_article"], 4)
+        self.assertEqual(report["format_counts"]["brief"], 15)
+
+    def test_inventory_cannot_be_silently_dropped(self):
+        plan, markdown = fixture()
+        plan["sections"] = plan["sections"][1:]
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("inventory section" in error for error in report["errors"]))
+
+    def test_active_article_needs_byline_and_citation(self):
+        plan, markdown = fixture()
+        markdown = markdown.replace("Tahrir: DRAGON", "", 1).replace("[S01]", "", 1)
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("byline" in error for error in report["errors"]))
+        self.assertTrue(any("citation" in error for error in report["errors"]))
+
+    def test_legacy_editions_are_not_retroactively_rejected(self):
+        result = validate_daily_architecture(ROOT, DATE, "# DRAGON", {"edition_architecture_version": 3})
+        self.assertEqual(result["validation_status"], "LEGACY_NOT_REQUIRED")
+
+    def test_v4_report_requires_persisted_plan(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "config").mkdir()
+            (root / "config" / "edition-architecture.yaml").write_text((ROOT / "config" / "edition-architecture.yaml").read_text())
+            with self.assertRaisesRegex(ValueError, "edition-plan.json"):
+                validate_daily_architecture(root, DATE, "# DRAGON", {"edition_architecture_version": 4})
+
+    def test_v4_daily_plan_is_checked(self):
+        plan, markdown = fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "config").mkdir()
+            (root / "config" / "edition-architecture.yaml").write_text((ROOT / "config" / "edition-architecture.yaml").read_text())
+            run = root / "daily-runs" / DATE
+            run.mkdir(parents=True)
+            (run / "edition-plan.json").write_text(json.dumps(plan))
+            result = validate_daily_architecture(root, DATE, markdown, {"edition_architecture_version": 4})
+            self.assertEqual(result["validation_status"], "PASS", result["errors"])
+
+
+if __name__ == "__main__":
+    unittest.main()

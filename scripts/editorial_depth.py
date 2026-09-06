@@ -116,16 +116,18 @@ def _exception_reason(body: str, key: str, count: int, policy: dict[str, Any]) -
 
 def evaluate(markdown: str, policy: dict[str, Any], *, edition_date: str | None = None, previous_topics: list[str] | None = None) -> dict[str, Any]:
     aliases = policy.get("section_aliases", {})
+    aggregate_sections = set(policy.get("aggregate_sections", []))
     sections = extract_sections(markdown)
     counts: dict[str, int] = {}
     bodies: dict[str, str] = {}
     headings: dict[str, str] = {}
     for section in sections:
         key = section_key(section.heading, aliases)
-        if key and key not in counts:
-            counts[key] = count_words(section.body)
-            bodies[key] = section.body
-            headings[key] = section.heading
+        if key and (key not in counts or key in aggregate_sections):
+            word_count = count_words(section.body)
+            counts[key] = counts.get(key, 0) + word_count
+            bodies[key] = "\n".join(filter(None, (bodies.get(key, ""), section.body)))
+            headings[key] = ", ".join(filter(None, (headings.get(key, ""), section.heading)))
 
     total = sum(count_words(section.body) for section in sections if not _is_sources_or_non_editorial(section.heading))
     total_rule = policy.get("edition", {})
@@ -136,7 +138,7 @@ def evaluate(markdown: str, policy: dict[str, Any], *, edition_date: str | None 
     exceptions: dict[str, dict[str, Any]] = {}
 
     for key, rule in policy.items():
-        if key in {"version", "section_aliases", "edition"} or not isinstance(rule, dict):
+        if key in {"version", "section_aliases", "aggregate_sections", "edition"} or not isinstance(rule, dict):
             continue
         count = counts.get(key, 0)
         hard_min = rule.get("hard_min_words")

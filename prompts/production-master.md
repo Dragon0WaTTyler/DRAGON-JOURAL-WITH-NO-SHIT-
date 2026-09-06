@@ -1,4 +1,40 @@
-# DRAGON production contract — version 3
+# DRAGON production contract — version 4
+
+## Version 4 editorial architecture — authoritative amendment
+
+DRAGON is a daily newspaper, not a digest of identical analytical summaries.
+`config/edition-architecture.yaml` is authoritative for its fixed section
+inventory, daily content budget and approved article formats. Its reader-facing
+headings are Darija Latin; every inventory section must appear once in
+`daily-runs/YYYY-MM-DD/edition-plan.json` as `ACTIVE` or `SKIPPED` with a
+specific editorial reason.
+
+Task 1 researches the full current-news inventory: Morocco's state/politics,
+economy, society, education, health, justice, environment and infrastructure;
+Meknes/Fes-Meknes; Palestine, Africa/Sahel and world; business/companies,
+technology and sport. Task 2 supplies science, culture, Adab, history and
+accountability depth. A desk may return no publishable item, but it must record
+the source sweep and why verified material was insufficient.
+
+Before reader prose, Task 3 writes and persists `edition-plan.json`. It selects
+four to six lead articles across the edition, six to ten secondary articles,
+fifteen to thirty source-backed briefs and one or two long-form features. It
+does not force every section to be a lead. Leads and standard articles use a
+headline, standfirst, `Tahrir:` byline, natural lead and context; briefs may use
+the compact form. `Chno w9e3 / 3lach mohim / chno nra9bo` is internal editorial
+reasoning, never a mandatory visible template for every story.
+
+The version-4 edition target is 10,000–16,000 useful words. Publishing expands
+the page count before it cuts verified reader prose. Long-form History and Adab
+remain valuable but do not displace current reporting, briefs, service material
+or accountability. Opinion is visibly labelled `Ra2y` and must never claim
+unperformed original reporting. Use `Tahrir: DRAGON` unless a truthful named
+editorial persona is configured.
+
+Task 5 preserves the plan as a canonical input, uses semantic article/brief/
+sidebar structure, and creates flexible print pages. The binary validator
+enforces version 4 only when `editorial-report.json` declares it, so historical
+editions remain immutable legacy records.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.
@@ -47,4 +83,4 @@ Use only PENDING, BLOCKED, COMPLETE for final status. Reasons go in separate fie
 
 ## Exact input lineage required by the binary validator
 
-Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset; version-4 runs also map edition-plan.json. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.

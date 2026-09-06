@@ -1,4 +1,16 @@
-# DRAGON technical specification — version 3
+# DRAGON technical specification — version 4
+
+## Version 4 editorial architecture — authoritative amendment
+
+`config/edition-architecture.yaml` defines a daily newspaper contract: section
+inventory, format word ranges, coverage rules and flexible page budget. New
+version-4 runs persist `daily-runs/YYYY-MM-DD/edition-plan.json` before final
+editorial prose. The plan's active sections, exact H3 headlines, formats and
+word budgets are checked against `edition.md`; skipped sections need specific
+reasons. The publication validator includes that plan and the architecture
+configuration in canonical binary inputs. Legacy reports without
+`edition_architecture_version: 4` remain read-only and are not retroactively
+rejected.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.
@@ -47,4 +59,4 @@ Use only PENDING, BLOCKED, COMPLETE for final status. Reasons go in separate fie
 
 ## Exact input lineage required by the binary validator
 
-Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.
+Use input_blobs as an object mapping each full repository-relative input path to the exact Git blob SHA returned by the GitHub content read (not a commit SHA and never an invented hash). Task 3 editorial-report.json maps current-news.json and deep-features.json. Task 4 cover-brief.json maps edition.md, sources.json and editorial-report.json. Task 5 publishing-report.json maps edition.md, sources.json, editorial-report.json, cover-brief.json and the canonical cover asset; version-4 runs also map edition-plan.json. Read inputs at the same observed repository commit when possible; reread before completion. A missing SHA or changed blob means handoff invalid; do not claim COMPLETE.

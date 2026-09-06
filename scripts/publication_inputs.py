@@ -124,6 +124,18 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
         if status.get(field) != "COMPLETE":
             raise ValueError(f"prerequisite {field} is not COMPLETE")
     manifest, brief, report = (payload[n] for n in ("manifest.json", "cover-brief.json", "editorial-report.json"))
+    edition_plan = run / "edition-plan.json"
+    architecture_v4 = report.get("edition_architecture_version") == 4
+    if architecture_v4:
+        if not edition_plan.is_file():
+            raise ValueError("version-4 editorial report requires edition-plan.json")
+        plan_text = edition_plan.read_text(encoding="utf-8")
+        if not plan_text.strip():
+            raise ValueError("empty input: edition-plan.json")
+        payload["edition-plan.json"] = json.loads(plan_text)
+        plan_key = edition_plan.relative_to(root).as_posix()
+        if manifest.get("edition_plan") != plan_key or payload["publishing-report.json"].get("edition_plan") != plan_key:
+            raise ValueError("version-4 publication metadata must identify edition-plan.json")
     require_lineage(root, report, [run / "current-news.json", run / "deep-features.json"])
     require_lineage(root, brief, [edition / "edition.md", edition / "sources.json", run / "editorial-report.json"])
     if manifest.get("publication_source_package") != "COMPLETE" or status.get("publication_source_package") != "COMPLETE":
@@ -131,7 +143,10 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
     if report.get("fact_check_status") != "PASS" or report.get("darija_status") != "PASS" or report.get("arabic_script_count") != 0:
         raise ValueError("editorial evidence gates have not passed")
     cover = safe_asset(root, edition, brief.get("cover_asset_path"))
-    require_lineage(root, payload["publishing-report.json"], [edition / "edition.md", edition / "sources.json", run / "editorial-report.json", run / "cover-brief.json", cover])
+    publication_inputs = [edition / "edition.md", edition / "sources.json", run / "editorial-report.json", run / "cover-brief.json", cover]
+    if architecture_v4:
+        publication_inputs.append(edition_plan)
+    require_lineage(root, payload["publishing-report.json"], publication_inputs)
     if not report.get("lead_story_id") or brief.get("lead_story_id") != report.get("lead_story_id"):
         raise ValueError("cover lead does not match current editorial lead")
     for key in ("cover_asset_type", "cover_asset_path"):
@@ -177,6 +192,10 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
     depth = evaluate(markdown, load_policy(root / "config/editorial-depth.yaml"), edition_date=value)
     if depth["validation_status"] != "PASS":
         raise ValueError("editorial depth failed: " + "; ".join(depth["chief_editor_regeneration_requests"]))
+    from scripts.edition_architecture import validate_daily_architecture
+    architecture = validate_daily_architecture(root, value, markdown, report)
+    if architecture["validation_status"] == "FAIL":
+        raise ValueError("edition architecture failed: " + "; ".join(architecture["errors"]))
     from markdown_it import MarkdownIt
     canonical = tokens(" ".join(visible(MarkdownIt().render(markdown)).parts))
     sources = source_records(payload["sources.json"])
@@ -207,4 +226,6 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
             paths.append(resource_path)
     paths.append(cover)
     paths.append(root / "config/editorial-depth.yaml")
+    if architecture_v4:
+        paths.extend([edition_plan, root / "config" / "edition-architecture.yaml"])
     return edition, cover, {str(p.relative_to(root)).replace("\\", "/"): digest(p) for p in paths}
