@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import unittest
 import zipfile
+import math
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -14,6 +15,7 @@ from scripts.publication_inputs import validate_inputs, canonical_date, safe_ass
 from scripts.publication_renderer import build_epub, validate_epub, render, read_json, write_json, restricted_fetcher
 from scripts.auto_publish import publish, git, candidates, verify_remote
 from scripts.workflow_state import fresh_production_status, validate_state, initialize_production_run
+from scripts.edition_architecture import load_architecture
 
 DATE = "2026-09-05"
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +61,89 @@ def fixture(root):
     lineage(run/'publishing-report.json',[edition/'edition.md',edition/'sources.json',run/'editorial-report.json',run/'cover-brief.json',cover])
     return edition, run, cover
 
+
+V4_DATE = "2099-01-01"
+
+
+def _v4_words(count, paragraphs):
+    paragraphs = max(paragraphs, math.ceil(count / 180))
+    base, remainder = divmod(count, paragraphs)
+    return "\n\n".join(
+        " ".join(f"m3loma{index}_{word}" for word in range(base + (1 if index < remainder else 0)))
+        for index in range(paragraphs)
+    )
+
+
+def v4_fixture(root):
+    """A complete v4 package, built without invented reader-facing extras."""
+    architecture = load_architecture(ROOT / "config" / "edition-architecture.yaml")
+    edition = root / "editions/2099/01" / V4_DATE
+    run = root / "daily-runs" / V4_DATE
+    (edition / "assets").mkdir(parents=True)
+    run.mkdir(parents=True)
+    (root / "config").mkdir()
+    shutil.copy(ROOT / "config/editorial-depth.yaml", root / "config/editorial-depth.yaml")
+    shutil.copy(ROOT / "config/edition-architecture.yaml", root / "config/edition-architecture.yaml")
+    cover = edition / "assets/cover.svg"
+    cover.write_text(
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200"><rect width="900" height="1200" fill="white"/><text x="60" y="100" font-size="72">DRAGON</text><text x="60" y="180" font-size="28">{V4_DATE}</text><rect x="60" y="300" width="780" height="400" fill="red"/><text x="60" y="850" font-size="48">V4 TEST COVER</text></svg>',
+        encoding="utf-8",
+    )
+    article_formats = {
+        "front": "lead_article", "siyasa_dawla": "lead_article", "iqtisad_flous": "lead_article", "mojtama3": "lead_article",
+        "ta3lim": "standard_article", "se77a": "standard_article", "3adl_7o9o9": "standard_article", "bi2a_manakh": "standard_article",
+        "bniya_transport": "standard_article", "meknes_local": "standard_article", "filastin_middle_east": "standard_article", "science": "standard_article",
+        "adab": "long_form", "history": "long_form",
+    }
+    plan_sections, markdown = [], ["# DRAGON", V4_DATE + " · Africa/Casablanca"]
+    for item in architecture["section_inventory"]:
+        section_id, fmt = item["id"], article_formats.get(item["id"], "brief")
+        rule = architecture["formats"][fmt]
+        low = rule["words"][0]
+        headline = "V4 " + section_id
+        body = []
+        if "standfirst" in rule["requires"]:
+            body.append("*Standfirst dyal test kaylakhkhes l-mawdo3.*")
+        if "byline" in rule["requires"]:
+            body.append("Tahrir: DRAGON")
+        body.append(_v4_words(low, rule.get("narrative_paragraphs", 1)) + " [S01]")
+        if section_id == "investigations":
+            body.append("NEEDS_VERIFICATION: dossier test mazel kaytsenna dalil kafi.")
+        plan_sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified test material supports this desk.", "articles": [{"story_id": "v4-" + section_id, "headline": headline, "format": fmt, "word_budget": low}]})
+        markdown.extend(["## " + item["reader_heading"], "### " + headline, "\n\n".join(body)])
+        if section_id == "front":
+            for extra in range(6):
+                brief_headline = f"V4 front brief {extra}"
+                plan_sections[-1]["articles"].append({"story_id": f"v4-front-brief-{extra}", "headline": brief_headline, "format": "brief", "word_budget": 80})
+                markdown.extend(["### " + brief_headline, _v4_words(80, 1) + " [S01]"])
+    markdown_text = "\n\n".join(markdown)
+    (edition / "edition.md").write_text(markdown_text, encoding="utf-8")
+    plan = {"date": V4_DATE, "timezone": "Africa/Casablanca", "edition_architecture_version": 4, "edition_word_budget": 14000, "sections": plan_sections}
+    write_json(run / "edition-plan.json", plan)
+    base = {"date": V4_DATE, "timezone": "Africa/Casablanca"}
+    write_json(edition / "sources.json", base | {"sources": [{"source_id": "S01", "exact_url": "https://example.org/v4-source"}]})
+    rendered = MarkdownIt().render(markdown_text)
+    document = '<html xmlns="http://www.w3.org/1999/xhtml" lang="ary-Latn" dir="ltr"><head><title>DRAGON</title></head><body><nav><a href="https://example.org/v4-source">source</a></nav><main>' + rendered + '</main></body></html>'
+    for name in ("edition.html", "epub-content.xhtml"):
+        (edition / name).write_text(document, encoding="utf-8")
+    shutil.copy(ROOT / "templates/print-v4.css", edition / "print.css")
+    write_json(run / "current-news.json", base | {"packet": "v4-test"})
+    write_json(run / "deep-features.json", base | {"packet": "v4-test"})
+    report = base | {"edition_architecture_version": 4, "edition_plan_path": f"daily-runs/{V4_DATE}/edition-plan.json", "edition_architecture_validation_status": "PASS", "lead_story_id": "v4-front", "fact_check_status": "PASS", "darija_status": "PASS", "arabic_script_count": 0, "history_topic_id": "v4-history", "literature_topic_id": "v4-adab", "science_topic_id": "v4-science"}
+    write_json(run / "editorial-report.json", report)
+    report["input_blobs"] = {p.relative_to(root).as_posix(): git_blob(p) for p in (run / "current-news.json", run / "deep-features.json")}
+    write_json(run / "editorial-report.json", report)
+    cover_brief = base | {"lead_story_id": "v4-front", "cover_asset_type": "SVG_FALLBACK", "cover_asset_path": cover.relative_to(root).as_posix(), "visual_qa_status": "PASS", "image_generation_status": "NOT_AVAILABLE"}
+    cover_brief["input_blobs"] = {p.relative_to(root).as_posix(): git_blob(p) for p in (edition / "edition.md", edition / "sources.json", run / "editorial-report.json")}
+    write_json(run / "cover-brief.json", cover_brief)
+    metadata = base | {"edition_plan": f"daily-runs/{V4_DATE}/edition-plan.json", "publication_source_package": "COMPLETE", "lead_story_id": "v4-front", "cover_asset_type": "SVG_FALLBACK", "cover_asset_path": cover.relative_to(root).as_posix(), "visual_qa_status": "PASS", "image_generation_status": "NOT_AVAILABLE"}
+    write_json(edition / "manifest.json", metadata)
+    publishing = metadata | {"input_blobs": {p.relative_to(root).as_posix(): git_blob(p) for p in (edition / "edition.md", edition / "sources.json", run / "editorial-report.json", run / "cover-brief.json", cover, run / "edition-plan.json")}}
+    write_json(run / "publishing-report.json", publishing)
+    status = fresh_production_status(V4_DATE) | metadata | {key: "COMPLETE" for key in ("current_research", "deep_research", "editorial", "cover", "publishing")}
+    write_json(run / "status.json", status)
+    return edition, run, cover
+
 def fake_pdf(edition, cover, output):
     from reportlab.pdfgen.canvas import Canvas
     canvas = Canvas(str(output))
@@ -79,6 +164,15 @@ class AutomaticPublicationTests(unittest.TestCase):
         edition, cover, hashes = validate_inputs(self.root, DATE)
         self.assertEqual(cover, self.cover)
         self.assertIn("editions/2026/09/2026-09-05/edition.md", hashes)
+
+    def test_complete_v4_text_package_passes(self):
+        root = self.root / "v4"
+        edition, run, cover = v4_fixture(root)
+        observed_edition, observed_cover, hashes = validate_inputs(root, V4_DATE)
+        self.assertEqual(observed_edition, edition)
+        self.assertEqual(observed_cover, cover)
+        self.assertIn(f"daily-runs/{V4_DATE}/edition-plan.json", hashes)
+        self.assertIn("config/edition-architecture.yaml", hashes)
 
     def test_stale_html_is_rejected(self):
         path = self.edition / "edition.html"
@@ -188,5 +282,15 @@ class AutomaticPublicationTests(unittest.TestCase):
         receipt = render(self.root, DATE)
         self.assertGreaterEqual(receipt["pdf_pages"], 2)
         self.assertEqual(receipt["structural_validation"], "PASS")
+
+    @unittest.skipUnless(os.environ.get("DRAGON_RENDER_SMOKE") == "1", "requires installed WeasyPrint native libraries; enabled in Linux CI")
+    def test_real_v4_pdf_epub_render(self):
+        root = self.root / "v4-render"
+        edition, run, _ = v4_fixture(root)
+        receipt = render(root, V4_DATE)
+        self.assertGreaterEqual(receipt["pdf_pages"], 17)
+        self.assertEqual(receipt["structural_validation"], "PASS")
+        self.assertTrue((edition / f"dragon-{V4_DATE}.pdf").is_file())
+        self.assertTrue((edition / f"dragon-{V4_DATE}.epub").is_file())
 
 if __name__ == "__main__": unittest.main()
