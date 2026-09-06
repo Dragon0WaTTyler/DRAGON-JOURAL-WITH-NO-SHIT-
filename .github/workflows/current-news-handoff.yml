@@ -7,6 +7,8 @@ on:
       - 'daily-runs/**/current-news.json'
       - 'daily-runs/**/status.json'
       - 'scripts/current_news_handoff.py'
+      - 'prompts/scheduled/03-chief-editor.md'
+      - '.github/workflows/reader-language.yml'
       - '.github/workflows/current-news-handoff.yml'
   workflow_dispatch:
 
