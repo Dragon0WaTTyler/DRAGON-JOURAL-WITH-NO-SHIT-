@@ -48,8 +48,9 @@
       "daily-runs/2026-09-06/edition-plan.json": "831668bc1d231ccc8b2066406346370fe3f4f909"
     }
   },
-  "publishing": "BLOCKED",
-  "publishing_blocking_reason": "EDITORIAL_AND_COVER_PREREQUISITES_NOT_COMPLETE: status.editorial is PENDING and status.cover is BLOCKED; current canonical editorial-report.json is not available, so Task 5 cannot validate current editorial lineage or canonical archived cover and must not rebuild publication outputs.",
+  "publishing": "RUNNING",
+  "publishing_started_at": "2026-09-06T21:24:09+01:00",
+  "publishing_blocking_reason": null,
   "cover": "COMPLETE",
   "cover_started_at": "2026-09-06T09:48:07+01:00",
   "cover_completed_at": "2026-09-06T21:14:00+01:00",
@@ -61,7 +62,7 @@
   "cover_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
   "cover_github_read_back": "PASS",
   "overall_status": "PENDING",
-  "publication_source_package": "BLOCKED",
+  "publication_source_package": "PENDING",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
