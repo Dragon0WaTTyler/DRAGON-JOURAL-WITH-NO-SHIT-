@@ -42,8 +42,8 @@ section_aliases:
   meknes: ["meknes", "meknes w fes-meknes"]
   world: ["l-3alam", "world"]
   ai: ["ai w technology", "ai", "technology"]
-  science: ["science"]
-  investigations: ["investigations"]
+  science: ["3ilm w dirasat", "science"]
+  investigations: ["mo7asaba w ta7qiq", "investigations"]
 
 # Version-4 Morocco coverage is distributed across several domestic desks.
 # Their useful prose is intentionally aggregated for the existing hard minimum.

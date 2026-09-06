@@ -125,6 +125,15 @@ class EditorialDepthTests(unittest.TestCase):
         self.assertEqual(report["per_section_word_counts"]["morocco"]["word_count"], 700)
         self.assertTrue(report["per_section_word_counts"]["morocco"]["pass"])
 
+    def test_version_four_science_and_accountability_headings_map_to_gates(self):
+        text = markdown().replace("## Science — dossier", "## 3ilm w Dirasat — dossier").replace(
+            "## Investigations — dossier NEEDS_VERIFICATION",
+            "## Mo7asaba w Ta7qiq — NEEDS_VERIFICATION",
+        )
+        report = evaluate(text, POLICY)
+        self.assertTrue(report["per_section_word_counts"]["science"]["pass"])
+        self.assertTrue(report["allowed_exceptions"]["investigations"]["used"])
+
     def test_meknes_thin_news_exception_is_explicit(self):
         text = markdown(meknes=20).replace(
             "## Meknes Radar — dossier\n\n",
