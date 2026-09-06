@@ -17,6 +17,13 @@ h2 { margin: 1.5mm 0; font: 800 19pt/1 Arial, sans-serif; letter-spacing: -.04em
 article { break-inside: avoid-page; }
 .article--lead { column-count: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
 .article--lead h3, .article--lead .standfirst, .article--lead .byline { column-span: all; }
+.article--standard { border-top: 1px solid var(--ink); padding-top: 3mm; }
+.article--long-form { border-top: 3px double var(--ink); padding-top: 4mm; column-count: 2; column-gap: 7mm; column-rule: 1px solid var(--line); }
+.article--long-form h3, .article--long-form .standfirst, .article--long-form .byline { column-span: all; }
+.article--analysis, .article--explainer { border-left: 4px solid var(--red); padding-left: 4mm; }
+.article--fact-check { border: 2px solid var(--ink); padding: 4mm; background: #f6efe4; }
+.article--opinion { border-top: 4px solid var(--red); padding-top: 3mm; font-size: 11pt; }
+.article--interview { border-top: 2px solid var(--ink); padding-top: 3mm; }
 h3 { margin: 0 0 2mm; font: 800 16pt/1.08 Arial, sans-serif; letter-spacing: -.025em; }
 h4 { margin: 0 0 1mm; font: 800 10.5pt/1.15 Arial, sans-serif; }
 .standfirst { margin: 0 0 2mm; font-size: 12pt; font-weight: 600; line-height: 1.3; }

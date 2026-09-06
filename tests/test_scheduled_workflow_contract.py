@@ -101,8 +101,11 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
 
     def test_v4_publication_template_has_no_noncanonical_tagline(self):
         template = (ROOT / "templates" / "publication-v4.html").read_text(encoding="utf-8")
+        css = (ROOT / "templates" / "print-v4.css").read_text(encoding="utf-8")
         self.assertIn("YYYY-MM-DD · Africa/Casablanca", template)
         self.assertNotIn("Jarida youmiya", template)
+        for semantic_class in ("article--standard", "article--long-form", "article--analysis", "article--fact-check", "article--opinion", "article--interview"):
+            self.assertIn(semantic_class, css)
 
     def test_chief_editor_labels_legacy_depth_and_briefing_handoff(self):
         prompt = (ROOT / "prompts" / "scheduled" / "03-chief-editor.md").read_text(encoding="utf-8")
