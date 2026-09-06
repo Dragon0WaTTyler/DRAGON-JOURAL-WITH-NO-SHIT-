@@ -37,7 +37,7 @@
       "editions/2026/09/2026-09-06/edition.md",
       "editions/2026/09/2026-09-06/sources.json",
       "daily-runs/2026-09-06/editorial-report.json",
-      "daily-runs/2026-09-06/edition-plan.json"
+      "daily-runs/2026/09/2026-09-06/edition-plan.json"
     ],
     "blobs": {
       "daily-runs/2026-09-06/current-news.json": "b5c760cecf73d67a2dfcf41368cee22218b934bc",
@@ -48,9 +48,9 @@
       "daily-runs/2026-09-06/edition-plan.json": "831668bc1d231ccc8b2066406346370fe3f4f909"
     }
   },
-  "publishing": "RUNNING",
+  "publishing": "BLOCKED",
   "publishing_started_at": "2026-09-06T21:24:09+01:00",
-  "publishing_blocking_reason": null,
+  "publishing_blocking_reason": "STALE_PUBLICATION_SOURCE: generated publication source failed the V4 canonical visible-word-sequence gate; a candidate body contains merged token 'n7awloukol' where canonical edition.md has 'n7awlou kol'. Rebuild edition.html and epub-content.xhtml only from the current edition.md and require exact GitHub read-back before COMPLETE.",
   "cover": "COMPLETE",
   "cover_started_at": "2026-09-06T09:48:07+01:00",
   "cover_completed_at": "2026-09-06T21:14:00+01:00",
@@ -62,7 +62,7 @@
   "cover_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
   "cover_github_read_back": "PASS",
   "overall_status": "PENDING",
-  "publication_source_package": "PENDING",
+  "publication_source_package": "BLOCKED",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
@@ -71,6 +71,6 @@
   "visual_qa_status": "PASS",
   "github_image_archive": "NOT_APPLICABLE_SVG_TEXT_ASSET",
   "cover_binary_archive": "PERSISTED_CANONICAL_ASSET",
-  "blocking_reason": null,
+  "blocking_reason": "STALE_PUBLICATION_SOURCE: generated publication source failed the V4 canonical visible-word-sequence gate; a candidate body contains merged token 'n7awloukol' where canonical edition.md has 'n7awlou kol'. Rebuild edition.html and epub-content.xhtml only from the current edition.md and require exact GitHub read-back before COMPLETE.",
   "final_publication_status": "PENDING"
 }
