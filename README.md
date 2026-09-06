@@ -20,6 +20,10 @@ instead of cutting verified prose. See `config/edition-architecture.yaml` and
 
 The workflow reacts to ready package pushes and polls every 30 minutes for today/yesterday. No source package means no rendering. A failed validation is an Actions failure with an exact reason; the next invocation retries. Enable GitHub failed-workflow notifications in your account. GitHub schedules are best-effort and may be delayed or disabled after repository inactivity.
 
+`Monitor DRAGON daily completion` checks the Casablanca daily status after 11:00
+local time. It is read-only: it fails with the incomplete stage and recorded
+reason when an editorial job, binary archive, or GitHub read-back is missing.
+
 ## Commands
 
 python -m unittest discover -s tests -v

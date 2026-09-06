@@ -117,6 +117,11 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "publish.yml").read_text(encoding="utf-8")
         self.assertIn("config/edition-architecture.yaml", workflow)
 
+    def test_daily_monitor_is_read_only_and_uses_the_audit(self):
+        workflow = (ROOT / ".github" / "workflows" / "monitor.yml").read_text(encoding="utf-8")
+        self.assertIn("scripts/audit_daily_run.py", workflow)
+        self.assertIn("contents: read", workflow)
+
     def test_research_prompts_do_not_reimpose_the_old_desk_inventory(self):
         current = (ROOT / "prompts" / "scheduled" / "01-current-news.md").read_text(encoding="utf-8")
         deep = (ROOT / "prompts" / "scheduled" / "02-deep-features.md").read_text(encoding="utf-8")
