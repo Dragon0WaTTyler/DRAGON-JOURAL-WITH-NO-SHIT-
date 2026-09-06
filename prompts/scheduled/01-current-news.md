@@ -530,6 +530,7 @@ For every candidate story produce structured data equivalent to:
 
 STORY_ID
 DESK
+SECTION_ID
 PROPOSED_TITLE
 IMPORTANCE_SCORE
 FRESHNESS
@@ -548,6 +549,7 @@ WHY_IT_MATTERS
 STRATEGIC_ANGLE
 CONFIDENCE
 RECOMMENDATION
+RECOMMENDED_FORMAT
 
 CONFIDENCE must be one of:
 
@@ -562,6 +564,10 @@ PUBLISH
 BRIEF
 HOLD
 REJECT
+
+RECOMMENDED_FORMAT must be one of the approved version-4 formats in
+config/edition-architecture.yaml. It is a recommendation for the Chief Editor,
+not an instruction to manufacture a long article.
 
 Include exact source URLs.
 
@@ -609,8 +615,15 @@ blocked_sources
 important_unknowns
 contract_reads
 quality_gate
+section_inventory_coverage
 
 contract_reads should make mandatory contract diagnostics auditable without dumping file contents.
+
+section_inventory_coverage must contain one object for each Task 1 section_id.
+Each object records `ACTIVE_CANDIDATES` with candidate story IDs, or
+`NO_PUBLISHABLE_ITEM` with the institutions/source categories checked and an
+honest reason. This is the evidence the Chief Editor uses for an ACTIVE or
+SKIPPED edition-plan decision.
 
 For each mandatory contract record an outcome equivalent to:
 

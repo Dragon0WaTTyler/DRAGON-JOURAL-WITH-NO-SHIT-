@@ -474,10 +474,12 @@ independent_source_origins_count
 blocked_sources
 important_unknowns
 handoff
+architecture_candidates
 
 Each selected feature must include:
 
 TOPIC_ID
+SECTION_ID
 PROPOSED_TITLE
 WHY_SELECTED
 RECENTLY_USED_CHECK
@@ -490,6 +492,7 @@ UNCERTAINTY
 CONTEXT
 CONFIDENCE
 RECOMMENDATION
+RECOMMENDED_FORMAT
 
 RECOMMENDATION:
 PUBLISH
@@ -501,6 +504,11 @@ Selected History must be PUBLISH-ready research.
 Selected Literature/Culture must be PUBLISH-ready research.
 Selected Science must be responsibly supported.
 Investigation may remain non-ready.
+
+architecture_candidates records every supported version-4 candidate with its
+section_id and recommended format. Use `science`, `culture`, `adab`, `history`
+or `investigations`; a topic can be an alternate, explainer, data story or
+brief. Do not convert it into long-form merely because it came from Task 2.
 
 ==================================================
 HANDOFF
