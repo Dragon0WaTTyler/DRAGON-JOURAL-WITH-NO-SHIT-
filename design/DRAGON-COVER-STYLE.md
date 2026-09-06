@@ -1,5 +1,24 @@
 # DRAGON Cover Style Contract
 
+## Version 4 newspaper cover system
+
+The cover is a newspaper front system, not a standalone infographic. Keep one
+dominant editorial visual, but organise it in five readable layers:
+
+1. DRAGON masthead.
+2. ISO date and edition line.
+3. One dominant visual concept tied to the final lead.
+4. One short lead headline with clear contrast.
+5. A bottom teaser rail carrying zero to two secondary verified stories.
+
+Use the black/white/red system with deliberate empty space. The visual may be
+symbolic, portrait-led or illustrated; it must not impersonate a documentary
+photograph. Teasers are headlines only, never dense summaries. The Cover
+Director records `layout_system: EDITORIAL_MASTHEAD_LEAD_RAIL`, the exact
+headline/teasers and hierarchy QA in cover-brief.json. A v4 SVG fallback uses
+the same masthead/date/lead/rail order and does not reduce the cover to a data
+card.
+
 Permanent art direction for DRAGON covers. Use one strong editorial idea, not a collage.
 
 ## Tested workflow
@@ -29,7 +48,7 @@ Visible text should be minimal:
 - DRAGON masthead
 - date
 - one main headline
-- maximum two secondary teasers
+- a bottom rail with maximum two secondary teasers
 
 All ordinary cover text is Moroccan Darija in Latin characters. Arabic script is prohibited.
 

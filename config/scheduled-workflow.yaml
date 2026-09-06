@@ -253,6 +253,7 @@ jobs:
   responsibilities:
   - read the final edition, editorial report, and DRAGON cover style
   - select exactly one lead and one cover mode
+  - apply the version-4 editorial masthead, lead and teaser-rail hierarchy when editorial-report declares version 4
   - create a compact cover-brief.json and persist/read it back
   - issue one simple 3:4 image-generation request with one dominant concept
   - keep visible text to DRAGON masthead, date, main headline, and at most two secondary

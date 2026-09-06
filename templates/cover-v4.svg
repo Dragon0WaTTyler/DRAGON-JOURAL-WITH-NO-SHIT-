@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="DRAGON cover template">
+  <rect width="900" height="1200" fill="#f7f3eb"/>
+  <rect x="0" y="0" width="900" height="28" fill="#b3131b"/>
+  <text x="58" y="132" font-family="Arial, sans-serif" font-size="92" font-weight="900" fill="#111">DRAGON</text>
+  <text x="62" y="174" font-family="Arial, sans-serif" font-size="24" fill="#111">YYYY-MM-DD · Africa/Casablanca</text>
+  <rect x="58" y="220" width="784" height="560" fill="#111"/>
+  <text x="90" y="510" font-family="Arial, sans-serif" font-size="30" fill="#f7f3eb">ONE DOMINANT VERIFIED EDITORIAL CONCEPT</text>
+  <rect x="58" y="826" width="784" height="8" fill="#b3131b"/>
+  <text x="58" y="894" font-family="Arial, sans-serif" font-size="52" font-weight="800" fill="#111">MAIN HEADLINE</text>
+  <rect x="0" y="1010" width="900" height="190" fill="#b3131b"/>
+  <text x="58" y="1072" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#fff">TEASER ONE</text>
+  <text x="58" y="1140" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#fff">TEASER TWO</text>
+</svg>
