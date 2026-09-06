@@ -629,6 +629,17 @@ background explainer as another candidate. Record `publishable_candidate_count`,
 `lead_capable_candidate_count`, and `brief_capable_candidate_count` in
 `quality_gate` so Task 3 can reject an insufficient handoff before drafting.
 
+### SAME-DATE RERUN VALIDITY
+
+A same-date `COMPLETE` current-news package is reusable only when its read-back
+`quality_gate` proves all three V4 inventory floors above: at least 30 distinct
+publishable candidates, at least 4 lead-capable candidates, and at least 20
+brief-capable candidates. A package without those recorded passing counts is
+not a valid completed handoff. On a rerun, preserve the auditable earlier
+record, set `current_research` to `RUNNING` through the conditional status
+merge, and replace it with fresh verified research; do not tell Task 3 to reuse
+an insufficient inventory or invent the missing material.
+
 Also include:
 
 research_started_at
