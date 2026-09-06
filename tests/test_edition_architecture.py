@@ -35,13 +35,13 @@ def fixture():
         article = {"story_id": f"story-{section_id}", "headline": headline, "format": fmt, "word_budget": low}
         sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified material supports this desk.", "articles": [article]})
         markdown.extend([f"## {item['reader_heading']}", f"### {headline}", "\n\n".join(body)])
-
-    # The inventory has 12 brief sections. Add three source-backed front briefs
-    # to meet the daily brief floor without turning every desk into an essay.
-    for index in range(3):
-        headline = f"Front brief {index}"
-        sections[0]["articles"].append({"story_id": f"front-brief-{index}", "headline": headline, "format": "brief", "word_budget": 80})
-        markdown.extend([f"### {headline}", words(80), "[S01]"])
+        if section_id == "front":
+            # The inventory has 12 brief sections. Add three source-backed front
+            # briefs here, under their real reader section, to meet the floor.
+            for extra in range(3):
+                brief_headline = f"Front brief {extra}"
+                sections[-1]["articles"].append({"story_id": f"front-brief-{extra}", "headline": brief_headline, "format": "brief", "word_budget": 80})
+                markdown.extend([f"### {brief_headline}", words(80), "[S01]"])
     plan = {
         "date": DATE,
         "timezone": "Africa/Casablanca",
@@ -74,6 +74,20 @@ class EditionArchitectureTests(unittest.TestCase):
         self.assertEqual(report["validation_status"], "FAIL")
         self.assertTrue(any("byline" in error for error in report["errors"]))
         self.assertTrue(any("citation" in error for error in report["errors"]))
+
+    def test_plan_article_cannot_be_placed_under_a_different_section(self):
+        plan, markdown = fixture()
+        markdown = markdown.replace("### Headline siyasa_dawla", "### Headline siyasa_dawla", 1)
+        first = markdown.index("## Siyasa w Dawla")
+        moved = markdown.index("### Headline siyasa_dawla", first)
+        before = markdown[:moved]
+        after = markdown[moved:]
+        article_end = after.index("## I9tisad w Flous")
+        article = after[:article_end]
+        markdown = before + after[article_end:] + "\n\n" + article
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("wrong reader section" in error for error in report["errors"]))
 
     def test_legacy_editions_are_not_retroactively_rejected(self):
         result = validate_daily_architecture(ROOT, DATE, "# DRAGON", {"edition_architecture_version": 3})

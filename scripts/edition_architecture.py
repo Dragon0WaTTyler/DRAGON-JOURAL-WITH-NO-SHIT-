@@ -27,28 +27,31 @@ def normalise(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value).strip()
 
 
-def markdown_outline(markdown: str) -> tuple[set[str], dict[str, str]]:
-    """Return H2 sections and body text keyed by each H3-or-deeper headline."""
+def markdown_outline(markdown: str) -> tuple[set[str], dict[str, tuple[str, str]]]:
+    """Return H2 sections and `(body, parent_section)` for article headings."""
     sections: set[str] = set()
-    articles: dict[str, str] = {}
+    articles: dict[str, tuple[str, str]] = {}
     heading: str | None = None
+    parent_section: str | None = None
+    current_section: str | None = None
     body: list[str] = []
     for line in markdown.splitlines():
         h2 = H2.match(line)
         h3 = H3_OR_DEEPER.match(line)
         if h2:
             if heading is not None:
-                articles.setdefault(normalise(heading), "\n".join(body))
-            sections.add(normalise(h2.group(1)))
+                articles.setdefault(normalise(heading), ("\n".join(body), parent_section or ""))
+            current_section = h2.group(1)
+            sections.add(normalise(current_section))
             heading, body = None, []
         elif h3:
             if heading is not None:
-                articles.setdefault(normalise(heading), "\n".join(body))
-            heading, body = h3.group(2), []
+                articles.setdefault(normalise(heading), ("\n".join(body), parent_section or ""))
+            heading, parent_section, body = h3.group(2), current_section, []
         elif heading is not None:
             body.append(line)
     if heading is not None:
-        articles.setdefault(normalise(heading), "\n".join(body))
+        articles.setdefault(normalise(heading), ("\n".join(body), parent_section or ""))
     return sections, articles
 
 
@@ -133,7 +136,9 @@ def validate_plan(
                 errors.append(f"{section_id} {fmt} word_budget is outside {low}-{high}")
             else:
                 planned_words += budget
-            body = articles_in_markdown[normalise(headline)]
+            body, article_section = articles_in_markdown[normalise(headline)]
+            if normalise(article_section) != expected_heading:
+                errors.append(f"{section_id} planned headline appears under the wrong reader section")
             actual_words = count_words(body)
             if actual_words < low:
                 errors.append(f"{section_id} {fmt} is only {actual_words} words; minimum is {low}")
