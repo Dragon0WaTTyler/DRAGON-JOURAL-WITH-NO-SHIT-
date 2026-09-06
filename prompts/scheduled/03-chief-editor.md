@@ -7,6 +7,7 @@ Read memory/publication-ledger.json for finally PUBLISHED topics in addition to 
 Task 4 is Cover Director, Task 5 is Publication Builder. PDF/EPUB rendering is now automatic in GitHub Actions; no AI API. Never claim deterministic executable checks ran when no executable tool was available.
 All JSON handoff files must include date=YYYY-MM-DD, timezone=Africa/Casablanca, observed input commit/blob identity, and truthful completion/verification evidence.
 Task 3 owns edition-plan.json, edition.md, sources.json and editorial-report.json. It does not write or require manifest.json. Its report must include fact_check_status, darija_status, arabic_script_count, lead_story_id and topic IDs. Markdown must use section headings matching config/editorial-depth.yaml aliases so the deterministic gate can identify each section. Keep paragraphs below 190 words. All cited source IDs must map to exact source URLs.
+For every non-brief version-4 article, write connected narrative paragraphs: lead, nut graf, evidence/context and consequences. The visible three-heading briefing card `Chno w9e3 / 3lach mohim / Chno nra9bo` is prohibited in reader-facing articles; it is an internal reporting checklist, not newspaper layout.
 
 Version 4 adds one Task 3 artifact: `daily-runs/YYYY-MM-DD/edition-plan.json`.
 Read config/edition-architecture.yaml and templates/edition-architecture.md.

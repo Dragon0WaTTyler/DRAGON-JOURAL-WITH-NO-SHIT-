@@ -15,39 +15,56 @@ edition:
   interior_page_target: [17, 27]
   overflow_rule: "add_pages_before_cutting_verified_editorial_prose"
 
+# Reader-facing reporting must read as articles, not as repeated briefing
+# cards. Briefs remain short, but a lead may not present its whole argument
+# through the old "what happened / why it matters / what to watch" trio.
+reader_quality:
+  legacy_briefing_labels: ["chno w9e3", "3lach mohim", "chno nra9bo"]
+  maximum_legacy_briefing_templates: 0
+
 formats:
   lead_article:
     words: [1000, 1500]
+    narrative_paragraphs: 4
     requires: [headline, standfirst, byline, nut_graf, citations]
   standard_article:
     words: [700, 1000]
+    narrative_paragraphs: 3
     requires: [headline, standfirst, byline, citations]
   long_form:
     words: [1500, 2200]
+    narrative_paragraphs: 6
     requires: [headline, standfirst, byline, context, uncertainty, citations]
   analysis:
     words: [900, 1400]
+    narrative_paragraphs: 4
     requires: [headline, standfirst, byline, evidence, uncertainty, citations]
   explainer:
     words: [700, 1200]
+    narrative_paragraphs: 3
     requires: [headline, standfirst, byline, chronology_or_steps, citations]
   fact_check:
     words: [500, 900]
+    narrative_paragraphs: 2
     requires: [headline, claim, verdict, evidence, citations]
   data_story:
     words: [350, 800]
+    narrative_paragraphs: 2
     requires: [headline, data_source, explanation, citations]
   opinion:
     words: [600, 1000]
+    narrative_paragraphs: 3
     requires: [headline, byline, opinion_label, citations]
   interview_qa:
     words: [700, 1400]
+    narrative_paragraphs: 2
     requires: [headline, byline, interview_subject, attribution]
   brief:
     words: [80, 200]
     requires: [headline, citations]
   timeline:
     words: [250, 600]
+    narrative_paragraphs: 2
     requires: [headline, chronology, citations]
 
 # Every id must appear once in edition-plan.json. ACTIVE means it has a

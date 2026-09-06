@@ -62,6 +62,29 @@ def _range(rule: dict[str, Any], key: str) -> tuple[int, int]:
     return int(values[0]), int(values[1])
 
 
+def narrative_paragraph_count(body: str) -> int:
+    """Count prose paragraphs, excluding article metadata and bare citations."""
+    count = 0
+    for block in re.split(r"\n\s*\n", body):
+        text = block.strip()
+        if not text or text.casefold().startswith("tahrir:") or text.startswith("*"):
+            continue
+        if re.fullmatch(r"(?:\[S\d+\]\s*)+", text):
+            continue
+        count += 1
+    return count
+
+
+def legacy_briefing_template(body: str, labels: list[str]) -> bool:
+    """Detect the old three-heading briefing card in reader-facing Markdown."""
+    starts = {
+        normalise(re.sub(r"^[#*\s_-]+", "", line))
+        for line in body.splitlines()
+        if line.strip()
+    }
+    return all(any(value.startswith(normalise(label)) for value in starts) for label in labels)
+
+
 def validate_plan(
     plan: dict[str, Any], architecture: dict[str, Any], markdown: str, *, edition_date: str
 ) -> dict[str, Any]:
@@ -90,6 +113,9 @@ def validate_plan(
     active: set[str] = set()
     planned_words = 0
     story_ids: set[str] = set()
+    briefing_templates = 0
+    reader_quality = architecture.get("reader_quality", {})
+    briefing_labels = reader_quality.get("legacy_briefing_labels", [])
 
     for entry in entries:
         if not isinstance(entry, dict):
@@ -142,6 +168,16 @@ def validate_plan(
             actual_words = count_words(body)
             if actual_words < low:
                 errors.append(f"{section_id} {fmt} is only {actual_words} words; minimum is {low}")
+            paragraphs = narrative_paragraph_count(body)
+            required_paragraphs = int(formats[fmt].get("narrative_paragraphs", 0))
+            if paragraphs < required_paragraphs:
+                errors.append(
+                    f"{section_id} {fmt} has only {paragraphs} narrative paragraphs; minimum is {required_paragraphs}"
+                )
+            if isinstance(briefing_labels, list) and briefing_labels and legacy_briefing_template(body, briefing_labels):
+                briefing_templates += 1
+                if fmt != "brief":
+                    errors.append(f"{section_id} {fmt} uses the prohibited legacy briefing template")
             requirements = formats[fmt].get("requires", [])
             if "byline" in requirements and "tahrir:" not in body.casefold():
                 errors.append(f"{section_id} {fmt} has no Tahrir byline")
@@ -175,6 +211,11 @@ def validate_plan(
         errors.append(f"edition_word_budget must be {minimum}-{maximum}")
     if planned_words < int(edition_rule["hard_min_words"]):
         errors.append("planned article word budgets do not reach the edition minimum")
+    maximum_templates = int(reader_quality.get("maximum_legacy_briefing_templates", 0))
+    if briefing_templates > maximum_templates:
+        errors.append(
+            f"edition has {briefing_templates} legacy briefing templates; maximum is {maximum_templates}"
+        )
 
     return {
         "validation_status": "PASS" if not errors else "FAIL",
@@ -184,6 +225,8 @@ def validate_plan(
         "format_counts": dict(format_count),
         "planned_word_count": planned_words,
         "actual_word_count": total_words,
+        "narrative_paragraphs_checked": True,
+        "legacy_briefing_template_count": briefing_templates,
     }
 
 

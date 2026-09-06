@@ -15,6 +15,14 @@ def words(count: int) -> str:
     return " ".join(f"kalma{index}" for index in range(count))
 
 
+def narrative_words(count: int, paragraphs: int) -> str:
+    chunks = []
+    base, remainder = divmod(count, paragraphs)
+    for index in range(paragraphs):
+        chunks.append(words(base + (1 if index < remainder else 0)))
+    return "\n\n".join(chunks)
+
+
 def fixture():
     sections = []
     markdown = ["# DRAGON"]
@@ -30,7 +38,8 @@ def fixture():
             body.append("*Standfirst kay3ti ma3na dyal had l-mawdo3.*")
         if "byline" in ARCHITECTURE["formats"][fmt]["requires"]:
             body.append("Tahrir: DRAGON")
-        body.append(words(low))
+        paragraphs = ARCHITECTURE["formats"][fmt].get("narrative_paragraphs", 1)
+        body.append(narrative_words(low, paragraphs))
         body.append("[S01]")
         article = {"story_id": f"story-{section_id}", "headline": headline, "format": fmt, "word_budget": low}
         sections.append({"section_id": section_id, "status": "ACTIVE", "editorial_reason": "Verified material supports this desk.", "articles": [article]})
@@ -74,6 +83,26 @@ class EditionArchitectureTests(unittest.TestCase):
         self.assertEqual(report["validation_status"], "FAIL")
         self.assertTrue(any("byline" in error for error in report["errors"]))
         self.assertTrue(any("citation" in error for error in report["errors"]))
+
+    def test_long_article_cannot_use_the_legacy_briefing_card(self):
+        plan, markdown = fixture()
+        markdown = markdown.replace(
+            "[S01]",
+            "**Chno w9e3**\n**3lach mohim**\n**Chno nra9bo**\n[S01]",
+            1,
+        )
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("legacy briefing template" in error for error in report["errors"]))
+
+    def test_lead_requires_connected_narrative_paragraphs(self):
+        plan, markdown = fixture()
+        # The first lead has four 250-word prose blocks. Join its three
+        # internal breaks while preserving all headings and metadata.
+        markdown = markdown.replace("\n\nkalma0", " kalma0", 3)
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("narrative paragraphs" in error for error in report["errors"]))
 
     def test_plan_article_cannot_be_placed_under_a_different_section(self):
         plan, markdown = fixture()

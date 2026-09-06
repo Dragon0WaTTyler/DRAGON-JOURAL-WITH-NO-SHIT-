@@ -14,6 +14,8 @@ secondary articles, fifteen to thirty briefs and one or two long-form pieces.
 Do not make every section a long essay or use one visible summary template for
 all articles. `Tahrir:` is an editorial byline, never a false claim of field
 reporting. Task 5 treats `edition-plan.json` as an immutable publication input.
+The architecture validator checks connected narrative paragraph minimums and
+rejects non-brief articles structured as the three-label legacy briefing card.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.

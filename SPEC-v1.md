@@ -11,6 +11,8 @@ reasons. The publication validator includes that plan and the architecture
 configuration in canonical binary inputs. Legacy reports without
 `edition_architecture_version: 4` remain read-only and are not retroactively
 rejected.
+The validator also enforces connected narrative paragraph minimums and rejects
+non-brief articles built around all three legacy briefing labels.
 
 The user authorized automatic daily PDF/EPUB publication on 2026-09-05.
 ChatGPT Plus performs all research, editorial work and cover direction without an OpenAI API.

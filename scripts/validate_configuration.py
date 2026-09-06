@@ -182,6 +182,14 @@ def main() -> int:
         errors.append("quality gates must separate manual binary rendering")
     if "newspaper_architecture" not in quality.get("gates", {}):
         errors.append("quality gates must include the newspaper architecture gate")
+    else:
+        required_architecture_gates = {
+            "narrative_paragraph_minimums",
+            "no_legacy_briefing_card_in_articles",
+        }
+        present_architecture_gates = set(quality["gates"]["newspaper_architecture"].get("required", []))
+        if not required_architecture_gates.issubset(present_architecture_gates):
+            errors.append("newspaper architecture gate must enforce narrative article quality")
 
     inventory = architecture.get("section_inventory")
     expected_formats = {
@@ -194,6 +202,14 @@ def main() -> int:
         errors.append("edition architecture section IDs must be unique")
     if set(architecture.get("formats", {})) != expected_formats:
         errors.append("edition architecture must define every approved reader format")
+    if any(
+        not isinstance(rule, dict) or (name != "brief" and not isinstance(rule.get("narrative_paragraphs"), int))
+        for name, rule in architecture.get("formats", {}).items()
+    ):
+        errors.append("edition architecture must define narrative paragraph requirements for non-brief formats")
+    reader_quality = architecture.get("reader_quality", {})
+    if not isinstance(reader_quality.get("legacy_briefing_labels"), list) or reader_quality.get("maximum_legacy_briefing_templates") != 0:
+        errors.append("edition architecture must prohibit legacy briefing templates in reader-facing articles")
     if architecture.get("edition", {}).get("hard_min_words") != 10000:
         errors.append("version-4 edition architecture hard minimum must be 10000 words")
 

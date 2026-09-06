@@ -29,6 +29,8 @@ gates:
     - morocco_world_life_accountability_coverage
     - edition_wide_lead_brief_long_form_mix
     - varied_reader_facing_article_formats
+    - narrative_paragraph_minimums
+    - no_legacy_briefing_card_in_articles
     - flexible_page_budget_no_content_truncation
   language:
     required:

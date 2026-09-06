@@ -23,6 +23,9 @@ does not force every section to be a lead. Leads and standard articles use a
 headline, standfirst, `Tahrir:` byline, natural lead and context; briefs may use
 the compact form. `Chno w9e3 / 3lach mohim / chno nra9bo` is internal editorial
 reasoning, never a mandatory visible template for every story.
+The deterministic architecture gate requires the configured number of connected
+narrative paragraphs for every non-brief format and rejects an article that
+uses all three legacy briefing labels as its visible structure.
 
 The version-4 edition target is 10,000–16,000 useful words. Publishing expands
 the page count before it cuts verified reader prose. Long-form History and Adab

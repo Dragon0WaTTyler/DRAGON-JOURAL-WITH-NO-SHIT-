@@ -1,5 +1,11 @@
 # DRAGON edition architecture — version 4
 
+Reader-facing articles are narrative newspaper writing. Do not make a lead,
+standard article, analysis, explainer, feature or opinion piece out of the
+three visible labels `Chno w9e3`, `3lach mohim`, and `Chno nra9bo`. Use those
+questions in reporting and editing, then write a lead, nut graf, evidence,
+context, consequence and what follows as connected prose.
+
 The Chief Editor first writes `daily-runs/YYYY-MM-DD/edition-plan.json`, then
 writes the reader-facing edition. The plan is an editorial decision record, not
 reader prose.
