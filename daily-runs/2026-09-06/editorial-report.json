@@ -7,6 +7,7 @@
   "sources_path": "editions/2026/09/2026-09-06/sources.json",
   "edition_plan_path": "daily-runs/2026-09-06/edition-plan.json",
   "edition_architecture_version": 4,
+  "validation_status": "PASS",
   "edition_architecture_validation_status": "PASS",
   "planned_word_count": 14610,
   "total_word_count": 15569,
