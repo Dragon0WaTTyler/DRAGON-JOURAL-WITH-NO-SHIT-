@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-06",
+  "timezone": "Africa/Casablanca",
+  "cover_architecture_version": 4,
+  "layout_system": "EDITORIAL_MASTHEAD_LEAD_RAIL",
+  "lead_story_id": "MA-CNSS-DEFICIT",
+  "main_headline": "AMO non-salaried: l-ar9am katbayan pressure structurel 3la t-tawazon",
+  "cover_mode": "symbolic editorial",
+  "visual_metaphor": "A stark editorial balance: a simplified medical cross and AMO ledger blocks tilt against a heavy deficit bar, using only abstract geometric forms and no documentary subjects.",
+  "visual_facts_used": [
+    "CNSS AMO financing pressure is the lead data point.",
+    "The cover uses only abstract graphical systems, not a claimed documentary scene."
+  ],
+  "visual_elements_avoided": [
+    "invented portraits",
+    "fake documentary photographs",
+    "patients",
+    "graphic conflict imagery",
+    "unverified legal or medical claims",
+    "implied guilt",
+    "unrelated collage"
+  ],
+  "masthead_text": "DRAGON",
+  "date_text": "2026-09-06",
+  "secondary_teasers": [
+    {
+      "story_id": "MA-PORT-TRUCKERS",
+      "headline": "Na9ilin dyal ports kayhdddo b-strike mn 14 September"
+    },
+    {
+      "story_id": "TECH-US-CHINA-AI-SAFETY",
+      "headline": "US w China kaywjjdo l-AI safety dialogue: coordination mo7tamal f wa9t dyal competition"
+    }
+  ],
+  "cover_asset_type": null,
+  "cover_asset_path": null,
+  "image_generation_status": "PENDING",
+  "visual_qa_status": "PENDING",
+  "arabic_script_count": 0,
+  "cover_fallback_reason": null,
+  "hierarchy_qa": {
+    "masthead_legible": "PENDING",
+    "date_legible": "PENDING",
+    "lead_legible": "PENDING",
+    "rail_legible": "PENDING",
+    "overlap_or_clipping": "PENDING"
+  },
+  "input_blobs": {
+    "editions/2026/09/2026-09-06/edition.md": "a28188a503f6282430cd183024d4f238179e55db",
+    "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
+    "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca"
+  },
+  "github_text_read_back": {
+    "status": "PENDING",
+    "path": "daily-runs/2026-09-06/cover-brief.json",
+    "blob": null
+  },
+  "generation_attempt": {
+    "requested": true,
+    "attempts": 0,
+    "canonical": false,
+    "note": "Brand-new compact generation will be attempted after brief read-back; binary archival capability will be evaluated separately."
+  },
+  "handoff": {
+    "ready_for_publication_builder": false,
+    "reason": "Canonical cover asset and visual QA are pending."
+  }
+}
