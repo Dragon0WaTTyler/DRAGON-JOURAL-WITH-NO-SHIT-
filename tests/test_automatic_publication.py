@@ -193,7 +193,15 @@ class AutomaticPublicationTests(unittest.TestCase):
         edition, _, _ = v4_fixture(root)
         html = edition / "edition.html"
         html.write_text(html.read_text(encoding="utf-8").replace('data-format="lead_article"', 'data-format="brief"', 1), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "semantic HTML failed"):
+        with self.assertRaisesRegex(ValueError, "semantic edition.html failed"):
+            validate_inputs(root, V4_DATE)
+
+    def test_v4_package_rejects_epub_article_without_plan_semantics(self):
+        root = self.root / "v4-epub-semantic-failure"
+        edition, _, _ = v4_fixture(root)
+        epub = edition / "epub-content.xhtml"
+        epub.write_text(epub.read_text(encoding="utf-8").replace('data-story-id="v4-front" data-section-id="front"', 'data-story-id="v4-front" data-section-id="world"', 1), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "semantic epub-content.xhtml failed"):
             validate_inputs(root, V4_DATE)
 
     def test_stale_html_is_rejected(self):

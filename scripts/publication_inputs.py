@@ -224,11 +224,11 @@ def validate_inputs(root: Path, value: str) -> tuple[Path, Path, dict[str, str]]
             if not resource_path.is_relative_to(edition.resolve()) or not resource_path.is_file():
                 raise ValueError(f"missing/unsafe publication resource: {resource}")
             paths.append(resource_path)
-        if architecture_v4 and name == "edition.html":
+        if architecture_v4:
             from scripts.edition_architecture import validate_semantic_html
             semantic_errors = validate_semantic_html(payload["edition-plan.json"], text)
             if semantic_errors:
-                raise ValueError("version-4 semantic HTML failed: " + "; ".join(semantic_errors))
+                raise ValueError(f"version-4 semantic {name} failed: " + "; ".join(semantic_errors))
     paths.append(cover)
     paths.append(root / "config/editorial-depth.yaml")
     if architecture_v4:
