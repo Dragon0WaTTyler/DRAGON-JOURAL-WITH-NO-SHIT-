@@ -1,0 +1,14 @@
+@page { size: A4; margin: 16mm 15mm 18mm; @top-left { content: "DRAGON"; font: 700 8pt Georgia, serif; letter-spacing: .12em; } @top-right { content: "2026-09-06"; font: 8pt Arial, sans-serif; } @bottom-center { content: counter(page); font: 8pt Arial, sans-serif; } }
+:root { font-family: Georgia, "Times New Roman", serif; color: #172321; background: #fffdfa; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fffdfa; color: #172321; }
+body { font-size: 10.2pt; line-height: 1.48; }
+.canonical-prose { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; column-count: 2; column-gap: 8mm; column-rule: .25pt solid #c9c1b2; }
+.canonical-prose::first-line { font-weight: 900; font-size: 25pt; letter-spacing: .04em; }
+.source-nav { margin: 0 0 8mm; padding: 3mm 0 4mm; border-top: 2.5pt solid #173c37; border-bottom: .6pt solid #173c37; font: 7.8pt/1.45 Arial, sans-serif; }
+.source-nav a { color: #173c37; text-decoration: none; margin-right: 1.2em; overflow-wrap: anywhere; }
+.semantic-map { display: none; }
+a { color: inherit; }
+@media print { .source-nav, .semantic-map { display: none !important; } .canonical-prose { column-count: 2; } }
+@media screen { body { max-width: 1080px; margin: 0 auto; padding: 28px; } .canonical-prose { column-count: 2; } }
+@media screen and (max-width: 760px) { .canonical-prose { column-count: 1; } }
