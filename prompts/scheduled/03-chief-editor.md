@@ -116,6 +116,15 @@ daily-runs/YYYY-MM-DD/deep-features.json
 Validate both exist, parse as JSON, match today's Casablanca date,
 contain ready handoffs and completion timestamps, and are not stale.
 
+For a version-4 current-news handoff, run
+`python scripts/current_news_handoff.py daily-runs/YYYY-MM-DD/current-news.json`
+before setting editorial RUNNING. Require `quality_gate` to record the 30/4/20
+inventory counts and `current_news_handoff_validation=PASS`; never treat an
+`inventory_floor` object, a claimed candidate count, a generic source URL, or
+an incomplete GitHub read-back as equivalent evidence. If the validation fails,
+BLOCK Task 3 with `CURRENT_NEWS_HANDOFF_INVALID` and its exact reason. Do not
+repair Task 1's packet, invent sources, or use an unverified candidate.
+
 If any check fails:
 
 STOP.

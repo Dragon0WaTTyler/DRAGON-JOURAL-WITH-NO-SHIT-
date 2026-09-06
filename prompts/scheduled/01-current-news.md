@@ -628,6 +628,14 @@ Do not count a syndicated rewrite, a duplicate angle on the same event, or a
 background explainer as another candidate. Record `publishable_candidate_count`,
 `lead_capable_candidate_count`, and `brief_capable_candidate_count` in
 `quality_gate` so Task 3 can reject an insufficient handoff before drafting.
+`quality_gate` is mandatory: `inventory_floor` or a prose completion note never
+substitutes for it. Every candidate's URL must resolve to the exact source
+article, official document or official notice. A publisher home page, tag,
+section, search page or category path is not evidence and must be replaced or
+the candidate excluded. Before marking COMPLETE, run
+`python scripts/current_news_handoff.py daily-runs/YYYY-MM-DD/current-news.json`.
+Record `current_news_handoff_validation=PASS` in `quality_gate` only after that
+command passes; a failure is a BLOCKED research result with its exact reason.
 
 ### SAME-DATE RERUN VALIDITY
 
