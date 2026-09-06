@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from scripts.workflow_state import (
     fresh_production_status, required_remote_paths, validate_state,
-    EDITORIAL_FILES, PUBLICATION_SOURCE_FILES, PUBLICATION_REPORT, COVER_BRIEF,
+    EDITORIAL_FILES, PUBLICATION_SOURCE_FILES, PUBLICATION_REPORT, COVER_BRIEF, EDITION_PLAN,
 )
 
 DATE = "2026-09-03"
@@ -32,6 +32,16 @@ class WorkflowStateTests(unittest.TestCase):
         s["arabic_script_count"] = 1
         errors = validate_state(s, DATE)
         self.assertTrue(any("arabic_script_count == 0" in e for e in errors))
+
+    def test_version_four_editorial_requires_plan_and_readback(self):
+        s = complete_status()
+        report = {
+            "edition_architecture_version": 4,
+            "edition_plan_path": f"daily-runs/{DATE}/{EDITION_PLAN}",
+            "edition_architecture_validation_status": "PASS",
+        }
+        errors = validate_state(s, DATE, editorial_report=report)
+        self.assertTrue(any("edition-plan remote read-back" in e for e in errors))
 
     def test_publishing_complete_does_not_require_pdf_epub(self):
         s = complete_status()

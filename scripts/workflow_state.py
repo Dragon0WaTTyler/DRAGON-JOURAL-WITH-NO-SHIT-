@@ -11,6 +11,7 @@ STAGE_FIELDS = ("current_research", "deep_research", "editorial", "cover", "publ
 ALLOWED_STAGE_VALUES = {"PENDING", "RUNNING", "COMPLETE", "BLOCKED", "FAILED"}
 
 EDITORIAL_FILES = ("edition.md", "sources.json")
+EDITION_PLAN = "edition-plan.json"
 PUBLICATION_SOURCE_FILES = ("edition.html", "print.css", "epub-content.xhtml", "manifest.json")
 PUBLICATION_REPORT = "publishing-report.json"
 COVER_BRIEF = "cover-brief.json"
@@ -195,6 +196,16 @@ def validate_state(
             errors.append("editorial COMPLETE requires arabic_script_count == 0")
         if not gates_pass:
             errors.append("editorial COMPLETE requires passing editorial gates")
+        if editorial_report and editorial_report.get("edition_architecture_version") == 4:
+            plan_path = f"daily-runs/{edition_date}/{EDITION_PLAN}"
+            if run_dir is not None and EDITION_PLAN not in _local_paths(run_dir, (EDITION_PLAN,)):
+                errors.append("version-4 editorial COMPLETE requires local edition-plan.json")
+            if plan_path not in remote:
+                errors.append("version-4 editorial COMPLETE requires edition-plan remote read-back")
+            if editorial_report.get("edition_plan_path") != plan_path:
+                errors.append("version-4 editorial report must identify edition-plan.json")
+            if editorial_report.get("edition_architecture_validation_status") != "PASS":
+                errors.append("version-4 editorial COMPLETE requires passing edition architecture gate")
 
     if publishing in {"RUNNING", "COMPLETE"} and (editorial != "COMPLETE" or cover != "COMPLETE"):
         errors.append("publishing cannot be RUNNING or COMPLETE unless editorial and cover are COMPLETE")
