@@ -9,7 +9,7 @@ from xml.etree import ElementTree
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
-from dragon.providers import EditorialProvider, SECTION_HEADINGS
+from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.publication import (
     artifact_manifest,
     build_epub,
@@ -64,8 +64,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def research(context: StageContext) -> StageResult:
         try:
             packet = provider.research(context.edition_date)
-        except RuntimeError as exc:
-            raise StageFailure(str(exc), "configure and integration-test an editorial provider") from exc
+        except ProviderError as exc:
+            raise StageFailure(exc.code, exc.detail) from exc
         packet["provider_mode"] = provider.mode
         path = context.run_dir / "research" / "research-packet.json"
         atomic_write_json(path, packet)
@@ -75,8 +75,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         packet = _load(context.run_dir / "research" / "research-packet.json")
         try:
             values = provider.articles(packet)
-        except RuntimeError as exc:
-            raise StageFailure(str(exc), "configure and integration-test an editorial provider") from exc
+        except ProviderError as exc:
+            raise StageFailure(exc.code, exc.detail) from exc
         path = context.run_dir / "articles" / "articles.json"
         atomic_write_json(path, {"mode": provider.mode, "articles": values})
         return StageResult((path,))
@@ -84,9 +84,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
         articles_value = values["articles"]
-        found = {item["section_id"] for item in articles_value}
+        decisions = {item["section_id"]: item for item in articles_value}
         inventory = [
-            {"section_id": section_id, "heading": heading, "status": "ACTIVE" if section_id in found else "SKIPPED"}
+            {
+                "section_id": section_id,
+                "heading": heading,
+                "status": decisions[section_id]["status"],
+                "skip_reason": decisions[section_id].get("skip_reason"),
+            }
             for section_id, heading in SECTION_HEADINGS
         ]
         plan = {
@@ -96,18 +101,26 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             "language": "ar",
             "direction": "rtl",
             "section_inventory": inventory,
-            "article_ids": [item["id"] for item in articles_value],
+            "article_ids": [item["id"] for item in articles_value if item["status"] == "ACTIVE"],
         }
         plan_path = context.edition_dir / "edition-plan.json"
         atomic_write_json(plan_path, plan)
         packet = _load(context.run_dir / "research" / "research-packet.json")
         sources_path = context.edition_dir / "sources.json"
         atomic_write_json(sources_path, {"sources": packet["sources"]})
-        lines = [f"# DRAGON — {context.edition_date}", "", "> نسخة اختبار اصطناعية غير مخصصة للنشر.", ""]
+        lines = [f"# DRAGON — {context.edition_date}", ""]
+        if synthetic:
+            lines.extend(["> نسخة اختبار اصطناعية غير مخصصة للنشر.", ""])
+        sources_by_id = {source["id"]: source["url"] for source in packet["sources"]}
         for item in articles_value:
+            if item["status"] == "SKIPPED":
+                lines.extend([f"## {item['section']}", "", f"لم ينشر هذا القسم: {item['skip_reason']}", ""])
+                continue
+            item["source_urls"] = [sources_by_id[source_id] for source_id in item["source_ids"]]
             lines.extend([f"## {item['section']}: {item['headline']}", "", item["standfirst"], "", f"**{item['byline']}**", ""])
             lines.extend([paragraph + "\n" for paragraph in item["body"]])
-            lines.extend(["المصدر: https://example.org/dragon-fixture", ""])
+            lines.extend([f"المصدر: {sources_by_id[source_id]}" for source_id in item["source_ids"]])
+            lines.append("")
         markdown = _write_text(context.edition_dir / "edition.md", "\n".join(lines))
         canonical_articles = context.edition_dir / "articles.json"
         atomic_write_json(canonical_articles, values)
@@ -115,12 +128,13 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def factcheck(context: StageContext) -> StageResult:
         articles_value = _load(context.edition_dir / "articles.json")["articles"]
-        issues = [item["id"] for item in articles_value if not item.get("source_ids")]
+        active_articles = [item for item in articles_value if item["status"] == "ACTIVE"]
+        issues = [item["id"] for item in active_articles if not item.get("source_ids")]
         report = {
             "status": "PASS" if not issues else "FAIL",
             "mode": provider.mode,
             "method": "synthetic_non_factual_fixture" if synthetic else "provider_source_linkage_only",
-            "checked_articles": len(articles_value),
+            "checked_articles": len(active_articles),
             "missing_source_articles": issues,
             "warning": "الاختبار الاصطناعي لا يثبت صحة أخبار حقيقية" if synthetic else None,
         }
@@ -134,7 +148,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         articles_value = _load(context.edition_dir / "articles.json")["articles"]
         text = "\n".join(
             " ".join([item["section"], item["headline"], item["standfirst"], *item["body"]])
-            for item in articles_value
+            for item in articles_value if item["status"] == "ACTIVE"
         )
         qa = validate_arabic_text(text, minimum_arabic_letters=500, allowed_latin_terms=("DRAGON",))
         path = context.run_dir / "qa" / "arabic-language.json"
@@ -144,7 +158,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult((path,))
 
     def cover(context: StageContext) -> StageResult:
-        path = _write_text(context.edition_dir / "assets" / "cover.svg", cover_svg(context.edition_date))
+        path = _write_text(context.edition_dir / "assets" / "cover.svg", cover_svg(context.edition_date, mode=provider.mode))
         try:
             root = ElementTree.fromstring(path.read_text(encoding="utf-8"))
         except ElementTree.ParseError as exc:
@@ -156,8 +170,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult((path, brief))
 
     def publication_source(context: StageContext) -> StageResult:
-        articles_value = _load(context.edition_dir / "articles.json")["articles"]
-        path = build_html(context.edition_dir, context.edition_date, articles_value)
+        articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
+        path = build_html(context.edition_dir, context.edition_date, articles_value, mode=provider.mode)
         document = decode_utf8(path.read_bytes())
         issues = validate_html_rtl(document)
         if issues:
@@ -174,8 +188,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult((path, report_path))
 
     def epub(context: StageContext) -> StageResult:
-        articles_value = _load(context.edition_dir / "articles.json")["articles"]
-        path = build_epub(context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_date, articles_value, context.edition_dir / "assets" / "cover.svg")
+        articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
+        path = build_epub(context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_date, articles_value, context.edition_dir / "assets" / "cover.svg", mode=provider.mode)
         report = validate_epub(path)
         report_path = context.run_dir / "qa" / "epub.json"
         atomic_write_json(report_path, report)

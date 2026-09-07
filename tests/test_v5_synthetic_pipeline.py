@@ -8,7 +8,7 @@ from pypdf import PdfReader
 
 from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
-from dragon.providers import SyntheticEditorialProvider, UnconfiguredEditorialProvider
+from dragon.providers import ProviderError, SyntheticEditorialProvider, UnconfiguredEditorialProvider
 
 
 DATE = "2099-01-02"
@@ -71,7 +71,7 @@ def test_unconfigured_production_provider_never_generates_fixture_news() -> None
     provider = UnconfiguredEditorialProvider()
     try:
         provider.research(DATE)
-    except RuntimeError as exc:
-        assert str(exc) == "AI_PROVIDER_UNCONFIGURED"
+    except ProviderError as exc:
+        assert exc.code == "AI_PROVIDER_UNCONFIGURED"
     else:
         raise AssertionError("production provider unexpectedly returned content")

@@ -88,6 +88,10 @@ providers:
     type: unconfigured
     paid_service_auto_enable: false
     integration_test_status: NOT_RUN
+    command: []
+    timeout_seconds: 7200
+    minimum_active_article_words: 350
+    minimum_edition_words: 4000
   repair:
     type: unconfigured
     available_only_after_integration_test: true

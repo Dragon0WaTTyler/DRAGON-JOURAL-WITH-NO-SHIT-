@@ -10,7 +10,11 @@ BASE_CONFIG = {
     "version": 5,
     "timezone": "Africa/Casablanca",
     "providers": {
-        "ai": {"type": "fixture", "integration_test_status": "PASS"},
+        "ai": {
+            "type": "local-command",
+            "integration_test_status": "PASS",
+            "command": ["python"],
+        },
         "github_archive": {"type": "git-cli", "enabled": False},
         "whatsapp": {"type": "unconfigured", "enabled": False},
     },

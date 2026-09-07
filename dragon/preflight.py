@@ -15,6 +15,7 @@ from typing import Any, Callable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dragon.config import load_local_config, load_mapping
+from dragon.providers import editorial_provider_from_config
 
 
 @dataclass(frozen=True)
@@ -157,10 +158,11 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
         )
     ai_type = config.get("providers", {}).get("ai", {}).get("type", "unconfigured")
     ai_test = config.get("providers", {}).get("ai", {}).get("integration_test_status")
+    editorial_provider = editorial_provider_from_config(config)
     checks.append(
         Check(
             "ai_provider",
-            "PASS" if ai_type != "unconfigured" and ai_test == "PASS" else "FAIL",
+            "PASS" if editorial_provider.available else "FAIL",
             bool(policy.get("require_ai_provider", True)),
             f"configured type: {ai_type}; integration test: {ai_test or 'NOT_RUN'}",
         )

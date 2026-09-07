@@ -16,27 +16,32 @@ from dragon.state import sha256_file
 
 def _article_markup(article: dict, *, xhtml: bool = False) -> str:
     paragraphs = "".join(f"<p>{escape(value)}</p>" for value in article["body"])
+    sources = "".join(
+        f'<li><a href="{escape(url, quote=True)}">{escape(url)}</a></li>'
+        for url in article.get("source_urls", ["https://example.org/dragon-fixture"])
+    )
     return (
         f'<article id="{escape(article["id"])}">'
         f'<p class="section">{escape(article["section"])}</p>'
         f'<h2>{escape(article["headline"])}</h2>'
         f'<p class="standfirst">{escape(article["standfirst"])}</p>'
         f'<p class="byline">{escape(article["byline"])}</p>{paragraphs}'
-        '<p class="source">المصدر: <a href="https://example.org/dragon-fixture">'
-        "مصدر تجريبي غير صحفي</a></p></article>"
+        f'<div class="source"><p>المصادر</p><ul>{sources}</ul></div></article>'
     )
 
 
-def cover_svg(edition_date: str) -> str:
+def cover_svg(edition_date: str, *, mode: str = "production") -> str:
+    edition_label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
+    footer = "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة"
     return f'''<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
 <rect width="1240" height="1754" fill="#f5efe3"/><rect x="64" y="64" width="1112" height="1626" fill="none" stroke="#111" stroke-width="4"/>
 <rect x="64" y="64" width="1112" height="32" fill="#9e1523"/>
 <text x="620" y="430" text-anchor="middle" font-family="Arial" font-size="150" font-weight="700" fill="#111">DRAGON</text>
 <text x="620" y="570" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="58" fill="#111">صحيفة عربية يومية</text>
 <line x1="210" y1="650" x2="1030" y2="650" stroke="#9e1523" stroke-width="8"/>
-<text x="620" y="800" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="52" fill="#111">نسخة اختبار اصطناعية</text>
+<text x="620" y="800" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="52" fill="#111">{edition_label}</text>
 <text x="620" y="910" text-anchor="middle" font-family="Arial" font-size="38" fill="#333">{escape(edition_date)}</text>
-<text x="620" y="1500" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="30" fill="#333">غير مخصصة للنشر أو التوزيع</text>
+<text x="620" y="1500" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="30" fill="#333">{footer}</text>
 </svg>'''
 
 
@@ -60,10 +65,10 @@ a { color: #333; overflow-wrap: anywhere; }
 """
 
 
-def build_html(edition_dir: Path, edition_date: str, articles: list[dict]) -> Path:
+def build_html(edition_dir: Path, edition_date: str, articles: list[dict], *, mode: str = "production") -> Path:
     assets = edition_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    (assets / "cover.svg").write_text(cover_svg(edition_date), encoding="utf-8", newline="\n")
+    (assets / "cover.svg").write_text(cover_svg(edition_date, mode=mode), encoding="utf-8", newline="\n")
     (edition_dir / "print-v5.css").write_text(PRINT_CSS, encoding="utf-8", newline="\n")
     article_html = "".join(_article_markup(article) for article in articles)
     document = f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
@@ -71,7 +76,7 @@ def build_html(edition_dir: Path, edition_date: str, articles: list[dict]) -> Pa
 <link rel="stylesheet" href="print-v5.css"/></head><body dir="rtl">
 <section class="cover"><img src="assets/cover.svg" alt="غلاف صحيفة دراغون"/></section>
 <main class="content"><header class="masthead"><p class="brand" lang="en" dir="ltr">DRAGON</p>
-<h1>نسخة اختبار اصطناعية</h1><time datetime="{edition_date}" dir="ltr">{edition_date}</time></header>
+<h1>{'نسخة اختبار اصطناعية' if mode == 'synthetic' else 'النسخة اليومية'}</h1><time datetime="{edition_date}" dir="ltr">{edition_date}</time></header>
 {article_html}</main></body></html>'''
     path = edition_dir / "edition.html"
     path.write_text(document, encoding="utf-8", newline="\n")
@@ -129,7 +134,9 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     from PIL import Image, ImageDraw
 
     articles_path = html_path.with_name("articles.json")
-    articles = json.loads(articles_path.read_text(encoding="utf-8"))["articles"]
+    article_data = json.loads(articles_path.read_text(encoding="utf-8"))
+    mode = article_data.get("mode", "production")
+    articles = [item for item in article_data["articles"] if item["status"] == "ACTIVE"]
     edition_date = html_path.parent.name
     size = (827, 1169)
     pages = []
@@ -140,9 +147,9 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     draw.text((413, 280), "DRAGON", font=_font(92), fill="#111111", anchor="mm")
     _draw_rtl(draw, (730, 420), "صحيفة عربية يومية", _font(42), fill="#111111", spacing=54, width=635)
     draw.line((140, 500, 687, 500), fill="#9e1523", width=6)
-    _draw_rtl(draw, (730, 590), "نسخة اختبار اصطناعية", _font(36), fill="#111111", spacing=48, width=635)
+    _draw_rtl(draw, (730, 590), "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية", _font(36), fill="#111111", spacing=48, width=635)
     draw.text((413, 700), edition_date, font=_font(26), fill="#333333", anchor="mm")
-    _draw_rtl(draw, (730, 1010), "غير مخصصة للنشر أو التوزيع", _font(22), fill="#333333", spacing=34, width=635)
+    _draw_rtl(draw, (730, 1010), "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة", _font(22), fill="#333333", spacing=34, width=635)
     pages.append(cover)
     for article in articles:
         page = Image.new("RGB", size, "white")
@@ -180,15 +187,15 @@ def render_pdf(html_path: Path, destination: Path) -> Path:
     return destination
 
 
-def _xhtml(edition_date: str, articles: list[dict]) -> str:
+def _xhtml(edition_date: str, articles: list[dict], *, mode: str) -> str:
     body = "".join(_article_markup(article, xhtml=True) for article in articles)
     return f'''<?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl">
 <head><title>DRAGON — {edition_date}</title><link rel="stylesheet" type="text/css" href="style.css"/></head>
-<body><header><h1>نسخة اختبار اصطناعية</h1><p>{edition_date}</p></header>{body}</body></html>'''
+<body><header><h1>{'نسخة اختبار اصطناعية' if mode == 'synthetic' else 'النسخة اليومية'}</h1><p>{edition_date}</p></header>{body}</body></html>'''
 
 
-def build_epub(destination: Path, edition_date: str, articles: list[dict], cover_path: Path) -> Path:
+def build_epub(destination: Path, edition_date: str, articles: list[dict], cover_path: Path, *, mode: str = "production") -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     identifier = f"urn:dragon:synthetic:{edition_date}"
     container = '''<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'''
@@ -204,7 +211,7 @@ def build_epub(destination: Path, edition_date: str, articles: list[dict], cover
         archive.writestr("META-INF/container.xml", container, compress_type=ZIP_DEFLATED)
         archive.writestr("OEBPS/content.opf", package, compress_type=ZIP_DEFLATED)
         archive.writestr("OEBPS/nav.xhtml", nav, compress_type=ZIP_DEFLATED)
-        archive.writestr("OEBPS/edition.xhtml", _xhtml(edition_date, articles), compress_type=ZIP_DEFLATED)
+        archive.writestr("OEBPS/edition.xhtml", _xhtml(edition_date, articles, mode=mode), compress_type=ZIP_DEFLATED)
         archive.writestr("OEBPS/style.css", css, compress_type=ZIP_DEFLATED)
         archive.write(cover_path, "OEBPS/cover.svg", compress_type=ZIP_DEFLATED)
     return destination
