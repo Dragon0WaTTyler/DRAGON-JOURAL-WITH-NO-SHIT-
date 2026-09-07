@@ -12,12 +12,13 @@
   "editorial": "BLOCKED",
   "editorial_completed_at": "2026-09-07T09:50:57+01:00",
   "editorial_blocking_reason": "DEEP_RESEARCH_PREREQUISITE_NOT_COMPLETE: status.deep_research is PENDING. Task 3 requires both current_research == COMPLETE and deep_research == COMPLETE before reading and validating both research handoffs or setting editorial RUNNING. No Task 1/2 work may be redone by Task 3. Retry on the next scheduled Task 3 invocation after exact current GitHub read-back; recurring ChatGPT task state must remain unchanged.",
-  "publishing": "PENDING",
+  "publishing": "BLOCKED",
+  "publishing_blocking_reason": "EDITORIAL_AND_COVER_PREREQUISITES_NOT_COMPLETE: status.editorial is BLOCKED and status.cover is BLOCKED. Task 5 requires current editorial COMPLETE and canonical archived cover COMPLETE before reading publication inputs or rebuilding edition.html/epub-content.xhtml/manifest. Retry on the next scheduled Task 5 invocation after exact current GitHub read-back; recurring ChatGPT task state must remain unchanged.",
   "cover": "BLOCKED",
   "cover_started_at": "2026-09-07T09:40:43+01:00",
   "cover_blocking_reason": "EDITORIAL_PREREQUISITE_NOT_COMPLETE: status.editorial is PENDING and daily-runs/2026-09-07/editorial-report.json is absent on main (404). Task 4 requires editorial COMPLETE plus exact current read-back of edition.md, sources.json, and editorial-report.json before any cover brief, image generation, SVG fallback, visual QA, or canonical asset write. Retry on the next scheduled Task 4 invocation; recurring task state must remain unchanged.",
   "overall_status": "PENDING",
-  "publication_source_package": "PENDING",
+  "publication_source_package": "BLOCKED",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
   "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
@@ -26,6 +27,6 @@
   "visual_qa_status": "PENDING",
   "github_image_archive": "UNSUPPORTED_BY_CONNECTOR",
   "cover_binary_archive": "PENDING_MANUAL_ARCHIVE",
-  "blocking_reason": null,
+  "blocking_reason": "EDITORIAL_AND_COVER_PREREQUISITES_NOT_COMPLETE: status.editorial is BLOCKED and status.cover is BLOCKED. Task 5 requires current editorial COMPLETE and canonical archived cover COMPLETE before reading publication inputs or rebuilding edition.html/epub-content.xhtml/manifest. Retry on the next scheduled Task 5 invocation after exact current GitHub read-back; recurring ChatGPT task state must remain unchanged.",
   "final_publication_status": "PENDING"
 }
