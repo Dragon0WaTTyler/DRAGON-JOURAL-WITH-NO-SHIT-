@@ -138,6 +138,23 @@ def narrative_paragraph_count(body: str) -> int:
     return count
 
 
+def duplicate_narrative_paragraphs(body: str) -> int:
+    """Count exact, substantive prose paragraphs repeated in one article."""
+    seen: set[str] = set()
+    duplicates = 0
+    for block in re.split(r"\n\s*\n", body):
+        text = block.strip()
+        if not text or text.casefold().startswith("tahrir:") or text.startswith("*"):
+            continue
+        normalized = re.sub(r"\s+", " ", text).strip()
+        if len(normalized) < 120:
+            continue
+        if normalized in seen:
+            duplicates += 1
+        seen.add(normalized)
+    return duplicates
+
+
 def legacy_briefing_template(body: str, labels: list[str]) -> bool:
     """Detect the old three-heading briefing card in reader-facing Markdown."""
     starts = {
@@ -245,6 +262,9 @@ def validate_plan(
                 errors.append(
                     f"{section_id} {fmt} has only {paragraphs} narrative paragraphs; minimum is {required_paragraphs}"
                 )
+            duplicates = duplicate_narrative_paragraphs(body)
+            if duplicates:
+                errors.append(f"{section_id} {fmt} repeats {duplicates} substantive prose paragraph(s)")
             if isinstance(briefing_labels, list) and briefing_labels and legacy_briefing_template(body, briefing_labels):
                 briefing_templates += 1
                 if fmt != "brief":

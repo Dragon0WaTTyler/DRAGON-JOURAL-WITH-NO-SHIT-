@@ -19,17 +19,17 @@
   "arabic_script_count": 0,
   "visual_qa_status": "PASS",
   "input_blobs": {
-    "editions/2026/09/2026-09-06/edition.md": "486e27d188b6423fbaa274ed19eda3da09b26790",
+    "editions/2026/09/2026-09-06/edition.md": "2d23bd54222cd2f728affa11d231f7b6cddc8190",
     "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
-    "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca",
-    "daily-runs/2026-09-06/cover-brief.json": "63c791af3e52f4c084cffc096520cbf5980d68d4",
+    "daily-runs/2026-09-06/editorial-report.json": "ace74e2ae34eee18e7e53e90d0c8b1239ee304b4",
+    "daily-runs/2026-09-06/cover-brief.json": "8db3a07c0ec7584044da63242bffb75e1d3749ac",
     "editions/2026/09/2026-09-06/assets/cover.svg": "2634ca521cf530b1566ce2f289dc7724615bb152",
     "daily-runs/2026-09-06/edition-plan.json": "831668bc1d231ccc8b2066406346370fe3f4f909"
   },
   "source_output_blobs": {
-    "editions/2026/09/2026-09-06/edition.html": "2c17fe5b2a551e5473147f5fe677f701617b7188",
+    "editions/2026/09/2026-09-06/edition.html": "0a7aee2b390bedb0dd578d28d17148dd3dc33f7d",
     "editions/2026/09/2026-09-06/print.css": "f3cb5ae5a5cdfcfbd4cb8d9d05f4b70c3437f08f",
-    "editions/2026/09/2026-09-06/epub-content.xhtml": "9d5d22e33e9cc502d6ebf63be0255caae0c1e918"
+    "editions/2026/09/2026-09-06/epub-content.xhtml": "5bc856a89aa57a0f80e509b9751cf8045edad7ec"
   },
   "html_status": "PASS",
   "print_css_status": "PASS",
@@ -43,33 +43,22 @@
   "ltr_language_status": "PASS_ARY_LATN",
   "publication_source_package": "COMPLETE",
   "publishing_completion_semantics": "PUBLICATION_SOURCE_PACKAGE_COMPLETE_ONLY",
-  "pdf_binary": "GENERATED_VALIDATED",
-  "epub_binary": "GENERATED_VALIDATED",
-  "binary_artifacts": "COMPLETE",
-  "ready_for_codex_rendering": false,
-  "final_publication_status": "COMPLETE",
-  "overall_status": "COMPLETE",
+  "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
+  "epub_binary": "NOT_GENERATED_NO_RUNTIME",
+  "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
+  "ready_for_codex_rendering": true,
+  "final_publication_status": "PENDING",
+  "overall_status": "PENDING",
   "publishing_started_at": null,
   "publishing_completed_at": null,
   "cover_read_back_status": "PASS_SVG_FALLBACK",
   "html_freshness_status": "PASS_REBUILT_FROM_CURRENT_CANONICAL_EDITION",
   "epub_xhtml_freshness_status": "PASS_REBUILT_FROM_CURRENT_CANONICAL_EDITION",
-  "github_text_persistence": "PASS",
-  "github_text_read_back": "PASS",
+  "github_text_persistence": "PENDING_REMOTE_READBACK",
+  "github_text_read_back": "PENDING_REMOTE_READBACK",
   "automatic_renderer_handoff": {
     "mode": "GITHUB_ACTIONS_AUTOMATIC",
     "pdf_rule": "PAGE_1_CANONICAL_COVER_PAGE_2_ONWARD_HTML_PLUS_PRINT_CSS",
     "epub_rule": "PACKAGE_CANONICAL_COVER_WITH_CORRECT_MEDIA_TYPE"
-  },
-  "github_binary_read_back": "PASS",
-  "binary_archive_commit": "8738f1b625993841dbac485a38aee14208fc2f53",
-  "binary_sha256": {
-    "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf": "1bef495a13af6ddb2fb3ffb6aa9e9733591f744435614d9c59b8b45674b876a9",
-    "editions/2026/09/2026-09-06/dragon-2026-09-06.epub": "9560e08e444f9a30b152fd3b9d6df847d9b05cbe12ffe97746d4c9dd676bb59f"
-  },
-  "final_binary_paths": {
-    "pdf": "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf",
-    "epub": "editions/2026/09/2026-09-06/dragon-2026-09-06.epub"
-  },
-  "publication_completed_at": "2026-09-07T01:48:59.762586+01:00"
+  }
 }

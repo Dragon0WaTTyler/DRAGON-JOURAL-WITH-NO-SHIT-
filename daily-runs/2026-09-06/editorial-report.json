@@ -10,13 +10,13 @@
   "validation_status": "PASS",
   "edition_architecture_validation_status": "PASS",
   "planned_word_count": 14610,
-  "total_word_count": 15569,
+  "total_word_count": 15310,
   "section_word_counts": {
-    "morocco": 4561,
+    "morocco": 4575,
     "meknes": 93,
-    "palestine": 1339,
-    "world": 2149,
-    "technology": 1102,
+    "palestine": 1351,
+    "world": 2131,
+    "technology": 976,
     "science": 714,
     "adab": 1519,
     "history": 1518,
@@ -57,7 +57,8 @@
   "source_count": 41,
   "primary_source_count": 8,
   "independent_origin_count": 36,
-  "quality_scores": {"edition_architecture": "PASS", "editorial_depth": "PASS", "citation_resolution": "PASS", "darija_latin": "PASS", "reader_legacy_template_count": 0},
+  "quality_scores": {"edition_architecture": "PASS", "editorial_depth": "PASS", "citation_resolution": "PASS", "darija_latin": "PASS", "reader_legacy_template_count": 0, "duplicate_prose_paragraphs": "PASS"},
+  "post_publication_copy_revision": "Removed 14 exact duplicate prose paragraphs, restored format minima with new source-bounded context, and revalidated the V4 architecture before binary regeneration.",
   "input_blobs": {
     "daily-runs/2026-09-06/current-news.json": "b5c760cecf73d67a2dfcf41368cee22218b934bc",
     "daily-runs/2026-09-06/deep-features.json": "f8a825045b220adee84777f2312ed5b6526d93a3"

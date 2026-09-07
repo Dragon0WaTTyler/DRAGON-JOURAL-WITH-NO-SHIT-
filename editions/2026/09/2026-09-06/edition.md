@@ -226,11 +226,11 @@ L-business li kaytb3 had signal may7tajch panic. L-mohim howa update mn l-jiha l
 
 Hadi wa7d qadiya service w accountability f nafs l-wa9t: l-date ma3louma, walakin n-natija mazel ma ma3loumach. Qari kaystafed mlli l-jarida kat3ti jouj b-d9a, ma-shi mlli katkhter3 confidence. [S09]
 
-L-announcement kaymss wa7d chain li katbda mn trucker w katkmel f factory, warehouse, retailer aw exporter. Walakin ma kaynach f source list d9i9a dyal ports, cargo categories, aw companies li ghadi ytsabbou b-darora. Hada kayfar9 bin service warning li mbrer w bin headline kaybda y3ti khsara qbl ma tw9e3. [S09]
-
-Ila t9arrar stoppage, l-effect kayt3alla9 b-moudda, participation, alternative routes w response dyal l-marsa w l-mou2assasat. Ila t7ell dispute qbl date l-mo3lana, l-impact y9der ma ybanch aslan. Hadi 3lach l-khabar kay3ti history w state dyalo: threat m3lan mn 14 September, ma-shi interruption confirmed. [S09]
-
 L-motaba3a l-mohima hya ay communique kay7edded demands, mediation, aw service arrangements. Transport disputes ma kayt9rawsh ghir b-lougha dyal sides; khas facts 3la operations. Ma kaynach had l-details f handoff, w l-edition ma kat3ammrchomch b-takhmin. [S09]
+
+F l-pratique, wa7d strike threat f ports ma kayt9assch ghir b-wach bda wla la. Kayn timing dyal ships, storage, customs, delivery windows w alternatives li kaynin wla ma kayninch. Hado ma mfaslinch f report l-yom, donc ma n9droch n7sbo cost aw delay. Walakin homa precisely l-indicators li khas l-motaba3a ttb3hom ila l-date qrbat: wach service kayb9a normal, wach cargo kayt7awel, w wach parties kay3tiw solution mktouba. [S09]
+
+Hadi kat3ni belli update wa7ed mn port authority aw mn negotiators y9dar ykoun ahamm mn commentary bzzaf: y9der ybddl state dyal threat, yconfirm arrangement, aw ybayan belli disruption bdat. Hta yban, l-article kayb9a warning mo3lan b-date, ma-shi outcome mthbet. [S09]
 
 *Transport associations 3lno 3la open-ended stoppage mn 14 September; l-khabar howa threat mo3lan, ma-shi strike li bda daba, w negotiations t9der tbddl l-masar.*
 
@@ -396,10 +396,6 @@ F l-qira2a dyal had nno3 dyal story, ma khasnach n9isso l-evidence b-volume dyal
 
 Had discipline ma katn9sssh mn seriousness dyal l-accusation. Kat3tiha l-wazn s7i7: enough bach n3rfo blli dispute kayn, w ma-shi enough bach nhsmo chkon s7i7. Hadi hiya l-7doud li khass ay coverage dyal Sahel t3lan 3liha b-wodou7. [S17]
 
-F l-Sahel, accusation bin dawla w dawla ma katji-ch f faragh. Katdkhol f context dyal security, sovereignty, military relations w public distrust. Walakin context ma kaywllish proof: Niger t9dem claim, France tnfiha, w l-handoff ma kay3tich independent evidence kay7sem ach wa9e3. L-headline l-mas2oul kayb9a 3la disagreement wazi7. [S17]
-
-Ila jarida katmchi m3a riwaya wa7da b7al fact, katzid f sira3 ma katshar7ouch. L-qari kay7taj y3ref source dyal l-claim, l-jawab dyal l-jiha l-okhra, w fin katbda l-manta9a li mazel ma mthbtach. Hadi ta3ti wa9t l-evidence ila bano documents, investigations, aw corroboration mn sources musta9illa. [S17]
-
 L-ahammia l-i9limiya katji mn anna l-rhetoric t9der t2atr 3la relations diplomasiya, cooperation amniya w public mood. Walakin ma 3ndnach f source decision rasmi jdid kayghayyar policy. Hadi 3lach l-edition ma katqolsh "crisis jdida"; katqol kayn accusation w denial f context 7assas. [S17]
 
 *Ba3d failed mutiny, Niger dar accusation 3la France w Paris rddat b-denial qwi; ma kaynach f had run proof mossta9il kay7sem l-idd3a2, donc l-story hiya sira3 dyal claims f wa9t dyal alignmentat jdod f Sahel.*
@@ -516,17 +512,15 @@ L-importance dyal Saxony-Anhalt ma katji-ch ghir mn wa7d party. Katji mn kifach 
 
 Campaign speech kay9der ykoun qwi, walakin vote kaydouz mn turnout, geography, candidates w local issues. Hado ma kaynach b-tafsil f handoff. L-edition katqra l-event b7al test siyasi mohim, ma-shi referendum sahl 3la kol politics l-Almaniya. [S21]
 
-Ba3d l-count, l-as2ila l-mofida hya fin tbedlat turnout, chkon rbe7 aw khser votes, w wach parties l-okhra ghadi tbddl strategy. Ila ma tverifatch numbers, ma n9droch n3tiw story dyal wave aw collapse. Hadi hiya l-7doud li katkhlli live-election coverage d9i9a. [S21]
-
 L-qari kaystafed ila fr9na bin election event w tafsir dyalo. Event howa l-vote f state; tafsir kay7taj maps, results, trends w reactions. Hadi l-far9 katmna3 wa7d region mn ttwlla shortcut l-judgment 3la country kamla. [S21]
 
-L-intikhab kaywri shno kaydir l-vote, ma-shi shno kattsawwar l-polls. Reuters reported contest f state, walakin nhar vote ma kaykfi-ch bach n3tiw seat numbers, coalition outcome, aw verdict 3la Germany kamla. L-3adala l-ibtdaiya hya nstannaw count w official results. [S21]
-
-L-importance dyal Saxony-Anhalt ma katji-ch ghir mn wa7d party. Katji mn kifach state result y9der y2atr 3la n9ach l-watani 3la migration, economy, security w coalition choices. Walakin link bin state vote w national direction khaso analysis mn ba3d l-result, ma-shi assumption qblou. [S21]
-
-Campaign speech kay9der ykoun qwi, walakin vote kaydouz mn turnout, geography, candidates w local issues. Hado ma kaynach b-tafsil f handoff. L-edition katqra l-event b7al test siyasi mohim, ma-shi referendum sahl 3la kol politics l-Almaniya. [S21]
-
 Ba3d l-count, l-as2ila l-mofida hya fin tbedlat turnout, chkon rbe7 aw khser votes, w wach parties l-okhra ghadi tbddl strategy. Ila ma tverifatch numbers, ma n9droch n3tiw story dyal "wave" aw "collapse". Hadi hiya l-7doud li katkhlli live-election coverage d9i9a. [S21]
+
+L-motaba3a ma khas-hach tbda w tsali f sa3at l-count. Results rasmiya kat3ti l-baseline, walakin tafsir l-politics kay7taj n3rfo distribution dyal votes, turnout f regions mokhtalfa, w chno kaydirou parties mn ba3d. Reuters handoff ma kay3tich had l-tab9at daba, w hadi 3lach l-edition kat3ti l-event weight dyalo bla ma tkhtar3 narrative 3la country kamla qbl l-ar9am. [S21]
+
+Hta ila vote f state kayjbed l-intibah watani, l-far9 bin symbol w policy ma khasoch ytdoub. Coalition talks, parliamentary arithmetic w decisions f Berlin kayjiw b-masarat mokhtalfa. N9dro n9olo belli l-result ykoun signal siyasi ila tverifa; ma n9droch n9olo blli ghadi y7sem masar l-7okoma l-wataniya bla evidence mn ba3d. [S21]
+
+Had l-7doud ma katna9ssch mn significance dyal election; katkhlli significance m3alla9 b-l-results w facts li tban b-tartib. Hadi hiya l-far9 bin coverage katwatte9 l-yom w coverage kattsabba9 gheda. [S21]
 
 *Voting f Saxony-Anhalt kaydir pressure 3la politics Almaniya 7it AfD kat9leb 3la landmark state victory; waqt research, final result ma kanch ma3rouf, donc l-edition katfssel bin stakes w natija.*
 
@@ -594,13 +588,11 @@ L-motaba3a l-jaya khas-ha tqelleb 3la incidents verified f maritime traffic, off
 
 F had l-context, l-uncertainty ma hiyach gap khawi. Hya part mn l-fact: l-actors kayst3mlo signals, markets katjawb m3a risk, w events t9der ttbddl b-sor3a. Journalism khaso ykhlli l-possible m3allam possible, w l-confirmed m3allam confirmed. [S22] [S23]
 
-Hormuz kayb9a important 7it shipping w energy markets kayt3amlo m3a potential disruption, ma-shi 7it l-khatab bo7do. Reuters kayhder 3la economic squeeze w leverage katna9s, walakin risk ma kaymshich b-automatic. Pressure iqtisadi t9der tdir incentives mokhtalfa, w response siyasi ma kat9rachch mn number wa7ed. [S22]
+F l-b7ar, far9 bin tension w disruption kayban f details sghar walakin mohimmin: wach ships kaydouro, wach insurers kaybdlou conditions, wach ports kay3lno delays, w wach kayn incident mthbet. Hatta wa7ed mn had l-signals ma khaso ytwli automatic proof l-closure. L-qira2a l-mas2oula katjma3 had l-indicators m3a statements w data, w katb9a m3a uncertainty ila evidence operational mazel naqes. [S22] [S23]
 
-L-qari khaso yfr9 bin capacity, intention w result. Capacity t9der tkon mawjouda, intention ma katkonch dima ma3roufa, w result kayt3alla9 b-actors bzaf. Ila said official kayw3ed b-response, hadchi claim mnsoub lih; ma kay3nich date aw operation confirmed. [S23]
+L-wa9t ta howa factor: alert y9der ykoun reaction l-risk qbel ma wa9i3 physical ytbayan, w response rasmi y9der ykoun part mn bargaining ma-shi proof l-escalation. Hadi 3lach journal daily khaso yb9a kayfar9 bin events li wa9e3in, indicators li kayt7arkou, w scenarios li mazal ghir mumkinin. Reuters source kay3ti pressure w threats mnsouba, ma kay3tich certainty 3la step jaya. [S22] [S23]
 
-Oil markets kayt2atrou b-expectations, production, insurance, routes w decisions dyal states. Hadi 3lach ma nrbtoch direct bin wa7d report w taman l-barrel f l-yom. L-story kayb9a strategic: pressure kaybayan w risk kayb9a, walakin l-escalation ma hiyach certainty. [S22] [S23]
-
-L-motaba3a l-jaya khas-ha tqelleb 3la incidents verified f maritime traffic, official measures, w practical effects 3la shipping. L-kalam qwi ma kaykfi-ch; l-evidence operational hiya li katbddl qira2a l-risk. [S22]
+Hna l-value dyal update katji mn precision: ay incident confirmed, ay restriction mktouba, aw ay data shipping jdida t9der tzid aw tn9es l-risk. Bla hadchi, l-article kayb9a map dyal pressure w uncertainty, ma-shi forecast. [S22] [S23]
 
 *Reuters assessment kaybayan belli squeeze iqtisadi w pressure 3la Iran kay2atrou 3la leverage dyalha 7da Strait of Hormuz; hadchi ma kay3nich belli risk salat, w outcome dyal bargaining aw escalation mazal uncertain.*
 
@@ -691,12 +683,6 @@ Companies w researchers y9dro ytb3o had discussions 7it rules w norms y9dro y2at
 Kayn far9 bin safety cooperation w industrial detente. States y9dro yft7o channel 3la risks m3ayinin w f nafs l-wa9t yb9aw f competition 3la chips, capital, talent w models. Ila wa7d qari sm3 b-talks, ma khasoch yistantj blli ga3 l-khilafat t7llat. [S26]
 
 L-criteria li t9der t7awel report mn potential l-result hya simple: confirmation, participants, agenda, w wa7d public readout kaybayan chno t9al aw chno ttaf9 3lih. Hta had sa3a, l-headline s7i7 howa kaywjjdo, ma-shi ttafa9o. [S26]
-
-Safety dialogue kaykhdem ila kayn ta3rif moshtarak l-risk, walakin juj systems siyasiya w technology mokhtalfin y9dro ykhtalfo 3la priorities. Wa7d jiha t9der trakkaz 3la cyber misuse, okhra 3la control dyal frontier models, w talta 3la incidents. Hado examples tahliliya, ma-shi agenda mthbet. [S26]
-
-L-mohim f reporting howa ma n3tiwsh l-meeting status akbar mn li kayn. Reuters sources kayhdero 3la preparation. 7ta ykoun confirmation rasmi aw readout, ma n9droch n9olo achievement, standards, aw agreement. Hadi lougha d9i9a ma katn9sssh mn value dyal story; kat7miha mn hype. [S26]
-
-Companies w researchers y9dro ytb3o had discussions 7it rules w norms y9dro y2atro 3la testing w deployment. Walakin no details means no immediate compliance instruction. L-edition kat3ti context dyal rivalry w potential channel, w katkhlli outcome m3alla9 b-evidence li tji mn ba3d. [S26]
 
 *Reuters sources kay9olo belli Washington w Beijing kaywjjdo l-mid-September AI-safety dialogue; talks mazal tentative, walakin l-fekra bo7dha katbayan belli competition technology ma katlghich darora dyal risk coordination.*
 

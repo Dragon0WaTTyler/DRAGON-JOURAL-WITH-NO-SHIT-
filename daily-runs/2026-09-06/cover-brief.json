@@ -46,9 +46,9 @@
     "overlap_or_clipping": "PASS"
   },
   "input_blobs": {
-    "editions/2026/09/2026-09-06/edition.md": "486e27d188b6423fbaa274ed19eda3da09b26790",
+    "editions/2026/09/2026-09-06/edition.md": "b94e019bdfd685e966c7ccb8615579bacbe32334",
     "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
-    "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca"
+    "daily-runs/2026-09-06/editorial-report.json": "ace74e2ae34eee18e7e53e90d0c8b1239ee304b4"
   },
   "github_text_read_back": {
     "status": "PASS",
@@ -57,7 +57,7 @@
     "canonical_asset_path": "editions/2026/09/2026-09-06/assets/cover.svg",
     "canonical_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
     "final_brief_read_back": "PASS_REFRESHED_CANONICAL_EDITION",
-    "refreshed_edition_blob": "486e27d188b6423fbaa274ed19eda3da09b26790"
+    "refreshed_edition_blob": "b94e019bdfd685e966c7ccb8615579bacbe32334"
   },
   "generation_attempt": {
     "requested": true,
@@ -80,6 +80,6 @@
   },
   "handoff": {
     "ready_for_publication_builder": true,
-    "reason": "Canonical same-day SVG fallback remains persisted and visually approved; its editorial input lineage was refreshed after a non-substantive duplicate-copy repair in the canonical edition."
+    "reason": "Canonical same-day SVG fallback remains persisted and visually approved; its editorial input lineage was refreshed after duplicate-copy removal and V4 minimum-depth repair in the canonical edition."
   }
 }
