@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-06",
+  "input_sha256": {
+    "editions/2026/09/2026-09-06/edition.md": "9d84856b5bc60c035404d8783bf161ed10386a4a62c100cd8241184cee793a3a",
+    "editions/2026/09/2026-09-06/sources.json": "9c0ba234f11cfee4b45fe3be0ec45cb378683f1c05456c5a65b8ff855afa6415",
+    "editions/2026/09/2026-09-06/edition.html": "9f4d513b941499c8ec1306d0ceb3763a8e0db7fcc4d1e2f111c51736e0325c3c",
+    "editions/2026/09/2026-09-06/print.css": "4c756979ffbad2199ee645ebf33602c1c25672f3642d47c952fbb2004cd4c34c",
+    "editions/2026/09/2026-09-06/epub-content.xhtml": "4743507cc42346214c94eeba14b803b4b877be33c27fe8eb46ad37a32b8c3def",
+    "daily-runs/2026-09-06/editorial-report.json": "3990bc7602e8d30988d3c021abf093e20969bdaf4d690bdefa4a76146072ae5b",
+    "daily-runs/2026-09-06/cover-brief.json": "d9cf39001cb5694a53c7888d8af15bf332133e5497aa962168c12a3845ec04be",
+    "daily-runs/2026-09-06/current-news.json": "7ef5c489783514bb3aaa7bbaea805cdeec3bf1035c983d04974feaace9118af4",
+    "daily-runs/2026-09-06/deep-features.json": "13cac2396dcc38cf97def06f5b45890de603fa6c03710bfa768b7c2b5b6666ec",
+    "editions/2026/09/2026-09-06/assets/cover.svg": "b8ce03816ce900915b92b1a77ec83e76d676db37ce67472fa5eb1d96fad05158",
+    "config/editorial-depth.yaml": "59614015f4d14d4a3b4ace9985bca4985dedea01606508c8bb5e9cd8e33f0f0b",
+    "daily-runs/2026-09-06/edition-plan.json": "90af68331475b37a5a426d5174ee74852369b22443ece7f5dac450ab4bee8599",
+    "config/edition-architecture.yaml": "7dbec72b1f837e99164f74cb7356ad741e3ac4807b75198aebf287c42ad5d802"
+  },
+  "binary_sha256": {
+    "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf": "1bef495a13af6ddb2fb3ffb6aa9e9733591f744435614d9c59b8b45674b876a9",
+    "editions/2026/09/2026-09-06/dragon-2026-09-06.epub": "9560e08e444f9a30b152fd3b9d6df847d9b05cbe12ffe97746d4c9dd676bb59f"
+  },
+  "pdf_pages": 35,
+  "structural_validation": "PASS",
+  "visual_review": "NOT_PERFORMED_BY_RENDERER",
+  "github_binary_read_back": "PENDING",
+  "final_publication_status": "PENDING"
+}

@@ -45,8 +45,8 @@
   "publishing_completion_semantics": "PUBLICATION_SOURCE_PACKAGE_COMPLETE_ONLY",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
-  "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
-  "ready_for_codex_rendering": true,
+  "binary_artifacts": "PENDING_REMOTE_READBACK",
+  "ready_for_codex_rendering": false,
   "final_publication_status": "PENDING",
   "overall_status": "PENDING",
   "publishing_started_at": null,
@@ -60,5 +60,6 @@
     "mode": "GITHUB_ACTIONS_AUTOMATIC",
     "pdf_rule": "PAGE_1_CANONICAL_COVER_PAGE_2_ONWARD_HTML_PLUS_PRINT_CSS",
     "epub_rule": "PACKAGE_CANONICAL_COVER_WITH_CORRECT_MEDIA_TYPE"
-  }
+  },
+  "github_binary_read_back": "PENDING"
 }

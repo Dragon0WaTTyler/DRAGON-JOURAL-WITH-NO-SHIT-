@@ -45,12 +45,13 @@
   "publishing_completion_semantics": "PUBLICATION_SOURCE_PACKAGE_COMPLETE_ONLY",
   "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
   "epub_binary": "NOT_GENERATED_NO_RUNTIME",
-  "binary_artifacts": "PENDING_AUTOMATIC_RENDER",
-  "ready_for_codex_rendering": true,
+  "binary_artifacts": "PENDING_REMOTE_READBACK",
+  "ready_for_codex_rendering": false,
   "final_publication_status": "PENDING",
   "overall_status": "PENDING",
   "edition_status": "FINAL_CANONICAL_EDITORIAL_MASTER",
   "publishing_report": "daily-runs/2026-09-06/publishing-report.json",
   "cover_source_status": "PASS_SVG_FALLBACK",
-  "github_text_persistence": "PASS"
+  "github_text_persistence": "PASS",
+  "github_binary_read_back": "PENDING"
 }
