@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import subprocess
 from datetime import date
 from html.parser import HTMLParser
 from pathlib import Path
@@ -24,8 +25,10 @@ def digest(path: Path) -> str:
 
 
 def git_blob(path: Path) -> str:
-    data = path.read_bytes()
-    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+    """Use Git's filtered object identity so Windows and CI agree on CRLF files."""
+    return subprocess.check_output(
+        ["git", "hash-object", str(path)], cwd=path.parent, text=True
+    ).strip()
 
 
 def require_lineage(root: Path, report: dict, paths: list[Path]):

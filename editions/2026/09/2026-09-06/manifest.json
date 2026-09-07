@@ -19,7 +19,7 @@
   "arabic_script_count": 0,
   "visual_qa_status": "PASS",
   "input_blobs": {
-    "editions/2026/09/2026-09-06/edition.md": "2d23bd54222cd2f728affa11d231f7b6cddc8190",
+    "editions/2026/09/2026-09-06/edition.md": "b94e019bdfd685e966c7ccb8615579bacbe32334",
     "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
     "daily-runs/2026-09-06/editorial-report.json": "ace74e2ae34eee18e7e53e90d0c8b1239ee304b4",
     "daily-runs/2026-09-06/cover-brief.json": "8db3a07c0ec7584044da63242bffb75e1d3749ac",
@@ -27,9 +27,9 @@
     "daily-runs/2026-09-06/edition-plan.json": "831668bc1d231ccc8b2066406346370fe3f4f909"
   },
   "source_output_blobs": {
-    "editions/2026/09/2026-09-06/edition.html": "0a7aee2b390bedb0dd578d28d17148dd3dc33f7d",
+    "editions/2026/09/2026-09-06/edition.html": "db3753058b5f38c651652b5e3a1a03bf11c4e340",
     "editions/2026/09/2026-09-06/print.css": "f3cb5ae5a5cdfcfbd4cb8d9d05f4b70c3437f08f",
-    "editions/2026/09/2026-09-06/epub-content.xhtml": "5bc856a89aa57a0f80e509b9751cf8045edad7ec"
+    "editions/2026/09/2026-09-06/epub-content.xhtml": "56dbf6bc49c1d6ba841a45850534e3d435e535cd"
   },
   "html_status": "PASS",
   "print_css_status": "PASS",

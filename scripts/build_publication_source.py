@@ -7,6 +7,7 @@ import hashlib
 import html
 import json
 import re
+import subprocess
 from pathlib import Path
 
 
@@ -182,8 +183,10 @@ def build(day: str) -> None:
 
 
 def git_blob(path: Path) -> str:
-    data = path.read_bytes()
-    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+    """Match the Git object after the repository's line-ending filters."""
+    return subprocess.check_output(
+        ["git", "hash-object", str(path)], cwd=ROOT, text=True
+    ).strip()
 
 
 def write_json(path: Path, value: dict) -> None:
