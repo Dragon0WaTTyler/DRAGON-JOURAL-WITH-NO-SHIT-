@@ -13,7 +13,7 @@ from dragon.recovery import RecoveryEngine
 from dragon.report import finalize_report
 from dragon.runlog import StageLogger
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
-from dragon.state import StateStore, now_iso, sha256_file
+from dragon.state import StateStore, now_iso, runtime_fingerprint, sha256_file, source_revision
 
 
 class Orchestrator:
@@ -177,6 +177,30 @@ class Orchestrator:
         state.pop("run_result", None)
         state.pop("error_code", None)
         state.pop("invalid_checkpoints", None)
+        current_runtime = runtime_fingerprint(self.root)
+        recorded_runtime = state.get("runtime_fingerprint")
+        if recorded_runtime != current_runtime:
+            if start_at == self.stage_names[0]:
+                state.setdefault("runtime_history", []).append(
+                    {
+                        "at": now_iso(self.timezone),
+                        "action": "REBASE_FROM_FIRST_STAGE",
+                        "prior_fingerprint": recorded_runtime,
+                        "runtime_fingerprint": current_runtime,
+                    }
+                )
+                state["runtime_fingerprint"] = current_runtime
+                state["source_git_revision"] = source_revision(self.root)
+                state.pop("runtime_fingerprint_current", None)
+                self.store.save(state)
+            else:
+                state["run_result"] = "BLOCKED"
+                state["error_code"] = "RUNTIME_FINGERPRINT_MISMATCH"
+                state["runtime_fingerprint_current"] = current_runtime
+                self.store.save(state)
+                return state
+        else:
+            state.pop("runtime_fingerprint_current", None)
         if state["publication_status"] == "COMPLETE" and start_at is None:
             final_index = self.stage_names.index("final_qa")
             invalid = [

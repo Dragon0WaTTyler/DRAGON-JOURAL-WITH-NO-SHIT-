@@ -71,6 +71,28 @@ class V5OrchestratorTests(unittest.TestCase):
             orchestrator.run(resume=True)
             self.assertEqual(calls, [])
 
+    def test_runtime_change_requires_explicit_rebase_from_preflight(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            calls = []
+            orchestrator = self.make(root, calls)
+            first = orchestrator.run()
+            runtime_file = root / "dragon" / "new_runtime.py"
+            runtime_file.parent.mkdir(parents=True)
+            runtime_file.write_text("REVISION = 2\n", encoding="utf-8")
+            calls.clear()
+
+            blocked = orchestrator.run(resume=True)
+
+            self.assertEqual(calls, [])
+            self.assertEqual(blocked["run_result"], "BLOCKED")
+            self.assertEqual(blocked["error_code"], "RUNTIME_FINGERPRINT_MISMATCH")
+            self.assertEqual(blocked["publication_status"], first["publication_status"])
+
+            rebased = orchestrator.run(from_stage="preflight")
+            self.assertEqual(calls, ["preflight", "research", "pdf"])
+            self.assertEqual(rebased["runtime_fingerprint"], blocked["runtime_fingerprint_current"])
+
     def test_changed_artifact_invalidates_checkpoint_and_downstream_runs(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

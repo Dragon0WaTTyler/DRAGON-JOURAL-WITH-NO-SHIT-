@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from dragon.config import load_local_config, load_mapping
-from dragon.state import sha256_file
+from dragon.state import runtime_fingerprint, sha256_file
 
 
 LOCAL_STAGES = (
@@ -26,8 +26,16 @@ LOCAL_STAGES = (
 )
 
 
-def _state_valid(root: Path, state: dict) -> tuple[bool, list[str]]:
+def _state_valid(
+    root: Path, state: dict, *, expected_runtime_fingerprint: str | None = None
+) -> tuple[bool, list[str]]:
     issues: list[str] = []
+    expected_runtime_fingerprint = expected_runtime_fingerprint or runtime_fingerprint(root)
+    recorded_runtime = state.get("runtime_fingerprint")
+    if not recorded_runtime:
+        issues.append("RUNTIME_FINGERPRINT_MISSING")
+    elif recorded_runtime != expected_runtime_fingerprint:
+        issues.append("RUNTIME_FINGERPRINT_MISMATCH")
     if state.get("schema_version") != 5 or state.get("publication_status") != "COMPLETE":
         issues.append("PUBLICATION_NOT_COMPLETE")
     for name in LOCAL_STAGES:
@@ -60,6 +68,7 @@ def _state_valid(root: Path, state: dict) -> tuple[bool, list[str]]:
             report.get("schema_version") != 5
             or report.get("date") != state.get("date")
             or report.get("run_id") != state.get("run_id")
+            or report.get("runtime_fingerprint") != recorded_runtime
             or report.get("publication") != "COMPLETE"
         ):
             issues.append("RUN_REPORT_STATE_MISMATCH")
@@ -108,12 +117,15 @@ def audit_cutover(root: Path) -> dict[str, Any]:
     root = root.resolve()
     config = load_local_config(root)
     policy = load_mapping(root / "config" / "cutover-acceptance.yaml")
+    expected_runtime_fingerprint = runtime_fingerprint(root)
     valid_runs = []
     rejected_runs = []
     for path in sorted((root / "daily-runs").glob("????-??-??/state.json")):
         try:
             state = json.loads(path.read_text(encoding="utf-8"))
-            valid, issues = _state_valid(root, state)
+            valid, issues = _state_valid(
+                root, state, expected_runtime_fingerprint=expected_runtime_fingerprint
+            )
         except (OSError, json.JSONDecodeError, KeyError, ValueError) as exc:
             rejected_runs.append({"path": str(path.relative_to(root)).replace("\\", "/"), "issues": [str(exc)]})
             continue

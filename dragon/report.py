@@ -109,6 +109,7 @@ def finalize_report(
         "schema_version": 5,
         "date": state["date"],
         "run_id": state["run_id"],
+        "runtime_fingerprint": state.get("runtime_fingerprint"),
         "result": state["run_result"],
         "started_at": state["started_at"],
         "ended_at": ended,

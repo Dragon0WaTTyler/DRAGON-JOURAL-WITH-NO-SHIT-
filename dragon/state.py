@@ -14,6 +14,8 @@ from typing import Any, Iterable
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
+import yaml
+
 
 STAGE_STATES = {"PENDING", "RUNNING", "COMPLETE", "FAILED", "BLOCKED", "DEGRADED"}
 FINAL_STATES = {"PENDING", "COMPLETE", "FAILED", "BLOCKED", "DEGRADED"}
@@ -25,6 +27,16 @@ RUN_SUBDIRECTORIES = (
     "factcheck",
     "qa",
     "recovery",
+)
+RUNTIME_FIXED_PATHS = (
+    "dragon_daily.py",
+    "dragon_watchdog.py",
+    "dragon_acceptance.py",
+    "dragon_provider_check.py",
+    "scripts/codex_editorial_provider.py",
+    "config/local-automation.yaml",
+    "config/recovery-policy.yaml",
+    "requirements.txt",
 )
 
 
@@ -53,6 +65,56 @@ def source_revision(root: Path) -> str | None:
     except (OSError, subprocess.SubprocessError):
         return None
     return result.stdout.strip() or None
+
+
+def _runtime_file_payload(root: Path, relative: str) -> bytes:
+    path = root / relative
+    if not path.is_file():
+        return b"<MISSING>"
+    if relative != "config/local-automation.yaml":
+        return path.read_bytes()
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, yaml.YAMLError):
+        return path.read_bytes()
+    if not isinstance(value, dict):
+        return path.read_bytes()
+    # Cutover switches describe deployment state rather than the code/config
+    # which produced an edition. Excluding them avoids a circular gate where
+    # enabling the already-proven scheduler invalidates its trial evidence.
+    value = deepcopy(value)
+    value.pop("cutover", None)
+    scheduler = value.get("scheduler")
+    if isinstance(scheduler, dict):
+        scheduler.pop("enabled", None)
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+
+
+def runtime_fingerprint(root: Path) -> str:
+    """Hash the executable V5 runtime/configuration relevant to acceptance evidence."""
+    root = root.resolve()
+    relatives = set(RUNTIME_FIXED_PATHS)
+    dragon_dir = root / "dragon"
+    if dragon_dir.is_dir():
+        relatives.update(
+            path.relative_to(root).as_posix() for path in dragon_dir.rglob("*.py")
+        )
+    windows_scripts = root / "scripts" / "windows"
+    if windows_scripts.is_dir():
+        relatives.update(
+            path.relative_to(root).as_posix()
+            for path in windows_scripts.rglob("*")
+            if path.is_file()
+        )
+    digest = hashlib.sha256(b"DRAGON-V5-RUNTIME-FINGERPRINT\0")
+    for relative in sorted(relatives):
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(_runtime_file_payload(root, relative))
+        digest.update(b"\0")
+    return digest.hexdigest()
 
 
 def atomic_write_json(path: Path, value: dict[str, Any]) -> None:
@@ -113,6 +175,7 @@ def new_state(
         "timezone": timezone,
         "run_id": str(uuid4()),
         "source_git_revision": source_revision(root),
+        "runtime_fingerprint": runtime_fingerprint(root),
         "trigger": os.environ.get("DRAGON_TRIGGER", "manual"),
         "started_at": timestamp,
         "updated_at": timestamp,

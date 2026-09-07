@@ -3,7 +3,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from dragon.state import StateStore, atomic_write_json, new_state, validate_state
+from dragon.state import (
+    StateStore,
+    atomic_write_json,
+    new_state,
+    runtime_fingerprint,
+    validate_state,
+)
 
 
 STAGES = ["preflight", "research", "pdf"]
@@ -24,6 +30,28 @@ class V5StateTests(unittest.TestCase):
             self.assertEqual(record["prerequisites"], ["preflight"])
             self.assertEqual(record["attempt_count"], 0)
             self.assertEqual(record["artifact_hashes"], {})
+            self.assertEqual(value["runtime_fingerprint"], runtime_fingerprint(root))
+
+    def test_runtime_fingerprint_tracks_code_but_not_cutover_switches(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            module = root / "dragon" / "pipeline.py"
+            module.parent.mkdir(parents=True)
+            module.write_text("VERSION = 1\n", encoding="utf-8")
+            config = root / "config" / "local-automation.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text(
+                "version: 5\nscheduler:\n  enabled: false\ncutover:\n  local_scheduler_enabled: false\n",
+                encoding="utf-8",
+            )
+            initial = runtime_fingerprint(root)
+            config.write_text(
+                "version: 5\nscheduler:\n  enabled: true\ncutover:\n  local_scheduler_enabled: true\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(runtime_fingerprint(root), initial)
+            module.write_text("VERSION = 2\n", encoding="utf-8")
+            self.assertNotEqual(runtime_fingerprint(root), initial)
 
     def test_atomic_write_retains_previous_good_copy(self):
         with tempfile.TemporaryDirectory() as directory:
