@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dragon.preflight import _clean_worktree, run_preflight
+from dragon.preflight import _clean_worktree, _v5_generated_prefixes, run_preflight
 
 
 BASE_CONFIG = {
@@ -104,6 +104,33 @@ class V5PreflightTests(unittest.TestCase):
             ),
             "clean",
         )
+
+    def test_prior_state_backed_untracked_outputs_do_not_block_next_day(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / "daily-runs" / "2026-09-07" / "state.json"
+            state.parent.mkdir(parents=True)
+            state.write_text(
+                '{"schema_version":5,"date":"2026-09-07"}', encoding="utf-8"
+            )
+            prefixes = _v5_generated_prefixes(root, exclude_date="2026-09-08")
+            self.assertEqual(
+                _clean_worktree(
+                    "?? daily-runs/2026-09-07/run-report.json\n"
+                    "?? editions/2026/09/2026-09-07/edition.pdf",
+                    (),
+                    prefixes,
+                ),
+                "clean",
+            )
+
+    def test_prior_tracked_modification_remains_blocking(self):
+        with self.assertRaisesRegex(RuntimeError, "working tree has unrelated changes"):
+            _clean_worktree(
+                " M editions/2026/09/2026-09-07/edition.md",
+                (),
+                ("editions/2026/09/2026-09-07/",),
+            )
 
     def test_unrelated_dirty_source_blocks_preflight(self):
         with self.assertRaisesRegex(RuntimeError, "dragon/preflight.py"):

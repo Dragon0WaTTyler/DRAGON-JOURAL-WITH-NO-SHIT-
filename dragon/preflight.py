@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import date
 import importlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -115,6 +116,7 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
                     f"daily-runs/{edition_date}/",
                     f"editions/{parsed_date:%Y}/{parsed_date:%m}/{edition_date}/",
                 ),
+                _v5_generated_prefixes(root, exclude_date=edition_date),
             ),
         )
     )
@@ -217,11 +219,42 @@ def _require_equal(value: str, expected: str, label: str) -> str:
     return value
 
 
-def _clean_worktree(value: str, allowed_prefixes: tuple[str, ...]) -> str:
+def _v5_generated_prefixes(root: Path, *, exclude_date: str) -> tuple[str, ...]:
+    prefixes: list[str] = []
+    for state_path in (root / "daily-runs").glob("????-??-??/state.json"):
+        day = state_path.parent.name
+        if day == exclude_date:
+            continue
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            parsed = date.fromisoformat(day)
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+        if state.get("schema_version") != 5 or state.get("date") != day:
+            continue
+        prefixes.extend(
+            (
+                f"daily-runs/{day}/",
+                f"editions/{parsed:%Y}/{parsed:%m}/{day}/",
+            )
+        )
+    return tuple(prefixes)
+
+
+def _clean_worktree(
+    value: str,
+    allowed_prefixes: tuple[str, ...],
+    allowed_untracked_prefixes: tuple[str, ...] = (),
+) -> str:
     unrelated: list[str] = []
     for line in value.splitlines():
+        status = line[:2]
         path = line[3:].replace("\\", "/") if len(line) > 3 else line
-        if not any(path.startswith(prefix) for prefix in allowed_prefixes):
+        current_run = any(path.startswith(prefix) for prefix in allowed_prefixes)
+        prior_untracked = status == "??" and any(
+            path.startswith(prefix) for prefix in allowed_untracked_prefixes
+        )
+        if not current_run and not prior_untracked:
             unrelated.append(path)
     if unrelated:
         raise RuntimeError("working tree has unrelated changes: " + ", ".join(unrelated))
