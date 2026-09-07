@@ -21,6 +21,7 @@ from dragon.publication import (
 )
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
 from dragon.state import atomic_write_json
+from dragon.whatsapp import DisabledWhatsAppProvider, WhatsAppError
 
 
 def _load(path: Path) -> dict | list:
@@ -57,8 +58,9 @@ def synthetic_preflight_stage() -> StageDefinition:
     return StageDefinition("preflight", (), run)
 
 
-def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None) -> list[StageDefinition]:
+def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None, whatsapp_provider=None) -> list[StageDefinition]:
     archive_provider = archive_provider or DisabledGitArchiveProvider()
+    whatsapp_provider = whatsapp_provider or DisabledWhatsAppProvider()
     def research(context: StageContext) -> StageResult:
         try:
             packet = provider.research(context.edition_date)
@@ -213,12 +215,16 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         status = result["status"]
         return StageResult((receipt,), status=status, metadata={"state_updates": {"archive_status": status}})
 
-    def external_receipt(kind: str, status_field: str):
-        def run(context: StageContext) -> StageResult:
-            receipt = context.run_dir / ("archive-receipt.json" if kind == "github_archive" else "delivery-receipt.json")
-            atomic_write_json(receipt, {"stage": kind, "status": "DEGRADED", "mode": provider.mode, "reason": "PROVIDER_DISABLED_OR_UNCONFIGURED", "publication_complete": True})
-            return StageResult((receipt,), status="DEGRADED", metadata={"state_updates": {status_field: "DEGRADED"}})
-        return run
+    def whatsapp_delivery(context: StageContext) -> StageResult:
+        receipt = context.run_dir / "delivery-receipt.json"
+        pdf_path = context.edition_dir / f"DRAGON-{context.edition_date}.pdf"
+        try:
+            result = whatsapp_provider.send(pdf_path, context.edition_date)
+        except WhatsAppError as exc:
+            raise StageFailure(exc.code, str(exc)) from exc
+        atomic_write_json(receipt, {"stage": "whatsapp_delivery", "mode": provider.mode, **result})
+        status = result["status"]
+        return StageResult((receipt,), status=status, metadata={"state_updates": {"delivery_status": status}})
 
     preflight = synthetic_preflight_stage() if synthetic else preflight_stage()
     return [
@@ -234,5 +240,5 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("epub", ("publication_source",), epub),
         _json_stage("final_qa", ("pdf", "epub"), final_qa),
         _json_stage("github_archive", ("final_qa",), github_archive),
-        _json_stage("whatsapp_delivery", ("final_qa",), external_receipt("whatsapp_delivery", "delivery_status")),
+        _json_stage("whatsapp_delivery", ("final_qa",), whatsapp_delivery),
     ]

@@ -99,6 +99,11 @@ providers:
   whatsapp:
     type: unconfigured
     enabled: false
+    integration_test_status: NOT_RUN
+    graph_version: ""
+    access_token_env: META_WHATSAPP_ACCESS_TOKEN
+    phone_number_id_env: META_WHATSAPP_PHONE_NUMBER_ID
+    recipients_env: DRAGON_WHATSAPP_RECIPIENTS
 cutover:
   legacy_v4_fallback_enabled: true
   local_scheduler_enabled: false

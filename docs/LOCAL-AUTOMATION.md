@@ -90,6 +90,21 @@ verified artifact. A rejected push or byte mismatch fails only the archive
 outcome; an already completed local publication stays complete and archive-only
 retry reuses its checkpoints.
 
+## WhatsApp delivery
+
+The opt-in `meta-cloud-api` adapter uploads the canonical PDF to Meta's media
+endpoint and sends that media identifier as a document to each configured
+recipient. The Graph API version is configuration, not a silently changing
+default. Tokens, the sender phone-number ID, and comma-separated recipients are
+read only from the environment names in `.env.example`. Receipts store provider
+message IDs and hashes of recipients, never tokens or raw recipient numbers.
+
+The capability remains unavailable until `enabled` is true,
+`integration_test_status` is `PASS`, the version is explicit, and all required
+environment values exist. A successful synchronous response is recorded as
+`ACCEPTED_BY_PROVIDER`; it is not misrepresented as device delivery, which
+would require separately authenticated webhook evidence.
+
 ## Preflight
 
 Blocking checks cover repository identity, writable paths, configuration,

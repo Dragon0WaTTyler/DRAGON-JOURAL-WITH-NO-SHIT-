@@ -10,13 +10,14 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from dragon.archive import archive_provider_from_config
+from dragon.archive import DisabledGitArchiveProvider, archive_provider_from_config
 from dragon.config import load_local_config
 from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
 from dragon.providers import SyntheticEditorialProvider, UnconfiguredEditorialProvider
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
+from dragon.whatsapp import DisabledWhatsAppProvider, whatsapp_provider_from_config
 
 
 ROOT = Path(__file__).resolve().parent
@@ -42,10 +43,21 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
     config = load_local_config(root)
     timezone = config["timezone"]
     provider = SyntheticEditorialProvider() if synthetic else UnconfiguredEditorialProvider()
+    archive_provider = (
+        DisabledGitArchiveProvider("SYNTHETIC_EXTERNAL_SIDE_EFFECTS_DISABLED")
+        if synthetic
+        else archive_provider_from_config(config)
+    )
+    whatsapp_provider = (
+        DisabledWhatsAppProvider("SYNTHETIC_EXTERNAL_SIDE_EFFECTS_DISABLED")
+        if synthetic
+        else whatsapp_provider_from_config(config)
+    )
     definitions = build_stage_definitions(
         provider,
         synthetic=synthetic,
-        archive_provider=archive_provider_from_config(config),
+        archive_provider=archive_provider,
+        whatsapp_provider=whatsapp_provider,
     )
     return Orchestrator(
         root=root,

@@ -168,6 +168,15 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
         provider_config = config.get("providers", {}).get(provider, {})
         enabled = bool(provider_config.get("enabled"))
         configured = provider_config.get("type") not in {None, "unconfigured"}
+        if provider == "whatsapp" and enabled:
+            configured = configured and provider_config.get("integration_test_status") == "PASS"
+            configured = configured and bool(provider_config.get("graph_version"))
+            environment_names = (
+                provider_config.get("access_token_env", "META_WHATSAPP_ACCESS_TOKEN"),
+                provider_config.get("phone_number_id_env", "META_WHATSAPP_PHONE_NUMBER_ID"),
+                provider_config.get("recipients_env", "DRAGON_WHATSAPP_RECIPIENTS"),
+            )
+            configured = configured and all(os.environ.get(str(name)) for name in environment_names)
         checks.append(
             Check(
                 f"optional_provider:{provider}",
