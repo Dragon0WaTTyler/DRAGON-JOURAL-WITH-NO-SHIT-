@@ -31,6 +31,11 @@ is backed by hash-valid local artifacts and reviewed evidence.
 Evidence files must contain genuine observations. Do not create placeholder
 `PASS` files to satisfy the audit.
 
+The audit also rejects a run whose declared `run-report.json` does not match its
+date, run ID, and completed publication state. GitHub and WhatsApp evidence is
+accepted only when the receipt bytes still match a `COMPLETE` stage checkpoint;
+an edited or loose receipt cannot satisfy cutover.
+
 ## Activation sequence
 
 Only after the audit returns `READY_FOR_CUTOVER`:

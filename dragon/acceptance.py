@@ -47,7 +47,39 @@ def _state_valid(root: Path, state: dict) -> tuple[bool, list[str]]:
                 continue
             if not path.is_file() or sha256_file(path) != expected:
                 issues.append(f"ARTIFACT_HASH_INVALID:{name}:{relative}")
+    report_relative = f"daily-runs/{state.get('date', '')}/run-report.json"
+    report_path = root / report_relative
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        issues.append("RUN_REPORT_MISSING_OR_INVALID")
+    else:
+        if report_relative not in state.get("report_paths", []):
+            issues.append("RUN_REPORT_NOT_DECLARED")
+        if (
+            report.get("schema_version") != 5
+            or report.get("date") != state.get("date")
+            or report.get("run_id") != state.get("run_id")
+            or report.get("publication") != "COMPLETE"
+        ):
+            issues.append("RUN_REPORT_STATE_MISMATCH")
     return not issues, issues
+
+
+def _checkpointed_receipt(root: Path, state: dict, stage_name: str, filename: str) -> dict | None:
+    relative = f"daily-runs/{state.get('date', '')}/{filename}"
+    record = state.get("stages", {}).get(stage_name, {})
+    expected = record.get("artifact_hashes", {}).get(relative)
+    path = root / relative
+    if record.get("status") != "COMPLETE" or not expected or not path.is_file():
+        return None
+    if sha256_file(path) != expected:
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
 
 
 def _mode(root: Path, state: dict) -> str:
@@ -92,6 +124,26 @@ def audit_cutover(root: Path) -> dict[str, Any]:
             "archive": state.get("archive_status"),
             "delivery": state.get("delivery_status"),
         }
+        archive_receipt = _checkpointed_receipt(
+            root, state, "github_archive", "archive-receipt.json"
+        )
+        delivery_receipt = _checkpointed_receipt(
+            root, state, "whatsapp_delivery", "delivery-receipt.json"
+        )
+        entry["archive_receipt_valid"] = bool(
+            state.get("archive_status") == "COMPLETE"
+            and archive_receipt
+            and archive_receipt.get("status") == "COMPLETE"
+            and archive_receipt.get("verified") is True
+            and archive_receipt.get("commit") == archive_receipt.get("remote_commit")
+        )
+        entry["delivery_receipt_valid"] = bool(
+            state.get("delivery_status") == "COMPLETE"
+            and delivery_receipt
+            and delivery_receipt.get("status") == "COMPLETE"
+            and delivery_receipt.get("accepted") is True
+            and delivery_receipt.get("publication_status") == "COMPLETE"
+        )
         if valid:
             valid_runs.append(entry)
         else:
@@ -101,22 +153,8 @@ def audit_cutover(root: Path) -> dict[str, Any]:
     unattended = [item for item in valid_runs if item["mode"] == "production" and item["trigger"] == "watchdog"]
     required_runs = int(policy.get("required_consecutive_unattended_runs", 3))
     sequence = _consecutive([item["date"] for item in unattended], required_runs)
-    archived = []
-    for item in unattended + manual_real:
-        receipt_path = root / "daily-runs" / item["date"] / "archive-receipt.json"
-        try:
-            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-            verified = (
-                item["archive"] == "COMPLETE"
-                and receipt.get("status") == "COMPLETE"
-                and receipt.get("verified") is True
-                and receipt.get("commit") == receipt.get("remote_commit")
-            )
-        except (OSError, json.JSONDecodeError):
-            verified = False
-        if verified:
-            archived.append(item)
-    delivered = [item for item in unattended + manual_real if item["delivery"] == "COMPLETE"]
+    archived = [item for item in unattended + manual_real if item["archive_receipt_valid"]]
+    delivered = [item for item in unattended + manual_real if item["delivery_receipt_valid"]]
     evidence_dir = root / "acceptance" / "evidence"
     review_evidence = {}
     for filename in policy.get("required_review_evidence", []):
