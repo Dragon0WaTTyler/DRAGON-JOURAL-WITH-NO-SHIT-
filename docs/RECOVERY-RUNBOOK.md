@@ -1,18 +1,30 @@
 # DRAGON V5 recovery runbook
 
-## Additional explicit V5 codes
+## Operational matrix for additional V5 codes
 
-The policy also handles `AI_PROVIDER_UNCONFIGURED`,
-`AI_PROVIDER_INTEGRATION_NOT_PROVEN`, `AI_PROVIDER_EXECUTION_FAILED`,
-`AI_PROVIDER_RESPONSE_INVALID`, `RESEARCH_PACKET_INVALID`,
-`FACTCHECK_FAILED`, `ARABIC_LANGUAGE_QA_FAILED`,
-`PUBLICATION_SOURCE_INVALID`, `PDF_QA_FAILED`, `EPUB_QA_FAILED`,
-`FINAL_QA_FAILED`, `STAGE_INPUT_INVALID`, `STAGE_ACCEPTANCE_FAILED`,
-`STAGE_RESULT_INVALID`, and `STAGE_STATE_UPDATE_INVALID`. Environment and
-dependency codes block; the one execution-transient code retries twice;
-content/validation codes target only their stage; interface violations create
-an incident as code defects. Never broaden a targeted retry to valid sibling
-artifacts.
+The detailed families later in this runbook cover the core production errors.
+This matrix makes every other configured code operational too. “Inspect” always
+includes the stage JSONL log, `state.json`, and an incident packet if present.
+
+| Error code | Meaning / likely causes | Inspect | Safe first action; automatic repair / max | Tests required | Resume / escalation |
+| --- | --- | --- | --- | --- | --- |
+| `AI_PROVIDER_UNCONFIGURED` | No unattended editorial command was selected | `config/local-automation.yaml`, provider check output | Configure a supported local command; none / 1 block | provider health and production-schema integration | Run `dragon_provider_check.py`, then `--resume`; intervene until genuine PASS |
+| `AI_PROVIDER_INTEGRATION_NOT_PROVEN` | A configured command lacks accepted unattended proof | provider identity, integration evidence, stderr | Run the real health check without prompts; none / 1 block | healthcheck plus one full schema fixture | Record PASS only from evidence, then `--resume`; otherwise intervene |
+| `AI_PROVIDER_EXECUTION_FAILED` | Provider failed to start, timed out, or exited nonzero | command path, exit code, redacted stderr | Correct a transient runtime fault; retry / 2 | healthcheck and failed operation replay | `--retry research` or `article_generation`; incident after 2 |
+| `AI_PROVIDER_RESPONSE_INVALID` | Stdout was not one valid UTF-8 JSON value | raw redacted response and provider protocol | Remove diagnostics from stdout or repair serialization; targeted / 2 | malformed UTF-8/JSON response tests | Retry affected editorial stage; incident after 2 |
+| `RESEARCH_PACKET_INVALID` | Candidate, provenance, ranking, or evidence schema is incomplete | `research/research-packet.json`, exact source records | Repair only invalid section/source records; targeted / 2 | candidate/evidence/source schema tests | `--retry research`; skip weak section or incident after 2 |
+| `FACTCHECK_FAILED` | Legacy source-linkage fact-check gate failed | article source IDs and `factcheck/report.json` | Restore valid mapping or remove item; targeted / 2 | source-linkage regression | `--retry factcheck`; incident after 2; do not invent evidence |
+| `ARABIC_LANGUAGE_QA_FAILED` | Grammar/UTF-8/mojibake/leakage gate failed | `qa/arabic-language.json`, canonical articles | Repair language only, preserving claims; targeted / 2 | Arabic, mojibake, leakage regression | `--retry arabic_language_qa`; incident after 2 |
+| `PUBLICATION_SOURCE_INVALID` | HTML lost RTL, cover, article, or source identity | `edition.html`, CSS, articles, exact URLs | Rebuild semantic publication source only; targeted / 2 | HTML identity, RTL, URL and cover tests | `--retry publication_source`; incident after 2 |
+| `PDF_QA_FAILED` | One or more strict PDF validators failed | `qa/pdf.json`, PDF, HTML, cover | Route to the named PDF issue and rebuild PDF only; targeted / 2 | full PDF QA plus failing regression | `--retry pdf`; incident after 2 |
+| `EPUB_QA_FAILED` | One or more strict EPUB validators failed | `qa/epub.json`, EPUB member/XML inventory | Repair the exact EPUB packaging fault; targeted / 2 | full EPUB validator plus failing regression | `--retry epub`; incident after 2 |
+| `FINAL_QA_FAILED` | Required section, cover, format, or Arabic gate is not PASS | `final-qa.json` and referenced QA reports | Repair only the named failed prerequisite; targeted / 2 | affected validator and finality regression | Retry named stage, then `--retry final_qa`; incident after 2 |
+| `STAGE_INPUT_INVALID` | Declared input is missing, changed, or outside repository | input hashes and prerequisite outputs | Restore/revalidate the exact dependency; none / 1 block | checkpoint tamper and path-boundary tests | Retry producing prerequisite; intervene if provenance is unknown |
+| `STAGE_ACCEPTANCE_FAILED` | Stage returned artifacts that its validator rejected | stage outputs and acceptance detail | Repair the failed stage only; targeted / 2 | stage acceptance plus validator regression | `--retry <stage>`; incident after 2 |
+| `STAGE_RESULT_INVALID` | Stage violated the orchestrator result interface | traceback, stage implementation, returned value | Reproduce and make a minimal code fix; none / 1 incident | targeted interface and full regression suite | Retry only after accepted patch; intervention required |
+| `STAGE_STATE_UPDATE_INVALID` | Stage requested an illegal top-level state mutation | returned metadata and state schema | Remove or explicitly model the unsafe update; none / 1 incident | state schema, atomicity and full regression suite | Retry only after accepted patch; intervention required |
+
+Never broaden a targeted retry to valid sibling artifacts.
 
 ## Operating rule
 
