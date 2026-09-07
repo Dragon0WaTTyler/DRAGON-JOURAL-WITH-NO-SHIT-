@@ -239,3 +239,16 @@ Before each increment, preserve the current 88-test suite and document expected 
 ## 15. Milestone 0 conclusion
 
 The V5 migration is feasible without discarding V4. The lowest-risk path is to retain the editorial architecture and deterministic publication safeguards, introduce a new local orchestration/state/recovery layer beside V4, migrate Arabic and renderer semantics behind explicit V5 contracts, and retire cloud triggers only after real unattended acceptance runs. No current component provides a proven unattended local AI or WhatsApp implementation; those capabilities must remain provider-gated and truthfully unavailable until configured and tested.
+
+## 16. Post-audit capability update (2026-09-08)
+
+The conclusion above records the environment at Milestone 0. The repository now
+contains the opt-in Codex CLI editorial adapter documented in
+`docs/EDITORIAL-PROVIDER.md`. A no-generation probe on 2026-09-08 detected
+`codex-cli 0.153.4`, an active ChatGPT login, and unattended CLI invocation.
+That result proves only CLI/auth availability: `editorial_generation_tested`
+remains `false`, `providers.ai.integration_test_status` remains `NOT_RUN`, and
+production correctly blocks before research. A deliberate live research and
+article trial, followed by human evidence/source/Arabic/depth review, is still
+required before the adapter may be promoted to `PASS`. No model usage was
+consumed by this capability probe.
