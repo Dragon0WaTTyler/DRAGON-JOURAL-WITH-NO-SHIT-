@@ -35,6 +35,7 @@ RUNTIME_FIXED_PATHS = (
     "dragon_provider_check.py",
     "scripts/codex_editorial_provider.py",
     "config/local-automation.yaml",
+    "config/cutover-acceptance.yaml",
     "config/recovery-policy.yaml",
     "requirements.txt",
 )

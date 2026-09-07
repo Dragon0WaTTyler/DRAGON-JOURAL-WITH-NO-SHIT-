@@ -31,6 +31,27 @@ is backed by hash-valid local artifacts and reviewed evidence.
 Evidence files must contain genuine observations. Do not create placeholder
 `PASS` files to satisfy the audit.
 
+Each review file uses schema version 5 and must contain a timezone-aware
+`reviewed_at`, a real `reviewed_by`, the current `runtime_fingerprint`, every
+check named for that file in `config/cutover-acceptance.yaml` with value
+`PASS`, and a nonempty `evidence` mapping from repository-relative artifact
+paths to their SHA-256 hashes. The audit recomputes those hashes and rejects
+paths outside the repository or a review file that cites itself. The scheduler
+review additionally requires the configured `task_name` and
+`matching_enabled_tasks: 1`. A representative shape is:
+
+```json
+{
+  "schema_version": 5,
+  "status": "PASS",
+  "reviewed_by": "<human operator>",
+  "reviewed_at": "2026-09-08T12:00:00+01:00",
+  "runtime_fingerprint": "<current fingerprint>",
+  "checks": {"<configured check>": "PASS"},
+  "evidence": {"<relative evidence path>": "<sha256>"}
+}
+```
+
 The audit also rejects a run whose declared `run-report.json` does not match its
 date, run ID, and completed publication state. GitHub and WhatsApp evidence is
 accepted only when the receipt bytes still match a `COMPLETE` stage checkpoint;

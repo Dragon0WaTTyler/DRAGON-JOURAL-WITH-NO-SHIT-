@@ -218,6 +218,64 @@ def _provider_trial_evidence(
     return any(item["status"] == "PASS" for item in evidence), evidence
 
 
+def _review_file_evidence(
+    root: Path,
+    filename: str,
+    required_checks: list[str],
+    expected_runtime_fingerprint: str,
+) -> dict[str, Any]:
+    path = root / "acceptance" / "evidence" / filename
+    issues: list[str] = []
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"status": "MISSING_OR_INVALID", "issues": ["REVIEW_FILE_INVALID"]}
+    if not isinstance(value, dict):
+        return {"status": "MISSING_OR_INVALID", "issues": ["REVIEW_FILE_INVALID"]}
+    try:
+        reviewed_at = datetime.fromisoformat(str(value["reviewed_at"]))
+        timestamp_valid = reviewed_at.tzinfo is not None
+    except (KeyError, TypeError, ValueError):
+        timestamp_valid = False
+    if (
+        value.get("schema_version") != 5
+        or value.get("status") != "PASS"
+        or not str(value.get("reviewed_by", "")).strip()
+        or not timestamp_valid
+    ):
+        issues.append("REVIEW_ATTESTATION_INVALID")
+    if value.get("runtime_fingerprint") != expected_runtime_fingerprint:
+        issues.append("REVIEW_RUNTIME_FINGERPRINT_MISMATCH")
+    checks = value.get("checks")
+    if (
+        not isinstance(checks, dict)
+        or set(checks) != set(required_checks)
+        or any(result != "PASS" for result in checks.values())
+    ):
+        issues.append("REVIEW_CHECKS_INCOMPLETE")
+    artifacts = value.get("evidence")
+    if not isinstance(artifacts, dict) or not artifacts:
+        issues.append("REVIEW_EVIDENCE_MISSING")
+    else:
+        for relative, expected_hash in artifacts.items():
+            artifact = (root / str(relative)).resolve()
+            try:
+                artifact.relative_to(root.resolve())
+            except ValueError:
+                issues.append("REVIEW_EVIDENCE_PATH_ESCAPE")
+                continue
+            if artifact == path.resolve() or not artifact.is_file():
+                issues.append(f"REVIEW_EVIDENCE_INVALID:{relative}")
+            elif sha256_file(artifact) != expected_hash:
+                issues.append(f"REVIEW_EVIDENCE_HASH_INVALID:{relative}")
+    if filename == "scheduler-trial.json" and (
+        not str(value.get("task_name", "")).strip()
+        or value.get("matching_enabled_tasks") != 1
+    ):
+        issues.append("SCHEDULER_TASK_INVENTORY_INVALID")
+    return {"status": "PASS" if not issues else "MISSING_OR_INVALID", "issues": issues}
+
+
 def audit_cutover(root: Path) -> dict[str, Any]:
     root = root.resolve()
     config = load_local_config(root)
@@ -272,16 +330,19 @@ def audit_cutover(root: Path) -> dict[str, Any]:
     sequence = _consecutive([item["date"] for item in unattended], required_runs)
     archived = [item for item in unattended + manual_real if item["archive_receipt_valid"]]
     delivered = [item for item in unattended + manual_real if item["delivery_receipt_valid"]]
-    evidence_dir = root / "acceptance" / "evidence"
     review_evidence = {}
-    for filename in policy.get("required_review_evidence", []):
-        path = evidence_dir / str(filename)
-        try:
-            value = json.loads(path.read_text(encoding="utf-8"))
-            passed = value.get("status") == "PASS" and bool(value.get("reviewed_by"))
-        except (OSError, json.JSONDecodeError):
-            passed = False
-        review_evidence[str(filename)] = "PASS" if passed else "MISSING_OR_INVALID"
+    configured_reviews = policy.get("required_review_evidence", {})
+    if isinstance(configured_reviews, list):
+        configured_reviews = {str(filename): [] for filename in configured_reviews}
+    if not isinstance(configured_reviews, dict):
+        configured_reviews = {}
+    for filename, required_checks in configured_reviews.items():
+        review_evidence[str(filename)] = _review_file_evidence(
+            root,
+            str(filename),
+            [str(check) for check in required_checks] if isinstance(required_checks, list) else [],
+            expected_runtime_fingerprint,
+        )
     ai = config.get("providers", {}).get("ai", {})
     provider_trial_valid, provider_trials = _provider_trial_evidence(
         root, expected_runtime_fingerprint
@@ -297,7 +358,9 @@ def audit_cutover(root: Path) -> dict[str, Any]:
             and ai.get("integration_test_status") == "PASS"
             and provider_trial_valid
         ),
-        "review_evidence": all(value == "PASS" for value in review_evidence.values()),
+        "review_evidence": bool(review_evidence) and all(
+            value["status"] == "PASS" for value in review_evidence.values()
+        ),
     }
     cutover = config.get("cutover", {})
     completion_checks = {

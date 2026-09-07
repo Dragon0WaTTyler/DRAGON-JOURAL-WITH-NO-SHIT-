@@ -6,6 +6,7 @@ from dragon.acceptance import (
     _checkpointed_receipt,
     _consecutive,
     _provider_trial_evidence,
+    _review_file_evidence,
     _state_valid,
     audit_cutover,
 )
@@ -150,3 +151,45 @@ def test_provider_trial_requires_hash_bound_human_review(tmp_path: Path) -> None
     valid, evidence = _provider_trial_evidence(tmp_path, fingerprint)
     assert valid is False
     assert any(issue.startswith("TRIAL_ARTIFACT_HASH_INVALID") for issue in evidence[0]["issues"])
+
+
+def test_cutover_review_requires_current_runtime_checks_and_hashed_evidence(
+    tmp_path: Path,
+) -> None:
+    proof = tmp_path / "daily-runs" / "2099-01-02" / "proof.json"
+    proof.parent.mkdir(parents=True)
+    proof.write_text('{"observed":true}', encoding="utf-8")
+    fingerprint = runtime_fingerprint(tmp_path)
+    review_dir = tmp_path / "acceptance" / "evidence"
+    review_dir.mkdir(parents=True)
+    review = {
+        "schema_version": 5,
+        "status": "PASS",
+        "reviewed_by": "Human Operator",
+        "reviewed_at": "2099-01-02T12:00:00+01:00",
+        "runtime_fingerprint": fingerprint,
+        "checks": {"resume": "PASS", "state_integrity": "PASS"},
+        "evidence": {
+            "daily-runs/2099-01-02/proof.json": sha256_file(proof),
+        },
+    }
+    review_path = review_dir / "failure-injection.json"
+    review_path.write_text(json.dumps(review), encoding="utf-8")
+
+    accepted = _review_file_evidence(
+        tmp_path,
+        "failure-injection.json",
+        ["resume", "state_integrity"],
+        fingerprint,
+    )
+    assert accepted["status"] == "PASS"
+
+    proof.write_text('{"observed":false}', encoding="utf-8")
+    rejected = _review_file_evidence(
+        tmp_path,
+        "failure-injection.json",
+        ["resume", "state_integrity"],
+        fingerprint,
+    )
+    assert rejected["status"] == "MISSING_OR_INVALID"
+    assert any(issue.startswith("REVIEW_EVIDENCE_HASH_INVALID") for issue in rejected["issues"])
