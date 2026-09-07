@@ -19,6 +19,10 @@ from dragon.state import sha256_file
 class WhatsAppError(RuntimeError):
     code = "WHATSAPP_SEND_FAILED"
 
+    def __init__(self, detail: str, *, partial_receipt: dict | None = None):
+        super().__init__(detail)
+        self.partial_receipt = partial_receipt
+
 
 HttpRequest = Callable[[str, str, dict[str, str], bytes], dict]
 
@@ -60,7 +64,7 @@ class DisabledWhatsAppProvider:
     reason: str = "PROVIDER_DISABLED_OR_UNCONFIGURED"
     enabled: bool = False
 
-    def send(self, pdf: Path, edition_date: str) -> dict:
+    def send(self, pdf: Path, edition_date: str, prior_receipt: dict | None = None) -> dict:
         return {"status": "DEGRADED", "reason": self.reason, "accepted": False}
 
 
@@ -73,27 +77,39 @@ class MetaWhatsAppProvider:
     request: HttpRequest = _request
     enabled: bool = True
 
-    def send(self, pdf: Path, edition_date: str) -> dict:
+    def send(self, pdf: Path, edition_date: str, prior_receipt: dict | None = None) -> dict:
         if not pdf.is_file() or pdf.suffix.casefold() != ".pdf":
             raise WhatsAppError("canonical PDF is missing or invalid")
         if pdf.stat().st_size > 100 * 1024 * 1024:
             raise WhatsAppError("PDF exceeds the 100 MB document limit")
         if not self.recipients:
             raise WhatsAppError("no recipients configured")
+        pdf_hash = sha256_file(pdf)
         base = f"https://graph.facebook.com/{self.graph_version}/{self.phone_number_id}"
         authorization = {"Authorization": f"Bearer {self.access_token}"}
-        upload_body, boundary = _multipart_pdf(pdf)
-        upload = self.request(
-            "POST",
-            f"{base}/media",
-            {**authorization, "Content-Type": f"multipart/form-data; boundary={boundary}"},
-            upload_body,
-        )
-        media_id = upload.get("id")
-        if not isinstance(media_id, str) or not media_id:
-            raise WhatsAppError("media upload response has no id")
-        accepted = []
+        prior = prior_receipt or {}
+        if prior.get("pdf_sha256") == pdf_hash and isinstance(prior.get("media_id"), str):
+            media_id = prior["media_id"]
+            accepted = list(prior.get("recipients", []))
+        else:
+            upload_body, boundary = _multipart_pdf(pdf)
+            upload = self.request(
+                "POST",
+                f"{base}/media",
+                {**authorization, "Content-Type": f"multipart/form-data; boundary={boundary}"},
+                upload_body,
+            )
+            media_id = upload.get("id")
+            if not isinstance(media_id, str) or not media_id:
+                raise WhatsAppError("media upload response has no id")
+            accepted = []
+        accepted_hashes = {
+            item.get("recipient_hash") for item in accepted if isinstance(item, dict)
+        }
         for recipient in self.recipients:
+            recipient_hash = hashlib.sha256(recipient.encode()).hexdigest()[:16]
+            if recipient_hash in accepted_hashes:
+                continue
             payload = {
                 "messaging_product": "whatsapp",
                 "recipient_type": "individual",
@@ -105,29 +121,38 @@ class MetaWhatsAppProvider:
                     "filename": pdf.name,
                 },
             }
-            response = self.request(
-                "POST",
-                f"{base}/messages",
-                {**authorization, "Content-Type": "application/json"},
-                json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-            )
+            try:
+                response = self.request(
+                    "POST",
+                    f"{base}/messages",
+                    {**authorization, "Content-Type": "application/json"},
+                    json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                )
+            except WhatsAppError as exc:
+                partial = self._receipt(pdf_hash, media_id, accepted, complete=False)
+                raise WhatsAppError(str(exc), partial_receipt=partial) from exc
             messages = response.get("messages")
             message_id = messages[0].get("id") if isinstance(messages, list) and messages and isinstance(messages[0], dict) else None
             if not isinstance(message_id, str) or not message_id:
                 raise WhatsAppError("send response has no message id")
             accepted.append(
                 {
-                    "recipient_hash": hashlib.sha256(recipient.encode()).hexdigest()[:16],
+                    "recipient_hash": recipient_hash,
                     "message_id": message_id,
                     "status": "ACCEPTED_BY_PROVIDER",
                 }
             )
+        return self._receipt(pdf_hash, media_id, accepted, complete=True)
+
+    def _receipt(
+        self, pdf_hash: str, media_id: str, accepted: list[dict], *, complete: bool
+    ) -> dict:
         return {
-            "status": "COMPLETE",
-            "accepted": True,
+            "status": "COMPLETE" if complete else "FAILED_PARTIAL",
+            "accepted": complete,
             "provider": "meta-cloud-api",
             "media_id": media_id,
-            "pdf_sha256": sha256_file(pdf),
+            "pdf_sha256": pdf_hash,
             "recipients": accepted,
             "delivery_evidence": "API_ACCEPTANCE; final device delivery requires webhook evidence",
         }

@@ -326,10 +326,27 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def whatsapp_delivery(context: StageContext) -> StageResult:
         receipt = context.run_dir / "delivery-receipt.json"
         pdf_path = context.edition_dir / f"DRAGON-{context.edition_date}.pdf"
+        prior = None
+        if receipt.is_file():
+            try:
+                prior = _load(receipt)
+            except (OSError, json.JSONDecodeError):
+                prior = None
         try:
-            result = whatsapp_provider.send(pdf_path, context.edition_date)
+            result = whatsapp_provider.send(pdf_path, context.edition_date, prior)
         except WhatsAppError as exc:
-            raise StageFailure(exc.code, str(exc)) from exc
+            outputs = ()
+            if exc.partial_receipt:
+                atomic_write_json(
+                    receipt,
+                    {
+                        "stage": "whatsapp_delivery",
+                        "mode": provider.mode,
+                        **exc.partial_receipt,
+                    },
+                )
+                outputs = (receipt,)
+            raise StageFailure(exc.code, str(exc), outputs=outputs) from exc
         atomic_write_json(receipt, {"stage": "whatsapp_delivery", "mode": provider.mode, **result})
         status = result["status"]
         return StageResult(
