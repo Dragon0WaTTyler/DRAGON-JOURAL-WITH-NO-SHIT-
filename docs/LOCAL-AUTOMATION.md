@@ -79,6 +79,17 @@ credentials come from environment variables or ignored local configuration.
 Committed examples name variables but contain no credential values. Missing AI
 or delivery configuration must be reported accurately during preflight.
 
+## GitHub archive
+
+The `github_archive` provider is disabled during build-behind. When explicitly
+enabled with type `git-cli`, it stages only files beneath the dated edition
+directory, creates a normal non-force commit when needed, pushes the configured
+branch, fetches the remote ref, and compares the SHA-256 of every remote blob
+with the exact local file. Its receipt records both commit identities and every
+verified artifact. A rejected push or byte mismatch fails only the archive
+outcome; an already completed local publication stays complete and archive-only
+retry reuses its checkpoints.
+
 ## Preflight
 
 Blocking checks cover repository identity, writable paths, configuration,

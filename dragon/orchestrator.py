@@ -290,6 +290,7 @@ class Orchestrator:
             outputs=outputs,
             artifact_hashes=hashes,
         )
+        self._set_outcome_for_stage(state, definition.name, "FAILED")
         failure = {
             "at": record["ended_at"],
             "stage": definition.name,
@@ -326,6 +327,7 @@ class Orchestrator:
             return True
         if decision.action == "BLOCK":
             record["status"] = "BLOCKED"
+            self._set_outcome_for_stage(state, definition.name, "BLOCKED")
             self.store.save(state)
             return False
 
@@ -356,4 +358,13 @@ class Orchestrator:
             error_code=code,
             error_detail=detail,
         )
+        self._set_outcome_for_stage(state, name, "BLOCKED")
         self.store.save(state)
+
+    def _set_outcome_for_stage(self, state: dict, name: str, status: str) -> None:
+        if name == "github_archive":
+            state["archive_status"] = status
+        elif name == "whatsapp_delivery":
+            state["delivery_status"] = status
+        elif "final_qa" not in self.stage_names or self.stage_names.index(name) <= self.stage_names.index("final_qa"):
+            state["publication_status"] = status

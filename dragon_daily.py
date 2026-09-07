@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from dragon.archive import archive_provider_from_config
 from dragon.config import load_local_config
 from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
@@ -41,7 +42,11 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
     config = load_local_config(root)
     timezone = config["timezone"]
     provider = SyntheticEditorialProvider() if synthetic else UnconfiguredEditorialProvider()
-    definitions = build_stage_definitions(provider, synthetic=synthetic)
+    definitions = build_stage_definitions(
+        provider,
+        synthetic=synthetic,
+        archive_provider=archive_provider_from_config(config),
+    )
     return Orchestrator(
         root=root,
         edition_date=edition_date,

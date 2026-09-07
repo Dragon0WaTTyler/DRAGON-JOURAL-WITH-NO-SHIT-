@@ -7,6 +7,7 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 from dragon.builtin_stages import preflight_stage
+from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
 from dragon.providers import EditorialProvider, SECTION_HEADINGS
 from dragon.publication import (
@@ -56,7 +57,8 @@ def synthetic_preflight_stage() -> StageDefinition:
     return StageDefinition("preflight", (), run)
 
 
-def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False) -> list[StageDefinition]:
+def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None) -> list[StageDefinition]:
+    archive_provider = archive_provider or DisabledGitArchiveProvider()
     def research(context: StageContext) -> StageResult:
         try:
             packet = provider.research(context.edition_date)
@@ -201,6 +203,16 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("FINAL_QA_FAILED", "; ".join(issues), outputs=(report_path, manifest_path))
         return StageResult((report_path, manifest_path), metadata={"state_updates": {"publication_status": "COMPLETE"}})
 
+    def github_archive(context: StageContext) -> StageResult:
+        receipt = context.run_dir / "archive-receipt.json"
+        try:
+            result = archive_provider.archive(context.root, context.edition_dir, context.edition_date)
+        except ArchiveError as exc:
+            raise StageFailure(exc.code, exc.detail) from exc
+        atomic_write_json(receipt, {"stage": "github_archive", "mode": provider.mode, **result})
+        status = result["status"]
+        return StageResult((receipt,), status=status, metadata={"state_updates": {"archive_status": status}})
+
     def external_receipt(kind: str, status_field: str):
         def run(context: StageContext) -> StageResult:
             receipt = context.run_dir / ("archive-receipt.json" if kind == "github_archive" else "delivery-receipt.json")
@@ -221,6 +233,6 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("pdf", ("publication_source",), pdf),
         _json_stage("epub", ("publication_source",), epub),
         _json_stage("final_qa", ("pdf", "epub"), final_qa),
-        _json_stage("github_archive", ("final_qa",), external_receipt("github_archive", "archive_status")),
+        _json_stage("github_archive", ("final_qa",), github_archive),
         _json_stage("whatsapp_delivery", ("final_qa",), external_receipt("whatsapp_delivery", "delivery_status")),
     ]

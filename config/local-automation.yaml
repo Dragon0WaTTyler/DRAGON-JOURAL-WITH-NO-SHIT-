@@ -94,6 +94,8 @@ providers:
   github_archive:
     type: git-cli
     enabled: false
+    remote: origin
+    branch: main
   whatsapp:
     type: unconfigured
     enabled: false

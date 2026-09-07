@@ -93,6 +93,7 @@ class V5OrchestratorTests(unittest.TestCase):
             self.assertEqual(state["stages"]["research"]["status"], "FAILED")
             self.assertEqual(state["stages"]["research"]["error_code"], "SOURCE_TIMEOUT")
             self.assertEqual(state["stages"]["pdf"]["status"], "PENDING")
+            self.assertEqual(state["publication_status"], "FAILED")
 
     def test_targeted_retry_invalidates_only_selected_and_downstream(self):
         with tempfile.TemporaryDirectory() as directory:
