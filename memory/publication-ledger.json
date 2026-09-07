@@ -8,5 +8,15 @@
       "science_topic_id": "science-social-comparison-behaviour-change-2025",
       "lead_story_id": "PAL-20260905-WB-UN-CAMPS"
     }
+  },
+  "2026-09-06": {
+    "status": "PUBLISHED",
+    "binary_archive_commit": "8738f1b625993841dbac485a38aee14208fc2f53",
+    "topics": {
+      "history_topic_id": "history-treaty-fez-1912-protectorate-sovereignty",
+      "literature_topic_id": "adab-mohamed-choukri-for-bread-alone-literary-context",
+      "science_topic_id": "science-morocco-student-routines-academic-standing-2026",
+      "lead_story_id": "MA-CNSS-DEFICIT"
+    }
   }
 }

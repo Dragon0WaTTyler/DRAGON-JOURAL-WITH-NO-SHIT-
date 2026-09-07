@@ -22,6 +22,17 @@
   "pdf_pages": 35,
   "structural_validation": "PASS",
   "visual_review": "NOT_PERFORMED_BY_RENDERER",
-  "github_binary_read_back": "PENDING",
-  "final_publication_status": "PENDING"
+  "github_binary_read_back": "PASS",
+  "final_publication_status": "COMPLETE",
+  "pdf_binary": "GENERATED_VALIDATED",
+  "epub_binary": "GENERATED_VALIDATED",
+  "binary_artifacts": "COMPLETE",
+  "ready_for_codex_rendering": false,
+  "overall_status": "COMPLETE",
+  "binary_archive_commit": "8738f1b625993841dbac485a38aee14208fc2f53",
+  "final_binary_paths": {
+    "pdf": "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf",
+    "epub": "editions/2026/09/2026-09-06/dragon-2026-09-06.epub"
+  },
+  "publication_completed_at": "2026-09-07T01:48:59.762586+01:00"
 }

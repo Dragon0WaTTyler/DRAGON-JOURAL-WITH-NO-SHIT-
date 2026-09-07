@@ -43,12 +43,12 @@
   "ltr_language_status": "PASS_ARY_LATN",
   "publication_source_package": "COMPLETE",
   "publishing_completion_semantics": "PUBLICATION_SOURCE_PACKAGE_COMPLETE_ONLY",
-  "pdf_binary": "NOT_GENERATED_NO_RUNTIME",
-  "epub_binary": "NOT_GENERATED_NO_RUNTIME",
-  "binary_artifacts": "PENDING_REMOTE_READBACK",
+  "pdf_binary": "GENERATED_VALIDATED",
+  "epub_binary": "GENERATED_VALIDATED",
+  "binary_artifacts": "COMPLETE",
   "ready_for_codex_rendering": false,
-  "final_publication_status": "PENDING",
-  "overall_status": "PENDING",
+  "final_publication_status": "COMPLETE",
+  "overall_status": "COMPLETE",
   "publishing_started_at": null,
   "publishing_completed_at": null,
   "cover_read_back_status": "PASS_SVG_FALLBACK",
@@ -61,5 +61,15 @@
     "pdf_rule": "PAGE_1_CANONICAL_COVER_PAGE_2_ONWARD_HTML_PLUS_PRINT_CSS",
     "epub_rule": "PACKAGE_CANONICAL_COVER_WITH_CORRECT_MEDIA_TYPE"
   },
-  "github_binary_read_back": "PENDING"
+  "github_binary_read_back": "PASS",
+  "binary_archive_commit": "8738f1b625993841dbac485a38aee14208fc2f53",
+  "binary_sha256": {
+    "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf": "1bef495a13af6ddb2fb3ffb6aa9e9733591f744435614d9c59b8b45674b876a9",
+    "editions/2026/09/2026-09-06/dragon-2026-09-06.epub": "9560e08e444f9a30b152fd3b9d6df847d9b05cbe12ffe97746d4c9dd676bb59f"
+  },
+  "final_binary_paths": {
+    "pdf": "editions/2026/09/2026-09-06/dragon-2026-09-06.pdf",
+    "epub": "editions/2026/09/2026-09-06/dragon-2026-09-06.epub"
+  },
+  "publication_completed_at": "2026-09-07T01:48:59.762586+01:00"
 }
