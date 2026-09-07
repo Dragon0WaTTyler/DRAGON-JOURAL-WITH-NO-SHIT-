@@ -223,7 +223,15 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def pdf(context: StageContext) -> StageResult:
         path = render_pdf(context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf")
-        report = validate_pdf(path)
+        active_count = sum(
+            item["status"] == "ACTIVE"
+            for item in _load(context.edition_dir / "articles.json")["articles"]
+        )
+        report = validate_pdf(
+            path,
+            minimum_pages=active_count + 1,
+            canonical_cover=context.edition_dir / "assets" / "cover.png",
+        )
         report_path = context.run_dir / "qa" / "pdf.json"
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":
@@ -241,7 +249,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def epub(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
         path = build_epub(context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_date, articles_value, context.edition_dir / "assets" / "cover.png", mode=provider.mode)
-        report = validate_epub(path)
+        report = validate_epub(
+            path,
+            canonical_cover=context.edition_dir / "assets" / "cover.png",
+            expected_article_ids=tuple(item["id"] for item in articles_value),
+        )
         report_path = context.run_dir / "qa" / "epub.json"
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":

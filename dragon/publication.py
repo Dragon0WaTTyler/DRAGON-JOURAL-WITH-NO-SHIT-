@@ -294,7 +294,12 @@ def build_epub(destination: Path, edition_date: str, articles: list[dict], cover
     return destination
 
 
-def validate_pdf(path: Path, *, minimum_pages: int = 2) -> dict:
+def validate_pdf(
+    path: Path,
+    *,
+    minimum_pages: int = 2,
+    canonical_cover: Path | None = None,
+) -> dict:
     issues: list[str] = []
     try:
         reader = PdfReader(str(path))
@@ -306,6 +311,27 @@ def validate_pdf(path: Path, *, minimum_pages: int = 2) -> dict:
         issues.append(f"PDF_PAGE_COUNT_LOW:{pages}")
     if path.stat().st_size < 10_000:
         issues.append("PDF_FILE_TOO_SMALL")
+    cover_rms = None
+    if canonical_cover is not None:
+        try:
+            from PIL import Image, ImageChops, ImageStat
+
+            if len(reader.pages[0].images) != 1:
+                raise ValueError("first page must contain exactly one canonical image")
+            with Image.open(canonical_cover) as source:
+                expected_cover = source.convert("RGB")
+            actual_cover = reader.pages[0].images[0].image.convert("RGB")
+            if actual_cover.size != expected_cover.size:
+                raise ValueError(
+                    f"cover dimensions differ: {actual_cover.size} != {expected_cover.size}"
+                )
+            cover_rms = max(
+                ImageStat.Stat(ImageChops.difference(expected_cover, actual_cover)).rms
+            )
+            if cover_rms > 8:
+                raise ValueError(f"cover visual RMS {cover_rms:.3f} exceeds 8")
+        except Exception as exc:
+            issues.append(f"PDF_CANONICAL_COVER_MISMATCH:{exc}")
     if text.strip():
         qa = validate_arabic_text(text, minimum_arabic_letters=50, allowed_latin_terms=("DRAGON",))
         issues.extend(qa.issues)
@@ -321,10 +347,25 @@ def validate_pdf(path: Path, *, minimum_pages: int = 2) -> dict:
             populated_pages += 1
     if populated_pages != pages:
         issues.append(f"PDF_BLANK_PAGES:{pages - populated_pages}")
-    return {"status": "PASS" if not issues else "FAIL", "pages": pages, "populated_pages": populated_pages, "bytes": path.stat().st_size, "text_extraction": extraction, "language": language, "issues": issues}
+    return {
+        "status": "PASS" if not issues else "FAIL",
+        "pages": pages,
+        "populated_pages": populated_pages,
+        "bytes": path.stat().st_size,
+        "text_extraction": extraction,
+        "language": language,
+        "canonical_cover_sha256": sha256_file(canonical_cover) if canonical_cover else None,
+        "cover_visual_rms": round(cover_rms, 4) if cover_rms is not None else None,
+        "issues": issues,
+    }
 
 
-def validate_epub(path: Path) -> dict:
+def validate_epub(
+    path: Path,
+    *,
+    canonical_cover: Path | None = None,
+    expected_article_ids: tuple[str, ...] = (),
+) -> dict:
     issues: list[str] = []
     required = {"mimetype", "META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml", "OEBPS/edition.xhtml", "OEBPS/cover.png"}
     try:
@@ -337,6 +378,11 @@ def validate_epub(path: Path) -> dict:
                 issues.append("EPUB_MIMETYPE_INVALID")
             package = decode_utf8(archive.read("OEBPS/content.opf"))
             xhtml = decode_utf8(archive.read("OEBPS/edition.xhtml"))
+            if canonical_cover is not None and archive.read("OEBPS/cover.png") != canonical_cover.read_bytes():
+                issues.append("EPUB_CANONICAL_COVER_MISMATCH")
+            for article_id in expected_article_ids:
+                if f'id="{article_id}"' not in xhtml:
+                    issues.append(f"EPUB_ARTICLE_MISSING:{article_id}")
             ElementTree.fromstring(package)
             issues.extend(validate_xhtml_rtl(xhtml))
             if "page-progression-direction=\"rtl\"" not in package or "<dc:language>ar</dc:language>" not in package:
@@ -346,7 +392,14 @@ def validate_epub(path: Path) -> dict:
             issues.extend(language.issues)
     except Exception as exc:
         return {"status": "FAIL", "issues": [f"EPUB_OPEN_FAILED:{exc}"]}
-    return {"status": "PASS" if not issues else "FAIL", "bytes": path.stat().st_size, "language": language.to_dict(), "issues": issues}
+    return {
+        "status": "PASS" if not issues else "FAIL",
+        "bytes": path.stat().st_size,
+        "canonical_cover_sha256": sha256_file(canonical_cover) if canonical_cover else None,
+        "article_count": len(expected_article_ids),
+        "language": language.to_dict(),
+        "issues": issues,
+    }
 
 
 def artifact_manifest(paths: list[Path], root: Path, *, mode: str) -> dict:

@@ -35,8 +35,52 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
     html.write_text('<html lang="ar" dir="rtl"></html>', encoding="utf-8")
 
     pdf = render_pdf(html, edition / "DRAGON-2099-01-02.pdf")
-    report = validate_pdf(pdf)
+    report = validate_pdf(pdf, canonical_cover=edition / "assets" / "cover.png")
 
     assert len(PdfReader(str(pdf)).pages) >= 4
     assert report["status"] == "PASS"
     assert report["populated_pages"] == report["pages"]
+    assert report["cover_visual_rms"] < 8
+
+
+def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> None:
+    edition = tmp_path / "edition"
+    edition.mkdir()
+    canonical = build_cover_png(
+        edition / "assets" / "cover.png",
+        "2099-01-02",
+        "العنوان الأصلي",
+        "المقدمة الأصلية",
+    )
+    (edition / "articles.json").write_text(
+        json.dumps(
+            {
+                "mode": "production",
+                "articles": [
+                    {
+                        "id": "a",
+                        "section": "الواجهة",
+                        "status": "ACTIVE",
+                        "headline": "العنوان الأصلي",
+                        "standfirst": "المقدمة الأصلية",
+                        "byline": "تحرير: DRAGON",
+                        "body": ["متن عربي للاختبار"],
+                        "source_urls": [],
+                    }
+                ],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    html = edition / "edition.html"
+    html.write_text("x", encoding="utf-8")
+    pdf = render_pdf(html, edition / "edition.pdf")
+    other = build_cover_png(
+        edition / "other.png",
+        "2099-01-03",
+        "عنوان مختلف تماما",
+        "مقدمة مختلفة تماما",
+    )
+    assert validate_pdf(pdf, canonical_cover=other)["status"] == "FAIL"
+    assert validate_pdf(pdf, canonical_cover=canonical)["status"] == "PASS"
