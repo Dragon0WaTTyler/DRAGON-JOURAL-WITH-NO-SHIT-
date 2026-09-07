@@ -66,7 +66,8 @@ class V5ContractTests(unittest.TestCase):
 
     def test_unconfigured_providers_are_not_claimed_available(self):
         providers = self.config["providers"]
-        self.assertEqual(providers["ai"]["type"], "unconfigured")
+        self.assertEqual(providers["ai"]["type"], "local-command")
+        self.assertEqual(providers["ai"]["integration_test_status"], "NOT_RUN")
         self.assertFalse(providers["ai"]["paid_service_auto_enable"])
         self.assertEqual(providers["repair"]["type"], "unconfigured")
         self.assertEqual(providers["whatsapp"]["type"], "unconfigured")

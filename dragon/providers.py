@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import re
 from typing import Protocol
 from urllib.parse import urlparse
@@ -431,6 +432,7 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
     command = value.get("command")
     if not isinstance(command, list) or not command or not all(isinstance(item, str) and item for item in command):
         return UnconfiguredEditorialProvider(reason="AI_PROVIDER_CONFIGURATION_INCOMPLETE")
+    command = [sys.executable if item == "{python}" else item for item in command]
     executable = command[0]
     if not Path(executable).is_file() and shutil.which(executable) is None:
         return UnconfiguredEditorialProvider(reason="AI_PROVIDER_EXECUTABLE_MISSING")

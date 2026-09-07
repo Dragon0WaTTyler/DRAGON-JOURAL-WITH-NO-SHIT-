@@ -12,6 +12,18 @@ execute the health check while the status is still `NOT_RUN`; record `PASS`
 only after reviewing a genuine result. This mechanism does not install a model,
 buy API access, or treat an interactive chat session as unattended capability.
 
+The repository includes an opt-in adapter at
+`scripts/codex_editorial_provider.py` for the detected Codex CLI. It invokes
+`codex exec` ephemerally with web search, a read-only sandbox, no approvals,
+and a JSON output schema. The command-level health check only proves that the
+CLI and ChatGPT login exist; it deliberately reports
+`editorial_generation_tested: false`. Do not change
+`integration_test_status` from `NOT_RUN` to `PASS` until both a live research
+packet and article response pass the V5 adapter validators and human review.
+The adapter consumes the signed-in account's Codex usage and is never enabled
+as a paid API or silently assigned an API key. `DRAGON_CODEX_BINARY` and
+`DRAGON_CODEX_MODEL` are optional local overrides.
+
 ## Operations
 
 - `healthcheck` receives `schema_version`. It returns `status: PASS`,

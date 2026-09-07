@@ -85,10 +85,10 @@ publication:
   delivery_status_is_independent: true
 providers:
   ai:
-    type: unconfigured
+    type: local-command
     paid_service_auto_enable: false
     integration_test_status: NOT_RUN
-    command: []
+    command: ["{python}", "scripts/codex_editorial_provider.py"]
     timeout_seconds: 7200
     minimum_active_article_words: 350
     minimum_edition_words: 4000
