@@ -46,7 +46,7 @@
     "overlap_or_clipping": "PASS"
   },
   "input_blobs": {
-    "editions/2026/09/2026-09-06/edition.md": "a28188a503f6282430cd183024d4f238179e55db",
+    "editions/2026/09/2026-09-06/edition.md": "10031cdfb6a980bcefcb964f3f69b97651099288",
     "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
     "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca"
   },
@@ -56,7 +56,8 @@
     "initial_brief_blob": "47dae469d63e154209bec8a89bae705288b52b73",
     "canonical_asset_path": "editions/2026/09/2026-09-06/assets/cover.svg",
     "canonical_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
-    "final_brief_read_back": "REQUIRED_AFTER_THIS_WRITE"
+    "final_brief_read_back": "PASS_REFRESHED_CANONICAL_EDITION",
+    "refreshed_edition_blob": "10031cdfb6a980bcefcb964f3f69b97651099288"
   },
   "generation_attempt": {
     "requested": true,
@@ -79,6 +80,6 @@
   },
   "handoff": {
     "ready_for_publication_builder": true,
-    "reason": "Canonical same-day SVG fallback is persisted, exact asset read-back passed, visual QA passed, and upstream input blobs were re-read unchanged before completion."
+    "reason": "Canonical same-day SVG fallback remains persisted and visually approved; its editorial input lineage was refreshed after a non-substantive duplicate-copy repair in the canonical edition."
   }
 }
