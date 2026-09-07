@@ -4,7 +4,20 @@ import json
 from pathlib import Path
 import subprocess
 
-from scripts.codex_editorial_provider import _probe, _run_codex
+from scripts.codex_editorial_provider import SECTION_HEADINGS, _probe, _run_codex, _schema
+
+
+def _object_schemas(value):
+    if isinstance(value, dict):
+        if value.get("type") == "object" or (
+            isinstance(value.get("type"), list) and "object" in value["type"]
+        ):
+            yield value
+        for child in value.values():
+            yield from _object_schemas(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _object_schemas(child)
 
 
 def test_health_probe_is_explicitly_cli_only() -> None:
@@ -45,3 +58,41 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
     assert command[command.index("--ask-for-approval") + 1] == "never"
     assert "--output-schema" in command
     assert "untrusted data" in kwargs["input"]
+
+
+def test_structured_output_schemas_are_strict_and_complete() -> None:
+    for operation in ("research", "articles"):
+        schema = _schema(operation)
+        assert schema["type"] == "object"
+        for object_schema in _object_schemas(schema):
+            assert object_schema["additionalProperties"] is False
+            assert set(object_schema["required"]) == set(object_schema["properties"])
+
+    research = _schema("research")
+    source = research["properties"]["sources"]["items"]
+    assert set(source["properties"]) == {
+        "id", "url", "publisher", "publication_date", "accessed_at", "source_type",
+        "claim_supported",
+    }
+    section = research["properties"]["sections"]["items"]
+    assert section["properties"]["section_id"]["enum"] == [
+        section_id for section_id, _ in SECTION_HEADINGS
+    ]
+    assert section["properties"]["candidates"]["minItems"] == 2
+
+    articles = _schema("articles")
+    assert set(articles["properties"]) == {"articles"}
+    decision = articles["properties"]["articles"]["items"]
+    assert decision["properties"]["status"]["enum"] == ["ACTIVE", "SKIPPED"]
+    assert "null" in decision["properties"]["skip_reason"]["type"]
+
+
+def test_article_wrapper_is_unwrapped_for_provider_protocol() -> None:
+    def runner(command, **kwargs):
+        output = Path(command[command.index("--output-last-message") + 1])
+        output.write_text(json.dumps({"articles": [{"section_id": "front"}]}), encoding="utf-8")
+        return subprocess.CompletedProcess(command, 0, "", "")
+
+    value = _run_codex("articles", {"research": {}}, binary="codex", runner=runner)
+
+    assert value == [{"section_id": "front"}]
