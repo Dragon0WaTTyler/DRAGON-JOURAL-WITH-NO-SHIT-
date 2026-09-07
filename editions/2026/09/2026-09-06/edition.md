@@ -304,14 +304,6 @@ L-as2ila li katb9a mftou7a hya wash statement ghadi ytb3o b-steps diplomatic, pu
 
 L-people li kay3icho f area ma kay9issouch l-policy b-lafdat fa9at; kay9issouha b-movement, security, access l-land w accountability. Had perspective katfssr 3lach wa7d statement t9der ykoun mohim walakin ma kaykfi-ch. L-coverage l-jaya khas-ha t7ett ay taghyir f context practical, ma-shi t3awed nfs l-quote. [S13] [S14]
 
-Tasri7 diplomat y9der ybddl ton dyal n9ach, walakin ma y9derch bo7do ywthi9 incident, y7mi community, aw ybddl procedure. Hna l-far9 bin language w action ma-shi technical: huwa li kay7mi l-reader mn wa7d conclusion sria blli policy tbdlat kamla. AP kayn9el l-kalima, w dakchi li t3ta f l-source huwa basis l-khabar. [S13]
-
-Field reporting 3la outposts w flags kay3ti context 3la pressure f l-West Bank, walakin ma khasch n7awloukol description l-qanoun aw l-mas2ouliya l-nihaiya bla documents zyada. F conflict, l-attribution ma hiyach weakness f writing; hiya tari9a bach nfarr9o bin wa9i3 li source shahdo, claim dyal actor, w conclusion li kat7taj investigation. [S14]
-
-L-as2ila li katb9a mftou7a hya wash statement ghadi ytb3o b-steps diplomatic, public pressure, sanctions aw monitoring. Ma kaynach jawab f current reporting. L-edition katb9a 3la ma howa mthbet: l-lougha qwiya w context 3la l-ard kaystahal l-motaba3a, walakin l-implementation mazel ma tverifach. [S13] [S14]
-
-L-people li kay3icho f area ma kay9issouch l-policy b-lafdat fa9at; kay9issouha b-movement, security, access l-land w accountability. Had perspective katfssr 3lach wa7d statement t9der ykoun mohim walakin ma kaykfi-ch. L-coverage l-jaya khas-ha t7ett ay taghyir f context practical, ma-shi t3awed nfs l-quote. [S13] [S14]
-
 *AP na9lat 3la US ambassador Mike Huckabee kayst3mel kalimat terrorists 3la violent settlers; hadi lougha diplomasiya qwiya, walakin ma kat3nich bo7dha taghyir mthbet f enforcement aw policy 3la l-ard.*
 
 Tahrir: DRAGON
