@@ -62,6 +62,8 @@ def main() -> int:
 
     if schedule.get("enabled") is not True:
         errors.append("config/schedule.yaml must declare active ChatGPT scheduling")
+    if schedule.get("legacy_runner_enabled") is not False:
+        errors.append("config/schedule.yaml must explicitly disable the legacy runner")
     if schedule.get("timezone") != "Africa/Casablanca":
         errors.append("config/schedule.yaml timezone must remain Africa/Casablanca")
     if workflow.get("enabled") is not True:
@@ -97,6 +99,8 @@ def main() -> int:
         errors.append("scheduled execution environment must be chatgpt-scheduled-work")
     if production.get("scheduled_repository_executable_runtime") != "NOT_AVAILABLE":
         errors.append("tested Scheduled Work repository runtime limitation must be NOT_AVAILABLE")
+    if constraints.get("scheduling", {}).get("legacy_runner_schedule_must_remain_disabled") is not True:
+        errors.append("execution constraints must keep the legacy runner disabled")
 
     capabilities = workflow.get("connector_capabilities", {})
     expected_caps = {

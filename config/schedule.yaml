@@ -1,5 +1,6 @@
 enabled: true
 mode: chatgpt-scheduled-production-active
+legacy_runner_enabled: false
 timezone: Africa/Casablanca
 super_jobs: 5
 hard_requirement: cloud-only

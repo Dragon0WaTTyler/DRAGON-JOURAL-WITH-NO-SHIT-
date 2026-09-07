@@ -16,6 +16,7 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
     def setUpClass(cls):
         cls.workflow = yaml.safe_load((ROOT/"config/scheduled-workflow.yaml").read_text())
         cls.schedule = yaml.safe_load((ROOT/"config/schedule.yaml").read_text())
+        cls.constraints = yaml.safe_load((ROOT/"config/execution-constraints.yaml").read_text())
         cls.roles = yaml.safe_load((ROOT/"config/roles.yaml").read_text())
         cls.architecture = yaml.safe_load((ROOT/"config/edition-architecture.yaml").read_text())
 
@@ -29,6 +30,8 @@ class ScheduledWorkflowContractTests(unittest.TestCase):
         self.assertTrue(all(j["timezone"] == "Africa/Casablanca" for j in self.workflow["jobs"]))
         self.assertTrue(self.workflow["enabled"])
         self.assertTrue(self.schedule["enabled"])
+        self.assertFalse(self.schedule["legacy_runner_enabled"])
+        self.assertTrue(self.constraints["scheduling"]["legacy_runner_schedule_must_remain_disabled"])
         self.assertEqual(self.workflow["activation"], "chatgpt-scheduled-tasks-active")
         self.assertEqual(self.workflow["scheduling"]["current_mode"], "chatgpt-scheduled-production-active")
 

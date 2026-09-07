@@ -34,7 +34,7 @@ All dates/times use Africa/Casablanca. Keep 13 roles in config/roles.yaml.
 4. 09:25 Cover Director — cover; requires editorial.
 5. 09:55 Publication Builder — publishing; requires editorial and cover.
 
-Read each full role prompt in prompts/scheduled/. The external ChatGPT schedules must reference those files; editing this repository does not update the user's existing schedule settings. config/schedule.yaml remains disabled for the legacy runner. .github/workflows/publish.yml runs on main pushes, every 30 minutes as recovery, or manual dispatch. It checks Casablanca today/yesterday, never future pilot fixtures. GitHub scheduling can be delayed.
+Read each full role prompt in prompts/scheduled/. The external ChatGPT schedules must reference those files; editing this repository does not update the user's existing schedule settings. config/schedule.yaml records those active external schedules; the legacy repository runner remains disabled. .github/workflows/publish.yml runs on main pushes, every 30 minutes as recovery, or manual dispatch. It checks Casablanca today/yesterday, never future pilot fixtures. GitHub scheduling can be delayed.
 
 ## Ownership and concurrency
 

@@ -21,7 +21,7 @@ production:
   automatic_binary_render_environment: github-hosted-ubuntu
 scheduling:
   timezone: Africa/Casablanca
-  config_schedule_must_remain_disabled: true
+  legacy_runner_schedule_must_remain_disabled: true
   codex_cloud_native_schedule_required: false
   codex_cloud_scheduling_allowed: false
   note: Five ChatGPT schedules remain external. GitHub Actions push plus UTC polling
