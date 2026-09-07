@@ -93,3 +93,26 @@ def test_provider_rejects_homepage_as_exact_research_evidence(tmp_path: Path) ->
         assert exc.code == "RESEARCH_PACKET_INVALID"
     else:
         raise AssertionError("homepage was accepted as exact evidence")
+
+
+def test_provider_rejects_invalid_article_output() -> None:
+    class InvalidArticleProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            assert operation == "articles"
+            return [{"section_id": "front", "status": "ACTIVE"}]
+
+    provider = InvalidArticleProvider(("unused",))
+    research = {
+        "sources": [{"id": "s1"}],
+        "sections": [
+            {"section_id": section_id, "selected_candidate_id": f"{section_id}-c1"}
+            for section_id, _ in SECTION_HEADINGS
+        ],
+    }
+
+    try:
+        provider.articles(research)
+    except ProviderError as exc:
+        assert exc.code == "ARTICLE_SCHEMA_INVALID"
+    else:
+        raise AssertionError("invalid article output was accepted")

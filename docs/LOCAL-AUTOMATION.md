@@ -27,6 +27,12 @@ For a deterministic local acceptance run only:
 python dragon_daily.py --synthetic --date 2099-01-02
 ```
 
+For a durable machine record of the required failure-injection scenarios:
+
+```text
+python dragon_chaos_check.py
+```
+
 Synthetic mode is visibly labelled in preflight, research, fact-check, cover,
 final-QA, and manifest artifacts. It bypasses production network and AI checks
 solely to verify orchestration and publication mechanics. It is not an

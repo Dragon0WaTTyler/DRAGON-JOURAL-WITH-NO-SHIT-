@@ -32,6 +32,7 @@ RUNTIME_FIXED_PATHS = (
     "dragon_daily.py",
     "dragon_watchdog.py",
     "dragon_acceptance.py",
+    "dragon_chaos_check.py",
     "dragon_provider_check.py",
     "scripts/codex_editorial_provider.py",
     "config/local-automation.yaml",

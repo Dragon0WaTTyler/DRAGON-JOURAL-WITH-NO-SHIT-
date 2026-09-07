@@ -31,6 +31,14 @@ is backed by hash-valid local artifacts and reviewed evidence.
 Evidence files must contain genuine observations. Do not create placeholder
 `PASS` files to satisfy the audit.
 
+Run `python dragon_chaos_check.py` to create the machine side of item 5. It
+executes the explicit process-interruption, network-timeout, EPUB-corruption,
+PDF, Git, WhatsApp, stale-lock, and invalid-article scenarios and writes a
+runtime-bound receipt plus hashed JUnit XML under
+`acceptance/machine/failure-injection/`. The command deliberately records
+`human_review_status: NOT_REVIEWED`; a human must inspect it and cite its exact
+receipt/JUnit hashes from `failure-injection.json`.
+
 Each review file uses schema version 5 and must contain a timezone-aware
 `reviewed_at`, a real `reviewed_by`, the current `runtime_fingerprint`, every
 check named for that file in `config/cutover-acceptance.yaml` with value
