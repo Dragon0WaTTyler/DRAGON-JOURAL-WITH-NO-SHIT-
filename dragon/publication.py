@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from html import escape
 import json
+import os
 from pathlib import Path
 import re
 from xml.etree import ElementTree
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
+from pypdf.generic import RectangleObject
 from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl, validate_xhtml_rtl
 from dragon.state import sha256_file
 
@@ -192,6 +194,7 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     edition_date = html_path.parent.name
     size = (827, 1169)
     pages = []
+    page_links: list[list[tuple[str, int]]] = [[]]
     with Image.open(html_path.parent / "assets" / "cover.png") as source_cover:
         cover = source_cover.convert("RGB").resize(size)
     pages.append(cover)
@@ -203,6 +206,7 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
 
     for article in articles:
         page, draw = new_content_page()
+        links: list[tuple[str, int]] = []
         y = 85
         y = _draw_rtl(draw, (750, y), article["section"], _font(19), fill="#9e1523", spacing=30, width=675)
         y += 10
@@ -219,7 +223,9 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
             for line in lines:
                 if y + 29 > 1030:
                     pages.append(page)
+                    page_links.append(links)
                     page, draw = new_content_page()
+                    links = []
                     y = 85
                     y = _draw_rtl(
                         draw,
@@ -243,7 +249,9 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
             y += 18
         if y + 75 > 1070:
             pages.append(page)
+            page_links.append(links)
             page, draw = new_content_page()
+            links = []
             y = 85
         source_y = _draw_rtl(
             draw,
@@ -259,16 +267,50 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
             for line in _ltr_lines(draw, url, font, 675):
                 if source_y + 18 > 1090:
                     pages.append(page)
+                    page_links.append(links)
                     page, draw = new_content_page()
+                    links = []
                     source_y = 85
                 draw.text((750, source_y), line, font=font, fill="#555555", anchor="ra")
+                links.append((str(url), source_y))
                 source_y += 18
         pages.append(page)
+        page_links.append(links)
     first, rest = pages[0], pages[1:]
     subject = "synthetic acceptance fixture" if mode == "synthetic" else "Arabic daily newspaper"
-    first.save(destination, "PDF", resolution=110.0, save_all=True, append_images=rest, title=f"DRAGON {edition_date}", author="DRAGON", subject=subject, creator="DRAGON Pillow RTL renderer")
-    for page in pages:
-        page.close()
+    raster_destination = destination.with_name(f".{destination.name}.raster.pdf")
+    linked_destination = destination.with_name(f".{destination.name}.linked.pdf")
+    try:
+        first.save(raster_destination, "PDF", resolution=110.0, save_all=True, append_images=rest, title=f"DRAGON {edition_date}", author="DRAGON", subject=subject, creator="DRAGON Pillow RTL renderer")
+        reader = PdfReader(str(raster_destination))
+        writer = PdfWriter()
+        writer.clone_document_from_reader(reader)
+        x_scale = float(reader.pages[0].mediabox.width) / size[0]
+        y_scale = float(reader.pages[0].mediabox.height) / size[1]
+        for page_number, links_for_page in enumerate(page_links):
+            for url, top in links_for_page:
+                writer.add_uri(
+                    page_number,
+                    url,
+                    RectangleObject(
+                        (
+                            75 * x_scale,
+                            (size[1] - (top + 18)) * y_scale,
+                            750 * x_scale,
+                            (size[1] - top) * y_scale,
+                        )
+                    ),
+                )
+        with linked_destination.open("wb") as stream:
+            writer.write(stream)
+        if len(PdfReader(str(linked_destination)).pages) != len(pages):
+            raise ValueError("linked PDF page count changed")
+        os.replace(linked_destination, destination)
+    finally:
+        raster_destination.unlink(missing_ok=True)
+        linked_destination.unlink(missing_ok=True)
+        for page in pages:
+            page.close()
 
 
 def render_pdf(html_path: Path, destination: Path) -> Path:
@@ -317,6 +359,7 @@ def validate_pdf(
     *,
     minimum_pages: int = 2,
     canonical_cover: Path | None = None,
+    expected_source_urls: tuple[str, ...] = (),
 ) -> dict:
     issues: list[str] = []
     try:
@@ -359,12 +402,22 @@ def validate_pdf(
         language = {"status": "NOT_APPLICABLE", "reason": "raster PDF; Arabic validated at canonical source and visual renderer inputs"}
         extraction = "UNAVAILABLE_RASTER"
     populated_pages = 0
+    linked_urls: set[str] = set()
     for page in reader.pages:
         resources = page.get("/Resources") or {}
         if page.extract_text().strip() or resources.get("/XObject"):
             populated_pages += 1
+        for annotation_reference in page.get("/Annots", []):
+            annotation = annotation_reference.get_object()
+            action = annotation.get("/A") or {}
+            uri = action.get("/URI")
+            if uri:
+                linked_urls.add(str(uri))
     if populated_pages != pages:
         issues.append(f"PDF_BLANK_PAGES:{pages - populated_pages}")
+    for url in expected_source_urls:
+        if url not in linked_urls:
+            issues.append(f"PDF_SOURCE_LINK_MISSING:{url}")
     return {
         "status": "PASS" if not issues else "FAIL",
         "pages": pages,
@@ -374,6 +427,7 @@ def validate_pdf(
         "language": language,
         "canonical_cover_sha256": sha256_file(canonical_cover) if canonical_cover else None,
         "cover_visual_rms": round(cover_rms, 4) if cover_rms is not None else None,
+        "source_links": len(linked_urls),
         "issues": issues,
     }
 

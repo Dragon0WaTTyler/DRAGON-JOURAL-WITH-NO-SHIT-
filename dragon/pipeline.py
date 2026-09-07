@@ -252,6 +252,12 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             path,
             minimum_pages=active_count + 1,
             canonical_cover=context.edition_dir / "assets" / "cover.png",
+            expected_source_urls=tuple(
+                url
+                for item in _load(context.edition_dir / "articles.json")["articles"]
+                if item["status"] == "ACTIVE"
+                for url in item["source_urls"]
+            ),
         )
         report_path = context.run_dir / "qa" / "pdf.json"
         atomic_write_json(report_path, report)

@@ -40,12 +40,26 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
     html.write_text('<html lang="ar" dir="rtl"></html>', encoding="utf-8")
 
     pdf = render_pdf(html, edition / "DRAGON-2099-01-02.pdf")
-    report = validate_pdf(pdf, canonical_cover=edition / "assets" / "cover.png")
+    report = validate_pdf(
+        pdf,
+        canonical_cover=edition / "assets" / "cover.png",
+        expected_source_urls=tuple(article["source_urls"]),
+    )
 
     assert len(PdfReader(str(pdf)).pages) >= 4
     assert report["status"] == "PASS"
     assert report["populated_pages"] == report["pages"]
     assert report["cover_visual_rms"] < 8
+    assert report["source_links"] == 1
+    annotations = [
+        annotation.get_object()
+        for page in PdfReader(str(pdf)).pages
+        for annotation in page.get("/Annots", [])
+    ]
+    assert any(
+        str((annotation.get("/A") or {}).get("/URI")) == article["source_urls"][0]
+        for annotation in annotations
+    )
 
 
 def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> None:

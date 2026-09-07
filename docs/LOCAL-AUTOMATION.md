@@ -168,7 +168,9 @@ boundary and therefore leaves an auditable recovery history.
 The Windows PDF backend flows long Arabic bodies across as many populated pages
 as required. It never enforces a fixed page count or clips verified prose to fit
 an article-sized canvas. Continuation pages repeat a compact story identifier;
-exact source URLs flow at the end of the story.
+exact source URLs flow at the end of the story and are also embedded as PDF URI
+annotations. PDF QA requires every canonical article source URL to have a
+matching clickable annotation.
 
 ## Migration safety
 
