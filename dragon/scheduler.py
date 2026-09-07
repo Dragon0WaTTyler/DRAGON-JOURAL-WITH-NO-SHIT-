@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 
 from dragon.config import load_local_config
+from dragon.state import runtime_fingerprint, source_revision
 
 
 def settings(root: Path) -> dict[str, object]:
@@ -22,6 +23,8 @@ def settings(root: Path) -> dict[str, object]:
         "python": sys.executable,
         "watchdog": str((root / "dragon_watchdog.py").resolve()),
         "working_directory": str(root.resolve()),
+        "runtime_fingerprint": runtime_fingerprint(root),
+        "source_git_revision": source_revision(root),
     }
 
 

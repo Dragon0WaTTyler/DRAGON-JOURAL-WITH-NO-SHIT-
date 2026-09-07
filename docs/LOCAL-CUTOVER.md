@@ -28,6 +28,11 @@ is backed by hash-valid local artifacts and reviewed evidence.
    exactly one matching enabled task, start/deadline behavior, watchdog recovery
    observation, `status: PASS`, and `reviewed_by`.
 
+After installing the trial task, run
+`powershell -File scripts/windows/test-scheduler.ps1`. Its machine inventory is
+written to `acceptance/machine/scheduler/inventory.json`; cite that exact file
+and the dated watchdog-produced state/reports from the human scheduler review.
+
 Evidence files must contain genuine observations. Do not create placeholder
 `PASS` files to satisfy the audit.
 

@@ -231,3 +231,10 @@ python dragon_watchdog.py --check-only
 Installation refuses while `scheduler.enabled` is false unless the operator
 explicitly uses `-AllowBeforeCutover` for a trial. `MultipleInstances=IgnoreNew`
 and the repository run lock provide independent duplicate-run protection.
+The test script inventories every task whose action invokes this repository's
+watchdog, requires exactly one enabled match, verifies its single action,
+single trigger, configured start/repetition, `IgnoreNew`, and
+`StartWhenAvailable`, then atomically records runtime-bound inventory evidence
+at `acceptance/machine/scheduler/inventory.json`. It does not prove unattended
+publication by itself; the dated watchdog runs and human scheduler review remain
+required.

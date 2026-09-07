@@ -17,6 +17,8 @@ class V5SchedulerRepairTests(unittest.TestCase):
         self.assertFalse(value["enabled"])
         self.assertTrue(str(value["watchdog"]).endswith("dragon_watchdog.py"))
         self.assertEqual(value["interval_minutes"], 15)
+        self.assertEqual(len(value["runtime_fingerprint"]), 64)
+        self.assertTrue(value["source_git_revision"])
 
     def test_windows_helpers_manage_the_same_single_task(self):
         files = [
@@ -35,6 +37,11 @@ class V5SchedulerRepairTests(unittest.TestCase):
         install = files[0].read_text(encoding="utf-8")
         self.assertIn("MultipleInstances IgnoreNew", install)
         self.assertIn("AllowBeforeCutover", install)
+        verifier = files[2].read_text(encoding="utf-8")
+        self.assertIn("EnabledMatching.Count -ne 1", verifier)
+        self.assertIn("Repetition.Interval", verifier)
+        self.assertIn("MultipleInstances", verifier)
+        self.assertIn("acceptance\\machine\\scheduler\\inventory.json", verifier)
 
     def test_unproved_repair_provider_is_unavailable(self):
         config = load_local_config(ROOT)
