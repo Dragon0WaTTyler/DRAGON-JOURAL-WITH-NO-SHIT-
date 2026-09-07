@@ -30,19 +30,35 @@ def _article_markup(article: dict, *, xhtml: bool = False) -> str:
     )
 
 
-def cover_svg(edition_date: str, *, mode: str = "production") -> str:
-    edition_label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
+def build_cover_png(
+    destination: Path,
+    edition_date: str,
+    headline: str,
+    standfirst: str,
+    *,
+    mode: str = "production",
+) -> Path:
+    """Build the one canonical cover image consumed by every output format."""
+    from PIL import Image, ImageDraw
+
+    size = (827, 1169)
+    cover = Image.new("RGB", size, "#f5efe3")
+    draw = ImageDraw.Draw(cover)
+    draw.rectangle((42, 42, 785, 1127), outline="#111111", width=3)
+    draw.rectangle((42, 42, 785, 66), fill="#9e1523")
+    draw.text((413, 185), "DRAGON", font=_font(82), fill="#111111", anchor="mm")
+    _draw_rtl(draw, (735, 305), headline, _font(42), fill="#111111", spacing=57, width=645)
+    draw.line((92, 495, 735, 495), fill="#9e1523", width=6)
+    _draw_rtl(draw, (735, 550), standfirst, _font(24), fill="#222222", spacing=38, width=645)
+    label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
     footer = "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة"
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
-<rect width="1240" height="1754" fill="#f5efe3"/><rect x="64" y="64" width="1112" height="1626" fill="none" stroke="#111" stroke-width="4"/>
-<rect x="64" y="64" width="1112" height="32" fill="#9e1523"/>
-<text x="620" y="430" text-anchor="middle" font-family="Arial" font-size="150" font-weight="700" fill="#111">DRAGON</text>
-<text x="620" y="570" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="58" fill="#111">صحيفة عربية يومية</text>
-<line x1="210" y1="650" x2="1030" y2="650" stroke="#9e1523" stroke-width="8"/>
-<text x="620" y="800" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="52" fill="#111">{edition_label}</text>
-<text x="620" y="910" text-anchor="middle" font-family="Arial" font-size="38" fill="#333">{escape(edition_date)}</text>
-<text x="620" y="1500" text-anchor="middle" direction="rtl" unicode-bidi="bidi-override" font-family="Tahoma, Arial" font-size="30" fill="#333">{footer}</text>
-</svg>'''
+    _draw_rtl(draw, (735, 880), label, _font(25), fill="#9e1523", spacing=38, width=645)
+    draw.text((413, 955), edition_date, font=_font(22), fill="#333333", anchor="mm")
+    _draw_rtl(draw, (735, 1050), footer, _font(17), fill="#333333", spacing=28, width=645)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    cover.save(destination, "PNG", optimize=True)
+    cover.close()
+    return destination
 
 
 PRINT_CSS = """
@@ -68,13 +84,12 @@ a { color: #333; overflow-wrap: anywhere; }
 def build_html(edition_dir: Path, edition_date: str, articles: list[dict], *, mode: str = "production") -> Path:
     assets = edition_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    (assets / "cover.svg").write_text(cover_svg(edition_date, mode=mode), encoding="utf-8", newline="\n")
     (edition_dir / "print-v5.css").write_text(PRINT_CSS, encoding="utf-8", newline="\n")
     article_html = "".join(_article_markup(article) for article in articles)
     document = f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
 <meta name="date" content="{edition_date}"/><title>DRAGON — {edition_date}</title>
 <link rel="stylesheet" href="print-v5.css"/></head><body dir="rtl">
-<section class="cover"><img src="assets/cover.svg" alt="غلاف صحيفة دراغون"/></section>
+<section class="cover"><img src="assets/cover.png" alt="غلاف صحيفة دراغون"/></section>
 <main class="content"><header class="masthead"><p class="brand" lang="en" dir="ltr">DRAGON</p>
 <h1>{'نسخة اختبار اصطناعية' if mode == 'synthetic' else 'النسخة اليومية'}</h1><time datetime="{edition_date}" dir="ltr">{edition_date}</time></header>
 {article_html}</main></body></html>'''
@@ -130,7 +145,7 @@ def _draw_rtl(draw, xy: tuple[int, int], text: str, font, *, fill: str, spacing:
 
 
 def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
-    """Portable Windows renderer with native Pillow/RAQM RTL shaping."""
+    """Portable Windows renderer with explicit Arabic shaping and bidi."""
     from PIL import Image, ImageDraw
 
     articles_path = html_path.with_name("articles.json")
@@ -140,16 +155,8 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     edition_date = html_path.parent.name
     size = (827, 1169)
     pages = []
-    cover = Image.new("RGB", size, "#f5efe3")
-    draw = ImageDraw.Draw(cover)
-    draw.rectangle((42, 42, 785, 1127), outline="#111111", width=3)
-    draw.rectangle((42, 42, 785, 66), fill="#9e1523")
-    draw.text((413, 280), "DRAGON", font=_font(92), fill="#111111", anchor="mm")
-    _draw_rtl(draw, (730, 420), "صحيفة عربية يومية", _font(42), fill="#111111", spacing=54, width=635)
-    draw.line((140, 500, 687, 500), fill="#9e1523", width=6)
-    _draw_rtl(draw, (730, 590), "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية", _font(36), fill="#111111", spacing=48, width=635)
-    draw.text((413, 700), edition_date, font=_font(26), fill="#333333", anchor="mm")
-    _draw_rtl(draw, (730, 1010), "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة", _font(22), fill="#333333", spacing=34, width=635)
+    with Image.open(html_path.parent / "assets" / "cover.png") as source_cover:
+        cover = source_cover.convert("RGB").resize(size)
     pages.append(cover)
     for article in articles:
         page = Image.new("RGB", size, "white")
@@ -168,10 +175,22 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
         for paragraph in article["body"]:
             y = _draw_rtl(draw, (750, y), paragraph, _font(18), fill="#111111", spacing=29, width=675)
             y += 18
-        _draw_rtl(draw, (750, min(y + 5, 1080)), "المصدر: مصدر تجريبي غير صحفي", _font(13), fill="#555555", spacing=20, width=675)
+        source_y = _draw_rtl(
+            draw,
+            (750, min(y + 5, 1035)),
+            "المصادر:",
+            _font(13),
+            fill="#555555",
+            spacing=20,
+            width=675,
+        )
+        for url in article.get("source_urls", []):
+            draw.text((750, source_y), url, font=_font(11), fill="#555555", anchor="ra")
+            source_y += 18
         pages.append(page)
     first, rest = pages[0], pages[1:]
-    first.save(destination, "PDF", resolution=110.0, save_all=True, append_images=rest, title=f"DRAGON {edition_date}", author="DRAGON", subject="synthetic acceptance fixture", creator="DRAGON Pillow RTL renderer")
+    subject = "synthetic acceptance fixture" if mode == "synthetic" else "Arabic daily newspaper"
+    first.save(destination, "PDF", resolution=110.0, save_all=True, append_images=rest, title=f"DRAGON {edition_date}", author="DRAGON", subject=subject, creator="DRAGON Pillow RTL renderer")
     for page in pages:
         page.close()
 
@@ -197,12 +216,12 @@ def _xhtml(edition_date: str, articles: list[dict], *, mode: str) -> str:
 
 def build_epub(destination: Path, edition_date: str, articles: list[dict], cover_path: Path, *, mode: str = "production") -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    identifier = f"urn:dragon:synthetic:{edition_date}"
+    identifier = f"urn:dragon:{mode}:{edition_date}"
     container = '''<?xml version="1.0"?><container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container"><rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles></container>'''
     package = f'''<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid" xml:lang="ar" dir="rtl" page-progression-direction="rtl">
 <metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="bookid">{identifier}</dc:identifier><dc:title>DRAGON — {edition_date}</dc:title><dc:language>ar</dc:language><dc:creator>DRAGON</dc:creator><meta property="dcterms:modified">{edition_date}T07:00:00Z</meta><meta name="cover" content="cover-image"/></metadata>
-<manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="edition" href="edition.xhtml" media-type="application/xhtml+xml"/><item id="css" href="style.css" media-type="text/css"/><item id="cover-image" href="cover.svg" media-type="image/svg+xml" properties="cover-image"/></manifest>
+<manifest><item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="edition" href="edition.xhtml" media-type="application/xhtml+xml"/><item id="css" href="style.css" media-type="text/css"/><item id="cover-image" href="cover.png" media-type="image/png" properties="cover-image"/></manifest>
 <spine page-progression-direction="rtl"><itemref idref="edition"/></spine></package>'''
     nav = '''<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl"><head><title>الفهرس</title></head><body><nav epub:type="toc" xmlns:epub="http://www.idpf.org/2007/ops"><h1>الفهرس</h1><ol><li><a href="edition.xhtml">النسخة الكاملة</a></li></ol></nav></body></html>'''
     css = "html,body{direction:rtl;font-family:serif;line-height:1.7} article{break-before:page} h1,h2,p{text-align:right}.section{font-weight:bold}"
@@ -213,7 +232,7 @@ def build_epub(destination: Path, edition_date: str, articles: list[dict], cover
         archive.writestr("OEBPS/nav.xhtml", nav, compress_type=ZIP_DEFLATED)
         archive.writestr("OEBPS/edition.xhtml", _xhtml(edition_date, articles, mode=mode), compress_type=ZIP_DEFLATED)
         archive.writestr("OEBPS/style.css", css, compress_type=ZIP_DEFLATED)
-        archive.write(cover_path, "OEBPS/cover.svg", compress_type=ZIP_DEFLATED)
+        archive.write(cover_path, "OEBPS/cover.png", compress_type=ZIP_DEFLATED)
     return destination
 
 
@@ -249,7 +268,7 @@ def validate_pdf(path: Path, *, minimum_pages: int = 2) -> dict:
 
 def validate_epub(path: Path) -> dict:
     issues: list[str] = []
-    required = {"mimetype", "META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml", "OEBPS/edition.xhtml", "OEBPS/cover.svg"}
+    required = {"mimetype", "META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml", "OEBPS/edition.xhtml", "OEBPS/cover.png"}
     try:
         with ZipFile(path) as archive:
             names = set(archive.namelist())

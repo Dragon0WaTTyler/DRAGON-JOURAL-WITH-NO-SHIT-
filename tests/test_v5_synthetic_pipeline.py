@@ -33,6 +33,7 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
         assert archive.namelist()[0] == "mimetype"
         assert archive.getinfo("mimetype").compress_type == ZIP_STORED
         assert b"<dc:language>ar</dc:language>" in archive.read("OEBPS/content.opf")
+        assert archive.read("OEBPS/cover.png") == (edition / "assets" / "cover.png").read_bytes()
         xhtml = archive.read("OEBPS/edition.xhtml").decode("utf-8")
         assert 'lang="ar"' in xhtml and 'dir="rtl"' in xhtml
     report = json.loads((edition / "final-qa.json").read_text(encoding="utf-8"))

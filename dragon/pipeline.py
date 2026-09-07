@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from xml.etree import ElementTree
 
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
@@ -15,7 +14,7 @@ from dragon.publication import (
     artifact_manifest,
     build_epub,
     build_html,
-    cover_svg,
+    build_cover_png,
     render_pdf,
     validate_epub,
     validate_pdf,
@@ -179,15 +178,29 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         )
 
     def cover(context: StageContext) -> StageResult:
-        path = _write_text(context.edition_dir / "assets" / "cover.svg", cover_svg(context.edition_date, mode=provider.mode))
+        decisions = _load(context.edition_dir / "articles.json")["articles"]
+        lead = next((item for item in decisions if item["status"] == "ACTIVE"), None)
+        if lead is None:
+            raise StageFailure("COVER_FAILED", "no active final-edition story is available")
+        path = build_cover_png(
+            context.edition_dir / "assets" / "cover.png",
+            context.edition_date,
+            lead["headline"],
+            lead["standfirst"],
+            mode=provider.mode,
+        )
         try:
-            root = ElementTree.fromstring(path.read_text(encoding="utf-8"))
-        except ElementTree.ParseError as exc:
-            raise StageFailure("COVER_SVG_INVALID", str(exc), outputs=(path,)) from exc
-        if not root.tag.endswith("svg"):
-            raise StageFailure("COVER_SVG_INVALID", "root is not svg", outputs=(path,))
+            from PIL import Image
+
+            with Image.open(path) as image:
+                image.verify()
+                dimensions = image.size
+        except Exception as exc:
+            raise StageFailure("COVER_FAILED", str(exc), outputs=(path,)) from exc
+        if dimensions != (827, 1169):
+            raise StageFailure("COVER_FAILED", f"unexpected dimensions {dimensions}", outputs=(path,))
         brief = context.edition_dir / "cover-brief.json"
-        atomic_write_json(brief, {"mode": provider.mode, "canonical": "assets/cover.svg", "accepted": True, "warning": "غلاف اختبار اصطناعي" if synthetic else None})
+        atomic_write_json(brief, {"mode": provider.mode, "canonical": "assets/cover.png", "accepted": True, "source_article_id": lead["id"], "headline": lead["headline"], "warning": "غلاف اختبار اصطناعي" if synthetic else None})
         return StageResult(
             (path, brief), inputs=(context.edition_dir / "edition-plan.json",)
         )
@@ -204,7 +217,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             inputs=(
                 context.edition_dir / "articles.json",
                 context.edition_dir / "edition-plan.json",
-                context.edition_dir / "assets" / "cover.svg",
+                context.edition_dir / "assets" / "cover.png",
             ),
         )
 
@@ -220,14 +233,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             inputs=(
                 context.edition_dir / "edition.html",
                 context.edition_dir / "print-v5.css",
-                context.edition_dir / "assets" / "cover.svg",
+                context.edition_dir / "assets" / "cover.png",
                 context.edition_dir / "articles.json",
             ),
         )
 
     def epub(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
-        path = build_epub(context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_date, articles_value, context.edition_dir / "assets" / "cover.svg", mode=provider.mode)
+        path = build_epub(context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_date, articles_value, context.edition_dir / "assets" / "cover.png", mode=provider.mode)
         report = validate_epub(path)
         report_path = context.run_dir / "qa" / "epub.json"
         atomic_write_json(report_path, report)
@@ -237,7 +250,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             (path, report_path),
             inputs=(
                 context.edition_dir / "articles.json",
-                context.edition_dir / "assets" / "cover.svg",
+                context.edition_dir / "assets" / "cover.png",
             ),
         )
 
@@ -259,7 +272,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             continuity_path,
             build_snapshot(context.edition_date, provider.mode, decisions),
         )
-        artifacts = [context.edition_dir / "edition.md", context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf", context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_dir / "assets" / "cover.svg", continuity_path]
+        artifacts = [context.edition_dir / "edition.md", context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf", context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_dir / "assets" / "cover.png", continuity_path]
         report = {"status": "PASS" if not issues else "FAIL", "mode": provider.mode, "active_sections": active, "issues": issues, **artifact_manifest(artifacts, context.root, mode=provider.mode)}
         report_path = context.edition_dir / "final-qa.json"
         atomic_write_json(report_path, report)
