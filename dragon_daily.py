@@ -5,12 +5,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from dragon.builtin_stages import preflight_stage
 from dragon.config import load_local_config
 from dragon.orchestrator import Orchestrator
+from dragon.recovery import RecoveryEngine, RecoveryPolicy
 from dragon.stages import unavailable_stage
 
 
@@ -34,7 +37,7 @@ def build_orchestrator(edition_date: str) -> Orchestrator:
     names = config["orchestrator"]["stages"]
     definitions = []
     for index, name in enumerate(names):
-        stage = unavailable_stage(name)
+        stage = preflight_stage() if name == "preflight" else unavailable_stage(name)
         definitions.append(
             type(stage)(
                 name=stage.name,
@@ -48,6 +51,10 @@ def build_orchestrator(edition_date: str) -> Orchestrator:
         edition_date=edition_date,
         timezone=timezone,
         stages=definitions,
+        recovery_engine=RecoveryEngine(
+            RecoveryPolicy.load(ROOT / "config" / "recovery-policy.yaml"),
+            sleeper=time.sleep,
+        ),
     )
 
 

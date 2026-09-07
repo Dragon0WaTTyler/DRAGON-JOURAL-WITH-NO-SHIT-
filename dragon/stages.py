@@ -52,10 +52,11 @@ class StageDefinition:
 
 
 class StageFailure(RuntimeError):
-    def __init__(self, code: str, detail: str):
+    def __init__(self, code: str, detail: str, *, outputs: tuple[Path, ...] = ()):
         super().__init__(detail)
         self.code = code
         self.detail = detail
+        self.outputs = outputs
 
 
 def unavailable_stage(name: str) -> StageDefinition:

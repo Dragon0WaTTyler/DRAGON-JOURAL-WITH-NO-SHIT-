@@ -202,6 +202,22 @@ class StateStore:
                 raise ValueError(
                     f"STATE_AND_BACKUP_CORRUPT: {self.path}: {primary}; {backup}"
                 ) from backup
+            quarantine = self.path.with_name("state.json.corrupt")
+            suffix = 1
+            while quarantine.exists():
+                quarantine = self.path.with_name(f"state.json.corrupt.{suffix}")
+                suffix += 1
+            os.replace(self.path, quarantine)
+            recovered.setdefault("state_recovery_history", []).append(
+                {
+                    "at": now_iso(self.timezone),
+                    "action": "RESTORED_FROM_BACKUP",
+                    "corrupt_copy": str(quarantine.relative_to(self.root)).replace("\\", "/"),
+                }
+            )
+            # The corrupt primary has been quarantined, so this write cannot
+            # replace the known-good backup with corrupt bytes.
+            atomic_write_json(self.path, recovered)
             return recovered
 
     def save(self, value: dict[str, Any]) -> None:

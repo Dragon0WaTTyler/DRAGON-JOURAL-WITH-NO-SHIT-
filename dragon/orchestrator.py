@@ -7,6 +7,8 @@ from pathlib import Path
 import traceback
 from typing import Iterable
 
+from dragon.incidents import IncidentWriter
+from dragon.recovery import RecoveryEngine
 from dragon.runlog import StageLogger
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
 from dragon.state import StateStore, now_iso, sha256_file
@@ -20,10 +22,13 @@ class Orchestrator:
         edition_date: str,
         timezone: str,
         stages: Iterable[StageDefinition],
+        recovery_engine: RecoveryEngine | None = None,
     ):
         self.root = root.resolve()
         self.edition_date = date.fromisoformat(edition_date).isoformat()
         self.timezone = timezone
+        self.recovery_engine = recovery_engine
+        self._last_traceback: str | None = None
         self.definitions = list(stages)
         self.stage_names = [stage.name for stage in self.definitions]
         if not self.stage_names or len(self.stage_names) != len(set(self.stage_names)):
@@ -122,8 +127,9 @@ class Orchestrator:
                 break
             if record["status"] == "DEGRADED":
                 continue
-            if not self._run_stage(state, definition):
-                break
+            while not self._run_stage(state, definition):
+                if not self._recover(state, definition):
+                    return state
         return state
 
     def _context(self, name: str, attempt: int) -> StageContext:
@@ -156,6 +162,7 @@ class Orchestrator:
         )
         logger.write("stage_started", stage=definition.name, attempt=record["attempt_count"])
         context = self._context(definition.name, record["attempt_count"])
+        self._last_traceback = None
         try:
             result = definition.runner(context)
             if result.status not in {"COMPLETE", "DEGRADED"}:
@@ -194,14 +201,30 @@ class Orchestrator:
         except StageFailure as exc:
             code, detail = exc.code, exc.detail
             trace = None
+            diagnostic_outputs = exc.outputs
         except Exception as exc:  # stage boundary must persist unexpected defects
             code, detail = "UNHANDLED_STAGE_EXCEPTION", str(exc)
             trace = traceback.format_exc()
+            diagnostic_outputs = ()
+        self._last_traceback = trace
+        outputs: list[str] = []
+        hashes: dict[str, str] = {}
+        for output in diagnostic_outputs:
+            resolved = output.resolve()
+            try:
+                relative = str(resolved.relative_to(self.root)).replace("\\", "/")
+            except ValueError:
+                continue
+            if resolved.is_file():
+                outputs.append(relative)
+                hashes[relative] = sha256_file(resolved)
         record.update(
             status="FAILED",
             ended_at=now_iso(self.timezone),
             error_code=code,
             error_detail=detail,
+            outputs=outputs,
+            artifact_hashes=hashes,
         )
         failure = {
             "at": record["ended_at"],
@@ -213,6 +236,52 @@ class Orchestrator:
         state["failure_history"].append(failure)
         self.store.save(state)
         logger.write("stage_failed", **failure, traceback=trace)
+        return False
+
+    def _recover(self, state: dict, definition: StageDefinition) -> bool:
+        if self.recovery_engine is None:
+            return False
+        record = state["stages"][definition.name]
+        decision = self.recovery_engine.decide(
+            str(record["error_code"]), int(record["attempt_count"])
+        )
+        record["error_category"] = decision.category.value
+        recovery = {
+            "at": now_iso(self.timezone),
+            "action": decision.action,
+            "category": decision.category.value,
+            "attempt": decision.attempt,
+            "max_attempts": decision.max_attempts,
+            "delay_seconds": decision.delay_seconds,
+            "reason": decision.reason,
+        }
+        record["recovery_history"].append(recovery)
+        self.store.save(state)
+        if decision.action == "RETRY":
+            self.recovery_engine.wait(decision)
+            return True
+        if decision.action == "BLOCK":
+            record["status"] = "BLOCKED"
+            self.store.save(state)
+            return False
+
+        writer = IncidentWriter(self.root, self.store.run_dir, self.timezone)
+        relevant = [self.root / path for path in record.get("outputs", [])]
+        relevant.append(self.store.run_dir / "logs" / f"{definition.name}.jsonl")
+        incident = writer.create(
+            stage=definition.name,
+            state=state,
+            error_code=str(record["error_code"]),
+            error_detail=str(record["error_detail"]),
+            traceback_text=self._last_traceback,
+            attempted_fixes=record["recovery_history"],
+            relevant_files=relevant,
+        )
+        relative = str(incident.relative_to(self.root)).replace("\\", "/")
+        state.setdefault("incidents", []).append(relative)
+        record["incident_path"] = relative
+        record["repair_status"] = "REQUIRES_INTERVENTION"
+        self.store.save(state)
         return False
 
     def _block(self, state: dict, name: str, code: str, detail: str) -> None:

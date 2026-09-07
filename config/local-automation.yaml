@@ -30,6 +30,23 @@ orchestrator:
     - final_qa
     - github_archive
     - whatsapp_delivery
+preflight:
+  expected_remote_contains: DRAGON-JOURAL-WITH-NO-SHIT-
+  expected_branch: main
+  require_clean_worktree: true
+  minimum_python: [3, 12]
+  minimum_free_bytes: 536870912
+  required_modules:
+    - yaml
+    - jsonschema
+    - pypdf
+    - markdown_it
+  network_probe:
+    enabled: true
+    host: github.com
+    port: 443
+    timeout_seconds: 5
+  require_ai_provider: true
 publication:
   language: ar
   direction: rtl

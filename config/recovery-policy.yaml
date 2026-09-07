@@ -1,0 +1,103 @@
+version: 5
+defaults:
+  action: INCIDENT
+  max_attempts: 1
+  initial_backoff_seconds: 0
+  backoff_multiplier: 2
+  maximum_backoff_seconds: 0
+categories:
+  TRANSIENT:
+    action: RETRY
+    max_attempts: 3
+    initial_backoff_seconds: 5
+    backoff_multiplier: 2
+    maximum_backoff_seconds: 60
+  DEPENDENCY:
+    action: BLOCK
+    max_attempts: 1
+  CONTENT:
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  VALIDATION:
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ENVIRONMENT:
+    action: BLOCK
+    max_attempts: 1
+  CODE_DEFECT:
+    action: INCIDENT
+    max_attempts: 1
+  DELIVERY:
+    action: RETRY
+    max_attempts: 3
+    initial_backoff_seconds: 10
+    backoff_multiplier: 2
+    maximum_backoff_seconds: 120
+  UNKNOWN:
+    action: INCIDENT
+    max_attempts: 1
+error_codes:
+  SOURCE_TIMEOUT:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 3
+  SOURCE_INSUFFICIENT:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARTICLE_SCHEMA_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARTICLE_FACTCHECK_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARABIC_RENDERING_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  RTL_LAYOUT_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_BROWSER_CRASH:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  PDF_CONTENT_MISMATCH:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_BLANK_PAGE:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_XML_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_MISSING_RESOURCE:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  COVER_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  GIT_PUSH_FAILED:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  GITHUB_READBACK_MISMATCH:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  WHATSAPP_SEND_FAILED:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  UNKNOWN_CODE_DEFECT:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1

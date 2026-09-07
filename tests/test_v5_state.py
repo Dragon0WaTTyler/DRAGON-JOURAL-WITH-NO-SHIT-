@@ -46,6 +46,10 @@ class V5StateTests(unittest.TestCase):
             store.path.write_text("{broken", encoding="utf-8")
             recovered = store.load()
             self.assertEqual(recovered["schema_version"], 5)
+            self.assertEqual(
+                json.loads(store.path.read_text(encoding="utf-8"))["schema_version"], 5
+            )
+            self.assertTrue((store.run_dir / "state.json.corrupt").is_file())
 
     def test_legacy_status_is_hashed_but_not_imported_as_complete(self):
         with tempfile.TemporaryDirectory() as directory:
