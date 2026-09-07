@@ -125,6 +125,13 @@ provider capability. Optional archive or WhatsApp configuration is non-blocking
 for local publication and may leave those stages `BLOCKED`, `FAILED`, or
 `DEGRADED` according to policy.
 
+The PDF capability probe encodes and reopens a real in-memory Pillow PDF after
+Arabic reshaping/bidi initialization. When Git archive is enabled, preflight
+also checks the configured Git author identity and performs a read-only
+`ls-remote` of the exact archive branch. That archive probe remains
+non-blocking: failure becomes an explicit warning and cannot erase an otherwise
+valid local newspaper.
+
 After an editorial integration has been marked `PASS`, every production
 preflight also executes its `healthcheck` operation and requires a live
 `status: PASS` plus `unattended: true`. A stale executable, expired login, or

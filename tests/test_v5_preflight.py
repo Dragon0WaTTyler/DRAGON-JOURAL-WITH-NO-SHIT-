@@ -35,7 +35,7 @@ ARABIC_CONFIG = {
 
 
 class V5PreflightTests(unittest.TestCase):
-    def run_with(self, config, provider=None):
+    def run_with(self, config, provider=None, git_override=None):
         class Provider:
             available = (
                 config.get("providers", {}).get("ai", {}).get("type") == "local-command"
@@ -59,7 +59,7 @@ class V5PreflightTests(unittest.TestCase):
         stack = [
             patch("dragon.preflight.load_local_config", return_value=config),
             patch("dragon.preflight.load_mapping", return_value=ARABIC_CONFIG),
-            patch("dragon.preflight._git", side_effect=git_result),
+            patch("dragon.preflight._git", side_effect=git_override or git_result),
             patch("dragon.preflight._font_available", return_value="Amiri.ttf"),
             patch("dragon.preflight._network", return_value="reachable"),
             patch("dragon.preflight._import", return_value="importable"),
@@ -115,6 +115,79 @@ class V5PreflightTests(unittest.TestCase):
             check for check in report["checks"] if check["name"] == "optional_provider:whatsapp"
         )
         self.assertEqual(item["status"], "PASS")
+        self.assertFalse(item["blocking"])
+
+    def test_enabled_archive_probes_identity_and_remote_read_access(self):
+        config = {
+            **BASE_CONFIG,
+            "providers": {
+                **BASE_CONFIG["providers"],
+                "github_archive": {
+                    "type": "git-cli",
+                    "enabled": True,
+                    "remote": "origin",
+                    "branch": "main",
+                },
+            },
+        }
+        calls = []
+
+        def git_result(root, *args):
+            calls.append(args)
+            if args == ("remote", "get-url", "origin"):
+                return "https://github.com/DRAGON/repo"
+            if args == ("branch", "--show-current"):
+                return "main"
+            if args == ("status", "--porcelain"):
+                return ""
+            if args == ("config", "user.name"):
+                return "Archive Operator"
+            if args == ("config", "user.email"):
+                return "archive@example.test"
+            if args[:2] == ("ls-remote", "--exit-code"):
+                return "abc123\trefs/heads/main"
+            return str(root)
+
+        report = self.run_with(config, git_override=git_result)
+        item = next(
+            check for check in report["checks"]
+            if check["name"] == "optional_provider:github_archive"
+        )
+        self.assertEqual(item["status"], "PASS")
+        self.assertFalse(item["blocking"])
+        self.assertIn(("config", "user.name"), calls)
+        self.assertIn(("ls-remote", "--exit-code", "origin", "refs/heads/main"), calls)
+
+    def test_archive_probe_failure_is_a_nonblocking_warning(self):
+        config = {
+            **BASE_CONFIG,
+            "providers": {
+                **BASE_CONFIG["providers"],
+                "github_archive": {"type": "git-cli", "enabled": True},
+            },
+        }
+
+        def git_result(root, *args):
+            if args == ("remote", "get-url", "origin"):
+                return "https://github.com/DRAGON/repo"
+            if args == ("branch", "--show-current"):
+                return "main"
+            if args == ("status", "--porcelain"):
+                return ""
+            if args == ("config", "user.name"):
+                return "Archive Operator"
+            if args == ("config", "user.email"):
+                return "archive@example.test"
+            if args[:2] == ("ls-remote", "--exit-code"):
+                raise RuntimeError("remote unavailable")
+            return str(root)
+
+        report = self.run_with(config, git_override=git_result)
+        item = next(
+            warning for warning in report["warnings"]
+            if warning["name"] == "optional_provider:github_archive"
+        )
+        self.assertEqual(item["status"], "FAIL")
         self.assertFalse(item["blocking"])
 
     def test_current_run_artifacts_do_not_make_preflight_fail_dirty(self):

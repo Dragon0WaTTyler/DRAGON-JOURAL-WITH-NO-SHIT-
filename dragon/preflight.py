@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import date
+from io import BytesIO
 import importlib
 import json
 import os
@@ -192,14 +193,23 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
                 provider_config.get("recipients_env", "DRAGON_WHATSAPP_RECIPIENTS"),
             )
             configured = configured and all(os.environ.get(str(name)) for name in environment_names)
-        checks.append(
-            Check(
-                f"optional_provider:{provider}",
-                "PASS" if (not enabled or configured) else "FAIL",
-                False,
-                "disabled" if not enabled else f"configured type: {provider_config.get('type')}",
+        if provider == "github_archive" and enabled and configured:
+            checks.append(
+                _check(
+                    "optional_provider:github_archive",
+                    False,
+                    lambda: _github_archive_capability(root, provider_config),
+                )
             )
-        )
+        else:
+            checks.append(
+                Check(
+                    f"optional_provider:{provider}",
+                    "PASS" if (not enabled or configured) else "FAIL",
+                    False,
+                    "disabled" if not enabled else f"configured type: {provider_config.get('type')}",
+                )
+            )
     blocking_failures = [asdict(item) for item in checks if item.blocking and item.status == "FAIL"]
     warnings = [asdict(item) for item in checks if not item.blocking and item.status == "FAIL"]
     return {
@@ -238,6 +248,19 @@ def _require_equal(value: str, expected: str, label: str) -> str:
     if value != expected:
         raise RuntimeError(f"unexpected {label}: {value!r}; expected {expected!r}")
     return value
+
+
+def _github_archive_capability(root: Path, provider_config: dict[str, Any]) -> str:
+    remote = str(provider_config.get("remote", "origin"))
+    branch = str(provider_config.get("branch", "main"))
+    name = _git(root, "config", "user.name")
+    email = _git(root, "config", "user.email")
+    if not name or not email:
+        raise RuntimeError("archive commit identity is incomplete")
+    value = _git(root, "ls-remote", "--exit-code", remote, f"refs/heads/{branch}")
+    if not value:
+        raise RuntimeError(f"archive branch is not readable: {remote}/{branch}")
+    return f"commit identity configured; remote branch readable: {remote}/{branch}"
 
 
 def _v5_generated_prefixes(root: Path, *, exclude_date: str) -> tuple[str, ...]:
@@ -297,12 +320,18 @@ def _pdf_runtime() -> str:
     from PIL import Image, ImageDraw
     import arabic_reshaper
     from bidi.algorithm import get_display
+    from pypdf import PdfReader
 
     image = Image.new("RGB", (20, 20), "white")
     draw = ImageDraw.Draw(image)
     shaped = get_display(arabic_reshaper.reshape("اختبار عربي"))
     draw.text((1, 1), shaped, fill="black")
-    return "Pillow PDF with Arabic reshaping and bidi support"
+    payload = BytesIO()
+    image.save(payload, format="PDF")
+    payload.seek(0)
+    if len(PdfReader(payload).pages) != 1:
+        raise RuntimeError("PREFLIGHT_PDF_RUNTIME_INVALID")
+    return "Pillow PDF encode/readback with Arabic reshaping and bidi support"
 
 
 def _timezone(name: str) -> str:
