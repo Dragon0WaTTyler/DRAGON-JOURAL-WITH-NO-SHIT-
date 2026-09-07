@@ -23,10 +23,10 @@ CONFIG = {
 }
 
 
-def write_state(root, status="RUNNING"):
+def write_state(root, status="RUNNING", **extra):
     path = root / "daily-runs" / DATE / "state.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"stages": {"research": {"status": status}}}), encoding="utf-8")
+    path.write_text(json.dumps({"stages": {"research": {"status": status, **extra}}}), encoding="utf-8")
     return path
 
 
@@ -105,6 +105,35 @@ class V5LockWatchdogTests(unittest.TestCase):
             result = assess(root, DATE, alive=lambda _: False)
             self.assertEqual(result.action, "RESUME")
             self.assertEqual(result.stage, "research")
+
+    def test_pending_stage_without_an_owner_is_safe_to_resume(self):
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.load_local_config", return_value=CONFIG
+        ):
+            root = Path(directory)
+            write_state(root, "PENDING")
+            result = assess(root, DATE)
+            self.assertEqual(result.action, "RESUME")
+            self.assertEqual(result.stage, "research")
+
+    def test_dead_lock_with_pending_work_resumes_in_one_step(self):
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.load_local_config", return_value=CONFIG
+        ):
+            root = Path(directory)
+            write_state(root, "PENDING")
+            write_lock(root)
+            result = assess(root, DATE, alive=lambda _: False)
+            self.assertEqual(result.action, "RESUME")
+
+    def test_failed_stage_requiring_intervention_is_not_retried_forever(self):
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.load_local_config", return_value=CONFIG
+        ):
+            root = Path(directory)
+            write_state(root, "FAILED", repair_status="REQUIRES_INTERVENTION")
+            result = assess(root, DATE)
+            self.assertEqual(result.action, "NO_ACTION")
 
     def test_live_stale_owner_is_never_duplicated(self):
         with tempfile.TemporaryDirectory() as directory, patch(

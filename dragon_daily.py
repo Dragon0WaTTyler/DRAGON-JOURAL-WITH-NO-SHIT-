@@ -59,6 +59,13 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
         archive_provider=archive_provider,
         whatsapp_provider=whatsapp_provider,
     )
+    configured_stages = list(config["orchestrator"]["stages"])
+    actual_stages = [stage.name for stage in definitions]
+    if actual_stages != configured_stages:
+        raise ValueError(
+            "STAGE_REGISTRY_CONFIG_MISMATCH: "
+            f"configured={configured_stages!r}; actual={actual_stages!r}"
+        )
     return Orchestrator(
         root=root,
         edition_date=edition_date,

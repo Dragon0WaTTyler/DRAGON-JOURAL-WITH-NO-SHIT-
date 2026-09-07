@@ -25,6 +25,17 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `PREREQUISITE_INCOMPLETE` | DEPENDENCY | Required upstream checkpoint is invalid/incomplete | Block and preserve upstream state |
 | `UNHANDLED_STAGE_EXCEPTION` | CODE_DEFECT | Stage raised outside its declared failure contract | Create incident; repair requires proved mechanism |
 | `UNKNOWN_CODE_DEFECT` | CODE_DEFECT | Known evidence indicates an unclassified code defect | Create incident; repair requires proved mechanism |
+| `AI_PROVIDER_UNCONFIGURED` / `AI_PROVIDER_INTEGRATION_NOT_PROVEN` | ENVIRONMENT | No proven unattended editorial runtime is available | Block before editorial work |
+| `AI_PROVIDER_EXECUTION_FAILED` | TRANSIENT | Configured local provider failed to start or exited nonzero | One bounded retry, then incident |
+| `AI_PROVIDER_RESPONSE_INVALID` | VALIDATION | Provider stdout is not the required single JSON value | Targeted provider-stage repair |
+| `RESEARCH_PACKET_INVALID` | CONTENT | Research lacks date, provenance, claims, or exact source URLs | Repair research only |
+| `FACTCHECK_FAILED` | CONTENT | An active article lacks accepted source linkage | Repair/remove the affected editorial unit |
+| `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |
+| `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
+| `PDF_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A format or strict final acceptance gate failed | Repair the affected output stage |
+| `STAGE_INPUT_INVALID` | DEPENDENCY | A declared consumed input is missing or outside the repository | Block at the exact dependency boundary |
+| `STAGE_ACCEPTANCE_FAILED` | VALIDATION | A runner returned artifacts rejected by its validator | Targeted stage repair |
+| `STAGE_RESULT_INVALID` / `STAGE_STATE_UPDATE_INVALID` | CODE_DEFECT | Stage code violated the orchestrator interface | Incident; automatic repair only if proved |
 
 Unknown codes classify as `UNKNOWN` and create an incident. Prefix heuristics are
 a fallback only; adding a recurring error requires an explicit policy entry and

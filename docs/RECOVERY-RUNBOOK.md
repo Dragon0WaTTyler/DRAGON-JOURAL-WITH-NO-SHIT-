@@ -1,5 +1,19 @@
 # DRAGON V5 recovery runbook
 
+## Additional explicit V5 codes
+
+The policy also handles `AI_PROVIDER_UNCONFIGURED`,
+`AI_PROVIDER_INTEGRATION_NOT_PROVEN`, `AI_PROVIDER_EXECUTION_FAILED`,
+`AI_PROVIDER_RESPONSE_INVALID`, `RESEARCH_PACKET_INVALID`,
+`FACTCHECK_FAILED`, `ARABIC_LANGUAGE_QA_FAILED`,
+`PUBLICATION_SOURCE_INVALID`, `PDF_QA_FAILED`, `EPUB_QA_FAILED`,
+`FINAL_QA_FAILED`, `STAGE_INPUT_INVALID`, `STAGE_ACCEPTANCE_FAILED`,
+`STAGE_RESULT_INVALID`, and `STAGE_STATE_UPDATE_INVALID`. Environment and
+dependency codes block; the one execution-transient code retries twice;
+content/validation codes target only their stage; interface violations create
+an incident as code defects. Never broaden a targeted retry to valid sibling
+artifacts.
+
 ## Operating rule
 
 Recovery starts after a stage has truthfully failed. It never marks an invalid

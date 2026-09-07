@@ -66,6 +66,13 @@ def assess(
             return WatchdogAssessment("RESUME", "primary state unreadable; backup is available", None, int(pid) if pid is not None else None, relative_lock)
         return WatchdogAssessment("NO_ACTION", f"state unreadable and no safe recovery copy: {exc}", None, int(pid) if pid is not None else None, relative_lock)
     running = [name for name, record in state.get("stages", {}).items() if record.get("status") == "RUNNING"]
+    pending = [name for name, record in state.get("stages", {}).items() if record.get("status") == "PENDING"]
+    recoverable_failed = [
+        name
+        for name, record in state.get("stages", {}).items()
+        if record.get("status") == "FAILED"
+        and record.get("repair_status") != "REQUIRES_INTERVENTION"
+    ]
     if len(running) > 1:
         return WatchdogAssessment("NO_ACTION", "multiple RUNNING stages require intervention", None, lock.get("pid") if lock else None, relative_lock)
     stage = running[0] if running else None
@@ -79,11 +86,36 @@ def assess(
             return WatchdogAssessment("NO_ACTION", "orchestrator process is alive", stage, pid, relative_lock)
         if stage:
             return WatchdogAssessment("RESUME", "RUNNING stage has dead lock owner", stage, pid, relative_lock)
-        return WatchdogAssessment("QUARANTINE_LOCK", "lock owner is dead but no stage is RUNNING", None, pid, relative_lock)
+        if pending or recoverable_failed:
+            next_stage = recoverable_failed[0] if recoverable_failed else pending[0]
+            return WatchdogAssessment(
+                "RESUME",
+                "lock owner died with resumable work remaining",
+                next_stage,
+                pid,
+                relative_lock,
+            )
+        return WatchdogAssessment("QUARANTINE_LOCK", "lock owner is dead and no resumable work remains", None, pid, relative_lock)
     if lock and not lock.get("valid"):
         return WatchdogAssessment("NO_ACTION", "unreadable lock requires intervention", stage, None, relative_lock)
     if stage:
         return WatchdogAssessment("RESUME", "RUNNING stage has no lock owner", stage, None, relative_lock)
+    if recoverable_failed:
+        return WatchdogAssessment(
+            "RESUME",
+            "failed stage was interrupted before recovery completed",
+            recoverable_failed[0],
+            None,
+            relative_lock,
+        )
+    if pending:
+        return WatchdogAssessment(
+            "RESUME",
+            "pending work remains with no orchestrator owner",
+            pending[0],
+            None,
+            relative_lock,
+        )
     return WatchdogAssessment("NO_ACTION", "run is not actively RUNNING", None, None, relative_lock)
 
 

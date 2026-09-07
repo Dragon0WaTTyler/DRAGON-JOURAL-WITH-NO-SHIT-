@@ -37,6 +37,26 @@ categories:
     action: INCIDENT
     max_attempts: 1
 error_codes:
+  AI_PROVIDER_UNCONFIGURED:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  AI_PROVIDER_INTEGRATION_NOT_PROVEN:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  AI_PROVIDER_EXECUTION_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  AI_PROVIDER_RESPONSE_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  RESEARCH_PACKET_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
   SOURCE_TIMEOUT:
     category: TRANSIENT
     action: RETRY
@@ -51,6 +71,14 @@ error_codes:
     max_attempts: 2
   ARTICLE_FACTCHECK_FAILED:
     category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  FACTCHECK_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARABIC_LANGUAGE_QA_FAILED:
+    category: VALIDATION
     action: TARGETED_REPAIR
     max_attempts: 2
   ARABIC_RENDERING_FAILED:
@@ -85,6 +113,38 @@ error_codes:
     category: CONTENT
     action: TARGETED_REPAIR
     max_attempts: 2
+  PUBLICATION_SOURCE_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  FINAL_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  STAGE_INPUT_INVALID:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  STAGE_ACCEPTANCE_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  STAGE_RESULT_INVALID:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1
+  STAGE_STATE_UPDATE_INVALID:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1
   GIT_PUSH_FAILED:
     category: DELIVERY
     action: RETRY
