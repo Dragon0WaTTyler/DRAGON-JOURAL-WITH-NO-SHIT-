@@ -99,11 +99,13 @@ def new_state(
     timezone: str,
     stages: list[str],
     root: Path,
+    prerequisites: dict[str, list[str]] | None = None,
 ) -> dict[str, Any]:
     timestamp = now_iso(timezone)
     records: dict[str, Any] = {}
     for index, name in enumerate(stages):
-        records[name] = stage_record(name, stages[index - 1 : index] if index else [])
+        default = stages[index - 1 : index] if index else []
+        records[name] = stage_record(name, (prerequisites or {}).get(name, default))
     return {
         "schema_version": 5,
         "date": edition_date,
@@ -149,11 +151,12 @@ def validate_state(value: dict[str, Any], expected_stages: Iterable[str]) -> lis
 
 
 class StateStore:
-    def __init__(self, root: Path, edition_date: str, timezone: str, stages: list[str]):
+    def __init__(self, root: Path, edition_date: str, timezone: str, stages: list[str], prerequisites: dict[str, list[str]] | None = None):
         self.root = root.resolve()
         self.edition_date = edition_date
         self.timezone = timezone
         self.stages = stages
+        self.prerequisites = prerequisites
         self.run_dir = self.root / "daily-runs" / edition_date
         self.path = self.run_dir / "state.json"
         self.backup_path = self.run_dir / "state.json.bak"
@@ -172,6 +175,7 @@ class StateStore:
             timezone=self.timezone,
             stages=self.stages,
             root=self.root,
+            prerequisites=self.prerequisites,
         )
         legacy = self.run_dir / "status.json"
         if legacy.exists():

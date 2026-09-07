@@ -10,12 +10,12 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from dragon.builtin_stages import preflight_stage
 from dragon.config import load_local_config
 from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
+from dragon.pipeline import build_stage_definitions
+from dragon.providers import SyntheticEditorialProvider, UnconfiguredEditorialProvider
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
-from dragon.stages import unavailable_stage
 
 
 ROOT = Path(__file__).resolve().parent
@@ -29,31 +29,26 @@ def parser() -> argparse.ArgumentParser:
     mode.add_argument("--retry", metavar="STAGE")
     mode.add_argument("--from", dest="from_stage", metavar="STAGE")
     mode.add_argument("--status", action="store_true")
+    value.add_argument(
+        "--synthetic",
+        action="store_true",
+        help="run deterministic test fixtures; requires an explicit --date",
+    )
     return value
 
 
-def build_orchestrator(edition_date: str) -> Orchestrator:
-    config = load_local_config(ROOT)
+def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path = ROOT) -> Orchestrator:
+    config = load_local_config(root)
     timezone = config["timezone"]
-    names = config["orchestrator"]["stages"]
-    definitions = []
-    for index, name in enumerate(names):
-        stage = preflight_stage() if name == "preflight" else unavailable_stage(name)
-        definitions.append(
-            type(stage)(
-                name=stage.name,
-                prerequisites=tuple(names[index - 1 : index] if index else []),
-                runner=stage.runner,
-                validator=stage.validator,
-            )
-        )
+    provider = SyntheticEditorialProvider() if synthetic else UnconfiguredEditorialProvider()
+    definitions = build_stage_definitions(provider, synthetic=synthetic)
     return Orchestrator(
-        root=ROOT,
+        root=root,
         edition_date=edition_date,
         timezone=timezone,
         stages=definitions,
         recovery_engine=RecoveryEngine(
-            RecoveryPolicy.load(ROOT / "config" / "recovery-policy.yaml"),
+            RecoveryPolicy.load(root / "config" / "recovery-policy.yaml"),
             sleeper=time.sleep,
         ),
     )
@@ -61,10 +56,12 @@ def build_orchestrator(edition_date: str) -> Orchestrator:
 
 def main() -> int:
     args = parser().parse_args()
+    if args.synthetic and not args.date:
+        parser().error("--synthetic requires an explicit --date")
     config = load_local_config(ROOT)
     timezone = config["timezone"]
     edition_date = args.date or datetime.now(ZoneInfo(timezone)).date().isoformat()
-    orchestrator = build_orchestrator(edition_date)
+    orchestrator = build_orchestrator(edition_date, synthetic=args.synthetic)
     if args.status:
         state = orchestrator.status()
         print(json.dumps(state, ensure_ascii=False, indent=2))

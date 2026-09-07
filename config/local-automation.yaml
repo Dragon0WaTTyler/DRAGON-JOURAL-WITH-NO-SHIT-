@@ -43,6 +43,9 @@ preflight:
     - jsonschema
     - pypdf
     - markdown_it
+    - PIL
+    - arabic_reshaper
+    - bidi
   network_probe:
     enabled: true
     host: github.com

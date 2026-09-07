@@ -6,3 +6,5 @@ jsonschema>=4,<5
 weasyprint>=68,<69
 markdown-it-py>=3,<5
 tzdata>=2025
+arabic-reshaper>=3,<4
+python-bidi>=0.6,<1

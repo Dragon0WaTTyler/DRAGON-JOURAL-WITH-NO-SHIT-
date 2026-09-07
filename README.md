@@ -57,6 +57,22 @@ manifests, and status semantics.
 python -m unittest discover -s tests -v
 ```
 
-The native WeasyPrint render smoke test may be skipped on an unsupported local
-Windows installation. V5 preflight must prove the configured Arabic-capable PDF
-runtime before local production can be declared ready.
+V5 uses a Windows-portable Pillow PDF backend with explicit Arabic reshaping and
+bidirectional processing. Preflight proves those components and an Arabic font
+before local production can be declared ready. The legacy WeasyPrint smoke test
+may still be skipped when its optional native libraries are unavailable.
+
+## Synthetic vertical-slice test
+
+The explicit fixture mode exercises all local stages and creates real Arabic
+HTML, PDF, and EPUB files without representing its deterministic text as news:
+
+```text
+python dragon_daily.py --synthetic --date 2099-01-02
+```
+
+`--synthetic` requires an explicit date. Its preflight and output manifests are
+labelled `synthetic`; GitHub archive and WhatsApp delivery produce `DEGRADED`
+receipts while those providers are disabled. A normal invocation never falls
+back to fixtures: it stops at preflight while the editorial provider is
+unconfigured.

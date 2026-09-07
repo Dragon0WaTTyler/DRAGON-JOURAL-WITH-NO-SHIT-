@@ -21,10 +21,17 @@ python dragon_daily.py --from <stage>
 python dragon_daily.py --status
 ```
 
-The CLI and durable orchestration foundation are implemented. Stages without a
-configured implementation fail closed with `STAGE_NOT_IMPLEMENTED`; this is an
-explicit incomplete capability, not permission to use a second scheduler or to
-claim a successful run.
+For a deterministic local acceptance run only:
+
+```text
+python dragon_daily.py --synthetic --date 2099-01-02
+```
+
+Synthetic mode is visibly labelled in preflight, research, fact-check, cover,
+final-QA, and manifest artifacts. It bypasses production network and AI checks
+solely to verify orchestration and publication mechanics. It is not an
+editorial substitute and cannot be selected implicitly. The production
+provider remains fail-closed until it is configured and integration-tested.
 
 ## Ownership and checkpoints
 

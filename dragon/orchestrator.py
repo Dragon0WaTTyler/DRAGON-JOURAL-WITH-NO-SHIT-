@@ -42,7 +42,11 @@ class Orchestrator:
                 raise ValueError(f"STAGE_PREREQUISITE_INVALID:{stage.name}")
             known.add(stage.name)
         self.store = StateStore(
-            self.root, self.edition_date, self.timezone, self.stage_names
+            self.root,
+            self.edition_date,
+            self.timezone,
+            self.stage_names,
+            {stage.name: list(stage.prerequisites) for stage in self.definitions},
         )
 
     def status(self) -> dict:
@@ -216,6 +220,25 @@ class Orchestrator:
                 relative = str(resolved.relative_to(self.root)).replace("\\", "/")
                 outputs.append(relative)
                 hashes[relative] = sha256_file(resolved)
+            allowed_updates = {
+                "publication_status",
+                "archive_status",
+                "delivery_status",
+            }
+            state_updates = result.metadata.get("state_updates", {})
+            if not isinstance(state_updates, dict) or any(
+                key not in allowed_updates for key in state_updates
+            ):
+                raise StageFailure(
+                    "STAGE_STATE_UPDATE_INVALID",
+                    f"invalid state updates from {definition.name}",
+                )
+            for key, value in state_updates.items():
+                if value not in {"PENDING", "COMPLETE", "FAILED", "BLOCKED", "DEGRADED"}:
+                    raise StageFailure(
+                        "STAGE_STATE_UPDATE_INVALID",
+                        f"invalid {key} value {value}",
+                    )
             record.update(
                 status=result.status,
                 ended_at=now_iso(self.timezone),
@@ -226,6 +249,8 @@ class Orchestrator:
             )
             if result.status == "COMPLETE":
                 state["last_successful_checkpoint"] = definition.name
+            for key, value in state_updates.items():
+                state[key] = value
             state["output_paths"].update({definition.name: outputs})
             state["hashes"].update(hashes)
             self.store.save(state)

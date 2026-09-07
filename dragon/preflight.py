@@ -140,7 +140,7 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
     )
     font_families = arabic.get("fonts", {}).get("preferred_families", []) + arabic.get("fonts", {}).get("local_fallback_families", [])
     checks.append(_check("arabic_font", True, lambda: _font_available(font_families)))
-    checks.append(_check("pdf_runtime", True, lambda: _import("weasyprint")))
+    checks.append(_check("pdf_runtime", True, _pdf_runtime))
     checks.append(_check("epub_runtime", True, lambda: _import("zipfile")))
     network = policy.get("network_probe", {})
     if network.get("enabled", True):
@@ -225,6 +225,18 @@ def _python_version(minimum: tuple[int, ...]) -> str:
 def _import(name: str) -> str:
     importlib.import_module(name)
     return f"{name} importable"
+
+
+def _pdf_runtime() -> str:
+    from PIL import Image, ImageDraw
+    import arabic_reshaper
+    from bidi.algorithm import get_display
+
+    image = Image.new("RGB", (20, 20), "white")
+    draw = ImageDraw.Draw(image)
+    shaped = get_display(arabic_reshaper.reshape("اختبار عربي"))
+    draw.text((1, 1), shaped, fill="black")
+    return "Pillow PDF with Arabic reshaping and bidi support"
 
 
 def _timezone(name: str) -> str:
