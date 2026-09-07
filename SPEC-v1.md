@@ -1,4 +1,9 @@
-# DRAGON technical specification — version 4
+# DRAGON legacy technical specification — Version 4
+
+> Historical/runtime note: this document describes the temporary V4 fallback.
+> `SPEC-v5.md` is authoritative for new implementation. Do not apply the V4
+> Darija-Latin, LTR, five-schedule, or GitHub-finality rules to V5 runs. Do not
+> disable the fallback until the V5 cutover checklist has passed.
 
 ## Version 4 editorial architecture — authoritative amendment
 

@@ -1,0 +1,65 @@
+version: 5
+authority: SPEC-v5.md
+mode: build-behind
+timezone: Africa/Casablanca
+primary_runtime: local-windows
+entry_point: dragon_daily.py
+scheduler:
+  entries: 1
+  provider: windows-task-scheduler
+  enabled: false
+  start_time: "07:00"
+  target_deadline: "10:30"
+orchestrator:
+  instances: 1
+  state_path: daily-runs/YYYY-MM-DD/state.json
+  lock_path: daily-runs/YYYY-MM-DD/run.lock
+  atomic_state_writes: true
+  preserve_historical_status: true
+  stages:
+    - preflight
+    - research
+    - article_generation
+    - chief_editor
+    - factcheck
+    - arabic_language_qa
+    - cover
+    - publication_source
+    - pdf
+    - epub
+    - final_qa
+    - github_archive
+    - whatsapp_delivery
+publication:
+  language: ar
+  direction: rtl
+  byline_template: "تحرير: {pen_name}"
+  pen_name: DRAGON
+  local_completion_requires:
+    - editorial_complete
+    - factcheck_pass
+    - arabic_language_qa_pass
+    - canonical_cover_accepted
+    - pdf_pass
+    - epub_pass
+    - final_qa_pass
+  archive_status_is_independent: true
+  delivery_status_is_independent: true
+providers:
+  ai:
+    type: unconfigured
+    paid_service_auto_enable: false
+  repair:
+    type: unconfigured
+    available_only_after_integration_test: true
+  github_archive:
+    type: git-cli
+    enabled: false
+  whatsapp:
+    type: unconfigured
+    enabled: false
+cutover:
+  legacy_v4_fallback_enabled: true
+  local_scheduler_enabled: false
+  competing_github_production_disabled: false
+  acceptance_evidence_required: true
