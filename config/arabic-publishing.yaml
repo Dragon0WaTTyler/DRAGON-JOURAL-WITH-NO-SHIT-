@@ -1,0 +1,46 @@
+version: 5
+language:
+  code: ar
+  script: Arab
+  direction: rtl
+  reader_description: professional-journalistic-arabic
+  transliteration_as_reader_language: forbidden
+  minimum_arabic_letters: 20
+  maximum_unapproved_latin_word_ratio: 0.20
+  allowed_latin_terms:
+    - DRAGON
+    - AI
+    - PDF
+    - EPUB
+    - OpenAI
+    - GitHub
+    - WhatsApp
+    - URL
+    - HTTP
+    - HTTPS
+byline:
+  template: "تحرير: {pen_name}"
+  pen_name: DRAGON
+  reporting_claim: editorial-synthesis-only
+html:
+  lang: ar
+  dir: rtl
+epub:
+  language: ar
+  page_progression_direction: rtl
+fonts:
+  require_configured_font: true
+  preferred_families:
+    - Noto Naskh Arabic
+    - Noto Sans Arabic
+    - Amiri
+  local_fallback_families:
+    - Arial
+    - Tahoma
+quality_gates:
+  - ARABIC_LANGUAGE
+  - RTL
+  - UTF8
+  - ARABIC_RENDERING
+  - MOJIBAKE
+  - FOREIGN_LANGUAGE_LEAKAGE

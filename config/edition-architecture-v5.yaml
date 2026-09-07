@@ -1,0 +1,34 @@
+version: 5
+inherits_editorial_structure_from: config/edition-architecture.yaml
+language: ar
+direction: rtl
+byline_template: "تحرير: {pen_name}"
+section_headings:
+  front: الواجهة
+  siyasa_dawla: السياسة والدولة
+  iqtisad_flous: الاقتصاد والمال
+  mojtama3: المجتمع
+  ta3lim: التعليم
+  se77a: الصحة
+  3adl_7o9o9: العدالة والحقوق
+  bi2a_manakh: البيئة والمناخ
+  bniya_transport: البنية التحتية والنقل
+  meknes_local: مكناس وفاس مكناس
+  filastin_middle_east: فلسطين والشرق الأوسط
+  africa_sahel: أفريقيا والساحل
+  world: العالم
+  business_companies: الأعمال والشركات
+  technology: الذكاء الاصطناعي والتكنولوجيا
+  science: العلوم والدراسات
+  sport: الرياضة
+  culture: الثقافة
+  adab: الأدب
+  history: تاريخ المغرب والمغرب الكبير
+  investigations: التحقيق والمساءلة
+  opinion: رأي
+  service: البيانات والخدمات وما نتابعه
+front_page:
+  duplicate_full_lead_prose: false
+pagination:
+  fixed_page_count: false
+  overflow_rule: add_pages_before_cutting_verified_editorial_prose
