@@ -53,6 +53,13 @@ remain under `editions/YYYY/MM/YYYY-MM-DD/`. Output hashes bind state to exact
 artifacts. A process lock and run identity prevent simultaneous editions and
 allow the watchdog to distinguish a live run from an abandoned lock.
 
+State also records a content-derived runtime fingerprint covering the V5
+executable code and production-affecting configuration. Run reports repeat that
+fingerprint. Cutover evidence is valid only against the current fingerprint;
+runtime drift blocks ordinary resume and requires an explicit restart from
+`preflight`. Cutover activation switches are deployment state and are excluded
+so activating a proven runtime does not invalidate its trial editions.
+
 ## 4. Editorial product
 
 DRAGON is a newspaper. Preserve the V4 fixed section inventory and require each

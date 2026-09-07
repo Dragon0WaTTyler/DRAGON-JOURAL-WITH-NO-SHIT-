@@ -137,6 +137,10 @@ error_codes:
     category: DEPENDENCY
     action: BLOCK
     max_attempts: 1
+  RUNTIME_FINGERPRINT_MISMATCH:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
   STAGE_ACCEPTANCE_FAILED:
     category: VALIDATION
     action: TARGETED_REPAIR

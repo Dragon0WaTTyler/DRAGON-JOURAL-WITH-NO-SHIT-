@@ -35,6 +35,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
 | `PDF_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A format or strict final acceptance gate failed | Repair the affected output stage |
 | `STAGE_INPUT_INVALID` | DEPENDENCY | A declared consumed input is missing or outside the repository | Block at the exact dependency boundary |
+| `RUNTIME_FINGERPRINT_MISMATCH` | DEPENDENCY | The executable V5 runtime/config no longer matches the run's recorded producer | Preserve completed bytes; restart explicitly from `preflight` |
 | `STAGE_ACCEPTANCE_FAILED` | VALIDATION | A runner returned artifacts rejected by its validator | Targeted stage repair |
 | `STAGE_RESULT_INVALID` / `STAGE_STATE_UPDATE_INVALID` | CODE_DEFECT | Stage code violated the orchestrator interface | Incident; automatic repair only if proved |
 

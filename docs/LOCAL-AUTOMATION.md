@@ -43,6 +43,17 @@ and downstream dependents only; `--from` deliberately reruns from a selected
 boundary. Neither command changes a completed historical edition without an
 explicit correction mode.
 
+Every run records a content-derived `runtime_fingerprint`. It covers the V5
+Python package and entry points, editorial adapter, recovery policy, declared
+dependencies, and Windows scheduler scripts. The final run report repeats the
+same identity, and cutover acceptance requires it to match the current runtime.
+An ordinary resume against changed runtime is blocked with
+`RUNTIME_FINGERPRINT_MISMATCH`; after reviewing the change, the operator must
+restart explicitly with `--from preflight` so old and new stage checkpoints are
+never mixed. Deployment-only cutover switches and `scheduler.enabled` are
+excluded from the fingerprint to avoid invalidating proven trials when the
+accepted scheduler is activated.
+
 ## Directories
 
 ```text
