@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 class EditorialProvider(Protocol):
     mode: str
 
-    def research(self, edition_date: str) -> dict: ...
+    def research(self, edition_date: str, continuity: dict | None = None) -> dict: ...
 
     def articles(self, research: dict) -> list[dict]: ...
 
@@ -34,7 +34,7 @@ class UnconfiguredEditorialProvider:
     reason: str = "AI_PROVIDER_UNCONFIGURED"
     available: bool = False
 
-    def research(self, edition_date: str) -> dict:
+    def research(self, edition_date: str, continuity: dict | None = None) -> dict:
         raise ProviderError(self.reason, "no proven unattended editorial provider")
 
     def articles(self, research: dict) -> list[dict]:
@@ -75,7 +75,7 @@ class SyntheticEditorialProvider:
     mode: str = "synthetic"
     available: bool = True
 
-    def research(self, edition_date: str) -> dict:
+    def research(self, edition_date: str, continuity: dict | None = None) -> dict:
         return {
             "mode": self.mode,
             "edition_date": edition_date,
@@ -164,8 +164,16 @@ class LocalCommandEditorialProvider:
             raise ProviderError("AI_PROVIDER_HEALTHCHECK_FAILED", "provider did not prove unattended capability")
         return value
 
-    def research(self, edition_date: str) -> dict:
-        value = self._invoke("research", {"schema_version": 5, "edition_date": edition_date, "language": "ar"})
+    def research(self, edition_date: str, continuity: dict | None = None) -> dict:
+        value = self._invoke(
+            "research",
+            {
+                "schema_version": 5,
+                "edition_date": edition_date,
+                "language": "ar",
+                "continuity": continuity or {"edition_count": 0, "editions": []},
+            },
+        )
         if not isinstance(value, dict) or value.get("edition_date") != edition_date:
             raise ProviderError("RESEARCH_PACKET_INVALID", "date or root object is invalid")
         sources = value.get("sources")

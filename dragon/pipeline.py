@@ -8,6 +8,7 @@ from xml.etree import ElementTree
 
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
+from dragon.continuity import build_snapshot, prior_context
 from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.publication import (
@@ -62,14 +63,17 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     archive_provider = archive_provider or DisabledGitArchiveProvider()
     whatsapp_provider = whatsapp_provider or DisabledWhatsAppProvider()
     def research(context: StageContext) -> StageResult:
+        continuity = prior_context(context.root, context.edition_date)
+        continuity_path = context.run_dir / "research" / "continuity-context.json"
+        atomic_write_json(continuity_path, continuity)
         try:
-            packet = provider.research(context.edition_date)
+            packet = provider.research(context.edition_date, continuity)
         except ProviderError as exc:
             raise StageFailure(exc.code, exc.detail) from exc
         packet["provider_mode"] = provider.mode
         path = context.run_dir / "research" / "research-packet.json"
         atomic_write_json(path, packet)
-        return StageResult((path,))
+        return StageResult((continuity_path, path))
 
     def articles(context: StageContext) -> StageResult:
         packet = _load(context.run_dir / "research" / "research-packet.json")
@@ -209,7 +213,13 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         for label, report in (("PDF", pdf_report), ("EPUB", epub_report), ("ARABIC", arabic_report)):
             if report["status"] != "PASS":
                 issues.append(f"{label}_NOT_PASS")
-        artifacts = [context.edition_dir / "edition.md", context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf", context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_dir / "assets" / "cover.svg"]
+        decisions = _load(context.edition_dir / "articles.json")["articles"]
+        continuity_path = context.edition_dir / "continuity.json"
+        atomic_write_json(
+            continuity_path,
+            build_snapshot(context.edition_date, provider.mode, decisions),
+        )
+        artifacts = [context.edition_dir / "edition.md", context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf", context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_dir / "assets" / "cover.svg", continuity_path]
         report = {"status": "PASS" if not issues else "FAIL", "mode": provider.mode, "active_sections": active, "issues": issues, **artifact_manifest(artifacts, context.root, mode=provider.mode)}
         report_path = context.edition_dir / "final-qa.json"
         atomic_write_json(report_path, report)
