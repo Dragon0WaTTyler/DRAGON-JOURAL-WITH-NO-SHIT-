@@ -56,15 +56,17 @@ python dragon_daily.py --date YYYY-MM-DD --retry STAGE
 - Resume: `--retry research`.
 - Escalate: mark section `SKIPPED` with reason or require intervention; no filler.
 
-### ARTICLE_SCHEMA_INVALID / ARTICLE_FACTCHECK_FAILED
+### ARTICLE_SCHEMA_INVALID / CHIEF_EDITOR_FAILED / ARTICLE_FACTCHECK_FAILED
 
 - Meaning/causes: missing required fields, unsupported claims, attribution or
   number/date contradiction.
-- Inspect: affected article, source mapping, fact-check record and stage logs.
+- Inspect: affected article, source mapping, chief-editor ranking/conflict report,
+  fact-check record and stage logs.
 - Safe first action: isolate the smallest article/claim.
 - Automatic repair/max: targeted editorial-unit repair, maximum 2 attempts.
 - Tests: schema, source mapping and fact-check gates for that unit plus regression.
-- Resume: `--retry article_generation` or `--retry factcheck` as appropriate.
+- Resume: `--retry article_generation`, `--retry chief_editor`, or
+  `--retry factcheck` as appropriate.
 - Escalate: remove/skip the item or create incident; uncertainty stays explicit.
 
 ## Arabic, cover, and publication failures

@@ -69,6 +69,10 @@ error_codes:
     category: CONTENT
     action: TARGETED_REPAIR
     max_attempts: 2
+  CHIEF_EDITOR_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
   ARTICLE_FACTCHECK_FAILED:
     category: CONTENT
     action: TARGETED_REPAIR

@@ -76,7 +76,7 @@ class SyntheticEditorialProvider:
     available: bool = True
 
     def research(self, edition_date: str, continuity: dict | None = None) -> dict:
-        return {
+        packet = {
             "mode": self.mode,
             "edition_date": edition_date,
             "warning": "بيانات اختبار اصطناعية، وليست أخبارا أو وقائع للنشر",
@@ -87,9 +87,40 @@ class SyntheticEditorialProvider:
                     "url": "https://example.org/dragon-fixture",
                     "retrieved_at": f"{edition_date}T07:00:00+01:00",
                     "publisher": "نطاق الأمثلة المحجوز",
+                    "publication_date": edition_date,
+                    "accessed_at": f"{edition_date}T07:00:00+01:00",
+                    "source_type": "synthetic",
+                    "claim_supported": "لا يوجد ادعاء واقعي؛ مصدر محجوز للاختبار",
                 }
             ],
         }
+        packet["sections"] = []
+        for section_id, heading in SECTION_HEADINGS:
+            candidates = [
+                {
+                    "id": f"{section_id}-candidate-{number}",
+                    "rank": number,
+                    "title": f"مرشح اختبار {number} لقسم {heading}",
+                    "discovery_source_ids": ["fixture-source"],
+                    "verification_source_ids": ["fixture-source"],
+                    "primary_evidence_source_ids": ["fixture-source"],
+                    "independent_evidence_source_ids": [],
+                    "facts": ["لا توجد حقيقة صحفية؛ هذا مرشح اصطناعي"],
+                    "claims": [],
+                    "unknowns": [],
+                    "disputed_points": [],
+                }
+                for number in (1, 2)
+            ]
+            packet["sections"].append(
+                {
+                    "section_id": section_id,
+                    "candidates": candidates,
+                    "selected_candidate_id": candidates[0]["id"],
+                    "selection_reason": "اختيار ثابت لاختبار خط الإنتاج فقط",
+                }
+            )
+        return packet
 
     def articles(self, research: dict) -> list[dict]:
         date_value = research["edition_date"]
@@ -110,6 +141,27 @@ class SyntheticEditorialProvider:
                         "تتحقق بوابة الجودة من العربية السليمة، ومن غياب أحرف الترميز التالفة، ومن اتصال كل مادة بمصدر ظاهر. كما تحفظ النتائج في ملفات قابلة للتدقيق والاستئناف.",
                     ],
                     "source_ids": ["fixture-source"],
+                    "research_candidate_id": f"{section_id}-candidate-1",
+                    "story_key": f"synthetic-{section_id}-{date_value}",
+                    "claims": [
+                        {
+                            "text": "المادة اصطناعية وغير خبرية",
+                            "classification": "FACT",
+                            "claim_type": "general",
+                            "attribution": "بيان تقني داخل النسخة",
+                            "source_ids": ["fixture-source"],
+                            "material": False,
+                        }
+                    ],
+                    "editorial_elements": {
+                        "lead": "توضيح غرض المادة الاختبارية",
+                        "nut_graf": "الهدف هو التحقق التقني من دورة النشر",
+                        "verified_facts": ["المحتوى مصطنع بوضوح"],
+                        "context": "اختبار قبول محلي",
+                        "uncertainty": "لا توجد ادعاءات واقعية",
+                        "consequences": "لا يجوز توزيع النسخة كصحيفة حقيقية",
+                        "next_steps": "تهيئة مزود إنتاج موثوق قبل النشر",
+                    },
                     "fixture": True,
                 }
             )
@@ -203,6 +255,81 @@ class LocalCommandEditorialProvider:
             if source["id"] in identifiers:
                 raise ProviderError("RESEARCH_PACKET_INVALID", "source ids must be unique")
             identifiers.add(source["id"])
+        sections = value.get("sections")
+        expected_sections = {section_id for section_id, _ in SECTION_HEADINGS}
+        if not isinstance(sections, list) or len(sections) != len(expected_sections) or {
+            item.get("section_id") for item in sections if isinstance(item, dict)
+        } != expected_sections:
+            raise ProviderError(
+                "RESEARCH_PACKET_INVALID",
+                "research must contain one candidate decision for every section",
+            )
+        for section in sections:
+            candidates = section.get("candidates")
+            if not isinstance(candidates, list) or len(candidates) < 2:
+                raise ProviderError(
+                    "RESEARCH_PACKET_INVALID",
+                    f"section {section.get('section_id')} needs at least two ranked candidates",
+                )
+            candidate_ids = set()
+            for candidate in candidates:
+                required_candidate_fields = (
+                    "id",
+                    "rank",
+                    "title",
+                    "discovery_source_ids",
+                    "verification_source_ids",
+                    "primary_evidence_source_ids",
+                    "independent_evidence_source_ids",
+                    "facts",
+                    "claims",
+                    "unknowns",
+                    "disputed_points",
+                )
+                if not isinstance(candidate, dict) or any(
+                    field not in candidate for field in required_candidate_fields
+                ):
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"candidate structure is incomplete in {section.get('section_id')}",
+                    )
+                evidence_fields = (
+                    "discovery_source_ids",
+                    "verification_source_ids",
+                    "primary_evidence_source_ids",
+                    "independent_evidence_source_ids",
+                )
+                content_fields = ("facts", "claims", "unknowns", "disputed_points")
+                if (
+                    not isinstance(candidate["id"], str)
+                    or not candidate["id"].strip()
+                    or candidate["id"] in candidate_ids
+                    or not isinstance(candidate["rank"], int)
+                    or candidate["rank"] < 1
+                    or any(not isinstance(candidate[field], list) for field in evidence_fields)
+                    or any(not isinstance(candidate[field], list) for field in content_fields)
+                ):
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"candidate types or identity are invalid in {section.get('section_id')}",
+                    )
+                candidate_ids.add(candidate["id"])
+                referenced = set(candidate["discovery_source_ids"]) | set(
+                    candidate["verification_source_ids"]
+                ) | set(candidate["primary_evidence_source_ids"]) | set(
+                    candidate["independent_evidence_source_ids"]
+                )
+                if not referenced or not referenced.issubset(identifiers):
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"candidate {candidate['id']} cites unknown evidence",
+                    )
+            selected = section.get("selected_candidate_id")
+            if selected not in candidate_ids or not section.get("selection_reason"):
+                raise ProviderError(
+                    "RESEARCH_PACKET_INVALID",
+                    f"section {section.get('section_id')} has no justified selected lead",
+                )
         return value
 
     def articles(self, research: dict) -> list[dict]:
@@ -211,6 +338,9 @@ class LocalCommandEditorialProvider:
             raise ProviderError("ARTICLE_SCHEMA_INVALID", "provider must return an article/skip list")
         expected = {section_id for section_id, _ in SECTION_HEADINGS}
         sources = {item["id"] for item in research["sources"]}
+        research_sections = {
+            item["section_id"]: item for item in research.get("sections", [])
+        }
         seen = set()
         edition_words = 0
         active_count = 0
@@ -240,8 +370,36 @@ class LocalCommandEditorialProvider:
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"active section {section_id} is incomplete")
             if not isinstance(item["body"], list) or not all(isinstance(paragraph, str) for paragraph in item["body"]):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} body is invalid")
-            if not set(item["source_ids"]).issubset(sources):
+            if not isinstance(item["source_ids"], list) or not set(item["source_ids"]).issubset(sources):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} cites unknown sources")
+            selected = research_sections.get(section_id, {}).get("selected_candidate_id")
+            if item.get("research_candidate_id") != selected:
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID",
+                    f"article {item.get('id')} does not trace to the selected candidate",
+                )
+            if not item.get("story_key"):
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} has no continuity story key"
+                )
+            claims = item.get("claims")
+            if not isinstance(claims, list) or not claims:
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} has no structured claims"
+                )
+            for claim in claims:
+                if (
+                    not isinstance(claim, dict)
+                    or claim.get("classification")
+                    not in {"FACT", "CLAIM", "DISPUTED", "UNKNOWN", "ESTIMATE"}
+                    or not isinstance(claim.get("source_ids"), list)
+                    or not set(claim["source_ids"]).issubset(sources)
+                    or not claim.get("claim_type")
+                ):
+                    raise ProviderError(
+                        "ARTICLE_SCHEMA_INVALID",
+                        f"article {item.get('id')} has an invalid claim record",
+                    )
             elements = item.get("editorial_elements")
             if not isinstance(elements, dict) or any(not elements.get(field) for field in required_elements):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} lacks required journalism elements")

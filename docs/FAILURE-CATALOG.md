@@ -9,6 +9,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `SOURCE_TIMEOUT` | TRANSIENT | A source request exceeded its deadline | Bounded exponential retry |
 | `SOURCE_INSUFFICIENT` | CONTENT | Evidence is too weak for the planned item | Reopen only affected research item or skip with reason |
 | `ARTICLE_SCHEMA_INVALID` | CONTENT | Generated article violates its schema | Repair only the article |
+| `CHIEF_EDITOR_FAILED` | CONTENT | Duplicate, contradictory, or otherwise unsafe edition plan | Repair/remove only the conflicting editorial units |
 | `ARTICLE_FACTCHECK_FAILED` | CONTENT | Material claim failed verification | Repair/remove only the affected editorial unit |
 | `ARABIC_RENDERING_FAILED` | VALIDATION | Arabic glyph shaping/render validation failed | Inspect font/runtime, rerender affected artifact |
 | `RTL_LAYOUT_FAILED` | VALIDATION | Required RTL metadata or layout gate failed | Repair publication source/layout only |

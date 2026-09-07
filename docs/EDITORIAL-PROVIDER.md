@@ -18,21 +18,29 @@ buy API access, or treat an interactive chat session as unattended capability.
   `unattended: true`, and a provider identity. It must prove the configured
   runtime can start without prompts or GUI interaction.
 - `research` receives the edition date, Arabic language, and up to 30 immutable
-  prior production continuity snapshots. It returns the same date plus nonempty
-  sources. Every source requires a unique ID, exact HTTPS
+  prior production continuity snapshots. It returns the same date, nonempty
+  sources, and exactly one decision for every fixed section. Each decision has
+  at least two uniquely identified ranked candidates, identifies the selected
+  candidate with a reason, and records discovery, verification, primary, and
+  independent evidence IDs plus facts, claims, unknowns, and disputed points.
+  Every source requires a unique ID, exact HTTPS
   page URL (not a homepage), publisher, publication/access timestamps, source
   type, and the claim it supports.
 - `articles` receives the verified research packet. It returns exactly one
   decision for every fixed V5 section. A skipped section requires a specific
   reason. An active section requires headline, standfirst, honest byline,
-  connected paragraph body, known source IDs, and explicit lead, nut graf,
-  verified facts, context, uncertainty, consequences, and next steps.
+  connected paragraph body, known source IDs, the selected research candidate,
+  a continuity story key, structured claim records, and explicit lead, nut graf,
+  verified facts, context, uncertainty, consequences, and next steps. Material
+  facts must survive claim-level primary and independent evidence checks.
 
 The adapter enforces configurable hard safeguards of 350 words per active item
 and 4,000 words per edition by default. These are rejection thresholds, not
 padding targets; the higher editorial ranges in `SPEC-v5.md` remain the quality
-standard. Fact-check and Arabic QA still run as separate stages after provider
-output is accepted.
+standard. A deterministic chief-editor gate ranks active stories for the front
+page and rejects duplicate story identities/headlines or contradictory keyed
+facts. Claim-level fact-check and Arabic QA still run as separate stages after
+provider output is accepted.
 
 After final QA, V5 writes `continuity.json` inside the dated edition before
 marking local publication complete. It records covered story identities, exact

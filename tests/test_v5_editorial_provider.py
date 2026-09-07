@@ -22,14 +22,21 @@ payload=json.load(sys.stdin)
 if a.operation == 'healthcheck':
     value={'status':'PASS','unattended':True,'provider':'test-local'}
 elif a.operation == 'research':
-    value={'edition_date':payload['edition_date'],'sources':[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري'}]}
+    sources=[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر أولي اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري'},{'id':'s2','url':'https://example.net/independent-page','publisher':'مصدر مستقل اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:01:00+01:00','source_type':'independent','claim_supported':'مراجعة مستقلة'}]
+    sections=[]
+    for key,heading in SECTION_HEADINGS:
+        candidates=[]
+        for rank in (1,2):
+            candidates.append({'id':f'{key}-c{rank}','rank':rank,'title':f'مرشح {rank}','discovery_source_ids':['s1'],'verification_source_ids':['s1','s2'],'primary_evidence_source_ids':['s1'],'independent_evidence_source_ids':['s2'],'facts':['حقيقة اختبارية'],'claims':[],'unknowns':[],'disputed_points':[]})
+        sections.append({'section_id':key,'candidates':candidates,'selected_candidate_id':f'{key}-c1','selection_reason':'أفضل مرشح موثق في الاختبار'})
+    value={'edition_date':payload['edition_date'],'sources':sources,'sections':sections}
 elif a.operation == 'articles':
     words='كلمة عربية موثقة ' * 1400
     elements={key:'عنصر تحريري موثق' for key in ('lead','nut_graf','verified_facts','context','uncertainty','consequences','next_steps')}
     value=[]
     for index,(key,heading) in enumerate(SECTION_HEADINGS):
         if index == 0:
-            value.append({'id':'a1','section_id':key,'section':heading,'status':'ACTIVE','headline':'عنوان عربي اختباري','standfirst':'مقدمة عربية واضحة','byline':'تحرير: DRAGON','body':[words],'source_ids':['s1'],'editorial_elements':elements})
+            value.append({'id':'a1','section_id':key,'section':heading,'status':'ACTIVE','headline':'عنوان عربي اختباري','standfirst':'مقدمة عربية واضحة','byline':'تحرير: DRAGON','body':[words],'source_ids':['s1','s2'],'research_candidate_id':f'{key}-c1','story_key':'story-a1','claims':[{'text':'ادعاء موثق','classification':'FACT','claim_type':'general','attribution':'مصدران اختباريان','source_ids':['s1','s2'],'material':True}],'editorial_elements':elements})
         else:
             value.append({'section_id':key,'section':heading,'status':'SKIPPED','skip_reason':'لا توجد مادة موثقة بما يكفي في هذا الاختبار'})
 else:
@@ -47,6 +54,7 @@ def test_local_command_provider_health_research_and_section_decisions(tmp_path: 
     assert provider.healthcheck()["unattended"] is True
     research = provider.research("2099-01-02")
     assert research["sources"][0]["url"] == "https://example.org/exact-page"
+    assert len(research["sections"]) == 23
     decisions = provider.articles(research)
     assert len(decisions) == 23
     assert decisions[0]["status"] == "ACTIVE"

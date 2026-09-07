@@ -8,6 +8,7 @@ from pathlib import Path
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.continuity import build_snapshot, prior_context
+from dragon.editorial import chief_editor_report, factcheck_report
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.publication import (
@@ -110,6 +111,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             "section_inventory": inventory,
             "article_ids": [item["id"] for item in articles_value if item["status"] == "ACTIVE"],
         }
+        editorial = chief_editor_report(articles_value)
+        plan["ranked_article_ids"] = editorial["ranked_article_ids"]
+        plan["front_page_article_ids"] = editorial["front_page_article_ids"]
+        editorial_path = context.run_dir / "editorial" / "chief-editor-report.json"
+        atomic_write_json(editorial_path, editorial)
         plan_path = context.edition_dir / "edition-plan.json"
         atomic_write_json(plan_path, plan)
         packet = _load(context.run_dir / "research" / "research-packet.json")
@@ -131,8 +137,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         markdown = _write_text(context.edition_dir / "edition.md", "\n".join(lines))
         canonical_articles = context.edition_dir / "articles.json"
         atomic_write_json(canonical_articles, values)
+        if editorial["status"] != "PASS":
+            raise StageFailure(
+                "CHIEF_EDITOR_FAILED",
+                "; ".join(editorial["issues"]),
+                outputs=(editorial_path, plan_path, sources_path, markdown, canonical_articles),
+            )
         return StageResult(
-            (plan_path, sources_path, markdown, canonical_articles),
+            (editorial_path, plan_path, sources_path, markdown, canonical_articles),
             inputs=(
                 context.run_dir / "articles" / "articles.json",
                 context.run_dir / "research" / "research-packet.json",
@@ -141,20 +153,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def factcheck(context: StageContext) -> StageResult:
         articles_value = _load(context.edition_dir / "articles.json")["articles"]
-        active_articles = [item for item in articles_value if item["status"] == "ACTIVE"]
-        issues = [item["id"] for item in active_articles if not item.get("source_ids")]
-        report = {
-            "status": "PASS" if not issues else "FAIL",
-            "mode": provider.mode,
-            "method": "synthetic_non_factual_fixture" if synthetic else "provider_source_linkage_only",
-            "checked_articles": len(active_articles),
-            "missing_source_articles": issues,
-            "warning": "الاختبار الاصطناعي لا يثبت صحة أخبار حقيقية" if synthetic else None,
-        }
+        sources = _load(context.edition_dir / "sources.json")["sources"]
+        report = factcheck_report(articles_value, sources, synthetic=synthetic)
+        report["mode"] = provider.mode
+        report["warning"] = "الاختبار الاصطناعي لا يثبت صحة أخبار حقيقية" if synthetic else None
         path = context.run_dir / "factcheck" / "report.json"
         atomic_write_json(path, report)
-        if issues:
-            raise StageFailure("FACTCHECK_FAILED", "articles without sources", outputs=(path,))
+        if report["status"] != "PASS":
+            raise StageFailure("ARTICLE_FACTCHECK_FAILED", "; ".join(report["issues"]), outputs=(path,))
         return StageResult(
             (path,),
             inputs=(
@@ -180,7 +186,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def cover(context: StageContext) -> StageResult:
         decisions = _load(context.edition_dir / "articles.json")["articles"]
-        lead = next((item for item in decisions if item["status"] == "ACTIVE"), None)
+        plan = _load(context.edition_dir / "edition-plan.json")
+        lead_id = next(iter(plan.get("front_page_article_ids", [])), None)
+        lead = next((item for item in decisions if item.get("id") == lead_id), None)
         if lead is None:
             raise StageFailure("COVER_FAILED", "no active final-edition story is available")
         path = build_cover_png(
