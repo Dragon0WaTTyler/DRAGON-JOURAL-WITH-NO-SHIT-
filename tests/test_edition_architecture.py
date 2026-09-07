@@ -11,15 +11,18 @@ DATE = "2099-01-01"
 ARCHITECTURE = load_architecture(ROOT / "config" / "edition-architecture.yaml")
 
 
-def words(count: int) -> str:
-    return " ".join(f"kalma{index}" for index in range(count))
+def words(count: int, start: int = 0) -> str:
+    return " ".join(f"kalma{index}" for index in range(start, start + count))
 
 
 def narrative_words(count: int, paragraphs: int) -> str:
     chunks = []
     base, remainder = divmod(count, paragraphs)
+    start = 0
     for index in range(paragraphs):
-        chunks.append(words(base + (1 if index < remainder else 0)))
+        length = base + (1 if index < remainder else 0)
+        chunks.append(words(length, start))
+        start += length
     return "\n\n".join(chunks)
 
 
@@ -106,10 +109,28 @@ class EditionArchitectureTests(unittest.TestCase):
         plan, markdown = fixture()
         # The first lead has four 250-word prose blocks. Join its three
         # internal breaks while preserving all headings and metadata.
-        markdown = markdown.replace("\n\nkalma0", " kalma0", 3)
+        low = ARCHITECTURE["formats"]["lead_article"]["words"][0]
+        paragraphs = ARCHITECTURE["formats"]["lead_article"]["narrative_paragraphs"]
+        base, remainder = divmod(low, paragraphs)
+        start = 0
+        for index in range(paragraphs - 1):
+            start += base + (1 if index < remainder else 0)
+            markdown = markdown.replace(f"\n\nkalma{start}", f" kalma{start}", 1)
         report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
         self.assertEqual(report["validation_status"], "FAIL")
         self.assertTrue(any("narrative paragraphs" in error for error in report["errors"]))
+
+    def test_repeated_narrative_paragraphs_fail(self):
+        plan, markdown = fixture()
+        low = ARCHITECTURE["formats"]["lead_article"]["words"][0]
+        paragraphs = ARCHITECTURE["formats"]["lead_article"]["narrative_paragraphs"]
+        base, remainder = divmod(low, paragraphs)
+        first_length = base + (1 if remainder else 0)
+        second_length = base + (1 if remainder > 1 else 0)
+        markdown = markdown.replace(words(second_length, first_length), words(first_length), 1)
+        report = validate_plan(plan, ARCHITECTURE, markdown, edition_date=DATE)
+        self.assertEqual(report["validation_status"], "FAIL")
+        self.assertTrue(any("repeats" in error for error in report["errors"]))
 
     def test_plan_article_cannot_be_placed_under_a_different_section(self):
         plan, markdown = fixture()

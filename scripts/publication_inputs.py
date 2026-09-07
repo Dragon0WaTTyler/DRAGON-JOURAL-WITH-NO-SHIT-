@@ -25,7 +25,20 @@ def digest(path: Path) -> str:
 
 
 def git_blob(path: Path) -> str:
-    """Use Git's filtered object identity so Windows and CI agree on CRLF files."""
+    """Return the Git blob identity, respecting repository filters when available."""
+    try:
+        subprocess.check_output(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=path.parent,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        # Temporary, pre-Git test fixtures have no attributes or working-tree
+        # policy to apply.  A raw blob is the only stable identity there.
+        payload = path.read_bytes()
+        header = f"blob {len(payload)}\0".encode("ascii")
+        return hashlib.sha1(header + payload).hexdigest()
     return subprocess.check_output(
         ["git", "hash-object", str(path)], cwd=path.parent, text=True
     ).strip()
