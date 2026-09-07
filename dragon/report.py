@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime, time
 import json
 import os
 from pathlib import Path
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 from dragon.state import atomic_write_json, now_iso
 
@@ -31,7 +32,50 @@ def _atomic_text(path: Path, value: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def finalize_report(root: Path, run_dir: Path, state: dict, timezone: str) -> tuple[Path, Path]:
+def evaluate_deadlines(state: dict, timezone: str, target_deadline: str | None) -> dict:
+    if not target_deadline:
+        return {
+            "target_deadline": None,
+            "publication_deadline_status": "NOT_CONFIGURED",
+            "delivery_deadline_status": "NOT_CONFIGURED",
+        }
+    try:
+        target = datetime.combine(
+            date.fromisoformat(state["date"]),
+            time.fromisoformat(target_deadline),
+            tzinfo=ZoneInfo(timezone),
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("TARGET_DEADLINE_INVALID") from exc
+
+    def outcome(stage_name: str, completed: bool) -> str:
+        ended_at = state.get("stages", {}).get(stage_name, {}).get("ended_at")
+        if not completed or not ended_at:
+            return "NOT_COMPLETED"
+        try:
+            ended = datetime.fromisoformat(ended_at)
+        except (TypeError, ValueError):
+            return "UNKNOWN"
+        return "ON_TIME" if ended <= target else "LATE"
+
+    return {
+        "target_deadline": target.isoformat(),
+        "publication_deadline_status": outcome(
+            "final_qa", state.get("publication_status") == "COMPLETE"
+        ),
+        "delivery_deadline_status": outcome(
+            "whatsapp_delivery", state.get("delivery_status") == "COMPLETE"
+        ),
+    }
+
+
+def finalize_report(
+    root: Path,
+    run_dir: Path,
+    state: dict,
+    timezone: str,
+    target_deadline: str | None = None,
+) -> tuple[Path, Path]:
     ended = now_iso(timezone)
     state["ended_at"] = ended
     if not state.get("run_result"):
@@ -79,6 +123,7 @@ def finalize_report(root: Path, run_dir: Path, state: dict, timezone: str) -> tu
         "warnings": warnings,
         "last_successful_checkpoint": state.get("last_successful_checkpoint"),
         "error_code": state.get("error_code"),
+        **evaluate_deadlines(state, timezone, target_deadline),
     }
     json_path = run_dir / "run-report.json"
     text_path = run_dir / "run-report.txt"
@@ -89,6 +134,7 @@ def finalize_report(root: Path, run_dir: Path, state: dict, timezone: str) -> tu
         f"Duration: {report['duration_seconds']:.3f}s",
         f"Publication: {report['publication']} | Cover: {report['cover']} | PDF: {report['pdf']} | EPUB: {report['epub']}",
         f"Archive: {report['archive']} | WhatsApp: {report['whatsapp']}",
+        f"Deadline: publication={report['publication_deadline_status']} | delivery={report['delivery_deadline_status']}",
         f"Recovery actions: {report['recovery_actions']}",
     ]
     if warnings:

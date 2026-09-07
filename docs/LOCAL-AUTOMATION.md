@@ -142,6 +142,12 @@ the dated run directory. They summarize elapsed time, local publication, cover,
 PDF, EPUB, archive, WhatsApp, recovery actions, and unresolved warnings. These
 operator reports are not stage checkpoints and do not alter edition hashes.
 
+The report resolves `scheduler.target_deadline` in the configured local
+timezone and records separate `publication_deadline_status` and
+`delivery_deadline_status` values. Disabled or failed optional delivery is
+reported as `NOT_COMPLETED`; it does not rewrite a completed publication as
+failed.
+
 A normal rerun of a locally complete, hash-valid edition returns
 `ALREADY_PUBLISHED`. If any completed local checkpoint no longer matches its
 recorded hash, the rerun returns

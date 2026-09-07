@@ -26,12 +26,14 @@ class Orchestrator:
         stages: Iterable[StageDefinition],
         recovery_engine: RecoveryEngine | None = None,
         use_lock: bool = True,
+        target_deadline: str | None = None,
     ):
         self.root = root.resolve()
         self.edition_date = date.fromisoformat(edition_date).isoformat()
         self.timezone = timezone
         self.recovery_engine = recovery_engine
         self.use_lock = use_lock
+        self.target_deadline = target_deadline
         self._last_traceback: str | None = None
         self.definitions = list(stages)
         self.stage_names = [stage.name for stage in self.definitions]
@@ -132,13 +134,25 @@ class Orchestrator:
                     from_stage=from_stage,
                     lock=lock,
                 )
-                finalize_report(self.root, self.store.run_dir, state, self.timezone)
+                finalize_report(
+                    self.root,
+                    self.store.run_dir,
+                    state,
+                    self.timezone,
+                    self.target_deadline,
+                )
                 self.store.save(state)
                 return state
         state = self._run_owned(
             resume=resume, retry_stage=retry_stage, from_stage=from_stage, lock=None
         )
-        finalize_report(self.root, self.store.run_dir, state, self.timezone)
+        finalize_report(
+            self.root,
+            self.store.run_dir,
+            state,
+            self.timezone,
+            self.target_deadline,
+        )
         self.store.save(state)
         return state
 

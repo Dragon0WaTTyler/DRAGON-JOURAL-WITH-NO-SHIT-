@@ -75,6 +75,7 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
             RecoveryPolicy.load(root / "config" / "recovery-policy.yaml"),
             sleeper=time.sleep,
         ),
+        target_deadline=str(config["scheduler"]["target_deadline"]),
     )
 
 
