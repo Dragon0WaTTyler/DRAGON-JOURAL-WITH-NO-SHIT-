@@ -1,0 +1,10 @@
+version: 5
+required_consecutive_unattended_runs: 3
+require_synthetic_publication: true
+require_manual_real_publication: true
+require_verified_git_archive: true
+require_whatsapp_delivery: false
+required_review_evidence:
+  - failure-injection.json
+  - artifact-comparison.json
+  - scheduler-trial.json

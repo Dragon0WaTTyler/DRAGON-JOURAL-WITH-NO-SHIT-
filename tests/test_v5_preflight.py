@@ -10,7 +10,7 @@ BASE_CONFIG = {
     "version": 5,
     "timezone": "Africa/Casablanca",
     "providers": {
-        "ai": {"type": "fixture"},
+        "ai": {"type": "fixture", "integration_test_status": "PASS"},
         "github_archive": {"type": "git-cli", "enabled": False},
         "whatsapp": {"type": "unconfigured", "enabled": False},
     },
@@ -68,6 +68,17 @@ class V5PreflightTests(unittest.TestCase):
         report = self.run_with(config)
         self.assertEqual(report["status"], "FAIL")
         self.assertIn("ai_provider", [item["name"] for item in report["blocking_failures"]])
+
+    def test_untested_ai_provider_is_blocking(self):
+        config = {
+            **BASE_CONFIG,
+            "providers": {
+                **BASE_CONFIG["providers"],
+                "ai": {"type": "local-command", "integration_test_status": "NOT_RUN"},
+            },
+        }
+        report = self.run_with(config)
+        self.assertEqual(report["status"], "FAIL")
 
     def test_disabled_whatsapp_is_non_blocking(self):
         report = self.run_with(BASE_CONFIG)

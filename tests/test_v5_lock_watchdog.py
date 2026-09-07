@@ -7,7 +7,7 @@ from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from dragon.lock import DuplicateRunError, RunLock
-from dragon.watchdog import WatchdogAssessment, assess, recover
+from dragon.watchdog import WatchdogAssessment, assess, launch_orchestrator, recover
 
 
 DATE = "2026-09-08"
@@ -42,6 +42,16 @@ def write_lock(root, *, pid=123, heartbeat=None):
 
 
 class V5LockWatchdogTests(unittest.TestCase):
+    def test_watchdog_marks_spawned_runs_as_unattended(self):
+        process = type("Process", (), {"pid": 456})()
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.subprocess.Popen", return_value=process
+        ) as popen:
+            root = Path(directory)
+            (root / "dragon_daily.py").write_text("", encoding="utf-8")
+            self.assertEqual(launch_orchestrator(root, DATE, resume=False), 456)
+            self.assertEqual(popen.call_args.kwargs["env"]["DRAGON_TRIGGER"], "watchdog")
+
     def test_lock_is_exclusive_and_owner_releases_it(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "run.lock"

@@ -156,12 +156,13 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
             )
         )
     ai_type = config.get("providers", {}).get("ai", {}).get("type", "unconfigured")
+    ai_test = config.get("providers", {}).get("ai", {}).get("integration_test_status")
     checks.append(
         Check(
             "ai_provider",
-            "PASS" if ai_type != "unconfigured" else "FAIL",
+            "PASS" if ai_type != "unconfigured" and ai_test == "PASS" else "FAIL",
             bool(policy.get("require_ai_provider", True)),
-            f"configured type: {ai_type}",
+            f"configured type: {ai_type}; integration test: {ai_test or 'NOT_RUN'}",
         )
     )
     for provider in ("github_archive", "whatsapp"):

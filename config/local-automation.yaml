@@ -87,6 +87,7 @@ providers:
   ai:
     type: unconfigured
     paid_service_auto_enable: false
+    integration_test_status: NOT_RUN
   repair:
     type: unconfigured
     available_only_after_integration_test: true

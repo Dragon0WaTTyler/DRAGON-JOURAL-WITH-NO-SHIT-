@@ -106,7 +106,9 @@ def launch_orchestrator(root: Path, edition_date: str, *, resume: bool) -> int:
     command = [sys.executable, str(root / "dragon_daily.py"), "--date", edition_date]
     if resume:
         command.append("--resume")
-    kwargs: dict[str, Any] = {"cwd": root}
+    environment = os.environ.copy()
+    environment["DRAGON_TRIGGER"] = "watchdog"
+    kwargs: dict[str, Any] = {"cwd": root, "env": environment}
     if os.name == "nt":
         kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
     process = subprocess.Popen(command, **kwargs)

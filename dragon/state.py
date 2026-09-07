@@ -112,6 +112,7 @@ def new_state(
         "timezone": timezone,
         "run_id": str(uuid4()),
         "source_git_revision": source_revision(root),
+        "trigger": os.environ.get("DRAGON_TRIGGER", "manual"),
         "started_at": timestamp,
         "updated_at": timestamp,
         "last_successful_checkpoint": None,
