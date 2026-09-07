@@ -21,9 +21,10 @@ python dragon_daily.py --from <stage>
 python dragon_daily.py --status
 ```
 
-Command implementation arrives with the orchestrator milestone. Until then,
-the absence of `dragon_daily.py` is an explicit incomplete capability, not an
-invitation to use a second scheduler.
+The CLI and durable orchestration foundation are implemented. Stages without a
+configured implementation fail closed with `STAGE_NOT_IMPLEMENTED`; this is an
+explicit incomplete capability, not permission to use a second scheduler or to
+claim a successful run.
 
 ## Ownership and checkpoints
 
