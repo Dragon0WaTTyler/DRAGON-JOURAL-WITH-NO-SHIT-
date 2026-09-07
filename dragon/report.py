@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
 import os
 from pathlib import Path
 from uuid import uuid4
@@ -53,6 +54,13 @@ def finalize_report(root: Path, run_dir: Path, state: dict, timezone: str) -> tu
         for name, record in state["stages"].items()
         if record["status"] in {"DEGRADED", "FAILED", "BLOCKED"}
     ]
+    cover_status = state["stages"].get("cover", {}).get("status", "NOT_PRESENT")
+    cover_brief = root / "editions" / state["date"][:4] / state["date"][5:7] / state["date"] / "cover-brief.json"
+    try:
+        cover_value = json.loads(cover_brief.read_text(encoding="utf-8"))
+        cover_status = cover_value.get("cover_status", cover_status)
+    except (OSError, ValueError):
+        pass
     report = {
         "schema_version": 5,
         "date": state["date"],
@@ -62,7 +70,7 @@ def finalize_report(root: Path, run_dir: Path, state: dict, timezone: str) -> tu
         "ended_at": ended,
         "duration_seconds": round(_duration_seconds(state["started_at"], ended), 3),
         "publication": state["publication_status"],
-        "cover": state["stages"].get("cover", {}).get("status", "NOT_PRESENT"),
+        "cover": cover_status,
         "pdf": state["stages"].get("pdf", {}).get("status", "NOT_PRESENT"),
         "epub": state["stages"].get("epub", {}).get("status", "NOT_PRESENT"),
         "archive": state["archive_status"],

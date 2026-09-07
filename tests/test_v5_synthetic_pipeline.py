@@ -43,6 +43,10 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     run_report = json.loads((tmp_path / "daily-runs" / DATE / "run-report.json").read_text(encoding="utf-8"))
     assert run_report["result"] == "DEGRADED"
     assert run_report["publication"] == "COMPLETE"
+    assert run_report["cover"] == "COVER_FALLBACK"
+    cover_brief = json.loads((edition / "cover-brief.json").read_text(encoding="utf-8"))
+    assert cover_brief["cover_status"] == "COVER_FALLBACK"
+    assert cover_brief["asset_type"] == "DETERMINISTIC_PNG_FALLBACK"
 
 
 def test_synthetic_resume_reuses_hash_bound_checkpoints(tmp_path: Path) -> None:

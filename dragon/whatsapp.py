@@ -64,7 +64,13 @@ class DisabledWhatsAppProvider:
     reason: str = "PROVIDER_DISABLED_OR_UNCONFIGURED"
     enabled: bool = False
 
-    def send(self, pdf: Path, edition_date: str, prior_receipt: dict | None = None) -> dict:
+    def send(
+        self,
+        pdf: Path,
+        edition_date: str,
+        prior_receipt: dict | None = None,
+        lead_headlines: tuple[str, ...] = (),
+    ) -> dict:
         return {"status": "DEGRADED", "reason": self.reason, "accepted": False}
 
 
@@ -75,9 +81,16 @@ class MetaWhatsAppProvider:
     access_token: str
     recipients: tuple[str, ...]
     request: HttpRequest = _request
+    archive_link_template: str = ""
     enabled: bool = True
 
-    def send(self, pdf: Path, edition_date: str, prior_receipt: dict | None = None) -> dict:
+    def send(
+        self,
+        pdf: Path,
+        edition_date: str,
+        prior_receipt: dict | None = None,
+        lead_headlines: tuple[str, ...] = (),
+    ) -> dict:
         if not pdf.is_file() or pdf.suffix.casefold() != ".pdf":
             raise WhatsAppError("canonical PDF is missing or invalid")
         if pdf.stat().st_size > 100 * 1024 * 1024:
@@ -85,10 +98,29 @@ class MetaWhatsAppProvider:
         if not self.recipients:
             raise WhatsAppError("no recipients configured")
         pdf_hash = sha256_file(pdf)
+        caption_lines = [f"اكتمل نشر صحيفة DRAGON — {edition_date}"]
+        caption_lines.extend(f"• {headline.strip()}" for headline in lead_headlines[:3] if headline.strip())
+        archive_link = ""
+        if self.archive_link_template:
+            try:
+                archive_link = self.archive_link_template.format(date=edition_date)
+            except (KeyError, ValueError) as exc:
+                raise WhatsAppError("archive link template is invalid") from exc
+            if archive_link:
+                caption_lines.append(f"الأرشيف: {archive_link}")
+        caption = "\n".join(caption_lines)
+        if len(caption) > 1024:
+            raise WhatsAppError("delivery caption exceeds the provider limit")
+        delivery_fingerprint = hashlib.sha256(
+            f"{pdf_hash}\n{edition_date}\n{caption}".encode("utf-8")
+        ).hexdigest()
         base = f"https://graph.facebook.com/{self.graph_version}/{self.phone_number_id}"
         authorization = {"Authorization": f"Bearer {self.access_token}"}
         prior = prior_receipt or {}
-        if prior.get("pdf_sha256") == pdf_hash and isinstance(prior.get("media_id"), str):
+        if (
+            prior.get("delivery_fingerprint") == delivery_fingerprint
+            and isinstance(prior.get("media_id"), str)
+        ):
             media_id = prior["media_id"]
             accepted = list(prior.get("recipients", []))
         else:
@@ -117,7 +149,7 @@ class MetaWhatsAppProvider:
                 "type": "document",
                 "document": {
                     "id": media_id,
-                    "caption": f"صحيفة DRAGON — {edition_date}",
+                    "caption": caption,
                     "filename": pdf.name,
                 },
             }
@@ -129,7 +161,16 @@ class MetaWhatsAppProvider:
                     json.dumps(payload, ensure_ascii=False).encode("utf-8"),
                 )
             except WhatsAppError as exc:
-                partial = self._receipt(pdf_hash, media_id, accepted, complete=False)
+                partial = self._receipt(
+                    pdf_hash,
+                    media_id,
+                    accepted,
+                    complete=False,
+                    delivery_fingerprint=delivery_fingerprint,
+                    edition_date=edition_date,
+                    headline_count=min(len(lead_headlines), 3),
+                    archive_link=archive_link,
+                )
                 raise WhatsAppError(str(exc), partial_receipt=partial) from exc
             messages = response.get("messages")
             message_id = messages[0].get("id") if isinstance(messages, list) and messages and isinstance(messages[0], dict) else None
@@ -142,10 +183,28 @@ class MetaWhatsAppProvider:
                     "status": "ACCEPTED_BY_PROVIDER",
                 }
             )
-        return self._receipt(pdf_hash, media_id, accepted, complete=True)
+        return self._receipt(
+            pdf_hash,
+            media_id,
+            accepted,
+            complete=True,
+            delivery_fingerprint=delivery_fingerprint,
+            edition_date=edition_date,
+            headline_count=min(len(lead_headlines), 3),
+            archive_link=archive_link,
+        )
 
     def _receipt(
-        self, pdf_hash: str, media_id: str, accepted: list[dict], *, complete: bool
+        self,
+        pdf_hash: str,
+        media_id: str,
+        accepted: list[dict],
+        *,
+        complete: bool,
+        delivery_fingerprint: str,
+        edition_date: str,
+        headline_count: int,
+        archive_link: str,
     ) -> dict:
         return {
             "status": "COMPLETE" if complete else "FAILED_PARTIAL",
@@ -153,6 +212,11 @@ class MetaWhatsAppProvider:
             "provider": "meta-cloud-api",
             "media_id": media_id,
             "pdf_sha256": pdf_hash,
+            "delivery_fingerprint": delivery_fingerprint,
+            "edition_date": edition_date,
+            "publication_status": "COMPLETE",
+            "lead_headline_count": headline_count,
+            "archive_link": archive_link or None,
             "recipients": accepted,
             "delivery_evidence": "API_ACCEPTANCE; final device delivery requires webhook evidence",
         }
@@ -174,4 +238,10 @@ def whatsapp_provider_from_config(config: dict, environ: dict[str, str] | None =
     version = str(value.get("graph_version", ""))
     if not token or not phone or not recipients or not version:
         return DisabledWhatsAppProvider("PROVIDER_CONFIGURATION_INCOMPLETE")
-    return MetaWhatsAppProvider(version, phone, token, recipients)
+    return MetaWhatsAppProvider(
+        version,
+        phone,
+        token,
+        recipients,
+        archive_link_template=str(value.get("archive_link_template", "")),
+    )

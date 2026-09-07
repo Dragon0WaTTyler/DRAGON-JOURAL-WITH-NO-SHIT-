@@ -125,6 +125,16 @@ github_archive = FAILED
 whatsapp_delivery = FAILED
 ```
 
+The built-in deterministic cover is recorded as `COVER_FALLBACK`, never as AI
+generation. A future image provider may use `COVER_GENERATED` only when an
+actual durable local asset passes the same cover and publication validators.
+
+When the official WhatsApp provider is enabled, its PDF caption contains the
+completed-publication status, edition date, up to three chief-editor lead
+headlines, and `providers.whatsapp.archive_link_template` when configured. The
+template may contain `{date}`. Retry identity covers both the PDF and caption,
+so changed delivery content cannot silently reuse an earlier partial receipt.
+
 Recovery retries those external stages without rebuilding the newspaper.
 
 Every owned invocation writes `run-report.json` and `run-report.txt` beneath

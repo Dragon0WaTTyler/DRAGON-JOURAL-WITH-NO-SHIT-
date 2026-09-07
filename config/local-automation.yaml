@@ -109,6 +109,7 @@ providers:
     access_token_env: META_WHATSAPP_ACCESS_TOKEN
     phone_number_id_env: META_WHATSAPP_PHONE_NUMBER_ID
     recipients_env: DRAGON_WHATSAPP_RECIPIENTS
+    archive_link_template: ""
 cutover:
   legacy_v4_fallback_enabled: true
   local_scheduler_enabled: false

@@ -209,7 +209,19 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         if dimensions != (827, 1169):
             raise StageFailure("COVER_FAILED", f"unexpected dimensions {dimensions}", outputs=(path,))
         brief = context.edition_dir / "cover-brief.json"
-        atomic_write_json(brief, {"mode": provider.mode, "canonical": "assets/cover.png", "accepted": True, "source_article_id": lead["id"], "headline": lead["headline"], "warning": "غلاف اختبار اصطناعي" if synthetic else None})
+        atomic_write_json(
+            brief,
+            {
+                "mode": provider.mode,
+                "cover_status": "COVER_FALLBACK",
+                "asset_type": "DETERMINISTIC_PNG_FALLBACK",
+                "canonical": "assets/cover.png",
+                "accepted": True,
+                "source_article_id": lead["id"],
+                "headline": lead["headline"],
+                "warning": "غلاف اختبار اصطناعي" if synthetic else None,
+            },
+        )
         return StageResult(
             (path, brief), inputs=(context.edition_dir / "edition-plan.json",)
         )
@@ -283,6 +295,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         pdf_report = _load(context.run_dir / "qa" / "pdf.json")
         epub_report = _load(context.run_dir / "qa" / "epub.json")
         arabic_report = _load(context.run_dir / "qa" / "arabic-language.json")
+        cover_brief = _load(context.edition_dir / "cover-brief.json")
         active = sum(item["status"] == "ACTIVE" for item in plan["section_inventory"])
         issues = []
         if active + sum(item["status"] == "SKIPPED" for item in plan["section_inventory"]) != len(SECTION_HEADINGS):
@@ -290,13 +303,29 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         for label, report in (("PDF", pdf_report), ("EPUB", epub_report), ("ARABIC", arabic_report)):
             if report["status"] != "PASS":
                 issues.append(f"{label}_NOT_PASS")
+        if (
+            cover_brief.get("cover_status") not in {"COVER_GENERATED", "COVER_FALLBACK"}
+            or not cover_brief.get("accepted")
+        ):
+            issues.append("COVER_NOT_ACCEPTED")
         decisions = _load(context.edition_dir / "articles.json")["articles"]
         continuity_path = context.edition_dir / "continuity.json"
         atomic_write_json(
             continuity_path,
             build_snapshot(context.edition_date, provider.mode, decisions),
         )
-        artifacts = [context.edition_dir / "edition.md", context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf", context.edition_dir / f"DRAGON-{context.edition_date}.epub", context.edition_dir / "assets" / "cover.png", continuity_path]
+        source_artifacts = [
+            context.edition_dir / "edition.md",
+            context.edition_dir / "edition.html",
+            context.edition_dir / "edition-plan.json",
+            context.edition_dir / "articles.json",
+            context.edition_dir / "sources.json",
+            context.edition_dir / "cover-brief.json",
+            context.edition_dir / f"DRAGON-{context.edition_date}.pdf",
+            context.edition_dir / f"DRAGON-{context.edition_date}.epub",
+            context.edition_dir / "assets" / "cover.png",
+        ]
+        artifacts = source_artifacts + [continuity_path]
         report = {"status": "PASS" if not issues else "FAIL", "mode": provider.mode, "active_sections": active, "issues": issues, **artifact_manifest(artifacts, context.root, mode=provider.mode)}
         report_path = context.edition_dir / "final-qa.json"
         atomic_write_json(report_path, report)
@@ -307,12 +336,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult(
             (report_path, manifest_path),
             metadata={"state_updates": {"publication_status": "COMPLETE"}},
-            inputs=tuple(artifacts[:-1])
+            inputs=tuple(source_artifacts)
             + (
                 context.run_dir / "qa" / "pdf.json",
                 context.run_dir / "qa" / "epub.json",
                 context.run_dir / "qa" / "arabic-language.json",
-                context.edition_dir / "edition-plan.json",
             ),
         )
 
@@ -341,7 +369,25 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             except (OSError, json.JSONDecodeError):
                 prior = None
         try:
-            result = whatsapp_provider.send(pdf_path, context.edition_date, prior)
+            plan = _load(context.edition_dir / "edition-plan.json")
+            decisions = _load(context.edition_dir / "articles.json")["articles"]
+            ranked = plan.get("front_page_article_ids", [])
+            headlines_by_id = {
+                item["id"]: item["headline"]
+                for item in decisions
+                if item.get("status") == "ACTIVE"
+            }
+            lead_headlines = tuple(
+                headlines_by_id[article_id]
+                for article_id in ranked
+                if article_id in headlines_by_id
+            )
+            result = whatsapp_provider.send(
+                pdf_path,
+                context.edition_date,
+                prior,
+                lead_headlines,
+            )
         except WhatsAppError as exc:
             outputs = ()
             if exc.partial_receipt:
@@ -361,7 +407,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             (receipt,),
             status=status,
             metadata={"state_updates": {"delivery_status": status}},
-            inputs=(pdf_path,),
+            inputs=(
+                pdf_path,
+                context.edition_dir / "edition-plan.json",
+                context.edition_dir / "articles.json",
+            ),
         )
 
     preflight = synthetic_preflight_stage() if synthetic else preflight_stage()

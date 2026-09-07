@@ -58,6 +58,37 @@ def test_meta_provider_uploads_pdf_and_records_redacted_acceptance(tmp_path: Pat
     assert b'"type": "document"' in calls[1][3]
 
 
+def test_delivery_caption_has_status_headlines_and_optional_archive_link(tmp_path: Path) -> None:
+    payloads = []
+
+    def request(method: str, url: str, headers: dict[str, str], body: bytes) -> dict:
+        if url.endswith("/media"):
+            return {"id": "media-123"}
+        payloads.append(json.loads(body.decode("utf-8")))
+        return {"messages": [{"id": "wamid-1"}]}
+
+    pdf = tmp_path / "edition.pdf"
+    pdf.write_bytes(b"%PDF-1.7\nfixture")
+    provider = MetaWhatsAppProvider(
+        "v99.0",
+        "phone-id",
+        "token",
+        ("212600000001",),
+        request=request,
+        archive_link_template="https://example.org/archive/{date}",
+    )
+
+    receipt = provider.send(pdf, "2099-01-02", lead_headlines=("العنوان الأول", "العنوان الثاني"))
+    caption = payloads[0]["document"]["caption"]
+
+    assert "اكتمل نشر" in caption
+    assert "2099-01-02" in caption
+    assert "العنوان الأول" in caption
+    assert "https://example.org/archive/2099-01-02" in caption
+    assert receipt["publication_status"] == "COMPLETE"
+    assert receipt["lead_headline_count"] == 2
+
+
 def test_partial_retry_does_not_resend_an_accepted_recipient(tmp_path: Path) -> None:
     calls = []
     fail_second = [True]
