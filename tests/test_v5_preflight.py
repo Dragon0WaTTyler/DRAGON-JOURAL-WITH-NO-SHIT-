@@ -35,7 +35,18 @@ ARABIC_CONFIG = {
 
 
 class V5PreflightTests(unittest.TestCase):
-    def run_with(self, config):
+    def run_with(self, config, provider=None):
+        class Provider:
+            available = (
+                config.get("providers", {}).get("ai", {}).get("type") == "local-command"
+                and config.get("providers", {}).get("ai", {}).get("integration_test_status") == "PASS"
+            )
+
+            def healthcheck(self):
+                return {"status": "PASS", "unattended": True, "provider": "test-local"}
+
+        provider = provider or Provider()
+
         def git_result(_root, *args):
             if args == ("remote", "get-url", "origin"):
                 return "https://github.com/DRAGON/repo"
@@ -54,9 +65,10 @@ class V5PreflightTests(unittest.TestCase):
             patch("dragon.preflight._import", return_value="importable"),
             patch("dragon.preflight._storage", return_value="enough"),
             patch("dragon.preflight.shutil.which", return_value="git"),
+            patch("dragon.preflight.editorial_provider_from_config", return_value=provider),
         ]
         with tempfile.TemporaryDirectory() as directory:
-            with stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7]:
+            with stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8]:
                 return run_preflight(Path(directory), "2026-09-08")
 
     def test_all_required_capabilities_pass(self):
@@ -83,6 +95,19 @@ class V5PreflightTests(unittest.TestCase):
         }
         report = self.run_with(config)
         self.assertEqual(report["status"], "FAIL")
+
+    def test_proven_provider_live_health_failure_is_blocking(self):
+        class BrokenProvider:
+            available = True
+
+            def healthcheck(self):
+                raise RuntimeError("provider authentication expired")
+
+        report = self.run_with(BASE_CONFIG, BrokenProvider())
+        item = next(check for check in report["checks"] if check["name"] == "ai_provider")
+        self.assertEqual(item["status"], "FAIL")
+        self.assertTrue(item["blocking"])
+        self.assertIn("expired", item["detail"])
 
     def test_disabled_whatsapp_is_non_blocking(self):
         report = self.run_with(BASE_CONFIG)

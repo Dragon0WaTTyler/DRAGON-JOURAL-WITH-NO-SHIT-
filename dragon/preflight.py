@@ -161,14 +161,24 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
     ai_type = config.get("providers", {}).get("ai", {}).get("type", "unconfigured")
     ai_test = config.get("providers", {}).get("ai", {}).get("integration_test_status")
     editorial_provider = editorial_provider_from_config(config)
-    checks.append(
-        Check(
-            "ai_provider",
-            "PASS" if editorial_provider.available else "FAIL",
-            bool(policy.get("require_ai_provider", True)),
-            f"configured type: {ai_type}; integration test: {ai_test or 'NOT_RUN'}",
+    provider_blocking = bool(policy.get("require_ai_provider", True))
+    if editorial_provider.available:
+        checks.append(
+            _check(
+                "ai_provider",
+                provider_blocking,
+                lambda: _provider_health(editorial_provider, ai_type, ai_test),
+            )
         )
-    )
+    else:
+        checks.append(
+            Check(
+                "ai_provider",
+                "FAIL",
+                provider_blocking,
+                f"configured type: {ai_type}; integration test: {ai_test or 'NOT_RUN'}",
+            )
+        )
     for provider in ("github_archive", "whatsapp"):
         provider_config = config.get("providers", {}).get(provider, {})
         enabled = bool(provider_config.get("enabled"))
@@ -205,6 +215,17 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
 
 def _raise(detail: str):
     raise RuntimeError(detail)
+
+
+def _provider_health(provider, provider_type: object, integration_status: object) -> str:
+    result = provider.healthcheck()
+    if result.get("status") != "PASS" or result.get("unattended") is not True:
+        raise RuntimeError("PREFLIGHT_AI_PROVIDER_HEALTHCHECK_FAILED")
+    identity = result.get("provider", "unknown")
+    return (
+        f"configured type: {provider_type}; integration test: {integration_status}; "
+        f"live unattended health: PASS ({identity})"
+    )
 
 
 def _require_contains(value: str, expected: str) -> str:

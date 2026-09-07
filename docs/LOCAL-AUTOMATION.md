@@ -114,6 +114,12 @@ provider capability. Optional archive or WhatsApp configuration is non-blocking
 for local publication and may leave those stages `BLOCKED`, `FAILED`, or
 `DEGRADED` according to policy.
 
+After an editorial integration has been marked `PASS`, every production
+preflight also executes its `healthcheck` operation and requires a live
+`status: PASS` plus `unattended: true`. A stale executable, expired login, or
+interactive prompt therefore blocks before research rather than failing deep
+inside the edition.
+
 ## Completion semantics
 
 Local publication completes only after the strict final gate. GitHub archive
