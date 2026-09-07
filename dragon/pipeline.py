@@ -295,12 +295,22 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         pdf_report = _load(context.run_dir / "qa" / "pdf.json")
         epub_report = _load(context.run_dir / "qa" / "epub.json")
         arabic_report = _load(context.run_dir / "qa" / "arabic-language.json")
+        editorial_report = _load(
+            context.run_dir / "editorial" / "chief-editor-report.json"
+        )
+        factcheck_report_value = _load(context.run_dir / "factcheck" / "report.json")
         cover_brief = _load(context.edition_dir / "cover-brief.json")
         active = sum(item["status"] == "ACTIVE" for item in plan["section_inventory"])
         issues = []
         if active + sum(item["status"] == "SKIPPED" for item in plan["section_inventory"]) != len(SECTION_HEADINGS):
             issues.append("SECTION_INVENTORY_INCOMPLETE")
-        for label, report in (("PDF", pdf_report), ("EPUB", epub_report), ("ARABIC", arabic_report)):
+        for label, report in (
+            ("EDITORIAL", editorial_report),
+            ("FACTCHECK", factcheck_report_value),
+            ("PDF", pdf_report),
+            ("EPUB", epub_report),
+            ("ARABIC", arabic_report),
+        ):
             if report["status"] != "PASS":
                 issues.append(f"{label}_NOT_PASS")
         if (
@@ -326,7 +336,19 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             context.edition_dir / "assets" / "cover.png",
         ]
         artifacts = source_artifacts + [continuity_path]
-        report = {"status": "PASS" if not issues else "FAIL", "mode": provider.mode, "active_sections": active, "issues": issues, **artifact_manifest(artifacts, context.root, mode=provider.mode)}
+        report = {
+            "status": "PASS" if not issues else "FAIL",
+            "mode": provider.mode,
+            "active_sections": active,
+            "editorial_status": editorial_report["status"],
+            "factcheck_status": factcheck_report_value["status"],
+            "arabic_status": arabic_report["status"],
+            "pdf_status": pdf_report["status"],
+            "epub_status": epub_report["status"],
+            "cover_status": cover_brief.get("cover_status"),
+            "issues": issues,
+            **artifact_manifest(artifacts, context.root, mode=provider.mode),
+        }
         report_path = context.edition_dir / "final-qa.json"
         atomic_write_json(report_path, report)
         manifest_path = context.edition_dir / "manifest.json"
@@ -341,6 +363,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.run_dir / "qa" / "pdf.json",
                 context.run_dir / "qa" / "epub.json",
                 context.run_dir / "qa" / "arabic-language.json",
+                context.run_dir / "editorial" / "chief-editor-report.json",
+                context.run_dir / "factcheck" / "report.json",
             ),
         )
 

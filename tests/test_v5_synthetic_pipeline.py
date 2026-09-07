@@ -40,6 +40,11 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert report["status"] == "PASS"
     assert report["mode"] == "synthetic"
     assert report["active_sections"] == 23
+    assert report["editorial_status"] == "PASS"
+    assert report["factcheck_status"] == "PASS"
+    assert report["cover_status"] == "COVER_FALLBACK"
+    assert "daily-runs/2099-01-02/factcheck/report.json" in state["stages"]["final_qa"]["input_hashes"]
+    assert "daily-runs/2099-01-02/editorial/chief-editor-report.json" in state["stages"]["final_qa"]["input_hashes"]
     run_report = json.loads((tmp_path / "daily-runs" / DATE / "run-report.json").read_text(encoding="utf-8"))
     assert run_report["result"] == "DEGRADED"
     assert run_report["publication"] == "COMPLETE"

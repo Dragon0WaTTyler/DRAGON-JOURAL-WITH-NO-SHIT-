@@ -122,8 +122,12 @@ inside the edition.
 
 ## Completion semantics
 
-Local publication completes only after the strict final gate. GitHub archive
-and WhatsApp delivery remain independent. A report may truthfully state:
+Local publication completes only after the strict final gate. The final-QA
+checkpoint directly consumes the hash-bound chief-editor,
+fact-check, Arabic, PDF, EPUB, and cover reports and requires every mandatory
+status to pass. Stage order alone is not accepted as proof of readiness.
+GitHub archive and WhatsApp delivery remain independent. A report may
+truthfully state:
 
 ```text
 publication = COMPLETE
