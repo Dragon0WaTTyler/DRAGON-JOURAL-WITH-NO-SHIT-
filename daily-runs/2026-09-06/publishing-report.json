@@ -54,8 +54,8 @@
   "cover_read_back_status": "PASS_SVG_FALLBACK",
   "html_freshness_status": "PASS_REBUILT_FROM_CURRENT_CANONICAL_EDITION",
   "epub_xhtml_freshness_status": "PASS_REBUILT_FROM_CURRENT_CANONICAL_EDITION",
-  "github_text_persistence": "PENDING_REMOTE_READBACK",
-  "github_text_read_back": "PENDING_REMOTE_READBACK",
+  "github_text_persistence": "PASS_REMOTE_READBACK",
+  "github_text_read_back": "PASS_REMOTE_READBACK",
   "automatic_renderer_handoff": {
     "mode": "GITHUB_ACTIONS_AUTOMATIC",
     "pdf_rule": "PAGE_1_CANONICAL_COVER_PAGE_2_ONWARD_HTML_PLUS_PRINT_CSS",

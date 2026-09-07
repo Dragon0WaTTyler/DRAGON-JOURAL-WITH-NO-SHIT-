@@ -52,7 +52,7 @@
   "edition_status": "FINAL_CANONICAL_EDITORIAL_MASTER",
   "publishing_report": "daily-runs/2026-09-06/publishing-report.json",
   "cover_source_status": "PASS_SVG_FALLBACK",
-  "github_text_persistence": "PENDING_REMOTE_READBACK",
+  "github_text_persistence": "PASS_REMOTE_READBACK",
   "github_binary_read_back": "PASS",
   "binary_archive_commit": "541d939dc17153e7b5fdcfaee1f253f667eb7469",
   "binary_sha256": {

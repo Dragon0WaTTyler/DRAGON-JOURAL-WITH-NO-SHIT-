@@ -74,13 +74,13 @@
   "cover_binary_archive": "PERSISTED_CANONICAL_ASSET",
   "publishing_github_read_back": "PASS",
   "publishing_remote_read_back": {
-    "commit": "a52937fd4b7dc3b660b940c8378d7821e498e8d7",
+    "commit": "b752af33ae2332ffc488001e04213b9f4ea15570",
     "paths": {
       "editions/2026/09/2026-09-06/edition.html": "db3753058b5f38c651652b5e3a1a03bf11c4e340",
       "editions/2026/09/2026-09-06/print.css": "f3cb5ae5a5cdfcfbd4cb8d9d05f4b70c3437f08f",
       "editions/2026/09/2026-09-06/epub-content.xhtml": "56dbf6bc49c1d6ba841a45850534e3d435e535cd",
-      "editions/2026/09/2026-09-06/manifest.json": "5c08f98f947933aa97f3d18c685311f0db570e3d",
-      "daily-runs/2026-09-06/publishing-report.json": "2c08a93a17cc5af9d2b95cfbc1d5a1097444915d"
+      "editions/2026/09/2026-09-06/manifest.json": "b80ffad8fd3b09a77aa0a4534510c8b8593dbf7b",
+      "daily-runs/2026-09-06/publishing-report.json": "7dd9d89d3f566fa7c6aced235fad686a7a02d25d"
     }
   },
   "blocking_reason": null,
