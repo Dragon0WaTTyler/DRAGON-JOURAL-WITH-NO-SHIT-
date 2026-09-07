@@ -3,7 +3,12 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from dragon.publication import build_cover_png, render_pdf, validate_pdf
+from dragon.publication import (
+    build_cover_png,
+    render_pdf,
+    validate_pdf,
+    validate_publication_source,
+)
 
 
 def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -> None:
@@ -84,3 +89,16 @@ def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> N
     )
     assert validate_pdf(pdf, canonical_cover=other)["status"] == "FAIL"
     assert validate_pdf(pdf, canonical_cover=canonical)["status"] == "PASS"
+
+
+def test_publication_source_requires_exact_article_sources() -> None:
+    article = {
+        "id": "a1",
+        "source_urls": ["https://example.org/exact?a=1&b=2"],
+    }
+    valid = '<html lang="ar" dir="rtl"><body><img src="assets/cover.png"><article id="a1"><a href="https://example.org/exact?a=1&amp;b=2">مصدر</a></article></body></html>'
+    assert validate_publication_source(valid, [article]) == []
+    issues = validate_publication_source(
+        valid.replace("/exact?", "/wrong?"), [article]
+    )
+    assert any(issue.startswith("HTML_SOURCE_LINK_MISSING") for issue in issues)

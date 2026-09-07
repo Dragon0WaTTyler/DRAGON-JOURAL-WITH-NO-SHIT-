@@ -8,7 +8,7 @@ from pathlib import Path
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.continuity import build_snapshot, prior_context
-from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
+from dragon.language import decode_utf8, validate_arabic_text
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.publication import (
     artifact_manifest,
@@ -18,6 +18,7 @@ from dragon.publication import (
     render_pdf,
     validate_epub,
     validate_pdf,
+    validate_publication_source,
 )
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
 from dragon.state import atomic_write_json
@@ -209,7 +210,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
         path = build_html(context.edition_dir, context.edition_date, articles_value, mode=provider.mode)
         document = decode_utf8(path.read_bytes())
-        issues = validate_html_rtl(document)
+        issues = validate_publication_source(document, articles_value)
         if issues:
             raise StageFailure("PUBLICATION_SOURCE_INVALID", "; ".join(issues), outputs=(path,))
         return StageResult(
@@ -253,6 +254,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             path,
             canonical_cover=context.edition_dir / "assets" / "cover.png",
             expected_article_ids=tuple(item["id"] for item in articles_value),
+            expected_source_urls=tuple(
+                url for item in articles_value for url in item["source_urls"]
+            ),
         )
         report_path = context.run_dir / "qa" / "epub.json"
         atomic_write_json(report_path, report)

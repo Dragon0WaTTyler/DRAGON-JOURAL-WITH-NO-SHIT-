@@ -14,11 +14,11 @@ from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
 from dragon.state import sha256_file
 
 
-def _article_markup(article: dict, *, xhtml: bool = False) -> str:
+def _article_markup(article: dict) -> str:
     paragraphs = "".join(f"<p>{escape(value)}</p>" for value in article["body"])
     sources = "".join(
         f'<li><a href="{escape(url, quote=True)}">{escape(url)}</a></li>'
-        for url in article.get("source_urls", ["https://example.org/dragon-fixture"])
+        for url in article.get("source_urls", [])
     )
     return (
         f'<article id="{escape(article["id"])}">'
@@ -96,6 +96,24 @@ def build_html(edition_dir: Path, edition_date: str, articles: list[dict], *, mo
     path = edition_dir / "edition.html"
     path.write_text(document, encoding="utf-8", newline="\n")
     return path
+
+
+def validate_publication_source(document: str, articles: list[dict]) -> list[str]:
+    issues = validate_html_rtl(document)
+    for article in articles:
+        article_id = article.get("id")
+        if not article_id or f'id="{escape(str(article_id), quote=True)}"' not in document:
+            issues.append(f"HTML_ARTICLE_MISSING:{article_id}")
+        source_urls = article.get("source_urls")
+        if not isinstance(source_urls, list) or not source_urls:
+            issues.append(f"HTML_SOURCES_MISSING:{article_id}")
+            continue
+        for url in source_urls:
+            if f'href="{escape(str(url), quote=True)}"' not in document:
+                issues.append(f"HTML_SOURCE_LINK_MISSING:{article_id}:{url}")
+    if 'src="assets/cover.png"' not in document:
+        issues.append("HTML_CANONICAL_COVER_MISSING")
+    return issues
 
 
 def _font(size: int):
@@ -265,7 +283,7 @@ def render_pdf(html_path: Path, destination: Path) -> Path:
 
 
 def _xhtml(edition_date: str, articles: list[dict], *, mode: str) -> str:
-    body = "".join(_article_markup(article, xhtml=True) for article in articles)
+    body = "".join(_article_markup(article) for article in articles)
     return f'''<?xml version="1.0" encoding="utf-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl">
 <head><title>DRAGON — {edition_date}</title><link rel="stylesheet" type="text/css" href="style.css"/></head>
@@ -365,6 +383,7 @@ def validate_epub(
     *,
     canonical_cover: Path | None = None,
     expected_article_ids: tuple[str, ...] = (),
+    expected_source_urls: tuple[str, ...] = (),
 ) -> dict:
     issues: list[str] = []
     required = {"mimetype", "META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml", "OEBPS/edition.xhtml", "OEBPS/cover.png"}
@@ -383,6 +402,9 @@ def validate_epub(
             for article_id in expected_article_ids:
                 if f'id="{article_id}"' not in xhtml:
                     issues.append(f"EPUB_ARTICLE_MISSING:{article_id}")
+            for url in expected_source_urls:
+                if f'href="{escape(url, quote=True)}"' not in xhtml:
+                    issues.append(f"EPUB_SOURCE_LINK_MISSING:{url}")
             ElementTree.fromstring(package)
             issues.extend(validate_xhtml_rtl(xhtml))
             if "page-progression-direction=\"rtl\"" not in package or "<dc:language>ar</dc:language>" not in package:
