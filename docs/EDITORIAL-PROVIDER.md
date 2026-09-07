@@ -24,6 +24,14 @@ The adapter consumes the signed-in account's Codex usage and is never enabled
 as a paid API or silently assigned an API key. `DRAGON_CODEX_BINARY` and
 `DRAGON_CODEX_MODEL` are optional local overrides.
 
+`python dragon_provider_check.py` is a no-generation CLI/auth probe. A deliberate
+`python dragon_provider_check.py --full --date YYYY-MM-DD` consumes the signed-in
+account's Codex usage, runs both live operations, validates them through the
+same production adapter, and writes hash-addressed review material beneath
+`acceptance/provider-trials/YYYY-MM-DD/`. Even a technically valid trial is
+labelled `VALIDATED_AWAITING_HUMAN_REVIEW` and never edits configuration or
+promotes itself to `PASS`.
+
 ## Operations
 
 - `healthcheck` receives `schema_version`. It returns `status: PASS`,
