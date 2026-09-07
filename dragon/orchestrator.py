@@ -10,6 +10,7 @@ from typing import Iterable
 from dragon.incidents import IncidentWriter
 from dragon.lock import RunLock
 from dragon.recovery import RecoveryEngine
+from dragon.report import finalize_report
 from dragon.runlog import StageLogger
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
 from dragon.state import StateStore, now_iso, sha256_file
@@ -100,18 +101,21 @@ class Orchestrator:
             with RunLock(self.store.run_dir / "run.lock", self.timezone) as lock:
                 state = self.store.initialize()
                 lock.set_run_id(state["run_id"])
-                return self._run_owned(
+                state = self._run_owned(
                     resume=resume,
                     retry_stage=retry_stage,
                     from_stage=from_stage,
                     lock=lock,
                 )
-        return self._run_owned(
-            resume=resume,
-            retry_stage=retry_stage,
-            from_stage=from_stage,
-            lock=None,
+                finalize_report(self.root, self.store.run_dir, state, self.timezone)
+                self.store.save(state)
+                return state
+        state = self._run_owned(
+            resume=resume, retry_stage=retry_stage, from_stage=from_stage, lock=None
         )
+        finalize_report(self.root, self.store.run_dir, state, self.timezone)
+        self.store.save(state)
+        return state
 
     def _run_owned(
         self,
@@ -129,6 +133,27 @@ class Orchestrator:
             self.invalidate_from(from_stage, reason="explicit_from")
         state = self.store.initialize()
         start_at = retry_stage or from_stage
+        state.pop("run_result", None)
+        state.pop("error_code", None)
+        state.pop("invalid_checkpoints", None)
+        if state["publication_status"] == "COMPLETE" and start_at is None:
+            final_index = self.stage_names.index("final_qa")
+            invalid = [
+                name
+                for name in self.stage_names[: final_index + 1]
+                if state["stages"][name]["status"] == "COMPLETE"
+                and not self.store.verify_checkpoint(state["stages"][name])
+            ]
+            if invalid:
+                state["publication_status"] = "BLOCKED"
+                state["run_result"] = "BLOCKED"
+                state["error_code"] = "COMPLETED_EDITION_CHECKPOINT_INVALID"
+                state["invalid_checkpoints"] = invalid
+                self.store.save(state)
+                return state
+            state["run_result"] = "ALREADY_PUBLISHED"
+            self.store.save(state)
+            return state
 
         for definition in self.definitions:
             if lock:

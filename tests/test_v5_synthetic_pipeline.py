@@ -37,6 +37,9 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert report["status"] == "PASS"
     assert report["mode"] == "synthetic"
     assert report["active_sections"] == 23
+    run_report = json.loads((tmp_path / "daily-runs" / DATE / "run-report.json").read_text(encoding="utf-8"))
+    assert run_report["result"] == "DEGRADED"
+    assert run_report["publication"] == "COMPLETE"
 
 
 def test_synthetic_resume_reuses_hash_bound_checkpoints(tmp_path: Path) -> None:
@@ -46,6 +49,22 @@ def test_synthetic_resume_reuses_hash_bound_checkpoints(tmp_path: Path) -> None:
     attempts = {name: record["attempt_count"] for name, record in first["stages"].items()}
     second = orchestrator.run(resume=True)
     assert {name: record["attempt_count"] for name, record in second["stages"].items()} == attempts
+    assert second["run_result"] == "ALREADY_PUBLISHED"
+
+
+def test_completed_edition_tampering_blocks_ordinary_rerun(tmp_path: Path) -> None:
+    stages = build_stage_definitions(SyntheticEditorialProvider(), synthetic=True)
+    orchestrator = Orchestrator(root=tmp_path, edition_date=DATE, timezone="Africa/Casablanca", stages=stages, use_lock=False)
+    orchestrator.run()
+    edition = tmp_path / "editions" / "2099" / "01" / DATE
+    (edition / "edition.md").write_text("tampered", encoding="utf-8")
+
+    state = orchestrator.run()
+
+    assert state["run_result"] == "BLOCKED"
+    assert state["error_code"] == "COMPLETED_EDITION_CHECKPOINT_INVALID"
+    assert "chief_editor" in state["invalid_checkpoints"]
+    assert (edition / "edition.md").read_text(encoding="utf-8") == "tampered"
 
 
 def test_unconfigured_production_provider_never_generates_fixture_news() -> None:

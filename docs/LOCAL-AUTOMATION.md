@@ -127,6 +127,18 @@ whatsapp_delivery = FAILED
 
 Recovery retries those external stages without rebuilding the newspaper.
 
+Every owned invocation writes `run-report.json` and `run-report.txt` beneath
+the dated run directory. They summarize elapsed time, local publication, cover,
+PDF, EPUB, archive, WhatsApp, recovery actions, and unresolved warnings. These
+operator reports are not stage checkpoints and do not alter edition hashes.
+
+A normal rerun of a locally complete, hash-valid edition returns
+`ALREADY_PUBLISHED`. If any completed local checkpoint no longer matches its
+recorded hash, the rerun returns
+`COMPLETED_EDITION_CHECKPOINT_INVALID` and does not regenerate bytes. Repairing
+or correcting such an edition requires an explicit `--from` or `--retry`
+boundary and therefore leaves an auditable recovery history.
+
 ## Migration safety
 
 The V4 system remains enabled until `docs/LOCAL-CUTOVER.md` records the required

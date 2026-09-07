@@ -97,7 +97,7 @@ def main() -> int:
         record["status"] in {"FAILED", "BLOCKED"}
         for record in state["stages"].values()
     )
-    return 1 if failed else 0
+    return 1 if failed or state.get("run_result") in {"FAILED", "BLOCKED"} else 0
 
 
 if __name__ == "__main__":
