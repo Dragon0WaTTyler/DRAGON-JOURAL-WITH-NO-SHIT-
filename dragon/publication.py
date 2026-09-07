@@ -119,7 +119,7 @@ def _rtl_lines(draw, text: str, font, width: int) -> list[str]:
     for word in words:
         candidate = f"{current} {word}".strip()
         try:
-            measured = draw.textlength(candidate, font=font)
+            measured = draw.textlength(_visual_arabic(candidate), font=font)
         except ValueError:
             measured = 0
         if measured <= width or not current:
@@ -132,16 +132,35 @@ def _rtl_lines(draw, text: str, font, width: int) -> list[str]:
     return lines
 
 
-def _draw_rtl(draw, xy: tuple[int, int], text: str, font, *, fill: str, spacing: int, width: int) -> int:
+def _visual_arabic(text: str) -> str:
     import arabic_reshaper
     from bidi.algorithm import get_display
 
+    return get_display(arabic_reshaper.reshape(text))
+
+
+def _draw_rtl(draw, xy: tuple[int, int], text: str, font, *, fill: str, spacing: int, width: int) -> int:
     x, y = xy
     for line in _rtl_lines(draw, text, font, width):
-        visual = get_display(arabic_reshaper.reshape(line))
-        draw.text((x, y), visual, font=font, fill=fill, anchor="ra")
+        draw.text((x, y), _visual_arabic(line), font=font, fill=fill, anchor="ra")
         y += spacing
     return y
+
+
+def _ltr_lines(draw, text: str, font, width: int) -> list[str]:
+    lines: list[str] = []
+    remaining = text
+    while remaining:
+        low, high = 1, len(remaining)
+        while low < high:
+            middle = (low + high + 1) // 2
+            if draw.textlength(remaining[:middle], font=font) <= width:
+                low = middle
+            else:
+                high = middle - 1
+        lines.append(remaining[:low])
+        remaining = remaining[low:]
+    return lines
 
 
 def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
@@ -158,10 +177,14 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     with Image.open(html_path.parent / "assets" / "cover.png") as source_cover:
         cover = source_cover.convert("RGB").resize(size)
     pages.append(cover)
-    for article in articles:
+    def new_content_page():
         page = Image.new("RGB", size, "white")
         draw = ImageDraw.Draw(page)
         draw.rectangle((45, 45, 782, 1124), outline="#d2d2d2", width=2)
+        return page, draw
+
+    for article in articles:
+        page, draw = new_content_page()
         y = 85
         y = _draw_rtl(draw, (750, y), article["section"], _font(19), fill="#9e1523", spacing=30, width=675)
         y += 10
@@ -173,8 +196,37 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
         draw.line((75, y + 5, 750, y + 5), fill="#9e1523", width=3)
         y += 30
         for paragraph in article["body"]:
-            y = _draw_rtl(draw, (750, y), paragraph, _font(18), fill="#111111", spacing=29, width=675)
+            font = _font(18)
+            lines = _rtl_lines(draw, paragraph, font, 675)
+            for line in lines:
+                if y + 29 > 1030:
+                    pages.append(page)
+                    page, draw = new_content_page()
+                    y = 85
+                    y = _draw_rtl(
+                        draw,
+                        (750, y),
+                        article["headline"] + " — تابع",
+                        _font(18),
+                        fill="#9e1523",
+                        spacing=29,
+                        width=675,
+                    )
+                    draw.line((75, y + 3, 750, y + 3), fill="#d2d2d2", width=2)
+                    y += 20
+                draw.text(
+                    (750, y),
+                    _visual_arabic(line),
+                    font=font,
+                    fill="#111111",
+                    anchor="ra",
+                )
+                y += 29
             y += 18
+        if y + 75 > 1070:
+            pages.append(page)
+            page, draw = new_content_page()
+            y = 85
         source_y = _draw_rtl(
             draw,
             (750, min(y + 5, 1035)),
@@ -185,8 +237,14 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
             width=675,
         )
         for url in article.get("source_urls", []):
-            draw.text((750, source_y), url, font=_font(11), fill="#555555", anchor="ra")
-            source_y += 18
+            font = _font(11)
+            for line in _ltr_lines(draw, url, font, 675):
+                if source_y + 18 > 1090:
+                    pages.append(page)
+                    page, draw = new_content_page()
+                    source_y = 85
+                draw.text((750, source_y), line, font=font, fill="#555555", anchor="ra")
+                source_y += 18
         pages.append(page)
     first, rest = pages[0], pages[1:]
     subject = "synthetic acceptance fixture" if mode == "synthetic" else "Arabic daily newspaper"

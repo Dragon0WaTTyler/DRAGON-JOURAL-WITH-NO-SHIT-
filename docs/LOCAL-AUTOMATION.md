@@ -139,6 +139,11 @@ recorded hash, the rerun returns
 or correcting such an edition requires an explicit `--from` or `--retry`
 boundary and therefore leaves an auditable recovery history.
 
+The Windows PDF backend flows long Arabic bodies across as many populated pages
+as required. It never enforces a fixed page count or clips verified prose to fit
+an article-sized canvas. Continuation pages repeat a compact story identifier;
+exact source URLs flow at the end of the story.
+
 ## Migration safety
 
 The V4 system remains enabled until `docs/LOCAL-CUTOVER.md` records the required
