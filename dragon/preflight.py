@@ -16,8 +16,10 @@ import sys
 from typing import Any, Callable
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from dragon.acceptance import _provider_trial_evidence
 from dragon.config import load_local_config, load_mapping
 from dragon.providers import editorial_provider_from_config
+from dragon.state import runtime_fingerprint
 
 
 @dataclass(frozen=True)
@@ -171,6 +173,13 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
                 lambda: _provider_health(editorial_provider, ai_type, ai_test),
             )
         )
+        checks.append(
+            _check(
+                "ai_provider_evidence",
+                provider_blocking,
+                lambda: _provider_evidence(root),
+            )
+        )
     else:
         checks.append(
             Check(
@@ -236,6 +245,17 @@ def _provider_health(provider, provider_type: object, integration_status: object
         f"configured type: {provider_type}; integration test: {integration_status}; "
         f"live unattended health: PASS ({identity})"
     )
+
+
+def _provider_evidence(root: Path) -> str:
+    valid, trials = _provider_trial_evidence(root, runtime_fingerprint(root))
+    if not valid:
+        rejected = ", ".join(
+            f"{item['date']}:{'/'.join(item['issues'])}" for item in trials
+        ) or "no trial receipt"
+        raise RuntimeError(f"PREFLIGHT_AI_PROVIDER_EVIDENCE_INVALID: {rejected}")
+    accepted = [item["date"] for item in trials if item["status"] == "PASS"]
+    return f"reviewed current-runtime provider trial: {accepted[-1]}"
 
 
 def _require_contains(value: str, expected: str) -> str:

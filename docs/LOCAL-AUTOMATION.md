@@ -136,7 +136,10 @@ After an editorial integration has been marked `PASS`, every production
 preflight also executes its `healthcheck` operation and requires a live
 `status: PASS` plus `unattended: true`. A stale executable, expired login, or
 interactive prompt therefore blocks before research rather than failing deep
-inside the edition.
+inside the edition. Preflight also reruns the provider-trial evidence audit: a
+manually edited configuration `PASS` cannot start research unless the current
+runtime has a technically validated trial and its exact receipt has a later,
+hash-bound human review.
 
 ## Completion semantics
 

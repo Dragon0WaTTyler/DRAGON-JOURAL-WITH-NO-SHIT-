@@ -3,7 +3,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from dragon.preflight import _clean_worktree, _v5_generated_prefixes, run_preflight
+from dragon.preflight import (
+    _clean_worktree,
+    _v5_generated_prefixes,
+    run_preflight,
+)
 
 
 BASE_CONFIG = {
@@ -35,7 +39,7 @@ ARABIC_CONFIG = {
 
 
 class V5PreflightTests(unittest.TestCase):
-    def run_with(self, config, provider=None, git_override=None):
+    def run_with(self, config, provider=None, git_override=None, trial_result=None):
         class Provider:
             available = (
                 config.get("providers", {}).get("ai", {}).get("type") == "local-command"
@@ -66,9 +70,16 @@ class V5PreflightTests(unittest.TestCase):
             patch("dragon.preflight._storage", return_value="enough"),
             patch("dragon.preflight.shutil.which", return_value="git"),
             patch("dragon.preflight.editorial_provider_from_config", return_value=provider),
+            patch(
+                "dragon.preflight._provider_trial_evidence",
+                return_value=trial_result if trial_result is not None else (
+                    True,
+                    [{"date": "2026-09-08", "status": "PASS", "issues": []}],
+                ),
+            ),
         ]
         with tempfile.TemporaryDirectory() as directory:
-            with stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8]:
+            with stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9]:
                 return run_preflight(Path(directory), "2026-09-08")
 
     def test_all_required_capabilities_pass(self):
@@ -108,6 +119,14 @@ class V5PreflightTests(unittest.TestCase):
         self.assertEqual(item["status"], "FAIL")
         self.assertTrue(item["blocking"])
         self.assertIn("expired", item["detail"])
+
+    def test_proven_provider_without_reviewed_trial_is_blocking(self):
+        report = self.run_with(BASE_CONFIG, trial_result=(False, []))
+        item = next(
+            check for check in report["blocking_failures"]
+            if check["name"] == "ai_provider_evidence"
+        )
+        self.assertIn("PREFLIGHT_AI_PROVIDER_EVIDENCE_INVALID", item["detail"])
 
     def test_disabled_whatsapp_is_non_blocking(self):
         report = self.run_with(BASE_CONFIG)
