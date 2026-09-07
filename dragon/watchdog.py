@@ -54,17 +54,17 @@ def assess(
                 return WatchdogAssessment("NO_ACTION", "live lock exists before state initialization", None, pid, relative_lock)
             return WatchdogAssessment("RESUME", "lock owner died before state initialization", None, pid, relative_lock)
         if lock:
-            return WatchdogAssessment("NO_ACTION", "unreadable lock requires intervention", None, None, relative_lock)
+            return WatchdogAssessment("ATTENTION", "unreadable lock requires intervention", None, None, relative_lock)
         return WatchdogAssessment("START", "no V5 state exists for today", None, None, relative_lock)
     try:
         state = json.loads(state_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         pid = lock.get("pid") if lock and lock.get("valid") else None
         if pid is not None and alive(int(pid)):
-            return WatchdogAssessment("NO_ACTION", f"state unreadable while owner is alive: {exc}", None, int(pid), relative_lock)
+            return WatchdogAssessment("ATTENTION", f"state unreadable while owner is alive: {exc}", None, int(pid), relative_lock)
         if (run_dir / "state.json.bak").is_file() and (not lock or lock.get("valid")):
             return WatchdogAssessment("RESUME", "primary state unreadable; backup is available", None, int(pid) if pid is not None else None, relative_lock)
-        return WatchdogAssessment("NO_ACTION", f"state unreadable and no safe recovery copy: {exc}", None, int(pid) if pid is not None else None, relative_lock)
+        return WatchdogAssessment("ATTENTION", f"state unreadable and no safe recovery copy: {exc}", None, int(pid) if pid is not None else None, relative_lock)
     running = [name for name, record in state.get("stages", {}).items() if record.get("status") == "RUNNING"]
     pending = [name for name, record in state.get("stages", {}).items() if record.get("status") == "PENDING"]
     recoverable_failed = [
@@ -73,8 +73,14 @@ def assess(
         if record.get("status") == "FAILED"
         and record.get("repair_status") != "REQUIRES_INTERVENTION"
     ]
+    intervention_failed = [
+        name
+        for name, record in state.get("stages", {}).items()
+        if record.get("status") in {"FAILED", "BLOCKED"}
+        and record.get("repair_status") == "REQUIRES_INTERVENTION"
+    ]
     if len(running) > 1:
-        return WatchdogAssessment("NO_ACTION", "multiple RUNNING stages require intervention", None, lock.get("pid") if lock else None, relative_lock)
+        return WatchdogAssessment("ATTENTION", "multiple RUNNING stages require intervention", None, lock.get("pid") if lock else None, relative_lock)
     stage = running[0] if running else None
     if lock and lock.get("valid"):
         pid = int(lock["pid"])
@@ -82,7 +88,7 @@ def assess(
             heartbeat = lock.get("heartbeat_at") or lock.get("acquired_at")
             timeout = int(config.get("watchdog", {}).get("stage_timeouts_seconds", {}).get(stage, config.get("watchdog", {}).get("default_stage_timeout_seconds", 7200)))
             if heartbeat and _age_seconds(str(heartbeat), now) > timeout:
-                return WatchdogAssessment("NO_ACTION", "live process has stale heartbeat; diagnose without duplicate restart", stage, pid, relative_lock)
+                return WatchdogAssessment("ATTENTION", "live process has stale heartbeat; diagnose without duplicate restart", stage, pid, relative_lock)
             return WatchdogAssessment("NO_ACTION", "orchestrator process is alive", stage, pid, relative_lock)
         if stage:
             return WatchdogAssessment("RESUME", "RUNNING stage has dead lock owner", stage, pid, relative_lock)
@@ -97,7 +103,7 @@ def assess(
             )
         return WatchdogAssessment("QUARANTINE_LOCK", "lock owner is dead and no resumable work remains", None, pid, relative_lock)
     if lock and not lock.get("valid"):
-        return WatchdogAssessment("NO_ACTION", "unreadable lock requires intervention", stage, None, relative_lock)
+        return WatchdogAssessment("ATTENTION", "unreadable lock requires intervention", stage, None, relative_lock)
     if stage:
         return WatchdogAssessment("RESUME", "RUNNING stage has no lock owner", stage, None, relative_lock)
     if recoverable_failed:
@@ -113,6 +119,14 @@ def assess(
             "RESUME",
             "pending work remains with no orchestrator owner",
             pending[0],
+            None,
+            relative_lock,
+        )
+    if intervention_failed:
+        return WatchdogAssessment(
+            "ATTENTION",
+            "failed or blocked stage requires intervention",
+            intervention_failed[0],
             None,
             relative_lock,
         )

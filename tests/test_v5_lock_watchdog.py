@@ -133,7 +133,8 @@ class V5LockWatchdogTests(unittest.TestCase):
             root = Path(directory)
             write_state(root, "FAILED", repair_status="REQUIRES_INTERVENTION")
             result = assess(root, DATE)
-            self.assertEqual(result.action, "NO_ACTION")
+            self.assertEqual(result.action, "ATTENTION")
+            self.assertEqual(result.stage, "research")
 
     def test_live_stale_owner_is_never_duplicated(self):
         with tempfile.TemporaryDirectory() as directory, patch(
@@ -144,8 +145,19 @@ class V5LockWatchdogTests(unittest.TestCase):
             now = datetime.now(ZoneInfo(TZ))
             write_lock(root, heartbeat=(now - timedelta(minutes=10)).isoformat())
             result = assess(root, DATE, now=now, alive=lambda _: True)
-            self.assertEqual(result.action, "NO_ACTION")
+            self.assertEqual(result.action, "ATTENTION")
             self.assertIn("without duplicate restart", result.reason)
+
+    def test_unreadable_state_without_backup_requires_attention(self):
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.load_local_config", return_value=CONFIG
+        ):
+            root = Path(directory)
+            state = write_state(root)
+            state.write_text("{broken", encoding="utf-8")
+            result = assess(root, DATE)
+            self.assertEqual(result.action, "ATTENTION")
+            self.assertIn("no safe recovery copy", result.reason)
 
     def test_recovery_quarantines_dead_lock_and_launches_once(self):
         with tempfile.TemporaryDirectory() as directory, patch(

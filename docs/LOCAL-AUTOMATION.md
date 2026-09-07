@@ -185,6 +185,12 @@ starts `dragon_daily.py` when today's run is absent. It resumes only when state
 contains a `RUNNING` stage and the lock owner is absent or provably dead. A live
 process with a stale heartbeat produces diagnostics and is never duplicated.
 
+Unsafe states use the explicit watchdog action `ATTENTION` and a nonzero task
+exit code: unreadable state without a valid backup, unreadable locks, multiple
+RUNNING stages, stale live heartbeats, and failed/blocked stages already marked
+`REQUIRES_INTERVENTION`. These conditions are never disguised as idle
+`NO_ACTION` and never trigger a duplicate process.
+
 ```text
 powershell -File scripts/windows/install-scheduler.ps1
 powershell -File scripts/windows/test-scheduler.ps1

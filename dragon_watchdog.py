@@ -26,7 +26,7 @@ def main() -> int:
     assessment = assess(ROOT, day)
     value = {**assessment.__dict__} if args.check_only else recover(ROOT, day, assessment=assessment)
     print(json.dumps(value, ensure_ascii=False, indent=2))
-    return 0 if assessment.action != "NO_ACTION" or "requires intervention" not in assessment.reason else 1
+    return 1 if assessment.action == "ATTENTION" else 0
 
 
 if __name__ == "__main__":
