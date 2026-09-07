@@ -8,8 +8,10 @@ scheduler:
   entries: 1
   provider: windows-task-scheduler
   enabled: false
+  task_name: DRAGON V5 Daily Newspaper
   start_time: "07:00"
   target_deadline: "10:30"
+  watchdog_interval_minutes: 15
 orchestrator:
   instances: 1
   state_path: daily-runs/YYYY-MM-DD/state.json
@@ -47,6 +49,22 @@ preflight:
     port: 443
     timeout_seconds: 5
   require_ai_provider: true
+watchdog:
+  default_stage_timeout_seconds: 7200
+  stage_timeouts_seconds:
+    preflight: 600
+    research: 7200
+    article_generation: 7200
+    chief_editor: 3600
+    factcheck: 3600
+    arabic_language_qa: 1800
+    cover: 1800
+    publication_source: 1200
+    pdf: 1200
+    epub: 1200
+    final_qa: 1200
+    github_archive: 900
+    whatsapp_delivery: 900
 publication:
   language: ar
   direction: rtl
@@ -69,6 +87,7 @@ providers:
   repair:
     type: unconfigured
     available_only_after_integration_test: true
+    integration_test_status: NOT_RUN
   github_archive:
     type: git-cli
     enabled: false

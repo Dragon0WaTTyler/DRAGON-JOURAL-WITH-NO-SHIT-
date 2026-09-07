@@ -100,3 +100,23 @@ The V4 system remains enabled until `docs/LOCAL-CUTOVER.md` records the required
 trials and authorizes retirement. During build-behind, V5 code must use explicit
 V5 state and cannot treat legacy `status.json` as writable V5 state. GitHub
 Actions remains a V4 fallback and CI service, not a V5 orchestrator.
+
+## Windows scheduler and watchdog
+
+The single Task Scheduler entry invokes `dragon_watchdog.py` at the configured
+start time and repeats the same entry at the configured interval. The watchdog
+starts `dragon_daily.py` when today's run is absent. It resumes only when state
+contains a `RUNNING` stage and the lock owner is absent or provably dead. A live
+process with a stale heartbeat produces diagnostics and is never duplicated.
+
+```text
+powershell -File scripts/windows/install-scheduler.ps1
+powershell -File scripts/windows/test-scheduler.ps1
+powershell -File scripts/windows/run-now.ps1
+powershell -File scripts/windows/remove-scheduler.ps1
+python dragon_watchdog.py --check-only
+```
+
+Installation refuses while `scheduler.enabled` is false unless the operator
+explicitly uses `-AllowBeforeCutover` for a trial. `MultipleInstances=IgnoreNew`
+and the repository run lock provide independent duplicate-run protection.

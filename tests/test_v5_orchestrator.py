@@ -54,6 +54,14 @@ class V5OrchestratorTests(unittest.TestCase):
                 (Path(directory) / "daily-runs" / DATE / "logs" / "pdf.jsonl").is_file()
             )
 
+    def test_status_is_read_only_when_no_run_exists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            calls = []
+            value = self.make(root, calls).status()
+            self.assertEqual(value["run_status"], "NO_RUN")
+            self.assertFalse((root / "daily-runs" / DATE / "state.json").exists())
+
     def test_resume_skips_valid_checkpoints(self):
         with tempfile.TemporaryDirectory() as directory:
             calls = []

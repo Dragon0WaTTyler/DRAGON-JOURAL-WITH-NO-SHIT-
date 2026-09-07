@@ -8,6 +8,7 @@ import traceback
 from typing import Iterable
 
 from dragon.incidents import IncidentWriter
+from dragon.lock import RunLock
 from dragon.recovery import RecoveryEngine
 from dragon.runlog import StageLogger
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
@@ -23,11 +24,13 @@ class Orchestrator:
         timezone: str,
         stages: Iterable[StageDefinition],
         recovery_engine: RecoveryEngine | None = None,
+        use_lock: bool = True,
     ):
         self.root = root.resolve()
         self.edition_date = date.fromisoformat(edition_date).isoformat()
         self.timezone = timezone
         self.recovery_engine = recovery_engine
+        self.use_lock = use_lock
         self._last_traceback: str | None = None
         self.definitions = list(stages)
         self.stage_names = [stage.name for stage in self.definitions]
@@ -43,7 +46,14 @@ class Orchestrator:
         )
 
     def status(self) -> dict:
-        return self.store.initialize()
+        if not self.store.path.exists():
+            return {
+                "schema_version": 5,
+                "date": self.edition_date,
+                "timezone": self.timezone,
+                "run_status": "NO_RUN",
+            }
+        return self.store.load()
 
     def invalidate_from(self, stage_name: str, *, reason: str) -> dict:
         if stage_name not in self.stage_names:
@@ -82,6 +92,31 @@ class Orchestrator:
         retry_stage: str | None = None,
         from_stage: str | None = None,
     ) -> dict:
+        if self.use_lock:
+            with RunLock(self.store.run_dir / "run.lock", self.timezone) as lock:
+                state = self.store.initialize()
+                lock.set_run_id(state["run_id"])
+                return self._run_owned(
+                    resume=resume,
+                    retry_stage=retry_stage,
+                    from_stage=from_stage,
+                    lock=lock,
+                )
+        return self._run_owned(
+            resume=resume,
+            retry_stage=retry_stage,
+            from_stage=from_stage,
+            lock=None,
+        )
+
+    def _run_owned(
+        self,
+        *,
+        resume: bool,
+        retry_stage: str | None,
+        from_stage: str | None,
+        lock: RunLock | None,
+    ) -> dict:
         if retry_stage and from_stage:
             raise ValueError("COMMAND_CONFLICT: --retry and --from are mutually exclusive")
         if retry_stage:
@@ -92,6 +127,8 @@ class Orchestrator:
         start_at = retry_stage or from_stage
 
         for definition in self.definitions:
+            if lock:
+                lock.heartbeat(stage=definition.name)
             record = state["stages"][definition.name]
             if start_at and self.stage_names.index(definition.name) < self.stage_names.index(start_at):
                 continue
@@ -128,6 +165,8 @@ class Orchestrator:
             if record["status"] == "DEGRADED":
                 continue
             while not self._run_stage(state, definition):
+                if lock:
+                    lock.heartbeat(stage=definition.name)
                 if not self._recover(state, definition):
                     return state
         return state

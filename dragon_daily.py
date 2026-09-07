@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 from dragon.builtin_stages import preflight_stage
 from dragon.config import load_local_config
+from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
 from dragon.stages import unavailable_stage
@@ -68,11 +69,15 @@ def main() -> int:
         state = orchestrator.status()
         print(json.dumps(state, ensure_ascii=False, indent=2))
         return 0
-    state = orchestrator.run(
-        resume=args.resume,
-        retry_stage=args.retry,
-        from_stage=args.from_stage,
-    )
+    try:
+        state = orchestrator.run(
+            resume=args.resume,
+            retry_stage=args.retry,
+            from_stage=args.from_stage,
+        )
+    except DuplicateRunError as exc:
+        print(json.dumps({"status": "BLOCKED", "error_code": "DUPLICATE_RUN", "detail": str(exc)}, ensure_ascii=False, indent=2))
+        return 2
     print(json.dumps(state, ensure_ascii=False, indent=2))
     failed = any(
         record["status"] in {"FAILED", "BLOCKED"}
