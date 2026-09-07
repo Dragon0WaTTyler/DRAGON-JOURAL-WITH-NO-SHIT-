@@ -117,6 +117,27 @@ class V5OrchestratorTests(unittest.TestCase):
                     stages=[StageDefinition("research", ("missing",), writer("x", []))],
                 )
 
+    def test_declared_missing_input_fails_acceptance(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def run(context):
+                output = context.run_dir / "result.txt"
+                output.write_text("result", encoding="utf-8")
+                return StageResult(
+                    (output,), inputs=(context.run_dir / "missing-input.json",)
+                )
+
+            state = Orchestrator(
+                root=root,
+                edition_date=DATE,
+                timezone=TZ,
+                stages=[StageDefinition("final_qa", (), run)],
+            ).run()
+            self.assertEqual(
+                state["stages"]["final_qa"]["error_code"], "STAGE_INPUT_INVALID"
+            )
+
     def test_targeted_retry_invalidates_graph_dependents_not_later_siblings(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

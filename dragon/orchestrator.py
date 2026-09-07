@@ -96,6 +96,8 @@ class Orchestrator:
                 error_code=None,
                 error_detail=None,
                 artifact_hashes={},
+                input_hashes={},
+                inputs=[],
                 outputs=[],
             )
             for relative in prior_outputs:
@@ -267,6 +269,22 @@ class Orchestrator:
                 raise StageFailure("STAGE_ACCEPTANCE_FAILED", "; ".join(issues))
             outputs: list[str] = []
             hashes: dict[str, str] = {}
+            inputs: list[str] = []
+            input_hashes: dict[str, str] = {}
+            for input_path in result.inputs:
+                resolved = input_path.resolve()
+                try:
+                    relative = str(resolved.relative_to(self.root)).replace("\\", "/")
+                except ValueError as exc:
+                    raise StageFailure(
+                        "STAGE_INPUT_INVALID", f"input escapes repository: {input_path}"
+                    ) from exc
+                if not resolved.is_file():
+                    raise StageFailure(
+                        "STAGE_INPUT_INVALID", f"input is missing: {relative}"
+                    )
+                inputs.append(relative)
+                input_hashes[relative] = sha256_file(resolved)
             for output in result.outputs:
                 resolved = output.resolve()
                 relative = str(resolved.relative_to(self.root)).replace("\\", "/")
@@ -294,6 +312,8 @@ class Orchestrator:
             record.update(
                 status=result.status,
                 ended_at=now_iso(self.timezone),
+                inputs=inputs,
+                input_hashes=input_hashes,
                 outputs=outputs,
                 artifact_hashes=hashes,
                 error_code=None,

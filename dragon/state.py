@@ -89,6 +89,7 @@ def stage_record(name: str, prerequisites: Iterable[str]) -> dict[str, Any]:
         "error_code": None,
         "error_detail": None,
         "artifact_hashes": {},
+        "input_hashes": {},
         "recovery_history": [],
     }
 

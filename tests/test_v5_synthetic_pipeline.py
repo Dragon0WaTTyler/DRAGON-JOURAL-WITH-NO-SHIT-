@@ -26,6 +26,8 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert state["delivery_status"] == "DEGRADED"
     assert state["stages"]["github_archive"]["prerequisites"] == ["final_qa"]
     assert state["stages"]["whatsapp_delivery"]["prerequisites"] == ["final_qa"]
+    assert state["stages"]["pdf"]["input_hashes"]
+    assert "editions/2099/01/2099-01-02/edition.html" in state["stages"]["pdf"]["input_hashes"]
     assert len(PdfReader(str(pdf)).pages) == 24
     with ZipFile(epub) as archive:
         assert archive.namelist()[0] == "mimetype"

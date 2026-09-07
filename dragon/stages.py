@@ -21,6 +21,7 @@ class StageResult:
     outputs: tuple[Path, ...] = ()
     status: str = "COMPLETE"
     metadata: Mapping[str, object] = field(default_factory=dict)
+    inputs: tuple[Path, ...] = ()
 
 
 StageRunner = Callable[[StageContext], StageResult]

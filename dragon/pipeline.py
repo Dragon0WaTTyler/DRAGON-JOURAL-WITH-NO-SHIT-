@@ -83,7 +83,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure(exc.code, exc.detail) from exc
         path = context.run_dir / "articles" / "articles.json"
         atomic_write_json(path, {"mode": provider.mode, "articles": values})
-        return StageResult((path,))
+        return StageResult(
+            (path,),
+            inputs=(context.run_dir / "research" / "research-packet.json",),
+        )
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
@@ -128,7 +131,13 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         markdown = _write_text(context.edition_dir / "edition.md", "\n".join(lines))
         canonical_articles = context.edition_dir / "articles.json"
         atomic_write_json(canonical_articles, values)
-        return StageResult((plan_path, sources_path, markdown, canonical_articles))
+        return StageResult(
+            (plan_path, sources_path, markdown, canonical_articles),
+            inputs=(
+                context.run_dir / "articles" / "articles.json",
+                context.run_dir / "research" / "research-packet.json",
+            ),
+        )
 
     def factcheck(context: StageContext) -> StageResult:
         articles_value = _load(context.edition_dir / "articles.json")["articles"]
@@ -146,7 +155,13 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(path, report)
         if issues:
             raise StageFailure("FACTCHECK_FAILED", "articles without sources", outputs=(path,))
-        return StageResult((path,))
+        return StageResult(
+            (path,),
+            inputs=(
+                context.edition_dir / "articles.json",
+                context.edition_dir / "sources.json",
+            ),
+        )
 
     def arabic_qa(context: StageContext) -> StageResult:
         articles_value = _load(context.edition_dir / "articles.json")["articles"]
@@ -159,7 +174,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(path, qa.to_dict())
         if qa.status != "PASS":
             raise StageFailure("ARABIC_LANGUAGE_QA_FAILED", "; ".join(qa.issues), outputs=(path,))
-        return StageResult((path,))
+        return StageResult(
+            (path,), inputs=(context.edition_dir / "articles.json",)
+        )
 
     def cover(context: StageContext) -> StageResult:
         path = _write_text(context.edition_dir / "assets" / "cover.svg", cover_svg(context.edition_date, mode=provider.mode))
@@ -171,7 +188,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("COVER_SVG_INVALID", "root is not svg", outputs=(path,))
         brief = context.edition_dir / "cover-brief.json"
         atomic_write_json(brief, {"mode": provider.mode, "canonical": "assets/cover.svg", "accepted": True, "warning": "غلاف اختبار اصطناعي" if synthetic else None})
-        return StageResult((path, brief))
+        return StageResult(
+            (path, brief), inputs=(context.edition_dir / "edition-plan.json",)
+        )
 
     def publication_source(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
@@ -180,7 +199,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         issues = validate_html_rtl(document)
         if issues:
             raise StageFailure("PUBLICATION_SOURCE_INVALID", "; ".join(issues), outputs=(path,))
-        return StageResult((path, context.edition_dir / "print-v5.css"))
+        return StageResult(
+            (path, context.edition_dir / "print-v5.css"),
+            inputs=(
+                context.edition_dir / "articles.json",
+                context.edition_dir / "edition-plan.json",
+                context.edition_dir / "assets" / "cover.svg",
+            ),
+        )
 
     def pdf(context: StageContext) -> StageResult:
         path = render_pdf(context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf")
@@ -189,7 +215,15 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":
             raise StageFailure("PDF_QA_FAILED", "; ".join(report["issues"]), outputs=(path, report_path))
-        return StageResult((path, report_path))
+        return StageResult(
+            (path, report_path),
+            inputs=(
+                context.edition_dir / "edition.html",
+                context.edition_dir / "print-v5.css",
+                context.edition_dir / "assets" / "cover.svg",
+                context.edition_dir / "articles.json",
+            ),
+        )
 
     def epub(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
@@ -199,7 +233,13 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":
             raise StageFailure("EPUB_QA_FAILED", "; ".join(report["issues"]), outputs=(path, report_path))
-        return StageResult((path, report_path))
+        return StageResult(
+            (path, report_path),
+            inputs=(
+                context.edition_dir / "articles.json",
+                context.edition_dir / "assets" / "cover.svg",
+            ),
+        )
 
     def final_qa(context: StageContext) -> StageResult:
         plan = _load(context.edition_dir / "edition-plan.json")
@@ -227,7 +267,17 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(manifest_path, artifact_manifest(artifacts + [report_path], context.root, mode=provider.mode))
         if issues:
             raise StageFailure("FINAL_QA_FAILED", "; ".join(issues), outputs=(report_path, manifest_path))
-        return StageResult((report_path, manifest_path), metadata={"state_updates": {"publication_status": "COMPLETE"}})
+        return StageResult(
+            (report_path, manifest_path),
+            metadata={"state_updates": {"publication_status": "COMPLETE"}},
+            inputs=tuple(artifacts[:-1])
+            + (
+                context.run_dir / "qa" / "pdf.json",
+                context.run_dir / "qa" / "epub.json",
+                context.run_dir / "qa" / "arabic-language.json",
+                context.edition_dir / "edition-plan.json",
+            ),
+        )
 
     def github_archive(context: StageContext) -> StageResult:
         receipt = context.run_dir / "archive-receipt.json"
@@ -237,7 +287,12 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure(exc.code, exc.detail) from exc
         atomic_write_json(receipt, {"stage": "github_archive", "mode": provider.mode, **result})
         status = result["status"]
-        return StageResult((receipt,), status=status, metadata={"state_updates": {"archive_status": status}})
+        return StageResult(
+            (receipt,),
+            status=status,
+            metadata={"state_updates": {"archive_status": status}},
+            inputs=(context.edition_dir / "manifest.json",),
+        )
 
     def whatsapp_delivery(context: StageContext) -> StageResult:
         receipt = context.run_dir / "delivery-receipt.json"
@@ -248,7 +303,12 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure(exc.code, str(exc)) from exc
         atomic_write_json(receipt, {"stage": "whatsapp_delivery", "mode": provider.mode, **result})
         status = result["status"]
-        return StageResult((receipt,), status=status, metadata={"state_updates": {"delivery_status": status}})
+        return StageResult(
+            (receipt,),
+            status=status,
+            metadata={"state_updates": {"delivery_status": status}},
+            inputs=(pdf_path,),
+        )
 
     preflight = synthetic_preflight_stage() if synthetic else preflight_stage()
     return [
