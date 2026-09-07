@@ -46,7 +46,7 @@
     "overlap_or_clipping": "PASS"
   },
   "input_blobs": {
-    "editions/2026/09/2026-09-06/edition.md": "10031cdfb6a980bcefcb964f3f69b97651099288",
+    "editions/2026/09/2026-09-06/edition.md": "486e27d188b6423fbaa274ed19eda3da09b26790",
     "editions/2026/09/2026-09-06/sources.json": "9dc3de9ba1c85e41e3132e998889d667298c6f0d",
     "daily-runs/2026-09-06/editorial-report.json": "f135062f8c01e1d206abb11ed221b408c348c4ca"
   },
@@ -57,7 +57,7 @@
     "canonical_asset_path": "editions/2026/09/2026-09-06/assets/cover.svg",
     "canonical_asset_blob": "2634ca521cf530b1566ce2f289dc7724615bb152",
     "final_brief_read_back": "PASS_REFRESHED_CANONICAL_EDITION",
-    "refreshed_edition_blob": "10031cdfb6a980bcefcb964f3f69b97651099288"
+    "refreshed_edition_blob": "486e27d188b6423fbaa274ed19eda3da09b26790"
   },
   "generation_attempt": {
     "requested": true,

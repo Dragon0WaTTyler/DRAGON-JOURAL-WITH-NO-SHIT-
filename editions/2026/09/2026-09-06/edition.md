@@ -324,6 +324,12 @@ Mn jiha media, kalimat "terrorists" katjbed attention, walakin editorial discipl
 
 L-qadiya katb9a 7ssasa 7it ay label f conflict y9der ytst3mel siyasiyan. L-edition ma katzidch motive l-ambassador w ma kat9rrrch shkon kaystafed. Katn9el chno gal, chno ma kaythbtch mn had l-qawl, w fin khas l-verification tkml. [S13]
 
+Wa7d l-mizan l-akhla9i w l-sahafi hna howa ma n9llsouch l-3onf l-kalam fa9at, w f nafs lwa9t ma n7awloch tasri7 wa7ed l-proof kamel 3la policy. AP katwatte9 l-kalima dyal l-envoy; Al Jazeera kat3ti reporting 3la roads, flags w outposts. Juj sources kay3tiw juj no3iyat dyal ma3louma: wa7da diplomatic, wa7da fieldi. L-jarida khas-ha tkhlli kol wa7da f-blast-ha bach l-reader y3ref fin katsali l-observation w fin kaybda l-istintaj. [S13] [S14]
+
+Hadi ta hiya qadiya dyal sequence. Ila bano ba3d had statement measures rasmiya, documentation msta9illa 3la incidents, aw response m3ayyan mn authorities, had l-elements y9dro ybddlou l-weight dyal story. Ila ma banoch, ma khasnach n9raw silence b7al implementation wla b7al refutation. Journalism daily kaykhddem b-silsila: tasri7, evidence jdid, response, w natija li t9der ttbayan b-zman. Daba l-mar7ala li mthbeta hiya statement qwi m3a context fieldi, w ma faw9hach. [S13] [S14]
+
+L-reader f l-Mghreb wla f ay blassa ma kaystafedch mn headline katjri b-sor3a ila ma katjawbch 3la su2al basit: ach tbdl daba? L-jawab l-m2akkad hna howa l-lougha li nqalatha AP. L-jawab li mazal ma kaynach howa wach had l-lougha ghadi tmchi l-protection, accountability, aw taghyir f l-wa9i3 3la l-ard. Had distinction katkhlli l-coverage tsali b-ma3louma qabila l-motaba3a, ma-shi b-wa3d wla b-7okm msbo9. [S13] [S14]
+
 Chno y9der ybdl l-story mn rhetoric l-policy howa action measurable: sanctions, arrests, prosecutions, protection measures, aw changes f field instructions. Hado ma kaynach f packet daba. 7ta ybano, l-khabar howa escalation f diplomatic language m3a implementation unknown. [S13]
 
 ### Briefs
