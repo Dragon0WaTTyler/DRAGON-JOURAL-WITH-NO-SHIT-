@@ -285,6 +285,17 @@ class AutomaticPublicationTests(unittest.TestCase):
             verify_remote(self.root, {str(self.cover.relative_to(self.root)).replace("\\","/"):"0"*64}, head)
 
     @patch("scripts.publication_renderer.render_pdf", side_effect=fake_pdf)
+    def test_verified_final_archive_blocks_implicit_regeneration(self, _):
+        self.setup_git()
+        self.assertEqual(publish(self.root, DATE), "PUBLISHED")
+        head = git(self.root, "rev-parse", "HEAD")
+        # A scheduled retry must not reinterpret a completed historical edition,
+        # even if a source file was changed outside an explicit correction run.
+        (self.edition / "edition.md").write_text("# DRAGON\n\naccidental rewrite", encoding="utf-8")
+        self.assertEqual(publish(self.root, DATE), "ALREADY_PUBLISHED")
+        self.assertEqual(head, git(self.root, "rev-parse", "HEAD"))
+
+    @patch("scripts.publication_renderer.render_pdf", side_effect=fake_pdf)
     def test_push_failure_cannot_mark_complete(self, _):
         self.setup_git()
         git(self.root,"remote","set-url","--push","origin",str(Path(self.temp.name)/"missing.git"))

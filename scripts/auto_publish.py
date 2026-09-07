@@ -31,6 +31,29 @@ def verify_remote(root, hashes, ref):
         if hashlib.sha256(data).hexdigest() != expected:
             raise ValueError(f"remote read-back mismatch: {path}")
 
+
+def final_archive_hashes(status):
+    """Return the immutable archive receipt, or fail closed for a broken final state."""
+    final = (
+        status.get("final_publication_status") == "COMPLETE"
+        and status.get("overall_status") == "COMPLETE"
+        and status.get("github_binary_read_back") == "PASS"
+    )
+    locked = (
+        status.get("binary_artifacts") == "COMPLETE"
+        and status.get("github_binary_read_back") == "PASS"
+    )
+    if not (final or locked):
+        return None
+    paths = status.get("final_binary_paths")
+    hashes = status.get("binary_sha256")
+    if not isinstance(paths, dict) or not isinstance(hashes, dict):
+        raise ValueError("FINAL_ARCHIVE_STATE_INVALID: missing binary paths or hashes")
+    required = [paths.get(kind) for kind in ("pdf", "epub")]
+    if not all(isinstance(path, str) and path and isinstance(hashes.get(path), str) and len(hashes[path]) == 64 for path in required):
+        raise ValueError("FINAL_ARCHIVE_STATE_INVALID: incomplete binary archive receipt")
+    return {path: hashes[path] for path in required}
+
 def candidates(root, now):
     # Recovery window catches a package that crosses Casablanca midnight.
     for age in (1, 0):
@@ -54,13 +77,17 @@ def commit_push(root, paths, message, branch):
 
 def publish(root, day, branch="main"):
     canonical_date(day)
-    edition, cover, inputs = validate_inputs(root, day)
     run = root / "daily-runs" / day
     report_path = run / "binary-render-report.json"
     git(root, "fetch", "origin", branch)
     remote = git(root, "rev-parse", "FETCH_HEAD")
     if remote != git(root, "rev-parse", "HEAD"):
         raise RuntimeError("checkout is stale; retry from latest branch")
+    archive_hashes = final_archive_hashes(read_json(run / "status.json"))
+    if archive_hashes:
+        verify_remote(root, archive_hashes, remote)
+        return "ALREADY_PUBLISHED"
+    edition, cover, inputs = validate_inputs(root, day)
     if report_path.exists():
         prior = read_json(report_path)
         if prior.get("input_sha256") == inputs and prior.get("final_publication_status") == "COMPLETE":
