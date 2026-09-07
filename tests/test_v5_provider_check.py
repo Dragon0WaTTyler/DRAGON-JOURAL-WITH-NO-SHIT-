@@ -46,6 +46,9 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
     value = json.loads(capsys.readouterr().out)
     assert value["status"] == "VALIDATED_AWAITING_HUMAN_REVIEW"
     assert value["integration_test_status_changed"] is False
+    assert value["editorial_generation_tested"] is True
+    assert len(value["runtime_fingerprint"]) == 64
+    assert value["created_at"].endswith("+01:00")
     trial = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"
     assert (trial / "research.json").is_file()
     assert (trial / "articles.json").is_file()

@@ -2,7 +2,13 @@ from pathlib import Path
 
 import json
 
-from dragon.acceptance import _checkpointed_receipt, _consecutive, _state_valid, audit_cutover
+from dragon.acceptance import (
+    _checkpointed_receipt,
+    _consecutive,
+    _provider_trial_evidence,
+    _state_valid,
+    audit_cutover,
+)
 from dragon.state import runtime_fingerprint, sha256_file
 
 
@@ -20,6 +26,32 @@ def test_repository_cutover_audit_is_fail_closed() -> None:
     assert result["status"] == "BLOCKED"
     assert result["checks"]["editorial_provider_proven"] is False
     assert result["completion_checks"]["local_scheduler_enabled"] is False
+
+
+def test_configured_pass_without_provider_trial_evidence_is_not_proven(
+    tmp_path: Path, monkeypatch
+) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    (config_dir / "cutover-acceptance.yaml").write_text(
+        "version: 5\nrequired_consecutive_unattended_runs: 1\nrequired_review_evidence: []\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "dragon.acceptance.load_local_config",
+        lambda root: {
+            "providers": {
+                "ai": {"type": "local-command", "integration_test_status": "PASS"}
+            },
+            "scheduler": {"enabled": False},
+            "cutover": {},
+        },
+    )
+
+    result = audit_cutover(tmp_path)
+
+    assert result["checks"]["editorial_provider_proven"] is False
+    assert result["evidence"]["provider_trials"] == []
 
 
 def test_external_receipt_must_match_its_complete_checkpoint(tmp_path: Path) -> None:
@@ -65,3 +97,56 @@ def test_acceptance_rejects_missing_or_stale_runtime_fingerprint(tmp_path: Path)
     runtime_file.write_text("changed = True\n", encoding="utf-8")
     _, stale = _state_valid(tmp_path, state)
     assert "RUNTIME_FINGERPRINT_MISMATCH" in stale
+
+
+def test_provider_trial_requires_hash_bound_human_review(tmp_path: Path) -> None:
+    trial = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"
+    trial.mkdir(parents=True)
+    research = trial / "research.json"
+    articles = trial / "articles.json"
+    research.write_text('{"sources":[]}', encoding="utf-8")
+    articles.write_text('{"articles":[]}', encoding="utf-8")
+    fingerprint = runtime_fingerprint(tmp_path)
+    receipt = {
+        "schema_version": 5,
+        "status": "VALIDATED_AWAITING_HUMAN_REVIEW",
+        "edition_date": "2099-01-02",
+        "created_at": "2099-01-02T11:00:00+01:00",
+        "editorial_generation_tested": True,
+        "runtime_fingerprint": fingerprint,
+        "source_git_revision": "abc123",
+        "provider": {"status": "PASS", "unattended": True},
+        "artifacts": {
+            "acceptance/provider-trials/2099-01-02/research.json": sha256_file(research),
+            "acceptance/provider-trials/2099-01-02/articles.json": sha256_file(articles),
+        },
+    }
+    receipt_path = trial / "receipt.json"
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    valid, evidence = _provider_trial_evidence(tmp_path, fingerprint)
+    assert valid is False
+    assert "HUMAN_REVIEW_MISSING_OR_INVALID" in evidence[0]["issues"]
+
+    review = {
+        "schema_version": 5,
+        "status": "PASS",
+        "reviewed_by": "Human Editor",
+        "reviewed_at": "2099-01-02T12:00:00+01:00",
+        "receipt_sha256": sha256_file(receipt_path),
+        "checks": {
+            "sources": "PASS",
+            "factual_accuracy": "PASS",
+            "arabic_quality": "PASS",
+            "article_depth": "PASS",
+            "section_decisions": "PASS",
+        },
+    }
+    (trial / "review.json").write_text(json.dumps(review), encoding="utf-8")
+    valid, evidence = _provider_trial_evidence(tmp_path, fingerprint)
+    assert valid is True
+    assert evidence[0]["status"] == "PASS"
+
+    articles.write_text('{"articles":[{"tampered":true}]}', encoding="utf-8")
+    valid, evidence = _provider_trial_evidence(tmp_path, fingerprint)
+    assert valid is False
+    assert any(issue.startswith("TRIAL_ARTIFACT_HASH_INVALID") for issue in evidence[0]["issues"])

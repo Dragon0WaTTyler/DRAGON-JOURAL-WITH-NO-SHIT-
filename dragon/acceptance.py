@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import json
 from pathlib import Path
 from typing import Any
@@ -113,6 +113,111 @@ def _consecutive(dates: list[str], required: int) -> list[str]:
     return [value.isoformat() for value in best[-required:]] if len(best) >= required else []
 
 
+def _provider_trial_evidence(
+    root: Path, expected_runtime_fingerprint: str
+) -> tuple[bool, list[dict[str, Any]]]:
+    trial_root = root / "acceptance" / "provider-trials"
+    evidence: list[dict[str, Any]] = []
+    required_checks = {
+        "sources",
+        "factual_accuracy",
+        "arabic_quality",
+        "article_depth",
+        "section_decisions",
+    }
+    for receipt_path in sorted(trial_root.glob("????-??-??/receipt.json")):
+        trial_dir = receipt_path.parent
+        trial_date = trial_dir.name
+        issues: list[str] = []
+        try:
+            date.fromisoformat(trial_date)
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            evidence.append({"date": trial_date, "status": "REJECTED", "issues": ["RECEIPT_INVALID"]})
+            continue
+        if not isinstance(receipt, dict):
+            evidence.append({"date": trial_date, "status": "REJECTED", "issues": ["RECEIPT_INVALID"]})
+            continue
+        if (
+            receipt.get("schema_version") != 5
+            or receipt.get("status") != "VALIDATED_AWAITING_HUMAN_REVIEW"
+            or receipt.get("edition_date") != trial_date
+            or receipt.get("editorial_generation_tested") is not True
+            or not str(receipt.get("source_git_revision", "")).strip()
+        ):
+            issues.append("TRIAL_NOT_TECHNICALLY_VALIDATED")
+        try:
+            created_at = datetime.fromisoformat(str(receipt["created_at"]))
+            if created_at.tzinfo is None:
+                raise ValueError("timezone required")
+        except (KeyError, TypeError, ValueError):
+            created_at = None
+            issues.append("TRIAL_TIMESTAMP_INVALID")
+        provider = receipt.get("provider", {})
+        if (
+            not isinstance(provider, dict)
+            or provider.get("status") != "PASS"
+            or provider.get("unattended") is not True
+        ):
+            issues.append("TRIAL_PROVIDER_IDENTITY_INVALID")
+        if receipt.get("runtime_fingerprint") != expected_runtime_fingerprint:
+            issues.append("TRIAL_RUNTIME_FINGERPRINT_MISMATCH")
+        artifacts = receipt.get("artifacts")
+        required_artifacts = {
+            f"acceptance/provider-trials/{trial_date}/research.json",
+            f"acceptance/provider-trials/{trial_date}/articles.json",
+        }
+        if not isinstance(artifacts, dict) or not required_artifacts.issubset(artifacts):
+            issues.append("TRIAL_ARTIFACTS_INCOMPLETE")
+        else:
+            for relative, expected_hash in artifacts.items():
+                path = (root / str(relative)).resolve()
+                try:
+                    path.relative_to(trial_dir.resolve())
+                except ValueError:
+                    issues.append("TRIAL_ARTIFACT_PATH_ESCAPE")
+                    continue
+                if not path.is_file() or sha256_file(path) != expected_hash:
+                    issues.append(f"TRIAL_ARTIFACT_HASH_INVALID:{relative}")
+        review_path = trial_dir / "review.json"
+        try:
+            review = json.loads(review_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            review = None
+        if not isinstance(review, dict):
+            issues.append("HUMAN_REVIEW_MISSING_OR_INVALID")
+        else:
+            checks = review.get("checks")
+            try:
+                reviewed_at = datetime.fromisoformat(str(review["reviewed_at"]))
+                timestamp_valid = (
+                    reviewed_at.tzinfo is not None
+                    and created_at is not None
+                    and reviewed_at >= created_at
+                )
+            except (KeyError, TypeError, ValueError):
+                timestamp_valid = False
+            if (
+                review.get("schema_version") != 5
+                or review.get("status") != "PASS"
+                or not str(review.get("reviewed_by", "")).strip()
+                or not timestamp_valid
+                or review.get("receipt_sha256") != sha256_file(receipt_path)
+                or not isinstance(checks, dict)
+                or set(checks) != required_checks
+                or any(value != "PASS" for value in checks.values())
+            ):
+                issues.append("HUMAN_REVIEW_MISSING_OR_INVALID")
+        evidence.append(
+            {
+                "date": trial_date,
+                "status": "PASS" if not issues else "REJECTED",
+                "issues": issues,
+            }
+        )
+    return any(item["status"] == "PASS" for item in evidence), evidence
+
+
 def audit_cutover(root: Path) -> dict[str, Any]:
     root = root.resolve()
     config = load_local_config(root)
@@ -178,13 +283,20 @@ def audit_cutover(root: Path) -> dict[str, Any]:
             passed = False
         review_evidence[str(filename)] = "PASS" if passed else "MISSING_OR_INVALID"
     ai = config.get("providers", {}).get("ai", {})
+    provider_trial_valid, provider_trials = _provider_trial_evidence(
+        root, expected_runtime_fingerprint
+    )
     checks = {
         "synthetic_publication": bool(synthetic) if policy.get("require_synthetic_publication", True) else True,
         "manual_real_publication": bool(manual_real) if policy.get("require_manual_real_publication", True) else True,
         "consecutive_unattended_runs": bool(sequence),
         "verified_git_archive": bool(archived) if policy.get("require_verified_git_archive", True) else True,
         "whatsapp_delivery": bool(delivered) if policy.get("require_whatsapp_delivery", False) else True,
-        "editorial_provider_proven": ai.get("type") != "unconfigured" and ai.get("integration_test_status") == "PASS",
+        "editorial_provider_proven": (
+            ai.get("type") != "unconfigured"
+            and ai.get("integration_test_status") == "PASS"
+            and provider_trial_valid
+        ),
         "review_evidence": all(value == "PASS" for value in review_evidence.values()),
     }
     cutover = config.get("cutover", {})
@@ -205,5 +317,6 @@ def audit_cutover(root: Path) -> dict[str, Any]:
             "rejected_runs": rejected_runs,
             "consecutive_unattended_dates": sequence,
             "review_files": review_evidence,
+            "provider_trials": provider_trials,
         },
     }

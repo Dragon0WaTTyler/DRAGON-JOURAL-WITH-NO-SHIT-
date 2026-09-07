@@ -32,6 +32,35 @@ same production adapter, and writes hash-addressed review material beneath
 labelled `VALIDATED_AWAITING_HUMAN_REVIEW` and never edits configuration or
 promotes itself to `PASS`.
 
+Cutover does not trust the configuration flag alone. The trial receipt binds
+the current V5 runtime fingerprint, Git revision, creation time, and SHA-256 of
+the exact research/article artifacts. After inspecting those artifacts, a
+human editor creates `review.json` in the same trial directory using this
+shape (with real identity, timestamp, receipt hash, and judgments):
+
+```json
+{
+  "schema_version": 5,
+  "status": "PASS",
+  "reviewed_by": "<human editor>",
+  "reviewed_at": "2026-09-08T12:00:00+01:00",
+  "receipt_sha256": "<sha256 of receipt.json>",
+  "checks": {
+    "sources": "PASS",
+    "factual_accuracy": "PASS",
+    "arabic_quality": "PASS",
+    "article_depth": "PASS",
+    "section_decisions": "PASS"
+  }
+}
+```
+
+The review timestamp must be timezone-aware and no earlier than the trial.
+Acceptance recomputes every hash and requires the trial runtime to equal the
+current runtime. Altered artifacts, a stale adapter/runtime, missing review, or
+any non-`PASS` judgment keeps `editorial_provider_proven` false even if someone
+manually changes `integration_test_status` to `PASS`.
+
 ## Operations
 
 - `healthcheck` receives `schema_version`. It returns `status: PASS`,

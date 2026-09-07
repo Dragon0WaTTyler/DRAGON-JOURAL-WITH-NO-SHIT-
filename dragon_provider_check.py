@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, editorial_provider_from_config
-from dragon.state import atomic_write_json, sha256_file
+from dragon.state import atomic_write_json, runtime_fingerprint, sha256_file, source_revision
 
 
 ROOT = Path(__file__).resolve().parent
@@ -59,7 +59,11 @@ def main() -> int:
         "schema_version": 5,
         "status": "VALIDATED_AWAITING_HUMAN_REVIEW",
         "edition_date": edition_date,
+        "created_at": datetime.now(ZoneInfo(str(config["timezone"]))).isoformat(),
         "provider": health,
+        "editorial_generation_tested": True,
+        "runtime_fingerprint": runtime_fingerprint(ROOT),
+        "source_git_revision": source_revision(ROOT),
         "active_sections": len(active),
         "skipped_sections": len(articles) - len(active),
         "edition_words": sum(
