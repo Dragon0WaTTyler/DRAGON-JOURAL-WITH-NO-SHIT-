@@ -1,5 +1,8 @@
 import unittest
 from pathlib import Path
+import json
+import subprocess
+import sys
 
 from dragon.config import load_local_config
 from dragon.repair import RepairRequest, repair_agent_from_config
@@ -42,6 +45,25 @@ class V5SchedulerRepairTests(unittest.TestCase):
         self.assertIn("Repetition.Interval", verifier)
         self.assertIn("MultipleInstances", verifier)
         self.assertIn("acceptance\\machine\\scheduler\\inventory.json", verifier)
+
+    def test_scheduler_settings_support_the_direct_path_used_by_windows_helpers(self):
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "dragon" / "scheduler.py"),
+                "--root",
+                str(ROOT),
+            ],
+            cwd=ROOT.parent,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=30,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        value = json.loads(result.stdout)
+        self.assertEqual(value["task_name"], "DRAGON V5 Daily Newspaper")
+        self.assertTrue(value["watchdog"].endswith("dragon_watchdog.py"))
 
     def test_unproved_repair_provider_is_unavailable(self):
         config = load_local_config(ROOT)

@@ -7,6 +7,12 @@ import json
 from pathlib import Path
 import sys
 
+# The Windows helper scripts execute this file by path so they work regardless
+# of the operator's current directory. Make that supported entry mode resolve
+# the sibling ``dragon`` package just like ``python -m dragon.scheduler``.
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from dragon.config import load_local_config
 from dragon.state import runtime_fingerprint, source_revision
 
