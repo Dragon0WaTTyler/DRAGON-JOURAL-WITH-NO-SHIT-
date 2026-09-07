@@ -60,14 +60,31 @@ class Orchestrator:
             }
         return self.store.load()
 
-    def invalidate_from(self, stage_name: str, *, reason: str) -> dict:
+    def invalidate_from(
+        self, stage_name: str, *, reason: str, dependents_only: bool = False
+    ) -> dict:
         if stage_name not in self.stage_names:
             raise ValueError(f"STAGE_UNKNOWN:{stage_name}")
         state = self.store.initialize()
         start = self.stage_names.index(stage_name)
-        for name in self.stage_names[start:]:
+        affected = set(self.stage_names[start:])
+        if dependents_only:
+            affected = {stage_name}
+            changed = True
+            while changed:
+                changed = False
+                for definition in self.definitions:
+                    if definition.name not in affected and any(
+                        prerequisite in affected for prerequisite in definition.prerequisites
+                    ):
+                        affected.add(definition.name)
+                        changed = True
+        for name in self.stage_names:
+            if name not in affected:
+                continue
             record = state["stages"][name]
             prior = record["status"]
+            prior_outputs = list(record.get("outputs", []))
             if prior != "PENDING":
                 record["recovery_history"].append(
                     {"at": now_iso(self.timezone), "action": reason, "prior_status": prior}
@@ -81,12 +98,18 @@ class Orchestrator:
                 artifact_hashes={},
                 outputs=[],
             )
-        checkpoints = [
-            name
-            for name in self.stage_names[:start]
-            if state["stages"][name]["status"] == "COMPLETE"
-        ]
+            for relative in prior_outputs:
+                state["hashes"].pop(relative, None)
+            state["output_paths"].pop(name, None)
+        checkpoints = [name for name in self.stage_names if state["stages"][name]["status"] == "COMPLETE"]
         state["last_successful_checkpoint"] = checkpoints[-1] if checkpoints else None
+        final_index = self.stage_names.index("final_qa") if "final_qa" in self.stage_names else len(self.stage_names) - 1
+        if any(self.stage_names.index(name) <= final_index for name in affected):
+            state["publication_status"] = "PENDING"
+        if "github_archive" in affected:
+            state["archive_status"] = "PENDING"
+        if "whatsapp_delivery" in affected:
+            state["delivery_status"] = "PENDING"
         self.store.save(state)
         return state
 
@@ -128,7 +151,9 @@ class Orchestrator:
         if retry_stage and from_stage:
             raise ValueError("COMMAND_CONFLICT: --retry and --from are mutually exclusive")
         if retry_stage:
-            self.invalidate_from(retry_stage, reason="targeted_retry")
+            self.invalidate_from(
+                retry_stage, reason="targeted_retry", dependents_only=True
+            )
         elif from_stage:
             self.invalidate_from(from_stage, reason="explicit_from")
         state = self.store.initialize()
@@ -167,7 +192,9 @@ class Orchestrator:
                 # A changed upstream artifact invalidates every dependent
                 # checkpoint, even when those downstream bytes still exist.
                 state = self.invalidate_from(
-                    definition.name, reason="checkpoint_invalidated"
+                    definition.name,
+                    reason="checkpoint_invalidated",
+                    dependents_only=True,
                 )
                 record = state["stages"][definition.name]
             elif resume and record["status"] == "RUNNING":

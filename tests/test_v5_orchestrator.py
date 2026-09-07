@@ -117,6 +117,67 @@ class V5OrchestratorTests(unittest.TestCase):
                     stages=[StageDefinition("research", ("missing",), writer("x", []))],
                 )
 
+    def test_targeted_retry_invalidates_graph_dependents_not_later_siblings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            calls = []
+            stages = [
+                StageDefinition("source", (), writer("source", calls)),
+                StageDefinition("pdf", ("source",), writer("pdf", calls)),
+                StageDefinition("epub", ("source",), writer("epub", calls)),
+                StageDefinition("final_qa", ("pdf", "epub"), writer("final_qa", calls)),
+                StageDefinition("github_archive", ("final_qa",), writer("github_archive", calls)),
+                StageDefinition("whatsapp_delivery", ("final_qa",), writer("whatsapp_delivery", calls)),
+            ]
+            orchestrator = Orchestrator(root=root, edition_date=DATE, timezone=TZ, stages=stages)
+            orchestrator.run()
+            calls.clear()
+
+            state = orchestrator.run(retry_stage="pdf")
+
+            self.assertEqual(calls, ["pdf", "final_qa", "github_archive", "whatsapp_delivery"])
+            self.assertEqual(state["stages"]["epub"]["attempt_count"], 1)
+
+            calls.clear()
+            state = orchestrator.run(retry_stage="github_archive")
+            self.assertEqual(calls, ["github_archive"])
+            self.assertEqual(state["stages"]["whatsapp_delivery"]["attempt_count"], 2)
+
+    def test_archive_failure_preserves_local_publication_and_retries_only_external_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            calls = []
+            fail_archive = [True]
+
+            def final(context):
+                result = writer("final_qa", calls)(context)
+                return StageResult(result.outputs, metadata={"state_updates": {"publication_status": "COMPLETE"}})
+
+            def archive(context):
+                calls.append("github_archive")
+                if fail_archive[0]:
+                    raise StageFailure("GIT_PUSH_FAILED", "injected rejection")
+                result = writer("archive_output", calls)(context)
+                return StageResult(result.outputs, metadata={"state_updates": {"archive_status": "COMPLETE"}})
+
+            stages = [
+                StageDefinition("final_qa", (), final),
+                StageDefinition("github_archive", ("final_qa",), archive),
+                StageDefinition("whatsapp_delivery", ("final_qa",), writer("whatsapp_delivery", calls)),
+            ]
+            orchestrator = Orchestrator(root=root, edition_date=DATE, timezone=TZ, stages=stages)
+            failed = orchestrator.run()
+            self.assertEqual(failed["publication_status"], "COMPLETE")
+            self.assertEqual(failed["archive_status"], "FAILED")
+            self.assertEqual(failed["stages"]["whatsapp_delivery"]["status"], "PENDING")
+
+            fail_archive[0] = False
+            calls.clear()
+            recovered = orchestrator.run(retry_stage="github_archive")
+            self.assertEqual(calls, ["github_archive", "archive_output", "whatsapp_delivery"])
+            self.assertEqual(recovered["publication_status"], "COMPLETE")
+            self.assertEqual(recovered["archive_status"], "COMPLETE")
+
 
 if __name__ == "__main__":
     unittest.main()
