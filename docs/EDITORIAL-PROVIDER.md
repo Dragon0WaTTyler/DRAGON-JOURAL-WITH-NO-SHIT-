@@ -68,3 +68,9 @@ source URLs, skipped-section reasons, and declared next steps. Later research
 reads only earlier snapshots labelled `production`; synthetic runs can never
 seed real editorial continuity. The snapshot is part of the edition manifest
 and Git archive, avoiding mutation of V4 memory files.
+
+Continuity ingestion is fail-closed: the next run also requires the prior daily
+state to say publication and `final_qa` are `COMPLETE`, requires the final-QA
+report itself to be hash-valid against that checkpoint, and requires that
+report to contain the exact current `continuity.json` hash. A loose, failed, or
+subsequently modified snapshot is ignored.
