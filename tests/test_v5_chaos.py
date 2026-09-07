@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 import pytest
 
 from dragon.orchestrator import Orchestrator
+from dragon.pipeline import build_stage_definitions
+from dragon.providers import SyntheticEditorialProvider
+from dragon.state import sha256_file
 from dragon.stages import StageDefinition, StageFailure, StageResult
 
 
@@ -84,3 +88,77 @@ def test_failure_at_every_stage_boundary_is_resumable_without_upstream_rework(
     for name in NAMES[:injected_index]:
         if name not in calls:
             assert recovered["stages"][name]["attempt_count"] == attempts_before[name]
+
+
+def test_abrupt_process_interrupt_leaves_running_state_and_resume_reuses_upstream(
+    tmp_path: Path,
+) -> None:
+    interrupt = {"enabled": True}
+
+    def accepted(context):
+        path = context.run_dir / "first.txt"
+        path.write_text("accepted", encoding="utf-8")
+        return StageResult((path,))
+
+    def interrupted(context):
+        if interrupt["enabled"]:
+            raise KeyboardInterrupt("simulated process termination")
+        path = context.run_dir / "second.txt"
+        path.write_text("resumed", encoding="utf-8")
+        return StageResult((path,))
+
+    orchestrator = Orchestrator(
+        root=tmp_path,
+        edition_date="2099-02-02",
+        timezone="Africa/Casablanca",
+        stages=[
+            StageDefinition("first", (), accepted),
+            StageDefinition("second", ("first",), interrupted),
+        ],
+        use_lock=False,
+    )
+    with pytest.raises(KeyboardInterrupt):
+        orchestrator.run()
+    crashed = json.loads(orchestrator.store.path.read_text(encoding="utf-8"))
+    assert crashed["stages"]["first"]["status"] == "COMPLETE"
+    assert crashed["stages"]["second"]["status"] == "RUNNING"
+    first_hash = crashed["stages"]["first"]["artifact_hashes"]
+
+    interrupt["enabled"] = False
+    resumed = orchestrator.run(resume=True)
+
+    assert resumed["stages"]["first"]["attempt_count"] == 1
+    assert resumed["stages"]["first"]["artifact_hashes"] == first_hash
+    assert resumed["stages"]["second"]["attempt_count"] == 2
+    assert resumed["stages"]["second"]["status"] == "COMPLETE"
+    assert resumed["stages"]["second"]["recovery_history"][0]["action"] == "resume_interrupted_attempt"
+
+
+def test_corrupt_epub_is_rebuilt_without_touching_valid_pdf_or_editorial(
+    tmp_path: Path,
+) -> None:
+    date_value = "2099-02-03"
+    orchestrator = Orchestrator(
+        root=tmp_path,
+        edition_date=date_value,
+        timezone="Africa/Casablanca",
+        stages=build_stage_definitions(SyntheticEditorialProvider(), synthetic=True),
+        use_lock=False,
+    )
+    first = orchestrator.run()
+    edition = tmp_path / "editions" / "2099" / "02" / date_value
+    pdf = edition / f"DRAGON-{date_value}.pdf"
+    epub = edition / f"DRAGON-{date_value}.epub"
+    pdf_hash = sha256_file(pdf)
+    chief_attempts = first["stages"]["chief_editor"]["attempt_count"]
+    pdf_attempts = first["stages"]["pdf"]["attempt_count"]
+    epub.write_bytes(b"corrupt EPUB fixture")
+
+    recovered = orchestrator.run(retry_stage="epub")
+
+    assert recovered["publication_status"] == "COMPLETE"
+    assert recovered["stages"]["chief_editor"]["attempt_count"] == chief_attempts
+    assert recovered["stages"]["pdf"]["attempt_count"] == pdf_attempts
+    assert recovered["stages"]["epub"]["attempt_count"] == 2
+    assert sha256_file(pdf) == pdf_hash
+    assert epub.read_bytes().startswith(b"PK")
