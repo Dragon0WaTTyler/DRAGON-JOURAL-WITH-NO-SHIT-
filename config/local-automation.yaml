@@ -25,6 +25,7 @@ orchestrator:
     - preflight
     - research
     - source_intelligence
+    - research_planning
     - article_generation
     - chief_editor
     - factcheck
@@ -62,6 +63,7 @@ watchdog:
     preflight: 600
     research: 7200
     source_intelligence: 600
+    research_planning: 600
     article_generation: 7200
     chief_editor: 3600
     factcheck: 3600

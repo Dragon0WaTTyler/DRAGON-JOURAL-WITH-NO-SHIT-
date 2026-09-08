@@ -61,6 +61,10 @@ error_codes:
     category: VALIDATION
     action: BLOCK
     max_attempts: 1
+  RESEARCH_PLAN_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
   SOURCE_TIMEOUT:
     category: TRANSIENT
     action: RETRY

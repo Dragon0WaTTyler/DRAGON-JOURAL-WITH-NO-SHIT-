@@ -9,6 +9,7 @@ STAGES = [
     "preflight",
     "research",
     "source_intelligence",
+    "research_planning",
     "article_generation",
     "chief_editor",
     "factcheck",

@@ -31,6 +31,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `AI_PROVIDER_RESPONSE_INVALID` | VALIDATION | Provider stdout is not the required single JSON value | Targeted provider-stage repair |
 | `RESEARCH_PACKET_INVALID` | CONTENT | Research lacks date, provenance, claims, or exact source URLs | Repair research only |
 | `SOURCE_INTELLIGENCE_INVALID` | VALIDATION | Deterministic normalized-source or event-cluster output violates its strict schema | Block; preserve research and create an incident |
+| `RESEARCH_PLAN_INVALID` | VALIDATION | Perspective, question, budget, or selected-candidate inventory is inconsistent | Block; preserve research and source intelligence |
 | `FACTCHECK_FAILED` | CONTENT | An active article lacks accepted source linkage | Repair/remove the affected editorial unit |
 | `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |
 | `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
