@@ -8,10 +8,12 @@ from dragon.acceptance import (
     _consecutive,
     _delivery_receipt_valid,
     _provider_trial_evidence,
+    _publication_evidence_issues,
     _review_file_evidence,
     _state_valid,
     audit_cutover,
 )
+from dragon.assets import asset_record, build_asset_manifest
 from dragon.state import runtime_fingerprint, sha256_file
 
 
@@ -179,6 +181,73 @@ def test_acceptance_rejects_missing_or_stale_runtime_fingerprint(tmp_path: Path)
     runtime_file.write_text("changed = True\n", encoding="utf-8")
     _, stale = _state_valid(tmp_path, state)
     assert "RUNTIME_FINGERPRINT_MISMATCH" in stale
+
+
+def test_publication_evidence_is_semantically_revalidated(tmp_path: Path) -> None:
+    day = "2099-01-02"
+    edition = tmp_path / "editions" / "2099" / "01" / day
+    run = tmp_path / "daily-runs" / day
+    (edition / "assets").mkdir(parents=True)
+    (run / "qa").mkdir(parents=True)
+    cover = edition / "assets" / "cover.png"
+    cover.write_bytes(b"cover-bytes")
+    asset = asset_record(
+        cover,
+        edition,
+        asset_id="canonical-cover",
+        classification="EDITORIAL_ILLUSTRATION",
+        role="CANONICAL_COVER",
+        source_ids=["source-1"],
+        documentary_evidence=False,
+        generated_by="fixture",
+        license_use_notes="Fixture only.",
+    )
+    asset_manifest = edition / "assets-manifest.json"
+    asset_manifest.write_text(
+        json.dumps(build_asset_manifest(day, "synthetic", [asset])), encoding="utf-8"
+    )
+    final = {
+        "status": "PASS", "issues": [],
+        "editorial_status": "PASS", "factcheck_status": "PASS",
+        "arabic_status": "PASS", "pdf_status": "PASS",
+        "pdf_visual_status": "PASS", "epub_status": "PASS",
+        "epubcheck_status": "PASS", "layout_status": "PASS",
+    }
+    (edition / "final-qa.json").write_text(json.dumps(final), encoding="utf-8")
+    (run / "qa" / "epubcheck.json").write_text(
+        json.dumps({
+            "status": "PASS", "validator": "W3C_EPUBCHECK", "version": "5.3.0",
+            "fatal_count": 0, "error_count": 0,
+        }),
+        encoding="utf-8",
+    )
+    manifest_entries = []
+    for path in (cover, asset_manifest, edition / "final-qa.json", run / "qa" / "epubcheck.json"):
+        manifest_entries.append({
+            "path": path.relative_to(tmp_path).as_posix(), "sha256": sha256_file(path)
+        })
+    (edition / "manifest.json").write_text(
+        json.dumps({"artifacts": manifest_entries}), encoding="utf-8"
+    )
+    evolution = tmp_path / "evolution" / "reports" / f"{day}.json"
+    evolution.parent.mkdir(parents=True)
+    evolution.write_text(
+        json.dumps({
+            "status": "NOT_DUE",
+            "dragon_eval_dimensions": [
+                "presentation", "analysis", "evidence", "citation_support",
+                "journalism_quality", "arabic_editorial_quality", "visual_quality",
+            ],
+            "control_plane": {"automatic_production_mutation": False, "separate_schedule": False},
+        }),
+        encoding="utf-8",
+    )
+    state = {"date": day}
+    assert _publication_evidence_issues(tmp_path, state) == []
+    cover.write_bytes(b"tampered")
+    issues = _publication_evidence_issues(tmp_path, state)
+    assert "ASSET_INVALID:canonical-cover:IDENTITY" in issues
+    assert any(item.startswith("PUBLICATION_MANIFEST_HASH_INVALID") for item in issues)
 
 
 def test_provider_trial_requires_hash_bound_human_review(tmp_path: Path) -> None:

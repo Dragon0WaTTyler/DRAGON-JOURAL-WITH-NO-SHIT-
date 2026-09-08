@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from dragon.assets import validate_asset_manifest
 from dragon.config import load_local_config, load_mapping
 from dragon.state import runtime_fingerprint, sha256_file
 
@@ -34,6 +35,91 @@ LOCAL_STAGES = (
     "epub",
     "final_qa",
 )
+
+
+def _load_object(path: Path) -> dict | None:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def _publication_evidence_issues(root: Path, state: dict) -> list[str]:
+    edition_date = str(state.get("date", ""))
+    edition = root / "editions" / edition_date[:4] / edition_date[5:7] / edition_date
+    run = root / "daily-runs" / edition_date
+    issues = []
+    final = _load_object(edition / "final-qa.json")
+    if final is None:
+        issues.append("FINAL_QA_REPORT_INVALID")
+    else:
+        required_pass = (
+            "editorial_status", "factcheck_status", "arabic_status", "pdf_status",
+            "pdf_visual_status", "epub_status", "epubcheck_status", "layout_status",
+        )
+        issues.extend(
+            f"FINAL_QA_SEMANTIC_FAILURE:{field}"
+            for field in required_pass
+            if final.get(field) != "PASS"
+        )
+        if final.get("status") != "PASS" or final.get("issues") != []:
+            issues.append("FINAL_QA_SEMANTIC_FAILURE:status")
+
+    epubcheck = _load_object(run / "qa" / "epubcheck.json")
+    if (
+        epubcheck is None
+        or epubcheck.get("status") != "PASS"
+        or epubcheck.get("validator") != "W3C_EPUBCHECK"
+        or not epubcheck.get("version")
+        or any(epubcheck.get(field) != 0 for field in ("fatal_count", "error_count"))
+    ):
+        issues.append("EPUBCHECK_EVIDENCE_INVALID")
+    else:
+        try:
+            expected_version = str(load_local_config(root)["providers"]["epubcheck"]["version"])
+        except (OSError, KeyError, TypeError, ValueError):
+            expected_version = None
+        if expected_version and epubcheck.get("version") != expected_version:
+            issues.append("EPUBCHECK_VERSION_EVIDENCE_MISMATCH")
+
+    asset_manifest = _load_object(edition / "assets-manifest.json")
+    if asset_manifest is None:
+        issues.append("ASSET_MANIFEST_INVALID")
+    else:
+        issues.extend(validate_asset_manifest(asset_manifest, edition))
+
+    manifest = _load_object(edition / "manifest.json")
+    if manifest is None or not isinstance(manifest.get("artifacts"), list):
+        issues.append("PUBLICATION_MANIFEST_INVALID")
+    else:
+        for item in manifest["artifacts"]:
+            if not isinstance(item, dict):
+                issues.append("PUBLICATION_MANIFEST_ENTRY_INVALID")
+                continue
+            path = (root / str(item.get("path", ""))).resolve()
+            try:
+                path.relative_to(root.resolve())
+            except ValueError:
+                issues.append("PUBLICATION_MANIFEST_PATH_ESCAPE")
+                continue
+            if not path.is_file() or item.get("sha256") != sha256_file(path):
+                issues.append(f"PUBLICATION_MANIFEST_HASH_INVALID:{item.get('path')}")
+
+    evolution = _load_object(root / "evolution" / "reports" / f"{edition_date}.json")
+    required_dimensions = {
+        "presentation", "analysis", "evidence", "citation_support",
+        "journalism_quality", "arabic_editorial_quality", "visual_quality",
+    }
+    if (
+        evolution is None
+        or evolution.get("status") not in {"PASS", "NOT_DUE"}
+        or not required_dimensions <= set(evolution.get("dragon_eval_dimensions", []))
+        or evolution.get("control_plane", {}).get("automatic_production_mutation") is not False
+        or evolution.get("control_plane", {}).get("separate_schedule") is not False
+    ):
+        issues.append("EVOLUTION_EVIDENCE_INVALID")
+    return issues
 
 
 def _state_valid(
@@ -82,6 +168,7 @@ def _state_valid(
             or report.get("publication") != "COMPLETE"
         ):
             issues.append("RUN_REPORT_STATE_MISMATCH")
+    issues.extend(_publication_evidence_issues(root, state))
     return not issues, issues
 
 
