@@ -16,7 +16,7 @@ from jsonschema import Draft202012Validator
 import yaml
 
 
-SUPPORTED_ADAPTERS = {"seed-list", "rss", "html-trafilatura"}
+SUPPORTED_ADAPTERS = {"seed-list", "rss", "html-trafilatura", "structured-document"}
 
 
 class DiscoveryError(RuntimeError):
@@ -116,6 +116,11 @@ def provider_prompt_context(registry: dict) -> dict:
             if item["enabled"]
         ],
         "warning": "Discovery endpoints are not verification; follow candidates to exact primary or independent evidence.",
+        "material_routing": {
+            "readable_html": "html-trafilatura",
+            "pdf_office_table_json": "structured-document",
+            "js_heavy": "approved-browser-fallback-only",
+        },
     }
 
 
@@ -191,10 +196,18 @@ def fetch_and_extract_html(
         favor_precision=True,
     )
     if document is None:
+        if b"<script" in response.body.lower():
+            raise DiscoveryError(
+                "SOURCE_DYNAMIC_ROUTE_REQUIRED", "static extraction returned no content for a script-driven page"
+            )
         raise DiscoveryError("SOURCE_EXTRACTION_FAILED", response.url)
     extracted = document.as_dict()
     text = str(extracted.get("text") or "").strip()
     if len(text) < 200:
+        if b"<script" in response.body.lower():
+            raise DiscoveryError(
+                "SOURCE_DYNAMIC_ROUTE_REQUIRED", "insufficient static text on a script-driven page"
+            )
         raise DiscoveryError("SOURCE_EXTRACTION_LOW_QUALITY", f"only {len(text)} characters")
     quality = "HIGH" if len(text) >= 1_000 else "MEDIUM"
     timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
@@ -216,3 +229,39 @@ def fetch_and_extract_html(
         "links": extracted.get("links") or [],
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }
+
+
+def fetch_and_extract_source(
+    url: str,
+    *,
+    transport: Transport = default_transport,
+    timeout_seconds: int = 15,
+    maximum_bytes: int = 10_000_000,
+    retrieved_at: str | None = None,
+) -> dict:
+    """Fetch once, then route by the returned material type."""
+    response = transport(url, timeout_seconds, maximum_bytes)
+    if response.status < 200 or response.status >= 300:
+        raise DiscoveryError("SOURCE_HTTP_FAILED", f"HTTP {response.status}")
+    if response.content_type in {"text/html", "application/xhtml+xml"}:
+        return fetch_and_extract_html(
+            url,
+            transport=lambda *_: response,
+            timeout_seconds=timeout_seconds,
+            maximum_bytes=maximum_bytes,
+            retrieved_at=retrieved_at,
+        )
+    from dragon.structured_extraction import DocumentExtractionError, extract_structured_document
+
+    try:
+        value = extract_structured_document(
+            response.body,
+            content_type=response.content_type,
+            source_url=response.url,
+            retrieved_at=retrieved_at,
+        )
+    except DocumentExtractionError as exc:
+        raise DiscoveryError(exc.code, exc.detail) from exc
+    value["discovered_url"] = url
+    value["http_status"] = response.status
+    return value

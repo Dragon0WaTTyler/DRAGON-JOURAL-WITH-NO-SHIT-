@@ -19,9 +19,15 @@ documentation: <https://trafilatura.readthedocs.io/en/latest/usage-python.html>.
 
 Use a small native RSS/Atom adapter for feed discovery. Every feed item is
 `DISCOVERY_ONLY`. Keep RSSHub disabled and optional until a specific instance,
-origin policy, and integration test are accepted. Route PDF, Office, table, and
-other non-HTML material to their dedicated parsers; never force them through
-the article extractor.
+origin policy, and integration test are accepted.
+
+Route PDF, DOCX, XLSX, CSV, and JSON through DRAGON's bounded local structured
+parser. Office ZIP containers have member-count, expanded-byte, and unsafe-path
+guards. PDF pages, document paragraphs, spreadsheet/table rows, URLs, metadata,
+and hashes are preserved where available. These outputs remain
+`EXTRACTED_NOT_VERIFIED`. A script-heavy HTML shell emits
+`SOURCE_DYNAMIC_ROUTE_REQUIRED`; it does not silently launch a browser. Never
+force non-HTML material through the article extractor.
 
 ## Alternatives evaluated
 

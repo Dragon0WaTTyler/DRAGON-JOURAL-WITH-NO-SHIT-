@@ -7,6 +7,7 @@ from dragon.discovery import (
     FetchResponse,
     discover_rss,
     fetch_and_extract_html,
+    fetch_and_extract_source,
     load_provider_registry,
     provider_prompt_context,
     registry_report,
@@ -27,6 +28,7 @@ def test_registry_is_strict_and_truthful_about_availability() -> None:
     context = provider_prompt_context(registry)
     assert "rsshub-optional" not in {item["provider_id"] for item in context["providers"]}
     assert "not verification" in context["warning"]
+    assert context["material_routing"]["pdf_office_table_json"] == "structured-document"
 
 
 def test_rss_adapter_marks_every_candidate_discovery_only() -> None:
@@ -75,3 +77,24 @@ def test_extractor_routes_non_html_material_instead_of_forcing_parser() -> None:
     with pytest.raises(DiscoveryError) as caught:
         fetch_and_extract_html("https://example.org/report.pdf", transport=transport)
     assert caught.value.code == "SOURCE_MATERIAL_ROUTE_REQUIRED"
+
+
+def test_js_heavy_static_shell_requests_exceptional_browser_route() -> None:
+    def transport(url: str, timeout: int, maximum: int) -> FetchResponse:
+        return FetchResponse(url, 200, "text/html", b"<html><script src='app.js'></script><main></main></html>")
+
+    with pytest.raises(DiscoveryError) as caught:
+        fetch_and_extract_html("https://example.org/dynamic", transport=transport)
+    assert caught.value.code == "SOURCE_DYNAMIC_ROUTE_REQUIRED"
+
+
+def test_material_router_extracts_json_without_calling_html_parser() -> None:
+    def transport(url: str, timeout: int, maximum: int) -> FetchResponse:
+        return FetchResponse(url, 200, "application/json", b'[{"year":2026,"value":7},{"year":2025,"value":5}]')
+
+    value = fetch_and_extract_source(
+        "https://example.org/data.json", transport=transport, retrieved_at="2099-01-02T07:00:00Z"
+    )
+    assert value["material_type"] == "JSON"
+    assert value["tables"][0][0] == ["value", "year"]
+    assert value["verification_status"] == "EXTRACTED_NOT_VERIFIED"

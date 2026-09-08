@@ -10,6 +10,12 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `SOURCE_MONITORING_REQUIRED_FAILED` | DEPENDENCY | A target explicitly marked required could not be checked | Block before research; optional targets only degrade the monitoring report |
 | `SOURCE_TIMEOUT` | TRANSIENT | A source request exceeded its deadline | Bounded exponential retry |
 | `SOURCE_INSUFFICIENT` | CONTENT | Evidence is too weak for the planned item | Reopen only affected research item or skip with reason |
+| `SOURCE_DYNAMIC_ROUTE_REQUIRED` | DEPENDENCY | A script-driven page has insufficient static text | Route only that exceptional source to an approved bounded browser adapter |
+| `DOCUMENT_EXTRACTION_EMPTY` | CONTENT | A PDF, Office file, JSON, or table source produced no usable text | Retry/repair only that material or reject it |
+| `DOCUMENT_ARCHIVE_LIMIT_EXCEEDED` | VALIDATION | An Office archive exceeds safe member or expanded-byte limits | Block the material; never relax archive limits automatically |
+| `DOCUMENT_ARCHIVE_UNSAFE_PATH` | VALIDATION | An Office container declares an absolute or traversal member | Reject/quarantine the material |
+| `DOCUMENT_ARCHIVE_INVALID` / `DOCUMENT_PDF_INVALID` / `DOCUMENT_DOCX_INVALID` / `DOCUMENT_XLSX_INVALID` / `DOCUMENT_JSON_INVALID` / `DOCUMENT_TEXT_ENCODING_INVALID` | CONTENT | Structured input is corrupt, malformed, or not valid UTF-8 where required | Retry/replace only that source, then hold it |
+| `DOCUMENT_PDF_ENCRYPTED` / `DOCUMENT_TYPE_UNSUPPORTED` | DEPENDENCY | Material needs authorization or an unimplemented parser | Block that source route without weakening evidence rules |
 | `ARTICLE_SCHEMA_INVALID` | CONTENT | Generated article violates its schema | Repair only the article |
 | `CHIEF_EDITOR_FAILED` | CONTENT | Duplicate, contradictory, or otherwise unsafe edition plan | Repair/remove only the conflicting editorial units |
 | `ARTICLE_FACTCHECK_FAILED` | CONTENT | Material claim failed verification | Repair/remove only the affected editorial unit |
