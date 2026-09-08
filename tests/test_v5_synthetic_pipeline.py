@@ -47,6 +47,8 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
         (tmp_path / "daily-runs" / DATE / "qa" / "pdf.json").read_text(encoding="utf-8")
     )
     assert pdf_report["populated_pages"] == pdf_report["pages"]
+    assert pdf_report["text_extraction"] == "AVAILABLE"
+    assert pdf_report["language"]["status"] == "PASS"
     assert all(
         metric["vertical_fill"] is None or metric["vertical_fill"] >= 0.55
         for metric in pdf_report["page_visual_metrics"][1:]

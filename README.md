@@ -58,9 +58,13 @@ python -m unittest discover -s tests -v
 ```
 
 V5 uses a Windows-portable Pillow PDF backend with explicit Arabic reshaping and
-bidirectional processing. Preflight proves those components and an Arabic font
-before local production can be declared ready. The legacy WeasyPrint smoke test
-may still be skipped when its optional native libraries are unavailable.
+bidirectional processing. Each raster page also receives an invisible,
+logical-order Unicode text layer so Arabic text remains searchable and
+extractable without changing the rendered page. PDF validation fails if that
+layer cannot be extracted. Preflight proves the renderer components and an
+Arabic font before local production can be declared ready. The legacy
+WeasyPrint smoke test may still be skipped when its optional native libraries
+are unavailable.
 
 ## Synthetic vertical-slice test
 

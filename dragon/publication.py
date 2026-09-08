@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from html import escape
 import hashlib
+from io import BytesIO
 import json
 import os
 from pathlib import Path
@@ -159,18 +160,56 @@ def validate_publication_source(
     return issues
 
 
-def _font(size: int):
-    from PIL import ImageFont
-
+def _font_path() -> Path | None:
     candidates = (
         Path("C:/Windows/Fonts/tahoma.ttf"),
         Path("C:/Windows/Fonts/arial.ttf"),
         Path("C:/Windows/Fonts/segoeui.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
     )
-    for candidate in candidates:
-        if candidate.exists():
-            return ImageFont.truetype(str(candidate), size)
+    return next((candidate for candidate in candidates if candidate.exists()), None)
+
+
+def _font(size: int):
+    from PIL import ImageFont
+
+    candidate = _font_path()
+    if candidate is not None:
+        return ImageFont.truetype(str(candidate), size)
     return ImageFont.load_default(size=size)
+
+
+def _searchable_text_overlay(page_texts: list[list[str]], page_size: tuple[float, float]) -> PdfReader:
+    """Create an invisible logical-order Unicode layer for raster PDF accessibility."""
+    from bidi.algorithm import get_display
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.pdfgen import canvas
+
+    font_path = _font_path()
+    if font_path is None:
+        raise RuntimeError("Arabic font unavailable for PDF extraction layer")
+    font_name = "DRAGONArabicExtraction"
+    if font_name not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont(font_name, str(font_path)))
+    payload = BytesIO()
+    document = canvas.Canvas(payload, pagesize=page_size, pageCompression=1)
+    for lines in page_texts:
+        text = document.beginText(18, page_size[1] - 18)
+        text.setFont(font_name, 7)
+        text.setLeading(8)
+        text.setTextRenderMode(3)
+        for line in lines:
+            if line:
+                # PDF extractors apply the bidi algorithm to RTL glyph runs. Store
+                # visual-order Unicode (without Arabic presentation forms) so
+                # extraction reconstructs the original logical reading order.
+                text.textLine(get_display(str(line)))
+        document.drawText(text)
+        document.showPage()
+    document.save()
+    payload.seek(0)
+    return PdfReader(payload)
 
 
 def _rtl_lines(draw, text: str, font, width: int) -> list[str]:
@@ -239,6 +278,13 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
     size = (827, 1169)
     pages = []
     page_links: list[list[tuple[str, int, int, int]]] = [[]]
+    lead = articles[0] if articles else {}
+    page_texts: list[list[str]] = [[
+        "DRAGON", lead.get("headline", ""), lead.get("standfirst", ""),
+        "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية",
+        edition_date,
+        "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة",
+    ]]
     with Image.open(html_path.parent / "assets" / "cover.png") as source_cover:
         cover = source_cover.convert("RGB").resize(size)
     pages.append(cover)
@@ -332,6 +378,14 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
                     line_y += line_height
             pages.append(page)
             page_links.append(links)
+            page_texts.append([
+                role_labels.get(role, "أخبار"),
+                article["headline"] + (" — تابع" if continuation else ""),
+                *([] if continuation else [
+                    article["section"], article["standfirst"], article["byline"],
+                ]),
+                *(line for line, _url in page_flow if line),
+            ])
             continuation = True
     first, rest = pages[0], pages[1:]
     subject = "synthetic acceptance fixture" if mode == "synthetic" else "Arabic daily newspaper"
@@ -342,6 +396,15 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
         reader = PdfReader(str(raster_destination))
         writer = PdfWriter()
         writer.clone_document_from_reader(reader)
+        page_size = (
+            float(reader.pages[0].mediabox.width),
+            float(reader.pages[0].mediabox.height),
+        )
+        overlay = _searchable_text_overlay(page_texts, page_size)
+        if len(overlay.pages) != len(writer.pages):
+            raise ValueError("PDF extraction layer page count changed")
+        for page_number, overlay_page in enumerate(overlay.pages):
+            writer.pages[page_number].merge_page(overlay_page)
         x_scale = float(reader.pages[0].mediabox.width) / size[0]
         y_scale = float(reader.pages[0].mediabox.height) / size[1]
         for page_number, links_for_page in enumerate(page_links):
@@ -529,7 +592,8 @@ def validate_pdf(
         language = qa.to_dict()
         extraction = "AVAILABLE"
     else:
-        language = {"status": "NOT_APPLICABLE", "reason": "raster PDF; Arabic validated at canonical source and visual renderer inputs"}
+        issues.append("PDF_TEXT_EXTRACTION_UNAVAILABLE")
+        language = {"status": "FAIL", "issues": ["PDF_TEXT_EXTRACTION_UNAVAILABLE"]}
         extraction = "UNAVAILABLE_RASTER"
     populated_pages = 0
     page_visual_metrics: list[dict] = []

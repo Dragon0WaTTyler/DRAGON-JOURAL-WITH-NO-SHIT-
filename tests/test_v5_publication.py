@@ -55,6 +55,11 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
     assert report["populated_pages"] == report["pages"]
     assert report["cover_visual_rms"] < 8
     assert report["source_links"] == 1
+    assert report["text_extraction"] == "AVAILABLE"
+    assert report["language"]["status"] == "PASS"
+    extracted = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf)).pages)
+    assert article["headline"] in extracted
+    assert "هذه مادة عربية موثقة" in extracted
     annotations = [
         annotation.get_object()
         for page in PdfReader(str(pdf)).pages
