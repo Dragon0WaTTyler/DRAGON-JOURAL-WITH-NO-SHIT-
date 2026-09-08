@@ -47,6 +47,10 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `LAYOUT_PLAN_INVALID` | VALIDATION | Active-article inventory or functional page grammar is inconsistent | Block before HTML/PDF/EPUB source generation |
 | `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
 | `PDF_QA_FAILED` / `PDF_VISUAL_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A structural, raster-visual, format, or strict final acceptance gate failed | Repair the affected output stage; visual QA uses a contact sheet and the Layout Doctor may only change safe presentation parameters |
+| `EPUBCHECK_FAILED` | VALIDATION | W3C EPUBCheck reported fatal or error messages | Repair/rebuild EPUB only and rerun EPUBCheck |
+| `EPUBCHECK_UNAVAILABLE` / `EPUBCHECK_VERSION_MISMATCH` | ENVIRONMENT | The pinned W3C distribution or Java runtime is absent/wrong | Block at preflight; install the pinned version |
+| `EPUBCHECK_EXECUTION_FAILED` | TRANSIENT | The validator process could not complete | Retry EPUB validation within the finite limit |
+| `EPUBCHECK_REPORT_INVALID` | VALIDATION | The validator did not produce parseable structured output | Preserve raw output and block; never infer PASS |
 | `STAGE_INPUT_INVALID` | DEPENDENCY | A declared consumed input is missing or outside the repository | Block at the exact dependency boundary |
 | `RUNTIME_FINGERPRINT_MISMATCH` | DEPENDENCY | The executable V5 runtime/config no longer matches the run's recorded producer | Preserve completed bytes; restart explicitly from `preflight` |
 | `STAGE_ACCEPTANCE_FAILED` | VALIDATION | A runner returned artifacts rejected by its validator | Targeted stage repair |

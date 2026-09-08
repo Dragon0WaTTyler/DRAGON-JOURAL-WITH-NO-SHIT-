@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from dragon.acceptance import _provider_trial_evidence
 from dragon.config import load_local_config, load_mapping
 from dragon.discovery import load_provider_registry, registry_report
+from dragon.epubcheck import epubcheck_version
 from dragon.providers import editorial_provider_from_config
 from dragon.state import runtime_fingerprint
 
@@ -149,6 +150,15 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
     checks.append(_check("arabic_font", True, lambda: _font_available(font_families)))
     checks.append(_check("pdf_runtime", True, _pdf_runtime))
     checks.append(_check("epub_runtime", True, lambda: _import("zipfile")))
+    epubcheck_config = config.get("providers", {}).get("epubcheck", {})
+    if epubcheck_config.get("enabled"):
+        checks.append(
+            _check(
+                "epubcheck",
+                True,
+                lambda: f"W3C EPUBCheck {epubcheck_version(root)}",
+            )
+        )
     checks.append(
         _check(
             "source_provider_registry",

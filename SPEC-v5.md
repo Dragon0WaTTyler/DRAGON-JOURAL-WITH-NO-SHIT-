@@ -148,6 +148,12 @@ Local publication is `COMPLETE` only when editorial work is complete, fact check
 passes, Arabic QA passes, the required cover state is satisfied, PDF passes,
 EPUB passes, and final QA passes. File existence alone is never sufficient.
 
+EPUB conformance has two independent gates: DRAGON's canonical lineage,
+Arabic/RTL, link, member, and XML checks, followed by the pinned official W3C
+EPUBCheck 5.3.0 CLI. Production preflight verifies the exact validator version.
+Any EPUBCheck fatal or error blocks publication; its full JSON report and JAR
+hash are preserved with the run evidence.
+
 PDF validation has separate structural and raster-visual evidence. The renderer
 persists an all-pages contact sheet, per-page ink/fill metrics, page-grammar
 variety, and an explicit human-review status. The bounded Layout Doctor may

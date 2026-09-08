@@ -185,6 +185,26 @@ error_codes:
     category: VALIDATION
     action: TARGETED_REPAIR
     max_attempts: 2
+  EPUBCHECK_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUBCHECK_UNAVAILABLE:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  EPUBCHECK_VERSION_MISMATCH:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  EPUBCHECK_EXECUTION_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  EPUBCHECK_REPORT_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
   FINAL_QA_FAILED:
     category: VALIDATION
     action: TARGETED_REPAIR

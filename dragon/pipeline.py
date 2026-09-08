@@ -23,6 +23,7 @@ from dragon.discovery import (
     registry_report,
 )
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
+from dragon.epubcheck import EPUBCheckError, resolve_epubcheck_jar, run_epubcheck
 from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.investigations import InvestigationError, update_investigation_dossiers
@@ -583,8 +584,32 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":
             raise StageFailure("EPUB_QA_FAILED", "; ".join(report["issues"]), outputs=(path, report_path))
+        raw_epubcheck_path = context.run_dir / "qa" / "epubcheck-raw.json"
+        epubcheck_path = context.run_dir / "qa" / "epubcheck.json"
+        jar = resolve_epubcheck_jar(context.root)
+        if synthetic and not jar.is_file():
+            epubcheck_report = {
+                "status": "NOT_RUN",
+                "validator": "W3C_EPUBCHECK",
+                "reason": "isolated synthetic fixture root has no EPUBCheck distribution",
+            }
+            atomic_write_json(raw_epubcheck_path, {"status": "NOT_RUN"})
+        else:
+            try:
+                epubcheck_report = run_epubcheck(
+                    context.root, path, raw_epubcheck_path
+                )
+            except EPUBCheckError as exc:
+                raise StageFailure(exc.code, exc.detail, outputs=(path, report_path)) from exc
+        atomic_write_json(epubcheck_path, epubcheck_report)
+        if epubcheck_report["status"] == "FAIL":
+            raise StageFailure(
+                "EPUBCHECK_FAILED",
+                f"fatal={epubcheck_report['fatal_count']} errors={epubcheck_report['error_count']}",
+                outputs=(path, report_path, raw_epubcheck_path, epubcheck_path),
+            )
         return StageResult(
-            (path, report_path),
+            (path, report_path, raw_epubcheck_path, epubcheck_path),
             inputs=(
                 context.edition_dir / "articles.json",
                 context.edition_dir / "assets" / "cover.png",
@@ -595,6 +620,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         plan = _load(context.edition_dir / "edition-plan.json")
         pdf_report = _load(context.run_dir / "qa" / "pdf.json")
         epub_report = _load(context.run_dir / "qa" / "epub.json")
+        epubcheck_report = _load(context.run_dir / "qa" / "epubcheck.json")
         pdf_visual_report = _load(context.run_dir / "qa" / "pdf-visual.json")
         arabic_report = _load(context.run_dir / "qa" / "arabic-language.json")
         editorial_report = _load(
@@ -618,6 +644,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         ):
             if report["status"] != "PASS":
                 issues.append(f"{label}_NOT_PASS")
+        if epubcheck_report["status"] != "PASS" and not (
+            synthetic and epubcheck_report["status"] == "NOT_RUN"
+        ):
+            issues.append("EPUBCHECK_NOT_PASS")
         if (
             cover_brief.get("cover_status") not in {"COVER_GENERATED", "COVER_FALLBACK"}
             or not cover_brief.get("accepted")
@@ -647,6 +677,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             context.run_dir / "qa" / "layout-doctor.json",
             context.run_dir / "qa" / "pdf-contact-sheet.png",
             context.run_dir / "qa" / "pdf-visual.json",
+            context.run_dir / "qa" / "epubcheck-raw.json",
+            context.run_dir / "qa" / "epubcheck.json",
         ]
         artifacts = source_artifacts + [continuity_path]
         report = {
@@ -660,6 +692,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             "pdf_visual_status": pdf_visual_report["status"],
             "pdf_human_review_status": pdf_visual_report["human_review_status"],
             "epub_status": epub_report["status"],
+            "epubcheck_status": epubcheck_report["status"],
             "cover_status": cover_brief.get("cover_status"),
             "layout_status": "PASS" if not validate_layout_plan(layout_plan, decisions) else "FAIL",
             "issues": issues,

@@ -107,6 +107,12 @@ publication:
   archive_status_is_independent: true
   delivery_status_is_independent: true
 providers:
+  epubcheck:
+    type: w3c-cli
+    enabled: true
+    version: 5.3.0
+    jar_path: tools/epubcheck-5.3.0/epubcheck.jar
+    environment_override: DRAGON_EPUBCHECK_JAR
   ai:
     type: local-command
     paid_service_auto_enable: false
