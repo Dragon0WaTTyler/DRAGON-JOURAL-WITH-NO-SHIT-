@@ -75,6 +75,9 @@ def build_claim_graph(articles: list[dict], intelligence: dict) -> dict:
                 "material": bool(claim.get("material")),
                 "fact_key": fact_key,
                 "value": claim.get("value"),
+                "independent_evidence_unavailable_reason": claim.get(
+                    "independent_evidence_unavailable_reason"
+                ),
                 "evidence": evidence,
                 "independent_origins": len(origins),
                 "confidence": confidence,

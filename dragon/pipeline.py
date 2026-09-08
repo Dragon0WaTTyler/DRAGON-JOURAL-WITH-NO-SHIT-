@@ -13,6 +13,7 @@ from dragon.continuity import build_snapshot, prior_context
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
+from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.research_planning import build_research_plan, validate_research_plan
 from dragon.source_intelligence import build_source_intelligence
@@ -214,8 +215,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         articles_path = context.run_dir / "articles" / "articles.json"
         graph_path = context.run_dir / "evidence" / "claim-graph.json"
         plan_path = context.run_dir / "research-planning" / "plan.json"
+        media_path = context.run_dir / "media-critic" / "report.json"
         report = adversarial_review(
-            _load(articles_path)["articles"], _load(graph_path), _load(plan_path)
+            _load(articles_path)["articles"], _load(graph_path), _load(plan_path),
+            _load(media_path),
         )
         path = context.run_dir / "editorial" / "adversarial-review.json"
         atomic_write_json(path, report)
@@ -223,7 +226,22 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure(
                 "ADVERSARIAL_REVIEW_FAILED", "; ".join(report["issues"]), outputs=(path,)
             )
-        return StageResult((path,), inputs=(articles_path, graph_path, plan_path))
+        return StageResult((path,), inputs=(articles_path, graph_path, plan_path, media_path))
+
+    def media_critic(context: StageContext) -> StageResult:
+        articles_path = context.run_dir / "articles" / "articles.json"
+        plan_path = context.run_dir / "research-planning" / "plan.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        articles_value = _load(articles_path)["articles"]
+        report = build_media_critic(
+            articles_value, _load(plan_path), _load(intelligence_path)
+        )
+        issues = validate_media_critic(report, articles_value)
+        if issues:
+            raise StageFailure("MEDIA_CRITIC_INVALID", "; ".join(issues))
+        path = context.run_dir / "media-critic" / "report.json"
+        atomic_write_json(path, report)
+        return StageResult((path,), inputs=(articles_path, plan_path, intelligence_path))
 
     def factcheck(context: StageContext) -> StageResult:
         articles_path = context.run_dir / "articles" / "articles.json"
@@ -558,7 +576,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("research_planning", ("source_intelligence",), research_planning),
         _json_stage("article_generation", ("research_planning",), articles),
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
-        _json_stage("adversarial_review", ("claim_evidence_graph",), adversarial),
+        _json_stage("media_critic", ("claim_evidence_graph",), media_critic),
+        _json_stage("adversarial_review", ("media_critic",), adversarial),
         _json_stage("factcheck", ("adversarial_review",), factcheck),
         _json_stage("chief_editor", ("factcheck",), chief_editor),
         _json_stage("arabic_language_qa", ("chief_editor",), arabic_qa),

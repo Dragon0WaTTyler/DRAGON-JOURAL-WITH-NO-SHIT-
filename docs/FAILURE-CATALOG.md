@@ -33,6 +33,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `SOURCE_INTELLIGENCE_INVALID` | VALIDATION | Deterministic normalized-source or event-cluster output violates its strict schema | Block; preserve research and create an incident |
 | `RESEARCH_PLAN_INVALID` | VALIDATION | Perspective, question, budget, or selected-candidate inventory is inconsistent | Block; preserve research and source intelligence |
 | `CLAIM_GRAPH_INVALID` | VALIDATION | Claim inventory, stable identity, source provenance, or assessment structure is invalid | Block before editorial approval |
+| `MEDIA_CRITIC_INVALID` | VALIDATION | Source comparison inventory or observation-only contract is invalid | Block before adversarial review |
 | `ADVERSARIAL_REVIEW_FAILED` | CONTENT | Independent review found contradiction, unavailable provenance, partial material support, or untested framing | Repair/remove only the affected claim or article |
 | `FACTCHECK_FAILED` | CONTENT | An active article lacks accepted source linkage | Repair/remove the affected editorial unit |
 | `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |

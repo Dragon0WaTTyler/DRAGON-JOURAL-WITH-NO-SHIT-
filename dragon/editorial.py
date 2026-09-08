@@ -129,13 +129,16 @@ def factcheck_report(decisions: list[dict], sources: list[dict], *, synthetic: b
 
 
 def adversarial_review(
-    decisions: list[dict], claim_graph: dict, research_plan: dict
+    decisions: list[dict], claim_graph: dict, research_plan: dict, media_report: dict | None = None
 ) -> dict:
     """Independently challenge provenance and framing before editorial approval."""
     claims_by_article: dict[str, list[dict]] = defaultdict(list)
     for claim in claim_graph.get("claims", []):
         claims_by_article[str(claim.get("article_id"))].append(claim)
     plans = {item["section_id"]: item for item in research_plan.get("plans", [])}
+    media = {
+        item["article_id"]: item for item in (media_report or {}).get("articles", [])
+    }
     results = []
     edition_issues = []
     for item in decisions:
@@ -168,6 +171,22 @@ def adversarial_review(
         elements = item.get("editorial_elements") or {}
         if not elements.get("uncertainty"):
             issues.append("UNCERTAINTY_NOT_PRESERVED")
+            if outcome == "PASS":
+                outcome = "FIX"
+        material_claims = [
+            claim for claim in claims_by_article.get(item["id"], []) if claim.get("material")
+        ]
+        media_item = media.get(item["id"])
+        if (
+            media_item
+            and material_claims
+            and media_item.get("independent_origin_count", 0) < 2
+            and not all(
+                claim.get("independent_evidence_unavailable_reason")
+                for claim in material_claims
+            )
+        ):
+            issues.append("WIRE_ORIGIN_INDEPENDENCE_INSUFFICIENT")
             if outcome == "PASS":
                 outcome = "FIX"
         edition_issues.extend(f"{item['id']}:{issue}" for issue in issues)

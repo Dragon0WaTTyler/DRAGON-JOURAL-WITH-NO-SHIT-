@@ -22,17 +22,18 @@ The authoritative stage order is:
 4. `research_planning`
 5. `article_generation`
 6. `claim_evidence_graph`
-7. `adversarial_review`
-8. `factcheck`
-9. `chief_editor`
-10. `arabic_language_qa`
-11. `cover`
-12. `publication_source`
-13. `pdf`
-14. `epub`
-15. `final_qa`
-16. `github_archive`
-17. `whatsapp_delivery`
+7. `media_critic`
+8. `adversarial_review`
+9. `factcheck`
+10. `chief_editor`
+11. `arabic_language_qa`
+12. `cover`
+13. `publication_source`
+14. `pdf`
+15. `epub`
+16. `final_qa`
+17. `github_archive`
+18. `whatsapp_delivery`
 
 Every stage declares prerequisites, inputs, outputs, acceptance validation, and
 retry policy. A stage record contains status, start/end timestamps, attempt

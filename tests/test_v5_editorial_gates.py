@@ -77,3 +77,20 @@ def test_adversarial_review_passes_supported_claim_with_challenge_context() -> N
         "questions": ["ما أقوى تفسير بديل؟"],
     }]}
     assert adversarial_review([value], graph, plan)["status"] == "PASS"
+
+
+def test_adversarial_review_does_not_count_one_wire_origin_as_independent() -> None:
+    value = article("a1", "story")
+    value["editorial_elements"] = {"uncertainty": "تبقى حدود معلومة"}
+    graph = {"claims": [{
+        "claim_id": "CLM-1", "article_id": "a1", "assessment": "SUPPORTED",
+        "material": True, "independent_evidence_unavailable_reason": None,
+    }]}
+    plan = {"plans": [{
+        "section_id": "front", "perspectives": ["أ", "ب", "ج"],
+        "questions": ["ما أقوى تفسير بديل؟"],
+    }]}
+    media = {"articles": [{"article_id": "a1", "independent_origin_count": 1}]}
+    report = adversarial_review([value], graph, plan, media)
+    assert report["status"] == "FAIL"
+    assert "WIRE_ORIGIN_INDEPENDENCE_INSUFFICIENT" in report["articles"][0]["issues"]

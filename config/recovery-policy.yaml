@@ -69,6 +69,10 @@ error_codes:
     category: VALIDATION
     action: BLOCK
     max_attempts: 1
+  MEDIA_CRITIC_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
   ADVERSARIAL_REVIEW_FAILED:
     category: CONTENT
     action: TARGETED_REPAIR

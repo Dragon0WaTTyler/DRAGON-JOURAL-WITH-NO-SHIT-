@@ -12,6 +12,7 @@ STAGES = [
     "research_planning",
     "article_generation",
     "claim_evidence_graph",
+    "media_critic",
     "adversarial_review",
     "factcheck",
     "chief_editor",
