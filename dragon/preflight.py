@@ -114,7 +114,7 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
             "git_worktree",
             bool(policy.get("require_clean_worktree", True)),
             lambda: _clean_worktree(
-                _git(root, "status", "--porcelain"),
+                _git(root, "status", "--porcelain", "--untracked-files=all"),
                 (
                     f"daily-runs/{edition_date}/",
                     f"editions/{parsed_date:%Y}/{parsed_date:%m}/{edition_date}/",
@@ -284,7 +284,11 @@ def _github_archive_capability(root: Path, provider_config: dict[str, Any]) -> s
 
 
 def _v5_generated_prefixes(root: Path, *, exclude_date: str) -> tuple[str, ...]:
-    prefixes: list[str] = []
+    prefixes: list[str] = [
+        "acceptance/machine/",
+        "acceptance/provider-trials/",
+        "acceptance/evidence/",
+    ]
     for state_path in (root / "daily-runs").glob("????-??-??/state.json"):
         day = state_path.parent.name
         if day == exclude_date:

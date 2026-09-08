@@ -60,6 +60,13 @@ never mixed. Deployment-only cutover switches and `scheduler.enabled` are
 excluded from the fingerprint to avoid invalidating proven trials when the
 accepted scheduler is activated.
 
+Clean-worktree preflight enumerates individual untracked files. State-backed
+V5 run/edition outputs and files beneath `acceptance/machine/`,
+`acceptance/provider-trials/`, and `acceptance/evidence/` are allowed only while
+untracked, so genuine local evidence does not block the first production run.
+Any tracked modification in those directories—or any source/config change—
+remains a blocking dirty-worktree failure.
+
 ## Directories
 
 ```text

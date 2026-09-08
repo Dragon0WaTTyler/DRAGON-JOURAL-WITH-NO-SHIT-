@@ -56,7 +56,7 @@ class V5PreflightTests(unittest.TestCase):
                 return "https://github.com/DRAGON/repo"
             if args == ("branch", "--show-current"):
                 return "main"
-            if args == ("status", "--porcelain"):
+            if args == ("status", "--porcelain", "--untracked-files=all"):
                 return ""
             return str(_root)
 
@@ -157,7 +157,7 @@ class V5PreflightTests(unittest.TestCase):
                 return "https://github.com/DRAGON/repo"
             if args == ("branch", "--show-current"):
                 return "main"
-            if args == ("status", "--porcelain"):
+            if args == ("status", "--porcelain", "--untracked-files=all"):
                 return ""
             if args == ("config", "user.name"):
                 return "Archive Operator"
@@ -191,7 +191,7 @@ class V5PreflightTests(unittest.TestCase):
                 return "https://github.com/DRAGON/repo"
             if args == ("branch", "--show-current"):
                 return "main"
-            if args == ("status", "--porcelain"):
+            if args == ("status", "--porcelain", "--untracked-files=all"):
                 return ""
             if args == ("config", "user.name"):
                 return "Archive Operator"
@@ -247,6 +247,30 @@ class V5PreflightTests(unittest.TestCase):
                 " M editions/2026/09/2026-09-07/edition.md",
                 (),
                 ("editions/2026/09/2026-09-07/",),
+            )
+
+    def test_untracked_acceptance_evidence_does_not_block_production(self):
+        with tempfile.TemporaryDirectory() as directory:
+            prefixes = _v5_generated_prefixes(
+                Path(directory), exclude_date="2026-09-08"
+            )
+            self.assertEqual(
+                _clean_worktree(
+                    "?? acceptance/machine/\n"
+                    "?? acceptance/provider-trials/\n"
+                    "?? acceptance/evidence/",
+                    (),
+                    prefixes,
+                ),
+                "clean",
+            )
+
+    def test_tracked_acceptance_evidence_edit_remains_blocking(self):
+        with self.assertRaisesRegex(RuntimeError, "acceptance/evidence"):
+            _clean_worktree(
+                " M acceptance/evidence/failure-injection.json",
+                (),
+                ("acceptance/evidence/",),
             )
 
     def test_unrelated_dirty_source_blocks_preflight(self):
