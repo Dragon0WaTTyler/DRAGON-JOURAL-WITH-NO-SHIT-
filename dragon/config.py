@@ -7,6 +7,8 @@ from typing import Any
 
 import yaml
 
+from dragon.providers import configured_byline
+
 
 def load_mapping(path: Path) -> dict[str, Any]:
     try:
@@ -25,4 +27,5 @@ def load_local_config(root: Path) -> dict[str, Any]:
     stages = config.get("orchestrator", {}).get("stages")
     if not isinstance(stages, list) or not stages or len(stages) != len(set(stages)):
         raise ValueError("CONFIG_STAGES_INVALID: stages must be a non-empty unique list")
+    configured_byline(config)
     return config

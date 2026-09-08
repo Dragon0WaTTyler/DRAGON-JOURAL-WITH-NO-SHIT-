@@ -15,7 +15,7 @@ from dragon.config import load_local_config
 from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
-from dragon.providers import SyntheticEditorialProvider, editorial_provider_from_config
+from dragon.providers import SyntheticEditorialProvider, configured_byline, editorial_provider_from_config
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
 from dragon.whatsapp import DisabledWhatsAppProvider, whatsapp_provider_from_config
 
@@ -42,7 +42,10 @@ def parser() -> argparse.ArgumentParser:
 def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path = ROOT) -> Orchestrator:
     config = load_local_config(root)
     timezone = config["timezone"]
-    provider = SyntheticEditorialProvider() if synthetic else editorial_provider_from_config(config)
+    provider = (
+        SyntheticEditorialProvider(byline=configured_byline(config))
+        if synthetic else editorial_provider_from_config(config)
+    )
     archive_provider = (
         DisabledGitArchiveProvider("SYNTHETIC_EXTERNAL_SIDE_EFFECTS_DISABLED")
         if synthetic

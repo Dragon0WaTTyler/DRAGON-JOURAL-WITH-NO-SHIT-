@@ -81,6 +81,7 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
     prompt = _prompt(
         "articles",
         {
+            "editorial_identity": {"expected_byline": "تحرير: اسم القلم"},
             "quality_constraints": {
                 "minimum_active_article_words": 350,
                 "minimum_edition_words": 4000,
@@ -89,6 +90,8 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
     )
     assert "minimum_active_article_words" in prompt
     assert "minimum_edition_words" in prompt
+    assert "تحرير: اسم القلم" in prompt
+    assert "تحرير: DRAGON" not in prompt
 
 
 def test_structured_output_schemas_are_strict_and_complete() -> None:

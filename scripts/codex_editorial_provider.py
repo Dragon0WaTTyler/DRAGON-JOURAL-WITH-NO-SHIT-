@@ -278,6 +278,7 @@ refer to returned sources. Rank worthy developments rather than selecting the fi
 section lacks meaningful verified material, use NO_NEWS with an empty candidates array, null
 selection fields, a specific no_news_reason, and fallback_action RADAR, DOSSIER_FOLLOW_UP,
 PUBLIC_DATA_ANALYSIS, or SKIP. Never invent filler or weak candidates to satisfy a quota."""
+    expected_byline = payload.get("editorial_identity", {}).get("expected_byline")
     return f"""You are the article desk for a professional Arabic newspaper. {safety}
 Research packet: {source}
 Fixed sections: {sections}
@@ -292,7 +293,8 @@ Every decision must include every schema field. For fields that do not apply, us
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,
 section_id, Arabic section heading, status, substantial Arabic headline and standfirst, honest
-byline 'تحرير: DRAGON', connected body paragraph array, known source_ids, the exact selected
+byline exactly {json.dumps(expected_byline, ensure_ascii=False)}, connected body paragraph array,
+known source_ids, the exact selected
 research_candidate_id, stable story_key, structured claims, and editorial_elements. Each ACTIVE
 article also requires a story_type: NEWS, ANALYSIS, INVESTIGATION, SCIENCE, HISTORY, CULTURE,
 FACT_CHECK, DATA, DOCUMENT_PUBLIC_RECORD, or SECTION_OPENER. This is editorial

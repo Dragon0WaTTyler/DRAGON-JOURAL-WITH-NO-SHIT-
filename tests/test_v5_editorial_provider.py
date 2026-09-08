@@ -10,6 +10,7 @@ from dragon.providers import (
     SyntheticEditorialProvider,
     UnconfiguredEditorialProvider,
     editorial_provider_from_config,
+    configured_byline,
 )
 
 
@@ -79,6 +80,49 @@ def test_provider_factory_cannot_claim_availability_before_proven_check(tmp_path
         editorial_provider_from_config(config, require_proven=False),
         LocalCommandEditorialProvider,
     )
+
+
+def test_provider_enforces_configured_editorial_identity() -> None:
+    config = {
+        "publication": {
+            "byline_template": "تحرير: {pen_name}",
+            "pen_name": "اسم القلم",
+        },
+        "providers": {
+            "ai": {
+                "type": "local-command",
+                "integration_test_status": "NOT_RUN",
+                "command": [sys.executable, "unused.py"],
+            }
+        },
+    }
+    provider = editorial_provider_from_config(config, require_proven=False)
+    assert isinstance(provider, LocalCommandEditorialProvider)
+    assert provider.expected_byline == "تحرير: اسم القلم"
+
+    articles = SyntheticEditorialProvider().articles(
+        SyntheticEditorialProvider().research("2099-01-02")
+    )
+    research = SyntheticEditorialProvider().research("2099-01-02")
+    try:
+        provider._validate_articles(articles, research)
+    except ProviderError as exc:
+        assert exc.code == "ARTICLE_SCHEMA_INVALID"
+        assert "configured editorial identity" in exc.detail
+    else:
+        raise AssertionError("hard-coded byline bypassed configured identity")
+
+
+def test_byline_template_rejects_missing_or_unsafe_placeholder() -> None:
+    for template in ("تحرير ثابت", "{pen_name.__class__}", "{pen_name!r}", "{other}"):
+        try:
+            configured_byline({
+                "publication": {"byline_template": template, "pen_name": "اسم القلم"}
+            })
+        except ValueError as exc:
+            assert str(exc) == "PUBLICATION_BYLINE_CONFIG_INVALID"
+        else:
+            raise AssertionError(f"invalid byline template accepted: {template}")
 
 
 def test_provider_rejects_homepage_as_exact_research_evidence(tmp_path: Path) -> None:

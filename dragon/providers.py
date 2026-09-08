@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+from string import Formatter
 import subprocess
 import sys
 import re
@@ -93,6 +94,7 @@ class SyntheticEditorialProvider:
 
     mode: str = "synthetic"
     available: bool = True
+    byline: str = "تحرير: DRAGON"
 
     def research(self, edition_date: str, continuity: dict | None = None) -> dict:
         packet = {
@@ -170,7 +172,7 @@ class SyntheticEditorialProvider:
                     "status": "ACTIVE",
                     "headline": f"مادة اختبارية لقسم {heading}",
                     "standfirst": "نص اصطناعي ثابت للتحقق من سير التحرير والطباعة، ولا يمثل خبرا حقيقيا.",
-                    "byline": "تحرير: \u200eDRAGON\u200e",
+                    "byline": self.byline,
                     "body": body,
                     "source_ids": ["fixture-source"],
                     "research_candidate_id": f"{section_id}-candidate-1",
@@ -222,6 +224,7 @@ class LocalCommandEditorialProvider:
     timeout_seconds: int = 7200
     minimum_active_article_words: int = 350
     minimum_edition_words: int = 4000
+    expected_byline: str = "تحرير: DRAGON"
     capture_directory: Path | None = None
     mode: str = "production"
     available: bool = True
@@ -473,6 +476,7 @@ class LocalCommandEditorialProvider:
                 "minimum_active_article_words": self.minimum_active_article_words,
                 "minimum_edition_words": self.minimum_edition_words,
             },
+            "editorial_identity": {"expected_byline": self.expected_byline},
         }
         value = self._invoke("articles", payload)
         try:
@@ -543,6 +547,11 @@ class LocalCommandEditorialProvider:
             )
             if status != "ACTIVE" or any(not item.get(field) for field in required):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"active section {section_id} is incomplete")
+            if item["byline"] != self.expected_byline:
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID",
+                    f"article {item.get('id')} byline does not match configured editorial identity",
+                )
             if not isinstance(item["body"], list) or not all(isinstance(paragraph, str) for paragraph in item["body"]):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} body is invalid")
             if not isinstance(item["source_ids"], list) or not set(item["source_ids"]).issubset(sources):
@@ -624,6 +633,28 @@ class LocalCommandEditorialProvider:
         return value
 
 
+def configured_byline(config: dict) -> str:
+    publication = config.get("publication", {})
+    template = publication.get("byline_template", "تحرير: {pen_name}")
+    pen_name = publication.get("pen_name", "DRAGON")
+    if not isinstance(template, str) or not isinstance(pen_name, str) or not pen_name.strip():
+        raise ValueError("PUBLICATION_BYLINE_CONFIG_INVALID")
+    fields = [
+        (field, format_spec, conversion)
+        for _literal, field, format_spec, conversion in Formatter().parse(template)
+        if field is not None
+    ]
+    if fields != [("pen_name", "", None)] or any(character in template for character in "\r\n"):
+        raise ValueError("PUBLICATION_BYLINE_CONFIG_INVALID")
+    try:
+        byline = template.format(pen_name=pen_name.strip())
+    except (KeyError, ValueError) as exc:
+        raise ValueError("PUBLICATION_BYLINE_CONFIG_INVALID") from exc
+    if "{" in byline or "}" in byline or not byline.strip():
+        raise ValueError("PUBLICATION_BYLINE_CONFIG_INVALID")
+    return byline
+
+
 def editorial_provider_from_config(config: dict, *, require_proven: bool = True):
     value = config.get("providers", {}).get("ai", {})
     if value.get("type") != "local-command":
@@ -638,8 +669,9 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
     if not Path(executable).is_file() and shutil.which(executable) is None:
         return UnconfiguredEditorialProvider(reason="AI_PROVIDER_EXECUTABLE_MISSING")
     return LocalCommandEditorialProvider(
-        tuple(command),
-        int(value.get("timeout_seconds", 7200)),
-        int(value.get("minimum_active_article_words", 350)),
-        int(value.get("minimum_edition_words", 4000)),
+        command=tuple(command),
+        timeout_seconds=int(value.get("timeout_seconds", 7200)),
+        minimum_active_article_words=int(value.get("minimum_active_article_words", 350)),
+        minimum_edition_words=int(value.get("minimum_edition_words", 4000)),
+        expected_byline=configured_byline(config),
     )
