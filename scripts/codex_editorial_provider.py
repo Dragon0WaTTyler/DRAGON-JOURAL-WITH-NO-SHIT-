@@ -13,21 +13,11 @@ import sys
 import tempfile
 from typing import Callable
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
 
-SECTION_HEADINGS = (
-    ("front", "الواجهة"), ("politics", "السياسة والدولة"),
-    ("economy", "الاقتصاد والمال"), ("society", "المجتمع"),
-    ("education", "التعليم"), ("health", "الصحة"),
-    ("justice", "العدالة والحقوق"), ("environment", "البيئة والمناخ"),
-    ("infrastructure", "البنية التحتية والنقل"), ("meknes", "مكناس وفاس مكناس"),
-    ("middle_east", "فلسطين والشرق الأوسط"), ("africa", "أفريقيا والساحل"),
-    ("world", "العالم"), ("business", "الأعمال والشركات"),
-    ("technology", "الذكاء الاصطناعي والتكنولوجيا"), ("science", "العلوم والدراسات"),
-    ("sport", "الرياضة"), ("culture", "الثقافة"), ("literature", "الأدب"),
-    ("history", "تاريخ المغرب والمغرب الكبير"),
-    ("investigations", "التحقيق والمساءلة"), ("opinion", "رأي"),
-    ("data", "البيانات والخدمات وما نتابعه"),
-)
+from dragon.providers import SECTION_HEADINGS
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 

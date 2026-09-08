@@ -3,8 +3,23 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import subprocess
+import sys
 
+from dragon.providers import SECTION_HEADINGS as RUNTIME_SECTION_HEADINGS
 from scripts.codex_editorial_provider import SECTION_HEADINGS, _probe, _run_codex, _schema
+
+
+def test_adapter_supports_direct_script_execution() -> None:
+    script = Path(__file__).resolve().parents[1] / "scripts" / "codex_editorial_provider.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        cwd=Path(__file__).parent,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def _object_schemas(value):
@@ -61,6 +76,7 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
 
 
 def test_structured_output_schemas_are_strict_and_complete() -> None:
+    assert SECTION_HEADINGS == RUNTIME_SECTION_HEADINGS
     for operation in ("research", "articles"):
         schema = _schema(operation)
         assert schema["type"] == "object"
