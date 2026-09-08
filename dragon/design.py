@@ -34,6 +34,8 @@ def build_cover_brief(
     return {
         "schema_version": 1,
         "edition_date": edition_date,
+        "masthead": "DRAGON",
+        "issue_label": "نسخة اختبار اصطناعية" if synthetic else "النسخة اليومية",
         "source_article_id": lead["id"],
         "source_story_key": lead.get("story_key"),
         "mode": mode,
@@ -57,11 +59,17 @@ def build_cover_brief(
     }
 
 
-def validate_cover_brief(value: dict, article_ids: set[str]) -> list[str]:
+def validate_cover_brief(
+    value: dict, article_ids: set[str], *, expected_date: str | None = None
+) -> list[str]:
     issues = []
     mode = value.get("mode")
     if value.get("schema_version") != 1 or value.get("source_article_id") not in article_ids:
         issues.append("COVER_BRIEF_IDENTITY_INVALID")
+    if value.get("masthead") != "DRAGON":
+        issues.append("COVER_MASTHEAD_INVALID")
+    if expected_date is not None and value.get("edition_date") != expected_date:
+        issues.append("COVER_DATE_INVALID")
     if mode not in COVER_VARIANTS or value.get("composition_variant") not in COVER_VARIANTS.get(mode, ()):
         issues.append("COVER_BRIEF_MODE_INVALID")
     hero = value.get("hero_art", {})
@@ -69,6 +77,19 @@ def validate_cover_brief(value: dict, article_ids: set[str]) -> list[str]:
         issues.append("COVER_ART_TEXT_OR_EVIDENCE_CONFUSION")
     if value.get("typography", {}).get("direction") != "rtl":
         issues.append("COVER_TYPOGRAPHY_NOT_RTL")
+    teasers = value.get("secondary_teasers")
+    if (
+        not isinstance(teasers, list)
+        or len(teasers) > 4
+        or any(
+            not isinstance(item, dict)
+            or item.get("article_id") not in article_ids
+            or not isinstance(item.get("headline"), str)
+            or not item["headline"].strip()
+            for item in teasers
+        )
+    ):
+        issues.append("COVER_TEASER_RAIL_INVALID")
     return issues
 
 

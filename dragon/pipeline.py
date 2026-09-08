@@ -473,6 +473,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             mode=provider.mode,
             hero_art_path=hero_path,
             composition_variant=direction["composition_variant"],
+            secondary_teasers=direction["secondary_teasers"],
         )
         try:
             from PIL import Image
@@ -548,7 +549,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         ]
         brief = build_cover_brief(context.edition_date, lead, secondary, synthetic=synthetic)
         issues = validate_cover_brief(
-            brief, {item["id"] for item in decisions if item.get("status") == "ACTIVE"}
+            brief,
+            {item["id"] for item in decisions if item.get("status") == "ACTIVE"},
+            expected_date=context.edition_date,
         )
         if issues:
             raise StageFailure("COVER_BRIEF_INVALID", "; ".join(issues))
@@ -769,7 +772,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         ):
             issues.append("COVER_NOT_ACCEPTED")
         issues.extend(validate_cover_brief(
-            cover_brief, {item["id"] for item in decisions if item.get("status") == "ACTIVE"}
+            cover_brief,
+            {item["id"] for item in decisions if item.get("status") == "ACTIVE"},
+            expected_date=context.edition_date,
         ))
         issues.extend(validate_layout_plan(layout_plan, decisions))
         continuity_path = context.edition_dir / "continuity.json"

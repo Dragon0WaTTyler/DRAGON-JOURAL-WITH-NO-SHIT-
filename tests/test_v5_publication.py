@@ -177,3 +177,43 @@ def test_pdf_visual_qa_persists_contact_sheet_and_reports_human_review(tmp_path:
     assert contact.stat().st_size > 10_000
     assert visual["status"] == "PASS"
     assert visual["human_review_status"] == "NOT_RUN"
+
+
+def test_cover_renders_arabic_teaser_rail_without_corrupting_png(tmp_path: Path) -> None:
+    from PIL import Image
+
+    cover = build_cover_png(
+        tmp_path / "cover.png",
+        "2099-01-02",
+        "عنوان عربي رئيسي قصير",
+        "مقدمة عربية موجزة تشرح المادة الرئيسية.",
+        secondary_teasers=[
+            {"article_id": "a2", "headline": "عنوان اقتصادي عربي طويل يختبر الالتفاف الآمن"},
+            {"article_id": "a3", "headline": "عنوان علمي عربي"},
+            {"article_id": "a4", "headline": "عنوان ثقافي عربي واضح"},
+        ],
+    )
+    with Image.open(cover) as image:
+        image.verify()
+        assert image.size == (827, 1169)
+
+
+def test_cover_fits_long_arabic_copy_around_hero_and_teaser_rail(tmp_path: Path) -> None:
+    from PIL import Image
+    from dragon.publication import build_hero_art_png
+
+    hero = build_hero_art_png(tmp_path / "hero.png", "fixture", "SYMBOLIC_EDITORIAL", "single-symbol")
+    cover = build_cover_png(
+        tmp_path / "long-cover.png",
+        "2099-01-02",
+        "عنوان عربي رئيسي طويل جدا يختبر التفاف السطور والحفاظ على مساحة الصورة من دون قص الكلمات أو تداخل مناطق الغلاف",
+        "مقدمة عربية طويلة نسبيا تشرح للقارئ سياق المادة الرئيسية وما ثبت منها وما لا يزال يحتاج إلى متابعة من دون أن تتداخل مع شريط المواد الثانوية.",
+        hero_art_path=hero,
+        secondary_teasers=[
+            {"headline": "عنوان اقتصادي عربي طويل يختبر الالتفاف الآمن"},
+            {"headline": "عنوان علمي عربي"},
+            {"headline": "عنوان ثقافي عربي واضح"},
+        ],
+    )
+    with Image.open(cover) as image:
+        image.verify()

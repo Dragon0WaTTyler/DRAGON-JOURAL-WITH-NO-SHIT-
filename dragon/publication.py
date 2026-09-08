@@ -45,6 +45,7 @@ def build_cover_png(
     mode: str = "production",
     hero_art_path: Path | None = None,
     composition_variant: str = "single-symbol",
+    secondary_teasers: list[dict] | None = None,
 ) -> Path:
     """Build the one canonical cover image consumed by every output format."""
     from PIL import Image, ImageDraw
@@ -55,7 +56,14 @@ def build_cover_png(
     draw.rectangle((42, 42, 785, 1127), outline="#111111", width=3)
     draw.rectangle((42, 42, 785, 66), fill="#9e1523")
     draw.text((413, 185), "DRAGON", font=_font(82), fill="#111111", anchor="mm")
-    _draw_rtl(draw, (735, 305), headline, _font(42), fill="#111111", spacing=57, width=645)
+    headline_font, headline_lines = _fit_rtl_lines(
+        draw, headline, width=645, maximum_lines=3, maximum_font_size=42,
+        minimum_font_size=24,
+    )
+    _draw_rtl_lines(
+        draw, (735, 305), headline_lines, headline_font,
+        fill="#111111", spacing=int(headline_font.size * 1.35),
+    )
     draw.line((92, 495, 735, 495), fill="#9e1523", width=6)
     if hero_art_path is not None:
         with Image.open(hero_art_path) as hero:
@@ -65,12 +73,47 @@ def build_cover_png(
         standfirst_y = 775
     else:
         standfirst_y = 550
-    _draw_rtl(draw, (735, standfirst_y), standfirst, _font(24), fill="#222222", spacing=38, width=645)
+    standfirst_font, standfirst_lines = _fit_rtl_lines(
+        draw, standfirst, width=645, maximum_lines=2 if hero_art_path else 7,
+        maximum_font_size=24, minimum_font_size=14,
+    )
+    _draw_rtl_lines(
+        draw, (735, standfirst_y), standfirst_lines, standfirst_font,
+        fill="#222222", spacing=int(standfirst_font.size * 1.55),
+    )
+    teasers = list(secondary_teasers or [])[:4]
+    if teasers:
+        rail_top = 875
+        draw.line((92, rail_top, 735, rail_top), fill="#9e1523", width=3)
+        slot_width = 643 / len(teasers)
+        for index, teaser in enumerate(teasers):
+            right = int(735 - index * slot_width - 10)
+            left = int(735 - (index + 1) * slot_width + 10)
+            if index:
+                separator = int(735 - index * slot_width)
+                draw.line((separator, rail_top + 12, separator, 958), fill="#c9bfb2", width=2)
+            lines: list[str] = []
+            teaser_font = None
+            for font_size in range(15, 8, -1):
+                candidate_font = _font(font_size)
+                candidate_lines = _rtl_lines(
+                    draw, str(teaser.get("headline", "")), candidate_font, max(40, right - left)
+                )
+                if len(candidate_lines) <= 3:
+                    teaser_font = candidate_font
+                    lines = candidate_lines
+                    break
+            if teaser_font is None:
+                raise ValueError("cover teaser cannot fit without clipping")
+            y = rail_top + 14
+            for line in lines:
+                draw.text((right, y), _visual_arabic(line), font=teaser_font, fill="#222222", anchor="ra")
+                y += 21
     label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
     footer = "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة"
-    _draw_rtl(draw, (735, 930), label, _font(25), fill="#9e1523", spacing=38, width=645)
-    draw.text((413, 1000), edition_date, font=_font(22), fill="#333333", anchor="mm")
-    _draw_rtl(draw, (735, 1060), footer, _font(17), fill="#333333", spacing=28, width=645)
+    _draw_rtl(draw, (735, 982), label, _font(21), fill="#9e1523", spacing=32, width=645)
+    draw.text((413, 1030), edition_date, font=_font(19), fill="#333333", anchor="mm")
+    _draw_rtl(draw, (735, 1070), footer, _font(16), fill="#333333", spacing=25, width=645)
     destination.parent.mkdir(parents=True, exist_ok=True)
     cover.save(destination, "PNG", optimize=True)
     cover.close()
@@ -232,6 +275,23 @@ def _rtl_lines(draw, text: str, font, width: int) -> list[str]:
     return lines
 
 
+def _fit_rtl_lines(
+    draw,
+    text: str,
+    *,
+    width: int,
+    maximum_lines: int,
+    maximum_font_size: int,
+    minimum_font_size: int,
+):
+    for font_size in range(maximum_font_size, minimum_font_size - 1, -1):
+        font = _font(font_size)
+        lines = _rtl_lines(draw, text, font, width)
+        if len(lines) <= maximum_lines:
+            return font, lines
+    raise ValueError("Arabic cover text cannot fit without clipping")
+
+
 def _visual_arabic(text: str) -> str:
     import arabic_reshaper
     from bidi.algorithm import get_display
@@ -241,7 +301,12 @@ def _visual_arabic(text: str) -> str:
 
 def _draw_rtl(draw, xy: tuple[int, int], text: str, font, *, fill: str, spacing: int, width: int) -> int:
     x, y = xy
-    for line in _rtl_lines(draw, text, font, width):
+    return _draw_rtl_lines(draw, (x, y), _rtl_lines(draw, text, font, width), font, fill=fill, spacing=spacing)
+
+
+def _draw_rtl_lines(draw, xy: tuple[int, int], lines: list[str], font, *, fill: str, spacing: int) -> int:
+    x, y = xy
+    for line in lines:
         draw.text((x, y), _visual_arabic(line), font=font, fill=fill, anchor="ra")
         y += spacing
     return y
