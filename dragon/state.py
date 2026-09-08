@@ -42,6 +42,8 @@ RUNTIME_FIXED_PATHS = (
     "config/provider-registry-schema.json",
     "config/change-watchlist.yaml",
     "config/change-watchlist-schema.json",
+    "config/research-budget.yaml",
+    "config/research-budget-schema.json",
     "config/evolution.yaml",
     "requirements.txt",
 )

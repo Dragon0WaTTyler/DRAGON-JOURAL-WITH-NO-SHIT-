@@ -43,6 +43,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `PROVIDER_REGISTRY_UNAVAILABLE` | DEPENDENCY | A provider explicitly marked required is not proven available | Block before downstream research; optional outages remain non-blocking |
 | `SOURCE_INTELLIGENCE_INVALID` | VALIDATION | Deterministic normalized-source or event-cluster output violates its strict schema | Block; preserve research and create an incident |
 | `RESEARCH_PLAN_INVALID` | VALIDATION | Perspective, question, budget, or selected-candidate inventory is inconsistent | Block; preserve research and source intelligence |
+| `RESEARCH_BUDGET_CONFIG_INVALID` | VALIDATION | Tracked signal weights, thresholds, limits, or context bounds violate the strict policy | Block planning and repair only the budget configuration |
 | `CLAIM_GRAPH_INVALID` | VALIDATION | Claim inventory, stable identity, source provenance, or assessment structure is invalid | Block before editorial approval |
 | `MEDIA_CRITIC_INVALID` | VALIDATION | Source comparison inventory or observation-only contract is invalid | Block before adversarial review |
 | `SCIENCE_INTEGRITY_FAILED` | CONTENT | Scientific material passport or full-text/preprint/abstract disclosure gate failed | Repair or hold only the science item |

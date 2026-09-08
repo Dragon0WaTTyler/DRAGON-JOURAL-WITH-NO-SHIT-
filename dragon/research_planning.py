@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
+from jsonschema import Draft202012Validator
+import yaml
+
 
 SECTION_PERSPECTIVES = {
     "front": ("المصلحة العامة", "المتأثرون", "الخبير المستقل", "المتشكك"),
@@ -14,6 +20,47 @@ SECTION_PERSPECTIVES = {
 }
 DEFAULT_PERSPECTIVES = ("الجهة الرسمية", "المتأثرون", "الخبير المستقل", "التفسير البديل")
 
+DEFAULT_BUDGET_CONFIG = {
+    "version": 1,
+    "weights": {
+        "base": 2, "primary_evidence": 1, "independent_origin": 1,
+        "uncertainty": 1, "controversy": 1, "front_page": 2,
+        "investigation": 2, "newsworthiness": 1, "public_impact": 1,
+        "morocco_meknes_relevance": 1, "strategic_impact": 1,
+        "evidence_quality": 1, "novelty": 1, "investigative_potential": 1,
+    },
+    "signal_caps": {"primary_evidence": 2, "independent_origin": 2, "provider_score": 2},
+    "thresholds": {"normal": 4, "major": 7, "investigation": 9},
+    "budgets": {
+        "brief": {"maximum_parallel_branches": 1, "maximum_followup_questions": 2},
+        "normal": {"maximum_parallel_branches": 3, "maximum_followup_questions": 4},
+        "major": {"maximum_parallel_branches": 4, "maximum_followup_questions": 6},
+        "investigation": {"maximum_parallel_branches": 6, "maximum_followup_questions": 8},
+    },
+    "context": {"maximum_items_per_bucket": 8},
+}
+
+
+class ResearchPlanningError(RuntimeError):
+    pass
+
+
+def load_research_budget_config(path: Path, schema_path: Path | None = None) -> dict:
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+        schema = json.loads(
+            (schema_path or path.with_name("research-budget-schema.json")).read_text(encoding="utf-8")
+        )
+    except (OSError, UnicodeError, yaml.YAMLError, json.JSONDecodeError) as exc:
+        raise ResearchPlanningError(str(exc)) from exc
+    errors = sorted(Draft202012Validator(schema).iter_errors(value), key=lambda item: list(item.path))
+    if errors:
+        raise ResearchPlanningError("; ".join(error.message for error in errors))
+    thresholds = value["thresholds"]
+    if not thresholds["normal"] < thresholds["major"] < thresholds["investigation"]:
+        raise ResearchPlanningError("research budget thresholds must be strictly increasing")
+    return value
+
 
 def _candidate_sources(candidate: dict) -> set[str]:
     return set().union(*(
@@ -25,30 +72,54 @@ def _candidate_sources(candidate: dict) -> set[str]:
     ))
 
 
-def _budget(section_id: str, candidate: dict, independent_origins: int) -> dict:
-    score = 2
-    score += min(2, len(candidate.get("primary_evidence_source_ids", [])))
-    score += min(2, independent_origins)
-    score += 1 if candidate.get("unknowns") else 0
-    score += 1 if candidate.get("disputed_points") else 0
-    score += 2 if section_id in {"front", "investigations"} else 0
-    if section_id == "investigations" or score >= 9:
-        level, branches, followups = "investigation", 6, 8
-    elif score >= 7:
-        level, branches, followups = "major", 4, 6
-    elif score >= 4:
-        level, branches, followups = "normal", 3, 4
+def _provider_signal(candidate: dict, name: str, cap: int) -> int:
+    value = candidate.get(name, 0)
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return min(cap, max(0, round(float(value) / 5)))
+    return 0
+
+
+def _budget(section_id: str, candidate: dict, independent_origins: int, config: dict) -> dict:
+    weights = config["weights"]
+    caps = config["signal_caps"]
+    raw_signals = {
+        "base": 1,
+        "primary_evidence": min(caps["primary_evidence"], len(candidate.get("primary_evidence_source_ids", []))),
+        "independent_origin": min(caps["independent_origin"], independent_origins),
+        "uncertainty": int(bool(candidate.get("unknowns"))),
+        "controversy": int(bool(candidate.get("disputed_points"))),
+        "front_page": int(section_id == "front"),
+        "investigation": int(section_id == "investigations"),
+    }
+    for name in (
+        "newsworthiness", "public_impact", "morocco_meknes_relevance",
+        "strategic_impact", "evidence_quality", "novelty", "investigative_potential",
+    ):
+        raw_signals[name] = _provider_signal(candidate, name, caps["provider_score"])
+    contributions = {name: raw_signals[name] * weights[name] for name in raw_signals}
+    score = sum(contributions.values())
+    thresholds = config["thresholds"]
+    if section_id == "investigations" or score >= thresholds["investigation"]:
+        level = "investigation"
+    elif score >= thresholds["major"]:
+        level = "major"
+    elif score >= thresholds["normal"]:
+        level = "normal"
     else:
-        level, branches, followups = "brief", 1, 2
+        level = "brief"
+    limits = config["budgets"][level]
     return {
         "score": score,
         "level": level,
-        "maximum_parallel_branches": branches,
-        "maximum_followup_questions": followups,
+        "signal_contributions": contributions,
+        **limits,
     }
 
 
-def build_research_plan(packet: dict, intelligence: dict) -> dict:
+def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | None = None) -> dict:
+    budget_config = budget_config or DEFAULT_BUDGET_CONFIG
     events_by_candidate = {
         key: event["event_id"]
         for event in intelligence.get("event_clusters", [])
@@ -78,18 +149,44 @@ def build_research_plan(packet: dict, intelligence: dict) -> dict:
             questions.append("ما السؤال التالي الذي يمكن أن يقلص مواطن الجهل المسجلة؟")
         if candidate.get("disputed_points"):
             questions.append("كيف نصوغ نقاط الخلاف من دون تحويل ادعاء طرف إلى حقيقة؟")
+        perspectives = list(SECTION_PERSPECTIVES.get(section["section_id"], DEFAULT_PERSPECTIVES))
+        budget = _budget(section["section_id"], candidate, independent_origins, budget_config)
+        context_limit = budget_config["context"]["maximum_items_per_bucket"]
+        known = list(candidate.get("facts", []))
+        reported = list(candidate.get("claims", []))
+        unknowns = list(candidate.get("unknowns", []))
+        disputed = list(candidate.get("disputed_points", []))
+        retained = {
+            "what_we_know": known[:context_limit],
+            "what_is_strongly_supported": list(candidate.get("primary_evidence_source_ids", []))[:context_limit],
+            "what_is_disputed": disputed[:context_limit],
+            "what_remains_unknown": unknowns[:context_limit],
+            "what_to_search_next": questions[-1],
+        }
         plans.append({
             "section_id": section["section_id"],
             "candidate_id": selected_id,
             "event_id": event_id,
-            "perspectives": list(SECTION_PERSPECTIVES.get(section["section_id"], DEFAULT_PERSPECTIVES)),
+            "perspectives": perspectives,
             "questions": questions,
-            "research_budget": _budget(section["section_id"], candidate, independent_origins),
+            "research_budget": budget,
+            "research_branches": [
+                {"perspective": perspective, "question": questions[index % len(questions)]}
+                for index, perspective in enumerate(perspectives[:budget["maximum_parallel_branches"]])
+            ],
             "source_ids": sorted(_candidate_sources(candidate)),
-            "known_facts": candidate.get("facts", []),
-            "reported_claims": candidate.get("claims", []),
-            "unknowns": candidate.get("unknowns", []),
-            "disputed_points": candidate.get("disputed_points", []),
+            "known_facts": known[:context_limit],
+            "reported_claims": reported[:context_limit],
+            "unknowns": unknowns[:context_limit],
+            "disputed_points": disputed[:context_limit],
+            "research_snapshot": retained,
+            "dynamic_outline": ["الوقائع", "الأدلة", "الخلاف", "السياق", "السؤال التالي"],
+            "context_management": {
+                "policy": "BOUNDED_PERIODIC_COMPRESSION",
+                "maximum_items_per_bucket": context_limit,
+                "input_items": len(known) + len(reported) + len(unknowns) + len(disputed),
+                "retained_items": sum(len(value) for value in (known[:context_limit], reported[:context_limit], unknowns[:context_limit], disputed[:context_limit])),
+            },
         })
     return {
         "schema_version": 1,
@@ -118,6 +215,12 @@ def validate_research_plan(value: dict, expected_sections: set[str]) -> list[str
             or not item.get("questions")
             or budget.get("level") not in {"brief", "normal", "major", "investigation"}
             or not isinstance(item.get("source_ids"), list)
+            or not item.get("research_branches")
+            or item.get("context_management", {}).get("policy") != "BOUNDED_PERIODIC_COMPRESSION"
+            or set(item.get("research_snapshot", {})) != {
+                "what_we_know", "what_is_strongly_supported", "what_is_disputed",
+                "what_remains_unknown", "what_to_search_next",
+            }
         ):
             issues.append(f"RESEARCH_PLAN_INCOMPLETE:{item.get('section_id')}")
     return issues

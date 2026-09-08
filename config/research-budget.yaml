@@ -1,0 +1,31 @@
+version: 1
+weights:
+  base: 2
+  primary_evidence: 1
+  independent_origin: 1
+  uncertainty: 1
+  controversy: 1
+  front_page: 2
+  investigation: 2
+  newsworthiness: 1
+  public_impact: 1
+  morocco_meknes_relevance: 1
+  strategic_impact: 1
+  evidence_quality: 1
+  novelty: 1
+  investigative_potential: 1
+signal_caps:
+  primary_evidence: 2
+  independent_origin: 2
+  provider_score: 2
+thresholds:
+  normal: 4
+  major: 7
+  investigation: 9
+budgets:
+  brief: {maximum_parallel_branches: 1, maximum_followup_questions: 2}
+  normal: {maximum_parallel_branches: 3, maximum_followup_questions: 4}
+  major: {maximum_parallel_branches: 4, maximum_followup_questions: 6}
+  investigation: {maximum_parallel_branches: 6, maximum_followup_questions: 8}
+context:
+  maximum_items_per_bucket: 8

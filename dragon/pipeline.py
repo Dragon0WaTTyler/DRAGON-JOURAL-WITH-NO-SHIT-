@@ -38,7 +38,13 @@ from dragon.language import decode_utf8, validate_arabic_text
 from dragon.investigations import InvestigationError, update_investigation_dossiers
 from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
-from dragon.research_planning import build_research_plan, validate_research_plan
+from dragon.research_planning import (
+    DEFAULT_BUDGET_CONFIG,
+    ResearchPlanningError,
+    build_research_plan,
+    load_research_budget_config,
+    validate_research_plan,
+)
 from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
 from dragon.publication import (
@@ -231,7 +237,20 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
         intelligence_path = context.run_dir / "source-intelligence" / "report.json"
-        plan = build_research_plan(_load(packet_path), _load(intelligence_path))
+        budget_path = context.root / "config" / "research-budget.yaml"
+        budget_schema_path = context.root / "config" / "research-budget-schema.json"
+        budget_inputs: tuple[Path, ...] = ()
+        if synthetic and not budget_path.exists():
+            budget_config = DEFAULT_BUDGET_CONFIG
+        else:
+            try:
+                budget_config = load_research_budget_config(budget_path, budget_schema_path)
+            except ResearchPlanningError as exc:
+                raise StageFailure("RESEARCH_BUDGET_CONFIG_INVALID", str(exc)) from exc
+            budget_inputs = (budget_path, budget_schema_path)
+        plan = build_research_plan(
+            _load(packet_path), _load(intelligence_path), budget_config
+        )
         issues = validate_research_plan(
             plan, {section_id for section_id, _ in SECTION_HEADINGS}
         )
@@ -239,7 +258,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("RESEARCH_PLAN_INVALID", "; ".join(issues))
         path = context.run_dir / "research-planning" / "plan.json"
         atomic_write_json(path, plan)
-        return StageResult((path,), inputs=(packet_path, intelligence_path))
+        return StageResult((path,), inputs=(packet_path, intelligence_path, *budget_inputs))
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
