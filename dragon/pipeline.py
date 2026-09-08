@@ -9,6 +9,7 @@ from jsonschema import Draft202012Validator
 
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
+from dragon.assets import asset_record, build_asset_manifest, validate_asset_manifest
 from dragon.change_monitoring import (
     ChangeMonitoringError,
     find_previous_monitor_report,
@@ -475,8 +476,44 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 "accepted": True,
                 "warning": "غلاف اختبار اصطناعي" if synthetic else None,
             })
+        asset_manifest_path = context.edition_dir / "assets-manifest.json"
+        asset_manifest = build_asset_manifest(
+            context.edition_date,
+            provider.mode,
+            [
+                asset_record(
+                    path,
+                    context.edition_dir,
+                    asset_id="canonical-cover",
+                    classification="EDITORIAL_ILLUSTRATION",
+                    role="CANONICAL_COVER",
+                    source_ids=list(lead.get("source_ids", [])),
+                    documentary_evidence=False,
+                    generated_by="dragon-local-cover-compositor",
+                    license_use_notes="DRAGON-generated edition composite; not documentary evidence.",
+                ),
+                asset_record(
+                    hero_path,
+                    context.edition_dir,
+                    asset_id="hero-art",
+                    classification="DECORATIVE",
+                    role="HERO_ART",
+                    source_ids=list(lead.get("source_ids", [])),
+                    documentary_evidence=False,
+                    generated_by="dragon-deterministic-graphic",
+                    license_use_notes="DRAGON-generated text-free fallback art; not documentary evidence.",
+                ),
+            ],
+        )
+        asset_issues = validate_asset_manifest(asset_manifest, context.edition_dir)
+        if asset_issues:
+            raise StageFailure(
+                "ASSET_PROVENANCE_INVALID", "; ".join(asset_issues), outputs=(hero_path, path, brief)
+            )
+        atomic_write_json(asset_manifest_path, asset_manifest)
         return StageResult(
-            (hero_path, path, brief), inputs=(direction_path, context.edition_dir / "articles.json")
+            (hero_path, path, brief, asset_manifest_path),
+            inputs=(direction_path, context.edition_dir / "articles.json"),
         )
 
     def cover_direction(context: StageContext) -> StageResult:
@@ -539,6 +576,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.edition_dir / "articles.json",
                 context.edition_dir / "edition-plan.json",
                 context.edition_dir / "assets" / "cover.png",
+                context.edition_dir / "assets-manifest.json",
                 context.edition_dir / "layout-plan.json",
                 *design_inputs,
             ),
@@ -747,6 +785,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             context.edition_dir / "articles.json",
             context.edition_dir / "sources.json",
             context.edition_dir / "cover-brief.json",
+            context.edition_dir / "assets-manifest.json",
             context.edition_dir / "layout-plan.json",
             context.edition_dir / f"DRAGON-{context.edition_date}.pdf",
             context.edition_dir / f"DRAGON-{context.edition_date}.epub",

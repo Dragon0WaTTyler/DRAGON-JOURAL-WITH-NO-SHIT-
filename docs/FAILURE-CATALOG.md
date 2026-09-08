@@ -21,6 +21,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `EPUB_XML_INVALID` | VALIDATION | EPUB XML/XHTML is malformed | Repair EPUB package only |
 | `EPUB_MISSING_RESOURCE` | VALIDATION | Manifest or document references a missing file | Repair EPUB resource mapping only |
 | `COVER_FAILED` | CONTENT | Neither generated cover nor accepted fallback passed | Retry/fallback cover only |
+| `ASSET_PROVENANCE_INVALID` | VALIDATION | A visual is remote, missing, tampered, misclassified, or lacks required documentary/chart provenance | Block the affected visual; never present generated art as evidence |
 | `GIT_PUSH_FAILED` | DELIVERY | Normal archive push failed | Retry archive only; never force |
 | `GITHUB_READBACK_MISMATCH` | DELIVERY | Remote bytes differ from receipt | Refetch and retry archive only |
 | `WHATSAPP_SEND_FAILED` | DELIVERY | Provider did not confirm delivery | Retry delivery only |

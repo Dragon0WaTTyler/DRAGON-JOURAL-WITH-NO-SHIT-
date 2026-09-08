@@ -71,6 +71,13 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     cover_brief = json.loads((edition / "cover-brief.json").read_text(encoding="utf-8"))
     assert cover_brief["cover_status"] == "COVER_FALLBACK"
     assert cover_brief["asset_type"] == "DETERMINISTIC_PNG_FALLBACK"
+    assets = json.loads((edition / "assets-manifest.json").read_text(encoding="utf-8"))
+    assert assets["remote_assets_allowed"] is False
+    assert {item["classification"] for item in assets["assets"]} == {
+        "EDITORIAL_ILLUSTRATION", "DECORATIVE"
+    }
+    assert all(item["documentary_evidence"] is False for item in assets["assets"])
+    assert "editions/2099/01/2099-01-02/assets-manifest.json" in state["stages"]["publication_source"]["input_hashes"]
 
 
 def test_synthetic_resume_reuses_hash_bound_checkpoints(tmp_path: Path) -> None:
