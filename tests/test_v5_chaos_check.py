@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import subprocess
+import sys
+from pathlib import Path
 
 import dragon_chaos_check
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_chaos_check_persists_hash_bound_machine_evidence(tmp_path, monkeypatch) -> None:
@@ -32,3 +37,23 @@ def test_chaos_check_persists_hash_bound_machine_evidence(tmp_path, monkeypatch)
     assert all(value == "PASS" for value in receipt["scenarios"].values())
     assert (tmp_path / receipt["junit"]["path"]).is_file()
     assert (tmp_path / "acceptance" / "machine" / "failure-injection" / "receipt.json").is_file()
+
+
+def test_evidence_markers_match_current_collected_test_names() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            *dragon_chaos_check.TEST_TARGETS,
+            "--collect-only",
+            "-q",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stderr
+    assert all(marker in result.stdout for marker in dragon_chaos_check.SCENARIO_MARKERS.values())

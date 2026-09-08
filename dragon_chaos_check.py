@@ -34,7 +34,7 @@ SCENARIO_MARKERS = {
     "git_push_failure": "test_archive_failure_preserves_local_publication",
     "whatsapp_failure": "[whatsapp_delivery]",
     "stale_lock": "test_live_stale_owner_is_never_duplicated",
-    "invalid_article_output": "test_provider_rejects_invalid_article_output",
+    "invalid_article_output": "test_provider_retries_invalid_article_output_once_with_exact_feedback",
 }
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
