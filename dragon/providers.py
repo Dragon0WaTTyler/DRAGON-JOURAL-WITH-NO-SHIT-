@@ -189,6 +189,22 @@ class LocalCommandEditorialProvider:
     mode: str = "production"
     available: bool = True
 
+    def _capture(self, filename: str, value: object) -> None:
+        if self.capture_directory is None:
+            return
+        self.capture_directory.mkdir(parents=True, exist_ok=True)
+        path = self.capture_directory / filename
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        try:
+            temporary.write_text(
+                json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+                newline="\n",
+            )
+            os.replace(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
+
     def _invoke(self, operation: str, payload: dict) -> dict | list:
         environment = os.environ.copy()
         environment["PYTHONUTF8"] = "1"
@@ -212,19 +228,8 @@ class LocalCommandEditorialProvider:
             value = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
             raise ProviderError("AI_PROVIDER_RESPONSE_INVALID", "provider stdout is not one JSON value") from exc
-        if self.capture_directory is not None and operation in {"research", "articles"}:
-            self.capture_directory.mkdir(parents=True, exist_ok=True)
-            path = self.capture_directory / f"{operation}.raw.json"
-            temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-            try:
-                temporary.write_text(
-                    json.dumps(value, ensure_ascii=False, indent=2) + "\n",
-                    encoding="utf-8",
-                    newline="\n",
-                )
-                os.replace(temporary, path)
-            finally:
-                temporary.unlink(missing_ok=True)
+        if operation in {"research", "articles"}:
+            self._capture(f"{operation}.raw.json", value)
         return value
 
     def healthcheck(self) -> dict:
@@ -368,18 +373,41 @@ class LocalCommandEditorialProvider:
         return value
 
     def articles(self, research: dict) -> list[dict]:
-        value = self._invoke(
-            "articles",
-            {
-                "schema_version": 5,
-                "research": research,
-                "language": "ar",
-                "quality_constraints": {
-                    "minimum_active_article_words": self.minimum_active_article_words,
-                    "minimum_edition_words": self.minimum_edition_words,
-                },
+        payload = {
+            "schema_version": 5,
+            "research": research,
+            "language": "ar",
+            "quality_constraints": {
+                "minimum_active_article_words": self.minimum_active_article_words,
+                "minimum_edition_words": self.minimum_edition_words,
             },
-        )
+        }
+        value = self._invoke("articles", payload)
+        try:
+            return self._validate_articles(value, research)
+        except ProviderError as exc:
+            if exc.code != "ARTICLE_SCHEMA_INVALID":
+                raise
+            self._capture("articles.attempt-1.raw.json", value)
+            repaired = self._invoke(
+                "articles",
+                {
+                    **payload,
+                    "repair_context": {
+                        "attempt": 2,
+                        "maximum_attempts": 2,
+                        "validation_error": exc.detail,
+                        "previous_articles": value,
+                        "instruction": (
+                            "Preserve valid decisions verbatim, repair only invalid decisions, "
+                            "and return the complete articles wrapper."
+                        ),
+                    },
+                },
+            )
+            return self._validate_articles(repaired, research)
+
+    def _validate_articles(self, value: object, research: dict) -> list[dict]:
         if not isinstance(value, list):
             raise ProviderError("ARTICLE_SCHEMA_INVALID", "provider must return an article/skip list")
         expected = {section_id for section_id, _ in SECTION_HEADINGS}

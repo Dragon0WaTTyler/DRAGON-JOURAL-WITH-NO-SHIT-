@@ -99,17 +99,20 @@ def test_provider_rejects_homepage_as_exact_research_evidence(tmp_path: Path) ->
         raise AssertionError("homepage was accepted as exact evidence")
 
 
-def test_provider_rejects_invalid_article_output() -> None:
+def test_provider_retries_invalid_article_output_once_with_exact_feedback(tmp_path: Path) -> None:
+    calls = []
+
     class InvalidArticleProvider(LocalCommandEditorialProvider):
         def _invoke(self, operation: str, payload: dict):
             assert operation == "articles"
+            calls.append(payload)
             assert payload["quality_constraints"] == {
                 "minimum_active_article_words": 350,
                 "minimum_edition_words": 4000,
             }
             return [{"section_id": "front", "status": "ACTIVE"}]
 
-    provider = InvalidArticleProvider(("unused",))
+    provider = InvalidArticleProvider(("unused",), capture_directory=tmp_path)
     research = {
         "sources": [{"id": "s1"}],
         "sections": [
@@ -122,6 +125,14 @@ def test_provider_rejects_invalid_article_output() -> None:
         provider.articles(research)
     except ProviderError as exc:
         assert exc.code == "ARTICLE_SCHEMA_INVALID"
+        assert len(calls) == 2
+        repair = calls[1]["repair_context"]
+        assert repair["attempt"] == repair["maximum_attempts"] == 2
+        assert repair["validation_error"] == "active section front is incomplete"
+        assert repair["previous_articles"] == [
+            {"section_id": "front", "status": "ACTIVE"}
+        ]
+        assert (tmp_path / "articles.attempt-1.raw.json").is_file()
     else:
         raise AssertionError("invalid article output was accepted")
 

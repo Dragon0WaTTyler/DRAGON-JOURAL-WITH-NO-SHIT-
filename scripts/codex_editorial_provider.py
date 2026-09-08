@@ -239,6 +239,9 @@ Return one root object containing an articles array with exactly one decision pe
 The research packet includes quality_constraints. Every ACTIVE article must meet or exceed
 minimum_active_article_words, and the combined words of all ACTIVE article bodies must meet or
 exceed minimum_edition_words. Count whitespace-delimited words in body paragraphs only.
+If repair_context is present, this is the only allowed repair attempt. Obey its exact validation
+error, preserve every already-valid decision verbatim, change only invalid decisions, and still
+return the complete 23-decision wrapper.
 Every decision must include every schema field. For fields that do not apply, use null or an empty
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,
