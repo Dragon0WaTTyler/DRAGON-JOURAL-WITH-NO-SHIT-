@@ -111,12 +111,19 @@ def _schema(operation: str) -> dict:
             "type": "object",
             "properties": {
                 "section_id": {"type": "string", "enum": section_ids},
-                "candidates": {"type": "array", "items": candidate, "minItems": 2},
-                "selected_candidate_id": {"type": "string"},
-                "selection_reason": {"type": "string"},
+                "status": {"type": "string", "enum": ["ACTIVE", "NO_NEWS"]},
+                "candidates": {"type": "array", "items": candidate},
+                "selected_candidate_id": {"type": ["string", "null"]},
+                "selection_reason": {"type": ["string", "null"]},
+                "no_news_reason": {"type": ["string", "null"]},
+                "fallback_action": {
+                    "type": ["string", "null"],
+                    "enum": ["RADAR", "DOSSIER_FOLLOW_UP", "PUBLIC_DATA_ANALYSIS", "SKIP", None],
+                },
             },
             "required": [
-                "section_id", "candidates", "selected_candidate_id", "selection_reason",
+                "section_id", "status", "candidates", "selected_candidate_id",
+                "selection_reason", "no_news_reason", "fallback_action",
             ],
             "additionalProperties": False,
         }
@@ -261,12 +268,14 @@ publisher, publication_date, accessed_at, source_type (primary, official, indepe
 secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
 and limitations_read. Never claim methods or limitations were read unless verified legal full
 text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. Every section
-needs section_id, at least two ranked candidates,
-selected_candidate_id, and a substantive selection_reason. Every candidate needs id, integer
+must set status ACTIVE or NO_NEWS. ACTIVE needs at least two ranked candidates,
+selected_candidate_id, a substantive selection_reason, and null no-news fields. Every candidate needs id, integer
 rank, title, discovery_source_ids, verification_source_ids, primary_evidence_source_ids,
 independent_evidence_source_ids, facts, claims, unknowns, and disputed_points. Evidence IDs must
 refer to returned sources. Rank worthy developments rather than selecting the first result. If a
-section lacks a publishable lead, still research candidates and make the weakness explicit."""
+section lacks meaningful verified material, use NO_NEWS with an empty candidates array, null
+selection fields, a specific no_news_reason, and fallback_action RADAR, DOSSIER_FOLLOW_UP,
+PUBLIC_DATA_ANALYSIS, or SKIP. Never invent filler or weak candidates to satisfy a quota."""
     return f"""You are the article desk for a professional Arabic newspaper. {safety}
 Research packet: {source}
 Fixed sections: {sections}
@@ -287,6 +296,7 @@ needs text, claim_type (date/person/organization/number/statistic/study/politica
 classification (FACT/CLAIM/DISPUTED/UNKNOWN/ESTIMATE), source_ids, attribution where applicable,
 material boolean, and fact_key/value when contradiction checking is meaningful. editorial_elements
 must contain lead, nut_graf, verified_facts, context, uncertainty, consequences, and next_steps.
+Any research section marked NO_NEWS must remain SKIPPED; it cannot become an ACTIVE article.
 An ACTIVE investigations decision must include investigation_checks with an honest serious-claim
 flag, counter-evidence status, response/counter-position status, and publication_ready. Use
 SKIPPED when those gates do not support publication; a suspicious pattern is not wrongdoing.

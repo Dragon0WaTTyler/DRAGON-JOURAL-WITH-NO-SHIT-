@@ -91,3 +91,28 @@ def test_budget_policy_is_strict_config_and_context_is_bounded(tmp_path: Path) -
     bad.write_text(yaml.safe_dump(value), encoding="utf-8")
     with pytest.raises(ResearchPlanningError):
         load_research_budget_config(bad, ROOT / "config" / "research-budget-schema.json")
+
+
+def test_no_news_section_has_bounded_followup_without_candidate() -> None:
+    candidate = _candidate("local-lead")
+    packet = {"edition_date": "2099-01-02", "sections": [{
+        "section_id": "meknes_local",
+        "status": "NO_NEWS",
+        "candidates": [],
+        "selected_candidate_id": None,
+        "selection_reason": None,
+        "no_news_reason": "لم يظهر تطور محلي موثق وجدير بالنشر في نافذة البحث المحددة",
+        "fallback_action": "RADAR",
+    }]}
+    intelligence = {"event_clusters": [{
+        "event_id": "EVT-OLD",
+        "candidate_keys": [f"meknes_local:{candidate['id']}"],
+        "independent_origin_count": 2,
+    }]}
+    value = build_research_plan(packet, intelligence)
+    plan = value["plans"][0]
+    assert plan["status"] == "NO_NEWS"
+    assert plan["candidate_id"] is None
+    assert plan["research_branches"] == []
+    assert plan["fallback_action"] == "RADAR"
+    assert validate_research_plan(value, {"meknes_local"}) == []

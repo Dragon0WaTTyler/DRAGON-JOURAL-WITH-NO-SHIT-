@@ -79,10 +79,14 @@ manually changes `integration_test_status` to `PASS`.
   runtime can start without prompts or GUI interaction.
 - `research` receives the edition date, Arabic language, and up to 30 immutable
   prior production continuity snapshots. It returns the same date, nonempty
-  sources, and exactly one decision for every fixed section. Each decision has
-  at least two uniquely identified ranked candidates, identifies the selected
-  candidate with a reason, and records discovery, verification, primary, and
-  independent evidence IDs plus facts, claims, unknowns, and disputed points.
+  sources, and exactly one decision for every fixed section. An `ACTIVE`
+  decision has at least two uniquely identified ranked candidates, identifies
+  the selected candidate with a reason, and records discovery, verification,
+  primary, and independent evidence IDs plus facts, claims, unknowns, and
+  disputed points. A `NO_NEWS` decision has no candidates or selected lead; it
+  requires a specific reason and one bounded fallback (`RADAR`,
+  `DOSSIER_FOLLOW_UP`, `PUBLIC_DATA_ANALYSIS`, or `SKIP`). It can only become a
+  skipped article decision. This prevents template quotas from creating filler.
   Every source requires a unique ID, exact HTTPS
   page URL (not a homepage), publisher, publication/access timestamps, source
   type, and the claim it supports.

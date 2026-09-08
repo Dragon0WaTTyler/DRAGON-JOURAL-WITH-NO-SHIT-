@@ -7,6 +7,7 @@ from dragon.providers import (
     LocalCommandEditorialProvider,
     ProviderError,
     SECTION_HEADINGS,
+    SyntheticEditorialProvider,
     UnconfiguredEditorialProvider,
     editorial_provider_from_config,
 )
@@ -28,7 +29,7 @@ elif a.operation == 'research':
         candidates=[]
         for rank in (1,2):
             candidates.append({'id':f'{key}-c{rank}','rank':rank,'title':f'مرشح {rank}','discovery_source_ids':['s1'],'verification_source_ids':['s1','s2'],'primary_evidence_source_ids':['s1'],'independent_evidence_source_ids':['s2'],'facts':['حقيقة اختبارية'],'claims':[],'unknowns':[],'disputed_points':[]})
-        sections.append({'section_id':key,'candidates':candidates,'selected_candidate_id':f'{key}-c1','selection_reason':'أفضل مرشح موثق في الاختبار'})
+        sections.append({'section_id':key,'status':'ACTIVE','candidates':candidates,'selected_candidate_id':f'{key}-c1','selection_reason':'أفضل مرشح موثق في الاختبار','no_news_reason':None,'fallback_action':None})
     value={'edition_date':payload['edition_date'],'sources':sources,'sections':sections}
 elif a.operation == 'articles':
     words='كلمة عربية موثقة ' * 1400
@@ -173,3 +174,75 @@ def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:
         assert f"duplicates=['{SECTION_HEADINGS[0][0]}']" in exc.detail
     else:
         raise AssertionError("invalid section inventory was accepted")
+
+
+def test_no_news_is_explicit_and_cannot_create_filler() -> None:
+    class NoNewsProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            if operation == "research":
+                research = SyntheticEditorialProvider().research(payload["edition_date"])
+                research["sources"][0].update({
+                    "source_type": "primary",
+                    "publication_status": "report",
+                    "full_text_status": "FULL_TEXT_VERIFIED",
+                    "methods_read": True,
+                    "limitations_read": True,
+                })
+                local = next(item for item in research["sections"] if item["section_id"] == "meknes_local")
+                local.update({
+                    "status": "NO_NEWS",
+                    "candidates": [],
+                    "selected_candidate_id": None,
+                    "selection_reason": None,
+                    "no_news_reason": "لم يظهر تطور محلي موثق وجدير بالنشر في نافذة البحث المحددة",
+                    "fallback_action": "RADAR",
+                })
+                return research
+            raise AssertionError(operation)
+
+    provider = NoNewsProvider(("unused",))
+    research = provider.research("2099-01-02")
+    local = next(item for item in research["sections"] if item["section_id"] == "meknes_local")
+    assert local["status"] == "NO_NEWS"
+    assert local["candidates"] == []
+
+    articles = SyntheticEditorialProvider().articles(research)
+    local_article = next(item for item in articles if item["section_id"] == "meknes_local")
+    try:
+        provider._validate_articles(articles, research)
+    except ProviderError as exc:
+        assert exc.code == "ARTICLE_SCHEMA_INVALID"
+        assert "cannot become an active article" in exc.detail
+    else:
+        raise AssertionError("no-news research was allowed to become filler")
+
+    local_article.clear()
+    local_article.update({
+        "section_id": "meknes_local",
+        "status": "SKIPPED",
+        "skip_reason": "لم يظهر تطور محلي موثق وجدير بالنشر في نافذة البحث المحددة",
+    })
+    assert provider._validate_articles(articles, research)[9]["status"] == "SKIPPED"
+
+
+def test_no_news_rejects_placeholder_candidates() -> None:
+    class BadNoNewsProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            packet = SyntheticEditorialProvider().research(payload["edition_date"])
+            local = next(item for item in packet["sections"] if item["section_id"] == "meknes_local")
+            local.update({
+                "status": "NO_NEWS",
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لم يظهر تطور محلي موثق وجدير بالنشر في نافذة البحث المحددة",
+                "fallback_action": "SKIP",
+            })
+            return packet
+
+    try:
+        BadNoNewsProvider(("unused",)).research("2099-01-02")
+    except ProviderError as exc:
+        assert exc.code == "RESEARCH_PACKET_INVALID"
+        assert "no fabricated candidates" in exc.detail
+    else:
+        raise AssertionError("no-news decision retained placeholder candidates")

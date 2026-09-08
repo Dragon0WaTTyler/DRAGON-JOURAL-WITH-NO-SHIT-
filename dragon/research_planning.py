@@ -131,6 +131,40 @@ def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | 
     }
     plans = []
     for section in packet.get("sections", []):
+        if section.get("status") == "NO_NEWS":
+            reason = section.get("no_news_reason")
+            plans.append({
+                "section_id": section["section_id"],
+                "status": "NO_NEWS",
+                "candidate_id": None,
+                "event_id": None,
+                "perspectives": [],
+                "questions": ["ما التطور الموثق الذي سيبرر إعادة فتح هذا القسم؟"],
+                "research_budget": None,
+                "research_branches": [],
+                "source_ids": [],
+                "known_facts": [],
+                "reported_claims": [],
+                "unknowns": [],
+                "disputed_points": [],
+                "research_snapshot": {
+                    "what_we_know": [],
+                    "what_is_strongly_supported": [],
+                    "what_is_disputed": [],
+                    "what_remains_unknown": [reason],
+                    "what_to_search_next": "ما التطور الموثق الذي سيبرر إعادة فتح هذا القسم؟",
+                },
+                "dynamic_outline": [],
+                "context_management": {
+                    "policy": "BOUNDED_PERIODIC_COMPRESSION",
+                    "maximum_items_per_bucket": budget_config["context"]["maximum_items_per_bucket"],
+                    "input_items": 1,
+                    "retained_items": 1,
+                },
+                "no_news_reason": reason,
+                "fallback_action": section.get("fallback_action"),
+            })
+            continue
         selected_id = section.get("selected_candidate_id")
         candidate = next(
             item for item in section.get("candidates", []) if item.get("id") == selected_id
@@ -165,6 +199,7 @@ def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | 
         }
         plans.append({
             "section_id": section["section_id"],
+            "status": "ACTIVE",
             "candidate_id": selected_id,
             "event_id": event_id,
             "perspectives": perspectives,
@@ -208,9 +243,22 @@ def validate_research_plan(value: dict, expected_sections: set[str]) -> list[str
         if not isinstance(item, dict):
             issues.append("RESEARCH_PLAN_ITEM_INVALID")
             continue
+        if item.get("status") == "NO_NEWS":
+            if (
+                item.get("candidate_id") is not None
+                or item.get("research_branches") != []
+                or not item.get("no_news_reason")
+                or item.get("fallback_action") not in {
+                    "RADAR", "DOSSIER_FOLLOW_UP", "PUBLIC_DATA_ANALYSIS", "SKIP"
+                }
+                or item.get("context_management", {}).get("policy") != "BOUNDED_PERIODIC_COMPRESSION"
+            ):
+                issues.append(f"RESEARCH_PLAN_NO_NEWS_INVALID:{item.get('section_id')}")
+            continue
         budget = item.get("research_budget", {})
         if (
-            not item.get("candidate_id")
+            item.get("status") != "ACTIVE"
+            or not item.get("candidate_id")
             or not item.get("perspectives")
             or not item.get("questions")
             or budget.get("level") not in {"brief", "normal", "major", "investigation"}

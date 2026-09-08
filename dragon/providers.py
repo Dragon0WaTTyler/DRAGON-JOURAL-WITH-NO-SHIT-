@@ -122,9 +122,12 @@ class SyntheticEditorialProvider:
             packet["sections"].append(
                 {
                     "section_id": section_id,
+                    "status": "ACTIVE",
                     "candidates": candidates,
                     "selected_candidate_id": candidates[0]["id"],
                     "selection_reason": "اختيار ثابت لاختبار خط الإنتاج فقط",
+                    "no_news_reason": None,
+                    "fallback_action": None,
                 }
             )
         return packet
@@ -347,11 +350,18 @@ class LocalCommandEditorialProvider:
                 f"invalid_entries={invalid_entries}",
             )
         for section in sections:
-            candidates = section.get("candidates")
-            if not isinstance(candidates, list) or len(candidates) < 2:
+            section_status = section.get("status")
+            if section_status not in {"ACTIVE", "NO_NEWS"}:
                 raise ProviderError(
                     "RESEARCH_PACKET_INVALID",
-                    f"section {section.get('section_id')} needs at least two ranked candidates",
+                    f"section {section.get('section_id')} needs ACTIVE or NO_NEWS status",
+                )
+            candidates = section.get("candidates")
+            minimum_candidates = 2 if section_status == "ACTIVE" else 0
+            if not isinstance(candidates, list) or len(candidates) < minimum_candidates:
+                raise ProviderError(
+                    "RESEARCH_PACKET_INVALID",
+                    f"active section {section.get('section_id')} needs at least two ranked candidates",
                 )
             candidate_ids = set()
             for candidate in candidates:
@@ -407,7 +417,29 @@ class LocalCommandEditorialProvider:
                         f"candidate {candidate['id']} cites unknown evidence",
                     )
             selected = section.get("selected_candidate_id")
-            if selected not in candidate_ids or not section.get("selection_reason"):
+            if section_status == "NO_NEWS":
+                reason = section.get("no_news_reason")
+                if (
+                    candidates
+                    or selected is not None
+                    or section.get("selection_reason") is not None
+                    or not isinstance(reason, str)
+                    or len(reason.strip()) < 10
+                    or section.get("fallback_action") not in {
+                        "RADAR", "DOSSIER_FOLLOW_UP", "PUBLIC_DATA_ANALYSIS", "SKIP"
+                    }
+                ):
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"no-news section {section.get('section_id')} must have no fabricated candidates and a specific fallback",
+                    )
+            elif (
+                selected not in candidate_ids
+                or not isinstance(section.get("selection_reason"), str)
+                or len(section["selection_reason"].strip()) < 10
+                or section.get("no_news_reason") is not None
+                or section.get("fallback_action") is not None
+            ):
                 raise ProviderError(
                     "RESEARCH_PACKET_INVALID",
                     f"section {section.get('section_id')} has no justified selected lead",
@@ -481,6 +513,12 @@ class LocalCommandEditorialProvider:
                 if not isinstance(item.get("skip_reason"), str) or len(item["skip_reason"].strip()) < 10:
                     raise ProviderError("ARTICLE_SCHEMA_INVALID", f"section {section_id} needs a specific skip reason")
                 continue
+            research_section = research_sections.get(section_id, {})
+            if research_section.get("status") == "NO_NEWS":
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID",
+                    f"no-news research section {section_id} cannot become an active article",
+                )
             required = ("id", "section", "headline", "standfirst", "byline", "body", "source_ids")
             if status != "ACTIVE" or any(not item.get(field) for field in required):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"active section {section_id} is incomplete")
@@ -488,7 +526,7 @@ class LocalCommandEditorialProvider:
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} body is invalid")
             if not isinstance(item["source_ids"], list) or not set(item["source_ids"]).issubset(sources):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} cites unknown sources")
-            selected = research_sections.get(section_id, {}).get("selected_candidate_id")
+            selected = research_section.get("selected_candidate_id")
             if item.get("research_candidate_id") != selected:
                 raise ProviderError(
                     "ARTICLE_SCHEMA_INVALID",

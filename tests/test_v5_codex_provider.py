@@ -111,7 +111,12 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert section["properties"]["section_id"]["enum"] == [
         section_id for section_id, _ in SECTION_HEADINGS
     ]
-    assert section["properties"]["candidates"]["minItems"] == 2
+    assert section["properties"]["status"]["enum"] == ["ACTIVE", "NO_NEWS"]
+    assert "minItems" not in section["properties"]["candidates"]
+    assert "null" in section["properties"]["selected_candidate_id"]["type"]
+    assert section["properties"]["fallback_action"]["enum"] == [
+        "RADAR", "DOSSIER_FOLLOW_UP", "PUBLIC_DATA_ANALYSIS", "SKIP", None,
+    ]
     assert research["properties"]["sections"]["maxItems"] == len(SECTION_HEADINGS)
 
     articles = _schema("articles")
