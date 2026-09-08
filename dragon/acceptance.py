@@ -20,6 +20,7 @@ LOCAL_STAGES = (
     "claim_evidence_graph",
     "media_critic",
     "science_integrity",
+    "investigation_engine",
     "adversarial_review",
     "factcheck",
     "chief_editor",

@@ -13,6 +13,7 @@ from dragon.continuity import build_snapshot, prior_context
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
+from dragon.investigations import InvestigationError, update_investigation_dossiers
 from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.research_planning import build_research_plan, validate_research_plan
@@ -262,6 +263,32 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 "SCIENCE_INTEGRITY_FAILED", "; ".join(report["issues"]), outputs=(path,)
             )
         return StageResult((path,), inputs=(articles_path, intelligence_path))
+
+    def investigation_engine(context: StageContext) -> StageResult:
+        articles_path = context.run_dir / "articles" / "articles.json"
+        graph_path = context.run_dir / "evidence" / "claim-graph.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        try:
+            report, dossier_paths = update_investigation_dossiers(
+                context.root,
+                context.edition_date,
+                _load(articles_path)["articles"],
+                _load(graph_path),
+                _load(intelligence_path),
+                synthetic=synthetic,
+            )
+        except InvestigationError as exc:
+            raise StageFailure("INVESTIGATION_DOSSIER_INVALID", str(exc)) from exc
+        path = context.run_dir / "investigations" / "readiness-report.json"
+        atomic_write_json(path, report)
+        outputs = (path, *dossier_paths)
+        if report["status"] != "PASS":
+            raise StageFailure(
+                "INVESTIGATION_GATE_FAILED",
+                "not publication ready: " + ",".join(report["not_ready_article_ids"]),
+                outputs=outputs,
+            )
+        return StageResult(outputs, inputs=(articles_path, graph_path, intelligence_path))
 
     def factcheck(context: StageContext) -> StageResult:
         articles_path = context.run_dir / "articles" / "articles.json"
@@ -598,7 +625,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
         _json_stage("media_critic", ("claim_evidence_graph",), media_critic),
         _json_stage("science_integrity", ("media_critic",), science_integrity),
-        _json_stage("adversarial_review", ("science_integrity",), adversarial),
+        _json_stage("investigation_engine", ("science_integrity",), investigation_engine),
+        _json_stage("adversarial_review", ("investigation_engine",), adversarial),
         _json_stage("factcheck", ("adversarial_review",), factcheck),
         _json_stage("chief_editor", ("factcheck",), chief_editor),
         _json_stage("arabic_language_qa", ("chief_editor",), arabic_qa),

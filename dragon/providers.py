@@ -169,6 +169,12 @@ class SyntheticEditorialProvider:
                         "consequences": "لا يجوز توزيع النسخة كصحيفة حقيقية",
                         "next_steps": "تهيئة مزود إنتاج موثوق قبل النشر",
                     },
+                    "investigation_checks": {
+                        "serious_accountability_claim": False,
+                        "counter_evidence_checked": False,
+                        "response_status": "NOT_APPLICABLE",
+                        "publication_ready": True,
+                    } if section_id == "investigations" else None,
                     "fixture": True,
                 }
             )
@@ -508,6 +514,29 @@ class LocalCommandEditorialProvider:
             elements = item.get("editorial_elements")
             if not isinstance(elements, dict) or any(not elements.get(field) for field in required_elements):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} lacks required journalism elements")
+            if section_id == "investigations":
+                checks = item.get("investigation_checks")
+                if (
+                    not isinstance(checks, dict)
+                    or any(
+                        field not in checks
+                        for field in (
+                            "serious_accountability_claim", "counter_evidence_checked",
+                            "response_status", "publication_ready",
+                        )
+                    )
+                    or checks.get("response_status") not in {
+                        "NOT_APPLICABLE", "SOUGHT", "RECEIVED", "DECLINED", "NO_RESPONSE"
+                    }
+                    or not isinstance(checks.get("serious_accountability_claim"), bool)
+                    or not isinstance(checks.get("counter_evidence_checked"), bool)
+                    or not isinstance(checks.get("publication_ready"), bool)
+                    or not checks["publication_ready"]
+                ):
+                    raise ProviderError(
+                        "ARTICLE_SCHEMA_INVALID",
+                        "active investigation needs explicit passing fairness/readiness checks",
+                    )
             word_count = len(re.findall(r"\S+", " ".join(item["body"])))
             if word_count < self.minimum_active_article_words:
                 raise ProviderError(

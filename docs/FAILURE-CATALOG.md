@@ -36,6 +36,8 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `MEDIA_CRITIC_INVALID` | VALIDATION | Source comparison inventory or observation-only contract is invalid | Block before adversarial review |
 | `SCIENCE_INTEGRITY_FAILED` | CONTENT | Scientific material passport or full-text/preprint/abstract disclosure gate failed | Repair or hold only the science item |
 | `SCIENCE_REPORT_INVALID` | VALIDATION | Science article/passport inventory or report status is structurally inconsistent | Block before adversarial review |
+| `INVESTIGATION_DOSSIER_INVALID` | VALIDATION | Existing persistent dossier is unreadable or has conflicting identity/schema | Block without overwrite |
+| `INVESTIGATION_GATE_FAILED` | CONTENT | Active investigation lacks primary evidence, independent origins, counter-evidence, response handling, or clean claims | Hold the investigation; preserve dossier |
 | `ADVERSARIAL_REVIEW_FAILED` | CONTENT | Independent review found contradiction, unavailable provenance, partial material support, or untested framing | Repair/remove only the affected claim or article |
 | `FACTCHECK_FAILED` | CONTENT | An active article lacks accepted source linkage | Repair/remove the affected editorial unit |
 | `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |

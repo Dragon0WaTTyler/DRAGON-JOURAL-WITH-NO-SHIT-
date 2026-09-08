@@ -184,6 +184,23 @@ def _schema(operation: str) -> dict:
         ],
         "additionalProperties": False,
     }
+    investigation_checks = {
+        "type": ["object", "null"],
+        "properties": {
+            "serious_accountability_claim": {"type": "boolean"},
+            "counter_evidence_checked": {"type": "boolean"},
+            "response_status": {
+                "type": "string",
+                "enum": ["NOT_APPLICABLE", "SOUGHT", "RECEIVED", "DECLINED", "NO_RESPONSE"],
+            },
+            "publication_ready": {"type": "boolean"},
+        },
+        "required": [
+            "serious_accountability_claim", "counter_evidence_checked",
+            "response_status", "publication_ready",
+        ],
+        "additionalProperties": False,
+    }
     decision = {
         "type": "object",
         "properties": {
@@ -200,12 +217,14 @@ def _schema(operation: str) -> dict:
             "story_key": nullable_string,
             "claims": {"type": "array", "items": claim},
             "editorial_elements": editorial_elements,
+            "investigation_checks": investigation_checks,
             "skip_reason": nullable_string,
         },
         "required": [
             "id", "section_id", "section", "status", "headline", "standfirst", "byline",
             "body", "source_ids", "research_candidate_id", "story_key", "claims",
             "editorial_elements", "skip_reason",
+            "investigation_checks",
         ],
         "additionalProperties": False,
     }
@@ -268,6 +287,9 @@ needs text, claim_type (date/person/organization/number/statistic/study/politica
 classification (FACT/CLAIM/DISPUTED/UNKNOWN/ESTIMATE), source_ids, attribution where applicable,
 material boolean, and fact_key/value when contradiction checking is meaningful. editorial_elements
 must contain lead, nut_graf, verified_facts, context, uncertainty, consequences, and next_steps.
+An ACTIVE investigations decision must include investigation_checks with an honest serious-claim
+flag, counter-evidence status, response/counter-position status, and publication_ready. Use
+SKIPPED when those gates do not support publication; a suspicious pattern is not wrongdoing.
 Write real newspaper prose, not repeating digest cards. Expand only with supported context,
 uncertainty, consequences, and next steps; never manufacture text to reach length."""
 
