@@ -16,6 +16,12 @@ from dragon.design import (
     validate_cover_brief,
     validate_layout_plan,
 )
+from dragon.discovery import (
+    DiscoveryError,
+    load_provider_registry,
+    provider_prompt_context,
+    registry_report,
+)
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
@@ -84,14 +90,24 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         continuity = prior_context(context.root, context.edition_date)
         continuity_path = context.run_dir / "research" / "continuity-context.json"
         atomic_write_json(continuity_path, continuity)
+        registry_path = context.root / "config" / "provider-registry.yaml"
+        provider_input = dict(continuity)
+        inputs: tuple[Path, ...] = ()
+        if registry_path.exists():
+            try:
+                registry = load_provider_registry(registry_path)
+            except DiscoveryError as exc:
+                raise StageFailure(exc.code, exc.detail) from exc
+            provider_input["source_discovery"] = provider_prompt_context(registry)
+            inputs = (registry_path, registry_path.with_name("provider-registry-schema.json"))
         try:
-            packet = provider.research(context.edition_date, continuity)
+            packet = provider.research(context.edition_date, provider_input)
         except ProviderError as exc:
             raise StageFailure(exc.code, exc.detail) from exc
         packet["provider_mode"] = provider.mode
         path = context.run_dir / "research" / "research-packet.json"
         atomic_write_json(path, packet)
-        return StageResult((continuity_path, path))
+        return StageResult((continuity_path, path), inputs=inputs)
 
     def articles(context: StageContext) -> StageResult:
         packet = _load(context.run_dir / "research" / "research-packet.json")
@@ -130,7 +146,36 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("SOURCE_INTELLIGENCE_INVALID", detail)
         path = context.run_dir / "source-intelligence" / "report.json"
         atomic_write_json(path, report)
-        return StageResult((path,), inputs=(packet_path,))
+        registry_path = context.root / "config" / "provider-registry.yaml"
+        registry_output = context.run_dir / "source-intelligence" / "provider-registry.json"
+        registry_inputs: tuple[Path, ...] = ()
+        if registry_path.exists():
+            try:
+                registry = load_provider_registry(registry_path)
+            except DiscoveryError as exc:
+                raise StageFailure(exc.code, exc.detail, outputs=(path,)) from exc
+            provider_report = registry_report(registry)
+            registry_inputs = (
+                registry_path,
+                registry_path.with_name("provider-registry-schema.json"),
+            )
+        else:
+            provider_report = {
+                "schema_version": 1,
+                "status": "NOT_APPLICABLE",
+                "reason": "isolated fixture root has no provider registry",
+                "providers": [],
+            }
+        atomic_write_json(registry_output, provider_report)
+        if provider_report["status"] == "FAIL":
+            raise StageFailure(
+                "PROVIDER_REGISTRY_UNAVAILABLE",
+                "required discovery provider is unavailable",
+                outputs=(path, registry_output),
+            )
+        return StageResult(
+            (path, registry_output), inputs=(packet_path, *registry_inputs)
+        )
 
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"

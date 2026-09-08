@@ -11,7 +11,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "uncertainty", "event_ids", "claims_supported"],
+        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
         "properties": {
           "source_id": {"type": "string", "minLength": 1},
           "canonical_url": {"type": "string", "pattern": "^https://"},
@@ -22,16 +22,22 @@
           "source_type": {"type": ["string", "null"]},
           "retrieved_at": {"type": ["string", "null"]},
           "published_at": {"type": ["string", "null"]},
-          "fetch_status": {"enum": ["PROVIDER_REPORTED"]},
+          "fetch_status": {"enum": ["PROVIDER_REPORTED", "FETCHED"]},
           "http_status": {"type": ["integer", "null"]},
           "extraction_method": {"type": "string"},
-          "extraction_quality": {"enum": ["UNVERIFIED"]},
+          "extraction_quality": {"enum": ["UNVERIFIED", "MEDIUM", "HIGH"]},
           "content_hash": {"type": ["string", "null"]},
+          "normalized_text_hash": {"type": ["string", "null"]},
           "language": {"type": ["string", "null"]},
           "primary_or_secondary": {"type": ["string", "null"]},
           "authority_level": {"enum": ["PRIMARY", "SECONDARY"]},
           "independent_origin_group": {"type": "string", "minLength": 1},
           "wire_origin": {"type": ["string", "null"]},
+          "syndication_status": {"enum": ["WIRE_REPORTED", "UNKNOWN"]},
+          "citation_chain": {"type": "array", "items": {"type": "string"}},
+          "first_observed": {"type": ["string", "null"]},
+          "likely_original": {"type": "boolean"},
+          "primary_evidence": {"type": "boolean"},
           "archive_reference": {"type": ["string", "null"]},
           "license_use_notes": {"type": ["string", "null"]},
           "doi": {"type": ["string", "null"]},
@@ -41,7 +47,8 @@
           "limitations_read": {"type": "boolean"},
           "uncertainty": {"type": "array", "items": {"type": "string"}},
           "event_ids": {"type": "array", "items": {"type": "string", "pattern": "^EVT-[A-F0-9]{12}$"}},
-          "claims_supported": {"type": "array", "items": {"type": ["string", "null"]}}
+          "claims_supported": {"type": "array", "items": {"type": ["string", "null"]}},
+          "duplicate_group_ids": {"type": "array", "items": {"type": "string", "pattern": "^DUP-[A-F0-9]{12}$"}}
         }
       }
     },
@@ -49,11 +56,23 @@
       "type": "array",
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["kind", "canonical_url", "source_ids"],
+        "required": ["duplicate_group_id", "kind", "canonical_url", "source_ids", "signals"],
         "properties": {
-          "kind": {"const": "EXACT_CANONICAL_URL"},
-          "canonical_url": {"type": "string"},
-          "source_ids": {"type": "array", "minItems": 2, "items": {"type": "string"}}
+          "duplicate_group_id": {"type": "string", "pattern": "^DUP-[A-F0-9]{12}$"},
+          "kind": {"enum": ["EXACT_CANONICAL_URL", "EXACT_CONTENT_HASH", "NORMALIZED_TEXT_HASH", "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY"]},
+          "canonical_url": {"type": ["string", "null"]},
+          "source_ids": {"type": "array", "minItems": 2, "items": {"type": "string"}, "uniqueItems": true},
+          "signals": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["kind", "score"],
+              "properties": {
+                "kind": {"enum": ["EXACT_CANONICAL_URL", "EXACT_CONTENT_HASH", "NORMALIZED_TEXT_HASH", "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY"]},
+                "score": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
         }
       }
     },

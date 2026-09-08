@@ -79,6 +79,8 @@ def test_source_intelligence_preserves_lineage_and_detects_wire_duplicates() -> 
         "wire_source_count": 2,
     }
     assert first["duplicate_groups"][0]["source_ids"] == ["s1", "s2"]
+    assert first["duplicate_groups"][0]["kind"] == "EXACT_CANONICAL_URL"
+    assert first["duplicate_groups"][0]["signals"]
     assert first["event_clusters"][0]["independent_origin_count"] == 2
     records = {item["source_id"]: item for item in first["source_records"]}
     assert records["s1"]["discovered_url"].endswith("utm_source=x")
@@ -86,3 +88,25 @@ def test_source_intelligence_preserves_lineage_and_detects_wire_duplicates() -> 
     assert records["s1"]["wire_origin"] == records["s2"]["wire_origin"] == "REUTERS"
     assert records["s3"]["fetch_status"] == "PROVIDER_REPORTED"
     assert "FETCH_NOT_INDEPENDENTLY_VERIFIED" in records["s3"]["uncertainty"]
+
+
+def test_layered_duplicate_detection_catches_rewritten_url_copies() -> None:
+    long_claim = (
+        "أعلنت المؤسسة نتائج مفصلة للمشروع بعد مراجعة الجدول الزمني والميزانية "
+        "ومصادر التمويل ومراحل التنفيذ والقيود المسجلة في التقرير الرسمي"
+    )
+    first = _source("a", "https://one.example/story", "ناشر أول")
+    second = _source("b", "https://two.example/republication", "ناشر ثان")
+    first.update({"title": "نتائج المشروع والجدول الزمني والميزانية", "claim_supported": long_claim})
+    second.update({"title": "نتائج المشروع: الجدول الزمني والميزانية", "claim_supported": long_claim + " اليوم"})
+    report = build_source_intelligence({"sources": [first, second], "sections": []})
+    assert report["summary"]["duplicate_group_count"] == 1
+    group = report["duplicate_groups"][0]
+    assert group["canonical_url"] is None
+    assert group["kind"] in {
+        "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY"
+    }
+    assert {item["kind"] for item in group["signals"]} >= {
+        "TOKEN_SIMILARITY", "EDIT_SIMILARITY"
+    }
+    assert all(record["duplicate_group_ids"] == [group["duplicate_group_id"]] for record in report["source_records"])

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from difflib import SequenceMatcher
 import hashlib
 import re
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -48,6 +49,14 @@ def _similarity(left: str, right: str) -> float:
     return len(a & b) / len(a | b) if a and b else 0.0
 
 
+def _normalized_text(value: str) -> str:
+    return " ".join(re.findall(r"[\w\u0600-\u06ff]+", value.casefold()))
+
+
+def _edit_similarity(left: str, right: str) -> float:
+    return SequenceMatcher(None, _normalized_text(left), _normalized_text(right)).ratio()
+
+
 def _wire_origin(source: dict) -> str | None:
     text = " ".join(str(source.get(key) or "") for key in ("publisher", "title", "claim_supported")).casefold()
     return next((wire for marker, wire in WIRE_MARKERS.items() if marker in text), None)
@@ -67,6 +76,11 @@ def build_source_intelligence(packet: dict) -> dict:
         canonical = normalize_url(source["url"])
         wire = _wire_origin(source)
         host = urlsplit(canonical).hostname or "unknown"
+        evidence_text = " ".join(
+            str(source.get(key) or "")
+            for key in ("title", "extracted_text", "content", "claim_supported")
+        ).strip()
+        normalized = _normalized_text(evidence_text)
         record = {
             "source_id": source["id"],
             "canonical_url": canonical,
@@ -82,11 +96,20 @@ def build_source_intelligence(packet: dict) -> dict:
             "extraction_method": "provider-structured-output",
             "extraction_quality": "UNVERIFIED",
             "content_hash": source.get("content_hash"),
+            "normalized_text_hash": (
+                hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+                if len(normalized) >= 80 else None
+            ),
             "language": source.get("language"),
             "primary_or_secondary": source.get("source_type"),
             "authority_level": "PRIMARY" if source.get("source_type") in {"primary", "official"} else "SECONDARY",
             "independent_origin_group": f"WIRE:{wire}" if wire else f"DOMAIN:{host}",
             "wire_origin": wire,
+            "syndication_status": "WIRE_REPORTED" if wire else "UNKNOWN",
+            "citation_chain": [],
+            "first_observed": source.get("publication_date") or source.get("accessed_at"),
+            "likely_original": source.get("source_type") in {"primary", "official"} and not wire,
+            "primary_evidence": source.get("source_type") in {"primary", "official"},
             "archive_reference": source.get("archive_reference"),
             "license_use_notes": source.get("license_use_notes"),
             "doi": source.get("doi"),
@@ -97,7 +120,9 @@ def build_source_intelligence(packet: dict) -> dict:
             "uncertainty": ["FULL_TEXT_NOT_CAPTURED", "FETCH_NOT_INDEPENDENTLY_VERIFIED"],
             "event_ids": [],
             "claims_supported": [source.get("claim_supported")],
+            "duplicate_group_ids": [],
         }
+        record["_comparison_text"] = evidence_text
         records.append(record)
         source_by_id[record["source_id"]] = record
         canonical_groups[canonical].append(record["source_id"])
@@ -160,10 +185,83 @@ def build_source_intelligence(packet: dict) -> dict:
             "wire_origins": sorted({source_by_id[item]["wire_origin"] for item in source_ids if item in source_by_id and source_by_id[item]["wire_origin"]}),
         })
     events.sort(key=lambda item: item["event_id"])
-    duplicates = [
-        {"kind": "EXACT_CANONICAL_URL", "canonical_url": url, "source_ids": sorted(ids)}
-        for url, ids in sorted(canonical_groups.items()) if len(ids) > 1
-    ]
+    duplicate_parent = list(range(len(records)))
+    duplicate_signals: dict[tuple[int, int], list[dict]] = defaultdict(list)
+
+    def duplicate_find(index: int) -> int:
+        while duplicate_parent[index] != index:
+            duplicate_parent[index] = duplicate_parent[duplicate_parent[index]]
+            index = duplicate_parent[index]
+        return index
+
+    def duplicate_union(left: int, right: int) -> None:
+        a, b = duplicate_find(left), duplicate_find(right)
+        if a != b:
+            duplicate_parent[max(a, b)] = min(a, b)
+
+    for left in range(len(records)):
+        for right in range(left + 1, len(records)):
+            a, b = records[left], records[right]
+            signals = duplicate_signals[(left, right)]
+            if a["canonical_url"] == b["canonical_url"]:
+                signals.append({"kind": "EXACT_CANONICAL_URL", "score": 1.0})
+            if a.get("content_hash") and a["content_hash"] == b.get("content_hash"):
+                signals.append({"kind": "EXACT_CONTENT_HASH", "score": 1.0})
+            if a.get("normalized_text_hash") and a["normalized_text_hash"] == b.get("normalized_text_hash"):
+                signals.append({"kind": "NORMALIZED_TEXT_HASH", "score": 1.0})
+            comparison_a, comparison_b = a["_comparison_text"], b["_comparison_text"]
+            if min(len(_normalized_text(comparison_a)), len(_normalized_text(comparison_b))) >= 80:
+                token_score = _similarity(comparison_a, comparison_b)
+                edit_score = _edit_similarity(comparison_a, comparison_b)
+                if token_score >= 0.82:
+                    signals.append({"kind": "TOKEN_SIMILARITY", "score": round(token_score, 4)})
+                if edit_score >= 0.88:
+                    signals.append({"kind": "EDIT_SIMILARITY", "score": round(edit_score, 4)})
+            title_a, title_b = str(a.get("title") or ""), str(b.get("title") or "")
+            if min(len(title_a), len(title_b)) >= 20:
+                headline_score = _similarity(title_a, title_b)
+                if headline_score >= 0.82:
+                    signals.append({"kind": "HEADLINE_SIMILARITY", "score": round(headline_score, 4)})
+            if signals:
+                duplicate_union(left, right)
+
+    duplicate_components: dict[int, list[int]] = defaultdict(list)
+    for index in range(len(records)):
+        duplicate_components[duplicate_find(index)].append(index)
+    signal_order = (
+        "EXACT_CANONICAL_URL", "EXACT_CONTENT_HASH", "NORMALIZED_TEXT_HASH",
+        "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY",
+    )
+    duplicates = []
+    for component in duplicate_components.values():
+        if len(component) < 2:
+            continue
+        component_signals = [
+            signal
+            for (left, right), signals in duplicate_signals.items()
+            if left in component and right in component
+            for signal in signals
+        ]
+        kinds = {item["kind"] for item in component_signals}
+        kind = next(value for value in signal_order if value in kinds)
+        source_ids = sorted(records[index]["source_id"] for index in component)
+        group_id = "DUP-" + hashlib.sha256("\n".join(source_ids).encode("utf-8")).hexdigest()[:12].upper()
+        urls = {records[index]["canonical_url"] for index in component}
+        group = {
+            "duplicate_group_id": group_id,
+            "kind": kind,
+            "canonical_url": next(iter(urls)) if len(urls) == 1 else None,
+            "source_ids": source_ids,
+            "signals": sorted(
+                component_signals, key=lambda item: (signal_order.index(item["kind"]), -item["score"])
+            ),
+        }
+        duplicates.append(group)
+        for index in component:
+            records[index]["duplicate_group_ids"].append(group_id)
+    duplicates.sort(key=lambda item: item["duplicate_group_id"])
+    for record in records:
+        record.pop("_comparison_text", None)
     return {
         "schema_version": 1,
         "status": "PASS",

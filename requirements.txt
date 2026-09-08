@@ -8,3 +8,4 @@ markdown-it-py>=3,<5
 tzdata>=2025
 arabic-reshaper>=3,<4
 python-bidi>=0.6,<1
+trafilatura>=2.2,<3

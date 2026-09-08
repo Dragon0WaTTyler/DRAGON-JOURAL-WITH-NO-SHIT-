@@ -18,6 +18,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from dragon.acceptance import _provider_trial_evidence
 from dragon.config import load_local_config, load_mapping
+from dragon.discovery import load_provider_registry, registry_report
 from dragon.providers import editorial_provider_from_config
 from dragon.state import runtime_fingerprint
 
@@ -148,6 +149,13 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
     checks.append(_check("arabic_font", True, lambda: _font_available(font_families)))
     checks.append(_check("pdf_runtime", True, _pdf_runtime))
     checks.append(_check("epub_runtime", True, lambda: _import("zipfile")))
+    checks.append(
+        _check(
+            "source_provider_registry",
+            bool(policy.get("require_source_provider_registry", False)),
+            lambda: _provider_registry(root),
+        )
+    )
     network = policy.get("network_probe", {})
     if network.get("enabled", True):
         checks.append(
@@ -256,6 +264,19 @@ def _provider_evidence(root: Path) -> str:
         raise RuntimeError(f"PREFLIGHT_AI_PROVIDER_EVIDENCE_INVALID: {rejected}")
     accepted = [item["date"] for item in trials if item["status"] == "PASS"]
     return f"reviewed current-runtime provider trial: {accepted[-1]}"
+
+
+def _provider_registry(root: Path) -> str:
+    report = registry_report(load_provider_registry(root / "config" / "provider-registry.yaml"))
+    if report["status"] != "PASS":
+        raise RuntimeError(
+            "required providers unavailable: "
+            + ", ".join(report["summary"]["unavailable_required"])
+        )
+    return (
+        f"{report['summary']['available']} adapters proven; "
+        f"{report['summary']['enabled']} enabled; optional outages do not block"
+    )
 
 
 def _require_contains(value: str, expected: str) -> str:

@@ -58,12 +58,14 @@ preflight:
     - PIL
     - arabic_reshaper
     - bidi
+    - trafilatura
   network_probe:
     enabled: true
     host: github.com
     port: 443
     timeout_seconds: 5
   require_ai_provider: true
+  require_source_provider_registry: true
 watchdog:
   default_stage_timeout_seconds: 7200
   stage_timeouts_seconds:

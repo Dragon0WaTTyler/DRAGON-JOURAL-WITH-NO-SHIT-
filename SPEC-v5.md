@@ -90,6 +90,15 @@ Research packets may remain structured; reader-facing articles must be connected
 journalism. The source policy separates discovery, verification, primary and
 independent evidence, facts, claims, unknowns, and disputed points.
 
+Discovery uses the strict `config/provider-registry.yaml` contract. Providers
+declare role, authority, adapter, endpoints, authentication, bounded timeout and
+retry, cache/rate limits, fallbacks, terms notes, source classification, and
+provenance behavior. `AVAILABLE` means the configured adapter integration test
+passed; `CONFIGURED_NOT_PROVEN` and `DISABLED` are distinct. RSS and curated
+seed adapters emit discovery-only candidates. Normal HTML fetches are bounded
+and routed through Trafilatura into extracted-but-not-verified records; non-HTML
+materials are routed elsewhere rather than forced through the article parser.
+
 ## 5. Arabic contract
 
 Reader-facing V5 content uses professional journalistic Arabic in Arabic script.

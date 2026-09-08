@@ -38,6 +38,8 @@ RUNTIME_FIXED_PATHS = (
     "config/local-automation.yaml",
     "config/cutover-acceptance.yaml",
     "config/recovery-policy.yaml",
+    "config/provider-registry.yaml",
+    "config/provider-registry-schema.json",
     "requirements.txt",
 )
 
