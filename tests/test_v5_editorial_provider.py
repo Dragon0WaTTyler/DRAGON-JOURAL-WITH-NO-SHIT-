@@ -37,7 +37,7 @@ elif a.operation == 'articles':
     value=[]
     for index,(key,heading) in enumerate(SECTION_HEADINGS):
         if index == 0:
-            value.append({'id':'a1','section_id':key,'section':heading,'status':'ACTIVE','headline':'عنوان عربي اختباري','standfirst':'مقدمة عربية واضحة','byline':'تحرير: DRAGON','body':[words],'source_ids':['s1','s2'],'research_candidate_id':f'{key}-c1','story_key':'story-a1','claims':[{'text':'ادعاء موثق','classification':'FACT','claim_type':'general','attribution':'مصدران اختباريان','source_ids':['s1','s2'],'material':True}],'editorial_elements':elements})
+            value.append({'id':'a1','section_id':key,'section':heading,'status':'ACTIVE','headline':'عنوان عربي اختباري','standfirst':'مقدمة عربية واضحة','byline':'تحرير: DRAGON','body':[words],'source_ids':['s1','s2'],'research_candidate_id':f'{key}-c1','story_key':'story-a1','story_type':'NEWS','claims':[{'text':'ادعاء موثق','classification':'FACT','claim_type':'general','attribution':'مصدران اختباريان','source_ids':['s1','s2'],'material':True}],'editorial_elements':elements})
         else:
             value.append({'section_id':key,'section':heading,'status':'SKIPPED','skip_reason':'لا توجد مادة موثقة بما يكفي في هذا الاختبار'})
 else:

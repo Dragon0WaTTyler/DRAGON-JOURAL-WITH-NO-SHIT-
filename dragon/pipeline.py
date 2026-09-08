@@ -281,6 +281,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             "direction": "rtl",
             "section_inventory": inventory,
             "article_ids": [item["id"] for item in articles_value if item["status"] == "ACTIVE"],
+            "story_types": {
+                item["id"]: item.get("story_type")
+                for item in articles_value if item["status"] == "ACTIVE"
+            },
         }
         editorial = chief_editor_report(articles_value)
         plan["ranked_article_ids"] = editorial["ranked_article_ids"]

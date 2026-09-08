@@ -17,7 +17,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from dragon.providers import SECTION_HEADINGS
+from dragon.providers import SECTION_HEADINGS, STORY_TYPES
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -222,6 +222,7 @@ def _schema(operation: str) -> dict:
             "source_ids": string_array,
             "research_candidate_id": nullable_string,
             "story_key": nullable_string,
+            "story_type": {"type": ["string", "null"], "enum": [*sorted(STORY_TYPES), None]},
             "claims": {"type": "array", "items": claim},
             "editorial_elements": editorial_elements,
             "investigation_checks": investigation_checks,
@@ -230,6 +231,7 @@ def _schema(operation: str) -> dict:
         "required": [
             "id", "section_id", "section", "status", "headline", "standfirst", "byline",
             "body", "source_ids", "research_candidate_id", "story_key", "claims",
+            "story_type",
             "editorial_elements", "skip_reason",
             "investigation_checks",
         ],
@@ -291,7 +293,10 @@ array as allowed by the schema. Use status ACTIVE only for a sufficiently verifi
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,
 section_id, Arabic section heading, status, substantial Arabic headline and standfirst, honest
 byline 'تحرير: DRAGON', connected body paragraph array, known source_ids, the exact selected
-research_candidate_id, stable story_key, structured claims, and editorial_elements. Each claim
+research_candidate_id, stable story_key, structured claims, and editorial_elements. Each ACTIVE
+article also requires a story_type: NEWS, ANALYSIS, INVESTIGATION, SCIENCE, HISTORY, CULTURE,
+FACT_CHECK, DATA, DOCUMENT_PUBLIC_RECORD, or SECTION_OPENER. This is editorial
+classification, not permission to alter facts during layout. Each claim
 needs text, claim_type (date/person/organization/number/statistic/study/political/general),
 classification (FACT/CLAIM/DISPUTED/UNKNOWN/ESTIMATE), source_ids, attribution where applicable,
 material boolean, and fact_key/value when contradiction checking is meaningful. editorial_elements

@@ -25,6 +25,8 @@ def build_snapshot(edition_date: str, mode: str, decisions: list[dict]) -> dict:
         covered.append(
             {
                 "article_id": item["id"],
+                "story_key": item.get("story_key"),
+                "story_type": item.get("story_type"),
                 "section_id": item["section_id"],
                 "headline": item["headline"],
                 "source_urls": list(item.get("source_urls", [])),

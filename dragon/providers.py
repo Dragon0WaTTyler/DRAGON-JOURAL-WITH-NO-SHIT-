@@ -69,6 +69,23 @@ SECTION_HEADINGS = (
     ("service", "البيانات والخدمات وما نتابعه"),
 )
 
+STORY_TYPES = {
+    "NEWS", "ANALYSIS", "INVESTIGATION", "SCIENCE", "HISTORY", "CULTURE",
+    "FACT_CHECK", "DATA", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER",
+}
+
+
+def _synthetic_story_type(section_id: str) -> str:
+    return {
+        "investigations": "INVESTIGATION",
+        "science": "SCIENCE",
+        "history": "HISTORY",
+        "culture": "CULTURE",
+        "adab": "CULTURE",
+        "opinion": "ANALYSIS",
+        "service": "DATA",
+    }.get(section_id, "NEWS")
+
 
 @dataclass(frozen=True)
 class SyntheticEditorialProvider:
@@ -158,6 +175,7 @@ class SyntheticEditorialProvider:
                     "source_ids": ["fixture-source"],
                     "research_candidate_id": f"{section_id}-candidate-1",
                     "story_key": f"synthetic-{section_id}-{date_value}",
+                    "story_type": _synthetic_story_type(section_id),
                     "claims": [
                         {
                             "text": "المادة اصطناعية وغير خبرية",
@@ -519,7 +537,10 @@ class LocalCommandEditorialProvider:
                     "ARTICLE_SCHEMA_INVALID",
                     f"no-news research section {section_id} cannot become an active article",
                 )
-            required = ("id", "section", "headline", "standfirst", "byline", "body", "source_ids")
+            required = (
+                "id", "section", "headline", "standfirst", "byline", "body",
+                "source_ids", "story_type",
+            )
             if status != "ACTIVE" or any(not item.get(field) for field in required):
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"active section {section_id} is incomplete")
             if not isinstance(item["body"], list) or not all(isinstance(paragraph, str) for paragraph in item["body"]):
@@ -535,6 +556,10 @@ class LocalCommandEditorialProvider:
             if not item.get("story_key"):
                 raise ProviderError(
                     "ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} has no continuity story key"
+                )
+            if item.get("story_type") not in STORY_TYPES:
+                raise ProviderError(
+                    "ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} has invalid story type"
                 )
             claims = item.get("claims")
             if not isinstance(claims, list) or not claims:

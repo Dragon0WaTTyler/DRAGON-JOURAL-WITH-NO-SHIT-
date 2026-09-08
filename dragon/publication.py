@@ -357,11 +357,15 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
         "LEAD": "المادة الرئيسية", "NORMAL_NEWS": "أخبار", "ANALYSIS": "تحليل",
         "INVESTIGATION_DOSSIER": "ملف تحقيق", "SCIENCE": "الدليل العلمي",
         "HISTORY": "تاريخ", "CULTURE": "ثقافة وأدب", "DATA": "بيانات وخدمات",
+        "FACT_CHECK": "تدقيق الوقائع", "DOCUMENT_PUBLIC_RECORD": "وثيقة وسجل عام",
+        "SECTION_OPENER": "افتتاح القسم",
     }
     role_colors = {
         "SCIENCE": "#24566f", "INVESTIGATION_DOSSIER": "#55151a",
         "HISTORY": "#6d4d2f", "CULTURE": "#6b315d", "DATA": "#2f6047",
         "ANALYSIS": "#333333", "LEAD": "#9e1523", "NORMAL_NEWS": "#9e1523",
+        "FACT_CHECK": "#7b4b12", "DOCUMENT_PUBLIC_RECORD": "#375061",
+        "SECTION_OPENER": "#9e1523",
     }
 
     def new_content_page(role: str):

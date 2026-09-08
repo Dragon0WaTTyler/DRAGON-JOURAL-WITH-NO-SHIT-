@@ -83,6 +83,8 @@ def test_snapshot_records_coverage_skips_and_next_steps() -> None:
             "section_id": "front",
             "status": "ACTIVE",
             "headline": "عنوان",
+            "story_key": "event-018",
+            "story_type": "FACT_CHECK",
             "source_urls": ["https://example.org/story"],
             "editorial_elements": {"next_steps": ["موعد القرار المقبل"]},
         },
@@ -94,5 +96,7 @@ def test_snapshot_records_coverage_skips_and_next_steps() -> None:
     ]
     value = build_snapshot("2099-01-02", "production", decisions)
     assert value["covered_stories"][0]["article_id"] == "a1"
+    assert value["covered_stories"][0]["story_key"] == "event-018"
+    assert value["covered_stories"][0]["story_type"] == "FACT_CHECK"
     assert value["skipped_sections"][0]["section_id"] == "science"
     assert value["watch_items"][0]["description"] == "موعد القرار المقبل"

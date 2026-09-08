@@ -125,6 +125,9 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert articles["properties"]["articles"]["maxItems"] == len(SECTION_HEADINGS)
     assert decision["properties"]["status"]["enum"] == ["ACTIVE", "SKIPPED"]
     assert "null" in decision["properties"]["skip_reason"]["type"]
+    assert {"FACT_CHECK", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER"}.issubset(
+        set(decision["properties"]["story_type"]["enum"])
+    )
 
 
 def test_article_wrapper_is_unwrapped_for_provider_protocol() -> None:

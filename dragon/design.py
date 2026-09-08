@@ -104,13 +104,33 @@ GRAMMARS = {
     "service": "DATA",
 }
 
+STORY_GRAMMARS = {
+    "NEWS": "NORMAL_NEWS",
+    "ANALYSIS": "ANALYSIS",
+    "INVESTIGATION": "INVESTIGATION_DOSSIER",
+    "SCIENCE": "SCIENCE",
+    "HISTORY": "HISTORY",
+    "CULTURE": "CULTURE",
+    "FACT_CHECK": "FACT_CHECK",
+    "DATA": "DATA",
+    "DOCUMENT_PUBLIC_RECORD": "DOCUMENT_PUBLIC_RECORD",
+    "SECTION_OPENER": "SECTION_OPENER",
+}
+
 
 def build_layout_plan(articles: list[dict], cover_brief: dict) -> dict:
     pages = []
     for index, article in enumerate(
         (item for item in articles if item.get("status") == "ACTIVE"), start=2
     ):
-        grammar = GRAMMARS.get(article["section_id"], "NORMAL_NEWS")
+        grammar = (
+            "LEAD"
+            if article["id"] == cover_brief["source_article_id"]
+            else STORY_GRAMMARS.get(
+                article.get("story_type"),
+                GRAMMARS.get(article["section_id"], "NORMAL_NEWS"),
+            )
+        )
         components = ["section-bar", "headline", "standfirst", "byline", "body", "sources", "folio"]
         if grammar == "INVESTIGATION_DOSSIER":
             components.extend(["evidence-box", "timeline", "counter-position"])
@@ -118,6 +138,12 @@ def build_layout_plan(articles: list[dict], cover_brief: dict) -> dict:
             components.extend(["study-passport", "method", "limitations"])
         elif grammar == "DATA":
             components.extend(["data-source", "chart-slot"])
+        elif grammar == "FACT_CHECK":
+            components.extend(["fact-check-verdict", "evidence-box", "known-unknown"])
+        elif grammar == "DOCUMENT_PUBLIC_RECORD":
+            components.extend(["document-excerpt", "evidence-box", "data-source"])
+        elif grammar == "SECTION_OPENER":
+            components.extend(["section-opener", "brief-rail"])
         elif grammar in {"ANALYSIS", "HISTORY"}:
             components.extend(["context-rail", "pull-quote"])
         pages.append({
@@ -148,6 +174,11 @@ def validate_layout_plan(value: dict, articles: list[dict]) -> list[str]:
         return ["LAYOUT_PLAN_INVENTORY_INVALID"]
     issues = []
     for page in pages:
-        if page.get("may_rewrite_facts") is not False or not page.get("components") or page.get("columns") not in {1, 2, 3}:
+        if (
+            page.get("page_role") not in {"LEAD", "NORMAL_NEWS", *STORY_GRAMMARS.values()}
+            or page.get("may_rewrite_facts") is not False
+            or not page.get("components")
+            or page.get("columns") not in {1, 2, 3}
+        ):
             issues.append(f"LAYOUT_PLAN_PAGE_INVALID:{page.get('article_id')}")
     return issues

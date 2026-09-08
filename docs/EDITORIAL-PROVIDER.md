@@ -94,7 +94,9 @@ manually changes `integration_test_status` to `PASS`.
   decision for every fixed V5 section. A skipped section requires a specific
   reason. An active section requires headline, standfirst, honest byline,
   connected paragraph body, known source IDs, the selected research candidate,
-  a continuity story key, structured claim records, and explicit lead, nut graf,
+  a continuity story key, an explicit story type (`NEWS`, `ANALYSIS`,
+  `INVESTIGATION`, `SCIENCE`, `HISTORY`, `CULTURE`, `FACT_CHECK`, `DATA`,
+  `DOCUMENT_PUBLIC_RECORD`, or `SECTION_OPENER`), structured claim records, and explicit lead, nut graf,
   verified facts, context, uncertainty, consequences, and next steps. Material
   facts must survive claim-level primary and independent evidence checks.
 

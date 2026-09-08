@@ -60,3 +60,19 @@ def test_layout_uses_functional_page_grammars_without_editorial_authority() -> N
     roles = {item["article_id"]: item["page_role"] for item in plan["pages"]}
     assert roles == {"lead": "LEAD", "paper": "SCIENCE", "data": "DATA"}
     assert all(item["may_rewrite_facts"] is False for item in plan["pages"])
+
+
+def test_lead_and_special_story_types_route_to_executable_page_grammars() -> None:
+    lead = _article("lead", "science")
+    factcheck = {**_article("check", "front"), "story_type": "FACT_CHECK"}
+    document = {**_article("record", "siyasa_dawla"), "story_type": "DOCUMENT_PUBLIC_RECORD"}
+    opener = {**_article("opener", "mojtama3"), "story_type": "SECTION_OPENER"}
+    brief = build_cover_brief("2099-01-02", lead, [factcheck, document], synthetic=True)
+    plan = build_layout_plan([lead, factcheck, document, opener], brief)
+    pages = {item["article_id"]: item for item in plan["pages"]}
+    assert pages["lead"]["page_role"] == "LEAD"
+    assert pages["check"]["page_role"] == "FACT_CHECK"
+    assert "fact-check-verdict" in pages["check"]["components"]
+    assert pages["record"]["page_role"] == "DOCUMENT_PUBLIC_RECORD"
+    assert "document-excerpt" in pages["record"]["components"]
+    assert pages["opener"]["page_role"] == "SECTION_OPENER"
