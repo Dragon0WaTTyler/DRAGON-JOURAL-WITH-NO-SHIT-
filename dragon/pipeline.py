@@ -10,7 +10,8 @@ from jsonschema import Draft202012Validator
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.continuity import build_snapshot, prior_context
-from dragon.editorial import chief_editor_report, factcheck_report
+from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
+from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.research_planning import build_research_plan, validate_research_plan
@@ -191,12 +192,44 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             inputs=(
                 context.run_dir / "articles" / "articles.json",
                 context.run_dir / "research" / "research-packet.json",
+                context.run_dir / "evidence" / "claim-graph.json",
+                context.run_dir / "editorial" / "adversarial-review.json",
+                context.run_dir / "factcheck" / "report.json",
             ),
         )
 
+    def claim_evidence_graph(context: StageContext) -> StageResult:
+        articles_path = context.run_dir / "articles" / "articles.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        articles_value = _load(articles_path)["articles"]
+        graph = build_claim_graph(articles_value, _load(intelligence_path))
+        issues = validate_claim_graph(graph, articles_value)
+        if issues:
+            raise StageFailure("CLAIM_GRAPH_INVALID", "; ".join(issues))
+        path = context.run_dir / "evidence" / "claim-graph.json"
+        atomic_write_json(path, graph)
+        return StageResult((path,), inputs=(articles_path, intelligence_path))
+
+    def adversarial(context: StageContext) -> StageResult:
+        articles_path = context.run_dir / "articles" / "articles.json"
+        graph_path = context.run_dir / "evidence" / "claim-graph.json"
+        plan_path = context.run_dir / "research-planning" / "plan.json"
+        report = adversarial_review(
+            _load(articles_path)["articles"], _load(graph_path), _load(plan_path)
+        )
+        path = context.run_dir / "editorial" / "adversarial-review.json"
+        atomic_write_json(path, report)
+        if report["status"] != "PASS":
+            raise StageFailure(
+                "ADVERSARIAL_REVIEW_FAILED", "; ".join(report["issues"]), outputs=(path,)
+            )
+        return StageResult((path,), inputs=(articles_path, graph_path, plan_path))
+
     def factcheck(context: StageContext) -> StageResult:
-        articles_value = _load(context.edition_dir / "articles.json")["articles"]
-        sources = _load(context.edition_dir / "sources.json")["sources"]
+        articles_path = context.run_dir / "articles" / "articles.json"
+        research_path = context.run_dir / "research" / "research-packet.json"
+        articles_value = _load(articles_path)["articles"]
+        sources = _load(research_path)["sources"]
         report = factcheck_report(articles_value, sources, synthetic=synthetic)
         report["mode"] = provider.mode
         report["warning"] = "الاختبار الاصطناعي لا يثبت صحة أخبار حقيقية" if synthetic else None
@@ -207,8 +240,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult(
             (path,),
             inputs=(
-                context.edition_dir / "articles.json",
-                context.edition_dir / "sources.json",
+                articles_path,
+                research_path,
+                context.run_dir / "evidence" / "claim-graph.json",
+                context.run_dir / "editorial" / "adversarial-review.json",
             ),
         )
 
@@ -522,9 +557,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("source_intelligence", ("research",), source_intelligence),
         _json_stage("research_planning", ("source_intelligence",), research_planning),
         _json_stage("article_generation", ("research_planning",), articles),
-        _json_stage("chief_editor", ("article_generation",), chief_editor),
-        _json_stage("factcheck", ("chief_editor",), factcheck),
-        _json_stage("arabic_language_qa", ("factcheck",), arabic_qa),
+        _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
+        _json_stage("adversarial_review", ("claim_evidence_graph",), adversarial),
+        _json_stage("factcheck", ("adversarial_review",), factcheck),
+        _json_stage("chief_editor", ("factcheck",), chief_editor),
+        _json_stage("arabic_language_qa", ("chief_editor",), arabic_qa),
         _json_stage("cover", ("arabic_language_qa",), cover),
         _json_stage("publication_source", ("cover",), publication_source),
         _json_stage("pdf", ("publication_source",), pdf),

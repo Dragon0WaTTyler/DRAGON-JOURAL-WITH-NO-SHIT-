@@ -65,6 +65,14 @@ error_codes:
     category: VALIDATION
     action: BLOCK
     max_attempts: 1
+  CLAIM_GRAPH_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  ADVERSARIAL_REVIEW_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
   SOURCE_TIMEOUT:
     category: TRANSIENT
     action: RETRY

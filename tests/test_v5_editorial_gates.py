@@ -1,4 +1,4 @@
-from dragon.editorial import chief_editor_report, factcheck_report
+from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 
 
 def article(identifier: str, story_key: str, *, value: str = "1") -> dict:
@@ -45,3 +45,35 @@ def test_factcheck_requires_primary_and_independent_support_for_material_fact() 
     failed = factcheck_report([value], sources, synthetic=False)
     assert failed["status"] == "FAIL"
     assert failed["articles"][0]["outcome"] == "NEEDS_VERIFICATION"
+
+
+def test_adversarial_review_is_independent_and_blocks_weak_material_claim() -> None:
+    value = article("a1", "story")
+    value["editorial_elements"] = {"uncertainty": "تبقى حدود معلومة"}
+    graph = {
+        "claims": [{
+            "claim_id": "CLM-1", "article_id": "a1", "assessment": "PARTIALLY_SUPPORTED",
+            "material": True,
+        }]
+    }
+    plan = {"plans": [{
+        "section_id": "front",
+        "perspectives": ["أ", "ب", "ج"],
+        "questions": ["ما أقوى تفسير بديل؟"],
+    }]}
+    report = adversarial_review([value], graph, plan)
+    assert report["status"] == "FAIL"
+    assert report["articles"][0]["outcome"] == "FIX"
+
+
+def test_adversarial_review_passes_supported_claim_with_challenge_context() -> None:
+    value = article("a1", "story")
+    value["editorial_elements"] = {"uncertainty": "تبقى حدود معلومة"}
+    graph = {"claims": [{
+        "claim_id": "CLM-1", "article_id": "a1", "assessment": "SUPPORTED", "material": True,
+    }]}
+    plan = {"plans": [{
+        "section_id": "front", "perspectives": ["أ", "ب", "ج"],
+        "questions": ["ما أقوى تفسير بديل؟"],
+    }]}
+    assert adversarial_review([value], graph, plan)["status"] == "PASS"

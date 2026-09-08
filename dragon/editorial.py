@@ -126,3 +126,55 @@ def factcheck_report(decisions: list[dict], sources: list[dict], *, synthetic: b
         "articles": articles,
         "issues": edition_issues,
     }
+
+
+def adversarial_review(
+    decisions: list[dict], claim_graph: dict, research_plan: dict
+) -> dict:
+    """Independently challenge provenance and framing before editorial approval."""
+    claims_by_article: dict[str, list[dict]] = defaultdict(list)
+    for claim in claim_graph.get("claims", []):
+        claims_by_article[str(claim.get("article_id"))].append(claim)
+    plans = {item["section_id"]: item for item in research_plan.get("plans", [])}
+    results = []
+    edition_issues = []
+    for item in decisions:
+        if item.get("status") != "ACTIVE":
+            continue
+        issues = []
+        outcome = "PASS"
+        for claim in claims_by_article.get(item["id"], []):
+            assessment = claim.get("assessment")
+            if assessment == "CONTRADICTED":
+                issues.append(f"CONTRADICTED:{claim.get('claim_id')}")
+                outcome = "HOLD"
+            elif assessment == "PROVENANCE_UNAVAILABLE":
+                issues.append(f"PROVENANCE_UNAVAILABLE:{claim.get('claim_id')}")
+                if outcome != "HOLD":
+                    outcome = "REMOVE_CLAIM"
+            elif assessment == "PARTIALLY_SUPPORTED" and claim.get("material"):
+                issues.append(f"MATERIAL_SUPPORT_INCOMPLETE:{claim.get('claim_id')}")
+                if outcome not in {"HOLD", "REMOVE_CLAIM"}:
+                    outcome = "FIX"
+        plan = plans.get(item.get("section_id"))
+        if not plan or len(plan.get("perspectives", [])) < 3:
+            issues.append("PERSPECTIVE_MAP_INSUFFICIENT")
+            if outcome == "PASS":
+                outcome = "FIX"
+        if not plan or not any("تفسير بديل" in question for question in plan.get("questions", [])):
+            issues.append("ALTERNATIVE_EXPLANATION_NOT_TESTED")
+            if outcome == "PASS":
+                outcome = "FIX"
+        elements = item.get("editorial_elements") or {}
+        if not elements.get("uncertainty"):
+            issues.append("UNCERTAINTY_NOT_PRESERVED")
+            if outcome == "PASS":
+                outcome = "FIX"
+        edition_issues.extend(f"{item['id']}:{issue}" for issue in issues)
+        results.append({"article_id": item["id"], "outcome": outcome, "issues": issues})
+    return {
+        "status": "PASS" if results and not edition_issues else "FAIL",
+        "allowed_outcomes": ["PASS", "FIX", "HOLD", "REMOVE_CLAIM"],
+        "articles": results,
+        "issues": edition_issues,
+    }
