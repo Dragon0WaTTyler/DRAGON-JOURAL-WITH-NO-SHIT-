@@ -75,6 +75,22 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
     assert "untrusted data" in kwargs["input"]
 
 
+def test_article_prompt_explains_runtime_word_constraints() -> None:
+    from scripts.codex_editorial_provider import _prompt
+
+    prompt = _prompt(
+        "articles",
+        {
+            "quality_constraints": {
+                "minimum_active_article_words": 350,
+                "minimum_edition_words": 4000,
+            }
+        },
+    )
+    assert "minimum_active_article_words" in prompt
+    assert "minimum_edition_words" in prompt
+
+
 def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert SECTION_HEADINGS == RUNTIME_SECTION_HEADINGS
     for operation in ("research", "articles"):

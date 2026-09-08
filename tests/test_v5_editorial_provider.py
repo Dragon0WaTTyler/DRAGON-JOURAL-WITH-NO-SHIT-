@@ -103,6 +103,10 @@ def test_provider_rejects_invalid_article_output() -> None:
     class InvalidArticleProvider(LocalCommandEditorialProvider):
         def _invoke(self, operation: str, payload: dict):
             assert operation == "articles"
+            assert payload["quality_constraints"] == {
+                "minimum_active_article_words": 350,
+                "minimum_edition_words": 4000,
+            }
             return [{"section_id": "front", "status": "ACTIVE"}]
 
     provider = InvalidArticleProvider(("unused",))

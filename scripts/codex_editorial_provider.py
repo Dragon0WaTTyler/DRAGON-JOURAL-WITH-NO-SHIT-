@@ -236,6 +236,9 @@ section lacks a publishable lead, still research candidates and make the weaknes
 Research packet: {source}
 Fixed sections: {sections}
 Return one root object containing an articles array with exactly one decision per fixed section.
+The research packet includes quality_constraints. Every ACTIVE article must meet or exceed
+minimum_active_article_words, and the combined words of all ACTIVE article bodies must meet or
+exceed minimum_edition_words. Count whitespace-delimited words in body paragraphs only.
 Every decision must include every schema field. For fields that do not apply, use null or an empty
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,
@@ -246,8 +249,8 @@ needs text, claim_type (date/person/organization/number/statistic/study/politica
 classification (FACT/CLAIM/DISPUTED/UNKNOWN/ESTIMATE), source_ids, attribution where applicable,
 material boolean, and fact_key/value when contradiction checking is meaningful. editorial_elements
 must contain lead, nut_graf, verified_facts, context, uncertainty, consequences, and next_steps.
-Write real newspaper prose, not repeating digest cards. Normally target 1000-1500 words for a lead
-without padding; never manufacture text to reach length."""
+Write real newspaper prose, not repeating digest cards. Expand only with supported context,
+uncertainty, consequences, and next steps; never manufacture text to reach length."""
 
 
 def _run_codex(

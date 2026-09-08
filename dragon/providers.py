@@ -368,7 +368,18 @@ class LocalCommandEditorialProvider:
         return value
 
     def articles(self, research: dict) -> list[dict]:
-        value = self._invoke("articles", {"schema_version": 5, "research": research, "language": "ar"})
+        value = self._invoke(
+            "articles",
+            {
+                "schema_version": 5,
+                "research": research,
+                "language": "ar",
+                "quality_constraints": {
+                    "minimum_active_article_words": self.minimum_active_article_words,
+                    "minimum_edition_words": self.minimum_edition_words,
+                },
+            },
+        )
         if not isinstance(value, list):
             raise ProviderError("ARTICLE_SCHEMA_INVALID", "provider must return an article/skip list")
         expected = {section_id for section_id, _ in SECTION_HEADINGS}
