@@ -64,10 +64,23 @@ def _schema(operation: str) -> dict:
                     "enum": ["primary", "official", "independent", "secondary"],
                 },
                 "claim_supported": {"type": "string"},
+                "doi": {"type": ["string", "null"]},
+                "publication_status": {
+                    "type": "string",
+                    "enum": ["peer_reviewed", "preprint", "report", "news", "not_applicable", "unknown"],
+                },
+                "full_text_status": {
+                    "type": "string",
+                    "enum": ["FULL_TEXT_VERIFIED", "ABSTRACT_ONLY", "FULL_TEXT_UNAVAILABLE", "NOT_APPLICABLE", "UNKNOWN"],
+                },
+                "methods_read": {"type": "boolean"},
+                "limitations_read": {"type": "boolean"},
             },
             "required": [
                 "id", "url", "publisher", "publication_date", "accessed_at",
                 "source_type", "claim_supported",
+                "doi", "publication_status", "full_text_status", "methods_read",
+                "limitations_read",
             ],
             "additionalProperties": False,
         }
@@ -226,7 +239,10 @@ Fixed sections: {sections}
 Use live web search and return edition_date unchanged, a deduplicated sources array, and exactly
 one sections entry per fixed section. Every source needs id, exact HTTPS article/document URL,
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
-secondary), and claim_supported. Every section needs section_id, at least two ranked candidates,
+secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
+and limitations_read. Never claim methods or limitations were read unless verified legal full
+text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. Every section
+needs section_id, at least two ranked candidates,
 selected_candidate_id, and a substantive selection_reason. Every candidate needs id, integer
 rank, title, discovery_source_ids, verification_source_ids, primary_evidence_source_ids,
 independent_evidence_source_ids, facts, claims, unknowns, and disputed_points. Evidence IDs must

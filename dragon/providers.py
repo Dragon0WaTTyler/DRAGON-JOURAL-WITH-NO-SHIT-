@@ -93,6 +93,11 @@ class SyntheticEditorialProvider:
                     "accessed_at": f"{edition_date}T07:00:00+01:00",
                     "source_type": "synthetic",
                     "claim_supported": "لا يوجد ادعاء واقعي؛ مصدر محجوز للاختبار",
+                    "doi": None,
+                    "publication_status": "not_applicable",
+                    "full_text_status": "NOT_APPLICABLE",
+                    "methods_read": False,
+                    "limitations_read": False,
                 }
             ],
         }
@@ -262,13 +267,39 @@ class LocalCommandEditorialProvider:
             "accessed_at",
             "source_type",
             "claim_supported",
+            "doi",
+            "publication_status",
+            "full_text_status",
+            "methods_read",
+            "limitations_read",
         )
         for source in sources:
             if (
                 not isinstance(source, dict)
-                or any(not source.get(field) for field in required_source_fields)
+                or any(field not in source for field in required_source_fields)
+                or any(
+                    not source.get(field)
+                    for field in (
+                        "id", "url", "publisher", "publication_date", "accessed_at",
+                        "source_type", "claim_supported", "publication_status",
+                        "full_text_status",
+                    )
+                )
                 or not isinstance(source.get("id"), str)
                 or not _https_url(source.get("url"))
+                or source.get("publication_status") not in {
+                    "peer_reviewed", "preprint", "report", "news", "not_applicable", "unknown"
+                }
+                or source.get("full_text_status") not in {
+                    "FULL_TEXT_VERIFIED", "ABSTRACT_ONLY", "FULL_TEXT_UNAVAILABLE",
+                    "NOT_APPLICABLE", "UNKNOWN",
+                }
+                or not isinstance(source.get("methods_read"), bool)
+                or not isinstance(source.get("limitations_read"), bool)
+                or (
+                    source.get("full_text_status") != "FULL_TEXT_VERIFIED"
+                    and (source.get("methods_read") or source.get("limitations_read"))
+                )
             ):
                 raise ProviderError(
                     "RESEARCH_PACKET_INVALID",

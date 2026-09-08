@@ -104,7 +104,8 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     source = research["properties"]["sources"]["items"]
     assert set(source["properties"]) == {
         "id", "url", "publisher", "publication_date", "accessed_at", "source_type",
-        "claim_supported",
+        "claim_supported", "doi", "publication_status", "full_text_status",
+        "methods_read", "limitations_read",
     }
     section = research["properties"]["sections"]["items"]
     assert section["properties"]["section_id"]["enum"] == [

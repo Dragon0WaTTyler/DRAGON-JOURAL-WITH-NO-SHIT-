@@ -29,6 +29,7 @@ orchestrator:
     - article_generation
     - claim_evidence_graph
     - media_critic
+    - science_integrity
     - adversarial_review
     - factcheck
     - chief_editor
@@ -70,6 +71,7 @@ watchdog:
     article_generation: 7200
     claim_evidence_graph: 600
     media_critic: 600
+    science_integrity: 600
     adversarial_review: 600
     chief_editor: 3600
     factcheck: 3600

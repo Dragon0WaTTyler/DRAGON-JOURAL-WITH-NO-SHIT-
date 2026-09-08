@@ -22,7 +22,7 @@ payload=json.load(sys.stdin)
 if a.operation == 'healthcheck':
     value={'status':'PASS','unattended':True,'provider':'test-local'}
 elif a.operation == 'research':
-    sources=[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر أولي اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري'},{'id':'s2','url':'https://example.net/independent-page','publisher':'مصدر مستقل اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:01:00+01:00','source_type':'independent','claim_supported':'مراجعة مستقلة'}]
+    sources=[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر أولي اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري','doi':None,'publication_status':'report','full_text_status':'FULL_TEXT_VERIFIED','methods_read':True,'limitations_read':True},{'id':'s2','url':'https://example.net/independent-page','publisher':'مصدر مستقل اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:01:00+01:00','source_type':'independent','claim_supported':'مراجعة مستقلة','doi':None,'publication_status':'news','full_text_status':'NOT_APPLICABLE','methods_read':False,'limitations_read':False}]
     sections=[]
     for key,heading in SECTION_HEADINGS:
         candidates=[]
@@ -155,6 +155,11 @@ def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:
                         "accessed_at": "2099-01-02T07:00:00+01:00",
                         "source_type": "primary",
                         "claim_supported": "claim",
+                        "doi": None,
+                        "publication_status": "report",
+                        "full_text_status": "FULL_TEXT_VERIFIED",
+                        "methods_read": True,
+                        "limitations_read": True,
                     }
                 ],
                 "sections": sections,

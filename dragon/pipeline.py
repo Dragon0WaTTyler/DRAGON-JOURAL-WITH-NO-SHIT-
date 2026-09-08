@@ -16,6 +16,7 @@ from dragon.language import decode_utf8, validate_arabic_text
 from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.research_planning import build_research_plan, validate_research_plan
+from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
 from dragon.publication import (
     artifact_manifest,
@@ -242,6 +243,25 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         path = context.run_dir / "media-critic" / "report.json"
         atomic_write_json(path, report)
         return StageResult((path,), inputs=(articles_path, plan_path, intelligence_path))
+
+    def science_integrity(context: StageContext) -> StageResult:
+        articles_path = context.run_dir / "articles" / "articles.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        report = science_integrity_report(
+            _load(articles_path)["articles"], _load(intelligence_path)
+        )
+        structural_issues = validate_science_report(
+            report, _load(articles_path)["articles"]
+        )
+        if structural_issues:
+            raise StageFailure("SCIENCE_REPORT_INVALID", "; ".join(structural_issues))
+        path = context.run_dir / "science" / "integrity-report.json"
+        atomic_write_json(path, report)
+        if report["status"] != "PASS":
+            raise StageFailure(
+                "SCIENCE_INTEGRITY_FAILED", "; ".join(report["issues"]), outputs=(path,)
+            )
+        return StageResult((path,), inputs=(articles_path, intelligence_path))
 
     def factcheck(context: StageContext) -> StageResult:
         articles_path = context.run_dir / "articles" / "articles.json"
@@ -577,7 +597,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("article_generation", ("research_planning",), articles),
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
         _json_stage("media_critic", ("claim_evidence_graph",), media_critic),
-        _json_stage("adversarial_review", ("media_critic",), adversarial),
+        _json_stage("science_integrity", ("media_critic",), science_integrity),
+        _json_stage("adversarial_review", ("science_integrity",), adversarial),
         _json_stage("factcheck", ("adversarial_review",), factcheck),
         _json_stage("chief_editor", ("factcheck",), chief_editor),
         _json_stage("arabic_language_qa", ("chief_editor",), arabic_qa),
