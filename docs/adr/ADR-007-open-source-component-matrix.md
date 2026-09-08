@@ -51,6 +51,7 @@ bounded failure behavior, and a provider integration test.
 
 | Project | Class | Decision and failure posture |
 | --- | --- | --- |
+| `falense/openpaper` | BORROW ARCHITECTURE | Selectively adapt listing-before-content ingestion, source-adapter boundaries, preference-aware curation feedback, and slot-based broadsheet presentation. Do not install it as a core DRAGON runtime or adopt its Claude Code, Playwright, scheduler, state, or publishing control plane. |
 | `meedan/alegre` | BORROW ARCHITECTURE | Stable multilingual event similarity/clustering concepts; current deterministic clustering remains primary. |
 | `kartikeyaagr/Media-Bias-Analysis` | BORROW ARCHITECTURE | Coverage-comparison methodology only; DRAGON does not infer hidden motives. |
 | `meedan/check` | BORROW ARCHITECTURE | Claim/evidence workflow concepts; no second case-management service. |
@@ -104,6 +105,8 @@ bounded failure behavior, and a provider integration test.
 - Trafilatura usage/API: <https://trafilatura.readthedocs.io/en/latest/usage-python.html>
 - EPUBCheck project/release: <https://github.com/w3c/epubcheck>
 - EPUBCheck CLI/JSON output: <https://w3c.github.io/epubcheck/docs/cli/>
+- OpenPaper architecture and license: <https://github.com/falense/openpaper>
+- OpenPaper fetcher contract: <https://github.com/falense/openpaper/blob/main/skills/openpaper/references/fetcher-guide.md>
 
 No deferred entry is a production capability. Its failure mode today is simply
 `NOT_CONFIGURED` or `NOT_PROVEN`, and the current working pipeline continues.

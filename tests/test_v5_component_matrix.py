@@ -26,6 +26,7 @@ REQUIRED = {
     "RSSNext/Folo", "alephdata/aleph", "yihui/litedown", "Sci-Hub",
     "lazyoffice-opneclwd", "claw-code", "30days-challange", "experiment-agent",
     "public-apis/public-apis",
+    "falense/openpaper",
 }
 
 
@@ -38,3 +39,4 @@ def test_component_matrix_classifies_every_required_project() -> None:
     assert "BENCHMARK" in text
     assert "REJECT" in text
     assert "second scheduler" in text
+    assert "Do not install it as a core DRAGON runtime" in text
