@@ -32,6 +32,17 @@ same production adapter, and writes hash-addressed review material beneath
 labelled `VALIDATED_AWAITING_HUMAN_REVIEW` and never edits configuration or
 promotes itself to `PASS`.
 
+During a full trial the adapter also atomically captures each structured model
+response as `research.raw.json` or `articles.raw.json` before the production
+validator runs. If validation fails, the command reports those paths so the
+failure can be diagnosed without another blind model call. Raw output never
+counts as accepted evidence; only normalized artifacts from a fully validated
+trial enter `receipt.json`. Inventory errors report the exact missing, unknown,
+duplicate, and structurally invalid section identifiers. The Structured Output
+schemas constrain both research and article arrays to exactly the 23 fixed
+section decisions, while the validator independently enforces identity and
+uniqueness.
+
 Cutover does not trust the configuration flag alone. The trial receipt binds
 the current V5 runtime fingerprint, Git revision, creation time, and SHA-256 of
 the exact research/article artifacts. After inspecting those artifacts, a

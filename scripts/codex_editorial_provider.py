@@ -122,7 +122,12 @@ def _schema(operation: str) -> dict:
             "properties": {
                 "edition_date": {"type": "string"},
                 "sources": {"type": "array", "items": source, "minItems": 1},
-                "sections": {"type": "array", "items": section, "minItems": len(section_ids)},
+                "sections": {
+                    "type": "array",
+                    "items": section,
+                    "minItems": len(section_ids),
+                    "maxItems": len(section_ids),
+                },
             },
             "required": ["edition_date", "sources", "sections"],
             "additionalProperties": False,
@@ -208,6 +213,7 @@ def _schema(operation: str) -> dict:
                 "type": "array",
                 "items": decision,
                 "minItems": len(section_ids),
+                "maxItems": len(section_ids),
             },
         },
         "required": ["articles"],

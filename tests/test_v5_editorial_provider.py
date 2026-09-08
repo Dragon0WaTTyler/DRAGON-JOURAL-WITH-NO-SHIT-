@@ -86,11 +86,15 @@ def test_provider_rejects_homepage_as_exact_research_evidence(tmp_path: Path) ->
         "import json,sys; p=json.load(sys.stdin); json.dump({'edition_date':p['edition_date'],'sources':[{'id':'s','url':'https://example.org/'}]},sys.stdout)",
         encoding="utf-8",
     )
-    provider = LocalCommandEditorialProvider((sys.executable, str(script)), timeout_seconds=30)
+    capture = tmp_path / "capture"
+    provider = LocalCommandEditorialProvider(
+        (sys.executable, str(script)), timeout_seconds=30, capture_directory=capture
+    )
     try:
         provider.research("2099-01-02")
     except ProviderError as exc:
         assert exc.code == "RESEARCH_PACKET_INVALID"
+        assert (capture / "research.raw.json").is_file()
     else:
         raise AssertionError("homepage was accepted as exact evidence")
 
@@ -116,3 +120,36 @@ def test_provider_rejects_invalid_article_output() -> None:
         assert exc.code == "ARTICLE_SCHEMA_INVALID"
     else:
         raise AssertionError("invalid article output was accepted")
+
+
+def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:
+    class InvalidResearchProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            sections = [
+                {"section_id": section_id} for section_id, _ in SECTION_HEADINGS[:-1]
+            ]
+            sections.append({"section_id": SECTION_HEADINGS[0][0]})
+            return {
+                "edition_date": payload["edition_date"],
+                "sources": [
+                    {
+                        "id": "s1",
+                        "url": "https://example.org/article",
+                        "publisher": "publisher",
+                        "publication_date": "2099-01-02",
+                        "accessed_at": "2099-01-02T07:00:00+01:00",
+                        "source_type": "primary",
+                        "claim_supported": "claim",
+                    }
+                ],
+                "sections": sections,
+            }
+
+    try:
+        InvalidResearchProvider(("unused",)).research("2099-01-02")
+    except ProviderError as exc:
+        assert exc.code == "RESEARCH_PACKET_INVALID"
+        assert f"missing=['{SECTION_HEADINGS[-1][0]}']" in exc.detail
+        assert f"duplicates=['{SECTION_HEADINGS[0][0]}']" in exc.detail
+    else:
+        raise AssertionError("invalid section inventory was accepted")

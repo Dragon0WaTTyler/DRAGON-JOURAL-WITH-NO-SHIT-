@@ -79,10 +79,12 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
         section_id for section_id, _ in SECTION_HEADINGS
     ]
     assert section["properties"]["candidates"]["minItems"] == 2
+    assert research["properties"]["sections"]["maxItems"] == len(SECTION_HEADINGS)
 
     articles = _schema("articles")
     assert set(articles["properties"]) == {"articles"}
     decision = articles["properties"]["articles"]["items"]
+    assert articles["properties"]["articles"]["maxItems"] == len(SECTION_HEADINGS)
     assert decision["properties"]["status"]["enum"] == ["ACTIVE", "SKIPPED"]
     assert "null" in decision["properties"]["skip_reason"]["type"]
 

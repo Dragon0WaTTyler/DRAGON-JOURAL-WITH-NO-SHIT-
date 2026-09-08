@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import is_dataclass, replace
 from datetime import datetime
 import json
 from pathlib import Path
@@ -33,23 +34,31 @@ def main() -> int:
     if not isinstance(provider, LocalCommandEditorialProvider):
         print(json.dumps({"status": "FAIL", "error_code": provider.reason}, indent=2))
         return 1
+    edition_date = args.date or datetime.now(
+        ZoneInfo(str(config["timezone"]))
+    ).date().isoformat()
+    trial_dir = ROOT / "acceptance" / "provider-trials" / edition_date
+    if args.full and is_dataclass(provider) and hasattr(provider, "capture_directory"):
+        provider = replace(provider, capture_directory=trial_dir)
     try:
         health = provider.healthcheck()
         if not args.full:
             print(json.dumps({"status": "PASS", "provider": health}, ensure_ascii=False, indent=2))
             return 0
-        edition_date = args.date or datetime.now(
-            ZoneInfo(str(config["timezone"]))
-        ).date().isoformat()
         research = provider.research(
             edition_date,
             {"edition_count": 0, "editions": [], "trial": True},
         )
         articles = provider.articles(research)
     except ProviderError as exc:
-        print(json.dumps({"status": "FAIL", "error_code": exc.code, "detail": exc.detail}, ensure_ascii=False, indent=2))
+        failure = {"status": "FAIL", "error_code": exc.code, "detail": exc.detail}
+        raw_files = sorted(trial_dir.glob("*.raw.json")) if args.full else []
+        if raw_files:
+            failure["raw_evidence"] = [
+                str(path.relative_to(ROOT)).replace("\\", "/") for path in raw_files
+            ]
+        print(json.dumps(failure, ensure_ascii=False, indent=2))
         return 1
-    trial_dir = ROOT / "acceptance" / "provider-trials" / edition_date
     research_path = trial_dir / "research.json"
     articles_path = trial_dir / "articles.json"
     atomic_write_json(research_path, research)

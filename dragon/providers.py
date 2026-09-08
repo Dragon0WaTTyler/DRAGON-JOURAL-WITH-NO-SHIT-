@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 import json
 import os
@@ -184,6 +185,7 @@ class LocalCommandEditorialProvider:
     timeout_seconds: int = 7200
     minimum_active_article_words: int = 350
     minimum_edition_words: int = 4000
+    capture_directory: Path | None = None
     mode: str = "production"
     available: bool = True
 
@@ -207,9 +209,23 @@ class LocalCommandEditorialProvider:
             detail = result.stderr.strip()[:2000] or f"provider exited {result.returncode}"
             raise ProviderError("AI_PROVIDER_EXECUTION_FAILED", detail)
         try:
-            return json.loads(result.stdout)
+            value = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
             raise ProviderError("AI_PROVIDER_RESPONSE_INVALID", "provider stdout is not one JSON value") from exc
+        if self.capture_directory is not None and operation in {"research", "articles"}:
+            self.capture_directory.mkdir(parents=True, exist_ok=True)
+            path = self.capture_directory / f"{operation}.raw.json"
+            temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+            try:
+                temporary.write_text(
+                    json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                os.replace(temporary, path)
+            finally:
+                temporary.unlink(missing_ok=True)
+        return value
 
     def healthcheck(self) -> dict:
         value = self._invoke("healthcheck", {"schema_version": 5})
@@ -258,12 +274,30 @@ class LocalCommandEditorialProvider:
             identifiers.add(source["id"])
         sections = value.get("sections")
         expected_sections = {section_id for section_id, _ in SECTION_HEADINGS}
-        if not isinstance(sections, list) or len(sections) != len(expected_sections) or {
+        observed_ids = [
             item.get("section_id") for item in sections if isinstance(item, dict)
-        } != expected_sections:
+        ] if isinstance(sections, list) else []
+        observed_set = set(observed_ids)
+        if (
+            not isinstance(sections, list)
+            or len(sections) != len(expected_sections)
+            or observed_set != expected_sections
+        ):
+            counts = Counter(observed_ids)
+            missing = sorted(expected_sections - observed_set)
+            unknown = sorted(str(item) for item in observed_set - expected_sections)
+            duplicates = sorted(str(item) for item, count in counts.items() if count > 1)
+            invalid_entries = (
+                sum(not isinstance(item, dict) for item in sections)
+                if isinstance(sections, list)
+                else 0
+            )
             raise ProviderError(
                 "RESEARCH_PACKET_INVALID",
-                "research must contain one candidate decision for every section",
+                "research must contain one candidate decision for every section; "
+                f"count={len(sections) if isinstance(sections, list) else 'not-list'}; "
+                f"missing={missing}; unknown={unknown}; duplicates={duplicates}; "
+                f"invalid_entries={invalid_entries}",
             )
         for section in sections:
             candidates = section.get("candidates")
