@@ -3,7 +3,7 @@
 ## 1. Runtime authority
 
 The primary production runtime is the configured local Windows machine. Exactly
-one Task Scheduler entry invokes exactly one orchestrator. The orchestrator is
+one Codex local automation invokes exactly one orchestrator. The orchestrator is
 the only component allowed to advance a V5 daily run. GitHub Actions may verify
 commits but must not independently start or complete a V5 edition.
 
@@ -139,11 +139,11 @@ while local publication remains `COMPLETE`.
 
 ## 9. Scheduling, watchdog, and observability
 
-Task Scheduler configuration is externalized, including start time and target
-deadline. Install, remove, test, and run-now helpers manage one scheduled entry.
-The watchdog detects a dead orchestrator, stale `RUNNING` stage, or abandoned
-lock, captures diagnostics, and invokes `--resume` only when duplicate execution
-is excluded.
+Codex local-automation configuration is externalized, including the daily start
+time, project binding, canonical watchdog command, and target deadline. The
+watchdog detects a dead orchestrator, stale `RUNNING` stage, or abandoned lock,
+captures diagnostics, and invokes `--resume` only when duplicate execution is
+excluded. OS Task Scheduler, system cron, and a second control plane are forbidden.
 
 Every run emits machine-readable state and a concise human report with date,
 start, end, duration, publication/PDF/EPUB/cover/archive/WhatsApp outcomes,

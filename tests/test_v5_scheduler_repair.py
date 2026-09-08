@@ -13,40 +13,23 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class V5SchedulerRepairTests(unittest.TestCase):
-    def test_scheduler_has_one_disabled_build_behind_entry(self):
+    def test_scheduler_has_one_disabled_codex_local_entry(self):
         config = load_local_config(ROOT)
         value = settings(ROOT)
         self.assertEqual(config["scheduler"]["entries"], 1)
         self.assertFalse(value["enabled"])
-        self.assertTrue(str(value["watchdog"]).endswith("dragon_watchdog.py"))
-        self.assertEqual(value["interval_minutes"], 15)
+        self.assertEqual(value["provider"], "codex-local-automation")
+        self.assertEqual(value["kind"], "cron")
+        self.assertEqual(value["destination"], "local")
+        self.assertEqual(value["execution_environment"], "local")
+        self.assertEqual(value["canonical_command"], "python dragon_watchdog.py")
         self.assertEqual(len(value["runtime_fingerprint"]), 64)
         self.assertTrue(value["source_git_revision"])
 
-    def test_windows_helpers_manage_the_same_single_task(self):
-        files = [
-            ROOT / "scripts" / "windows" / name
-            for name in (
-                "install-scheduler.ps1",
-                "remove-scheduler.ps1",
-                "test-scheduler.ps1",
-                "run-now.ps1",
-            )
-        ]
-        for path in files:
-            text = path.read_text(encoding="utf-8")
-            self.assertIn("dragon\\scheduler.py", text)
-            self.assertIn("task_name", text)
-        install = files[0].read_text(encoding="utf-8")
-        self.assertIn("MultipleInstances IgnoreNew", install)
-        self.assertIn("AllowBeforeCutover", install)
-        verifier = files[2].read_text(encoding="utf-8")
-        self.assertIn("EnabledMatching.Count -ne 1", verifier)
-        self.assertIn("Repetition.Interval", verifier)
-        self.assertIn("MultipleInstances", verifier)
-        self.assertIn("acceptance\\machine\\scheduler\\inventory.json", verifier)
+    def test_os_scheduler_helpers_are_not_part_of_v5(self):
+        self.assertEqual(list((ROOT / "scripts" / "windows").glob("*.ps1")), [])
 
-    def test_scheduler_settings_support_the_direct_path_used_by_windows_helpers(self):
+    def test_scheduler_settings_support_direct_diagnostic_execution(self):
         result = subprocess.run(
             [
                 sys.executable,
@@ -63,7 +46,7 @@ class V5SchedulerRepairTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         value = json.loads(result.stdout)
         self.assertEqual(value["task_name"], "DRAGON V5 Daily Newspaper")
-        self.assertTrue(value["watchdog"].endswith("dragon_watchdog.py"))
+        self.assertEqual(value["canonical_command"], "python dragon_watchdog.py")
 
     def test_unproved_repair_provider_is_unavailable(self):
         config = load_local_config(ROOT)

@@ -132,7 +132,7 @@ No file should be removed during the build-behind phase unless it is proven unus
 ## 10. Proposed V5 component graph
 
 ```text
-Windows Task Scheduler (one entry)
+Codex local automation (one daily entry)
         |
         v
 dragon_daily.py ---- status/report CLI
@@ -148,7 +148,7 @@ LocalOrchestrator
         +---- IncidentWriter ---- RepairAgent interface ---- optional tested local backend
         |
         v
-preflight -> research -> article_generation -> chief_editor -> factcheck
+preflight -> research -> source_intelligence -> article_generation -> chief_editor -> factcheck
           -> arabic_language_qa -> cover -> publication_source -> pdf -> epub
           -> final_qa
                     |
@@ -203,7 +203,7 @@ Likely additions (exact package boundaries may be refined without changing the a
 - `dragon/` modules for orchestrator, stages, state, locking, logging, preflight, recovery, incidents, watchdog, reports, providers, and publication adapters
 - `config/local-automation.yaml`, `config/recovery-policy.yaml`, `.env.example`
 - `docs/LOCAL-AUTOMATION.md`, `docs/RECOVERY-RUNBOOK.md`, `docs/FAILURE-CATALOG.md`, `docs/LOCAL-CUTOVER.md`
-- Windows scheduler/watchdog install, remove, test, and run-now scripts under `scripts/windows/`
+- one Codex local automation bound to the saved project and canonical watchdog command
 - V5 unit, integration, renderer, provider-mock, resume, watchdog, and chaos tests under `tests/`
 
 Expected modifications:

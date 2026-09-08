@@ -1,4 +1,4 @@
-"""Expose validated Windows scheduler settings without parsing YAML in PowerShell."""
+"""Expose the single Codex local-automation contract."""
 
 from __future__ import annotations
 
@@ -22,12 +22,15 @@ def settings(root: Path) -> dict[str, object]:
     scheduler = config["scheduler"]
     return {
         "enabled": bool(scheduler["enabled"]),
+        "provider": str(scheduler["provider"]),
+        "kind": str(scheduler["kind"]),
+        "destination": str(scheduler["destination"]),
+        "execution_environment": str(scheduler["execution_environment"]),
+        "entries": int(scheduler["entries"]),
         "task_name": str(scheduler["task_name"]),
         "start_time": str(scheduler["start_time"]),
         "target_deadline": str(scheduler["target_deadline"]),
-        "interval_minutes": int(scheduler["watchdog_interval_minutes"]),
-        "python": sys.executable,
-        "watchdog": str((root / "dragon_watchdog.py").resolve()),
+        "canonical_command": str(scheduler["canonical_command"]),
         "working_directory": str(root.resolve()),
         "runtime_fingerprint": runtime_fingerprint(root),
         "source_git_revision": source_revision(root),

@@ -51,7 +51,7 @@ explicit correction mode.
 
 Every run records a content-derived `runtime_fingerprint`. It covers the V5
 Python package and entry points, editorial adapter, recovery policy, declared
-dependencies, and Windows scheduler scripts. The final run report repeats the
+dependencies. The final run report repeats the
 same identity, and cutover acceptance requires it to match the current runtime.
 An ordinary resume against changed runtime is blocked with
 `RUNTIME_FINGERPRINT_MISMATCH`; after reviewing the change, the operator must
@@ -218,10 +218,10 @@ trials and authorizes retirement. During build-behind, V5 code must use explicit
 V5 state and cannot treat legacy `status.json` as writable V5 state. GitHub
 Actions remains a V4 fallback and CI service, not a V5 orchestrator.
 
-## Windows scheduler and watchdog
+## Codex local automation and watchdog
 
-The single Task Scheduler entry invokes `dragon_watchdog.py` at the configured
-start time and repeats the same entry at the configured interval. The watchdog
+The single Codex local automation invokes `python dragon_watchdog.py` once at
+the configured daily start time in this saved project. The watchdog
 starts `dragon_daily.py` when today's run is absent. It resumes only when state
 contains a `RUNNING` stage and the lock owner is absent or provably dead. A live
 process with a stale heartbeat produces diagnostics and is never duplicated.
@@ -232,21 +232,9 @@ RUNNING stages, stale live heartbeats, and failed/blocked stages already marked
 `REQUIRES_INTERVENTION`. These conditions are never disguised as idle
 `NO_ACTION` and never trigger a duplicate process.
 
-```text
-powershell -File scripts/windows/install-scheduler.ps1
-powershell -File scripts/windows/test-scheduler.ps1
-powershell -File scripts/windows/run-now.ps1
-powershell -File scripts/windows/remove-scheduler.ps1
-python dragon_watchdog.py --check-only
-```
-
-Installation refuses while `scheduler.enabled` is false unless the operator
-explicitly uses `-AllowBeforeCutover` for a trial. `MultipleInstances=IgnoreNew`
-and the repository run lock provide independent duplicate-run protection.
-The test script inventories every task whose action invokes this repository's
-watchdog, requires exactly one enabled match, verifies its single action,
-single trigger, configured start/repetition, `IgnoreNew`, and
-`StartWhenAvailable`, then atomically records runtime-bound inventory evidence
-at `acceptance/machine/scheduler/inventory.json`. It does not prove unattended
-publication by itself; the dated watchdog runs and human scheduler review remain
-required.
+`python dragon_watchdog.py --check-only` remains the read-only machine probe.
+The Codex automation must remain inactive during build-behind. At cutover, its
+tool-returned automation ID, saved-project ID, active status, daily schedule, and
+prompt are recorded in reviewed scheduler evidence. The repository lock remains
+the independent duplicate-run barrier. No PowerShell installer, Windows Task
+Scheduler entry, cron job, backup schedule, or watchdog repetition is permitted.

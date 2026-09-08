@@ -6,12 +6,15 @@ primary_runtime: local-windows
 entry_point: dragon_daily.py
 scheduler:
   entries: 1
-  provider: windows-task-scheduler
+  provider: codex-local-automation
+  kind: cron
+  destination: local
+  execution_environment: local
   enabled: false
   task_name: DRAGON V5 Daily Newspaper
   start_time: "07:00"
   target_deadline: "10:30"
-  watchdog_interval_minutes: 15
+  canonical_command: python dragon_watchdog.py
 orchestrator:
   instances: 1
   state_path: daily-runs/YYYY-MM-DD/state.json

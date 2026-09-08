@@ -103,13 +103,6 @@ def runtime_fingerprint(root: Path) -> str:
         relatives.update(
             path.relative_to(root).as_posix() for path in dragon_dir.rglob("*.py")
         )
-    windows_scripts = root / "scripts" / "windows"
-    if windows_scripts.is_dir():
-        relatives.update(
-            path.relative_to(root).as_posix()
-            for path in windows_scripts.rglob("*")
-            if path.is_file()
-        )
     digest = hashlib.sha256(b"DRAGON-V5-RUNTIME-FINGERPRINT\0")
     for relative in sorted(relatives):
         digest.update(relative.encode("utf-8"))

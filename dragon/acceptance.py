@@ -357,8 +357,10 @@ def _review_file_evidence(
             elif sha256_file(artifact) != expected_hash:
                 issues.append(f"REVIEW_EVIDENCE_HASH_INVALID:{relative}")
     if filename == "scheduler-trial.json" and (
-        not str(value.get("task_name", "")).strip()
-        or value.get("matching_enabled_tasks") != 1
+        value.get("provider") != "codex-local-automation"
+        or not str(value.get("automation_id", "")).strip()
+        or value.get("matching_active_automations") != 1
+        or not str(value.get("project_id", "")).strip()
     ):
         issues.append("SCHEDULER_TASK_INVENTORY_INVALID")
     return {"status": "PASS" if not issues else "MISSING_OR_INVALID", "issues": issues}
