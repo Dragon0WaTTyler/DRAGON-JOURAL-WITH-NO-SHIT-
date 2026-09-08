@@ -21,6 +21,7 @@ orchestrator:
   stages:
     - preflight
     - research
+    - source_intelligence
     - article_generation
     - chief_editor
     - factcheck
@@ -57,6 +58,7 @@ watchdog:
   stage_timeouts_seconds:
     preflight: 600
     research: 7200
+    source_intelligence: 600
     article_generation: 7200
     chief_editor: 3600
     factcheck: 3600

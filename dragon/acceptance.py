@@ -14,6 +14,7 @@ from dragon.state import runtime_fingerprint, sha256_file
 LOCAL_STAGES = (
     "preflight",
     "research",
+    "source_intelligence",
     "article_generation",
     "chief_editor",
     "factcheck",

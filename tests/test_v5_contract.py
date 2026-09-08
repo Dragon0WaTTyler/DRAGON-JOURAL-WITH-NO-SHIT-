@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STAGES = [
     "preflight",
     "research",
+    "source_intelligence",
     "article_generation",
     "chief_editor",
     "factcheck",

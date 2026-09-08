@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from jsonschema import Draft202012Validator
+
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.continuity import build_snapshot, prior_context
 from dragon.editorial import chief_editor_report, factcheck_report
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
+from dragon.source_intelligence import build_source_intelligence
 from dragon.publication import (
     artifact_manifest,
     build_epub,
@@ -78,6 +81,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def articles(context: StageContext) -> StageResult:
         packet = _load(context.run_dir / "research" / "research-packet.json")
+        packet["source_intelligence"] = _load(
+            context.run_dir / "source-intelligence" / "report.json"
+        )
         try:
             values = provider.articles(packet)
         except ProviderError as exc:
@@ -86,8 +92,27 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         atomic_write_json(path, {"mode": provider.mode, "articles": values})
         return StageResult(
             (path,),
-            inputs=(context.run_dir / "research" / "research-packet.json",),
+            inputs=(
+                context.run_dir / "research" / "research-packet.json",
+                context.run_dir / "source-intelligence" / "report.json",
+            ),
         )
+
+    def source_intelligence(context: StageContext) -> StageResult:
+        packet_path = context.run_dir / "research" / "research-packet.json"
+        report = build_source_intelligence(_load(packet_path))
+        schema_path = Path(__file__).resolve().parents[1] / "config" / "source-intelligence-schema.json"
+        schema = _load(schema_path)
+        errors = sorted(
+            Draft202012Validator(schema).iter_errors(report),
+            key=lambda item: list(item.absolute_path),
+        )
+        if errors:
+            detail = "; ".join(error.message for error in errors[:5])
+            raise StageFailure("SOURCE_INTELLIGENCE_INVALID", detail)
+        path = context.run_dir / "source-intelligence" / "report.json"
+        atomic_write_json(path, report)
+        return StageResult((path,), inputs=(packet_path,))
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
@@ -476,7 +501,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     return [
         preflight,
         _json_stage("research", ("preflight",), research),
-        _json_stage("article_generation", ("research",), articles),
+        _json_stage("source_intelligence", ("research",), source_intelligence),
+        _json_stage("article_generation", ("source_intelligence",), articles),
         _json_stage("chief_editor", ("article_generation",), chief_editor),
         _json_stage("factcheck", ("chief_editor",), factcheck),
         _json_stage("arabic_language_qa", ("factcheck",), arabic_qa),
