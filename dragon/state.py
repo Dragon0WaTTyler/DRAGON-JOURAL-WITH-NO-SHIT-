@@ -40,6 +40,7 @@ RUNTIME_FIXED_PATHS = (
     "config/recovery-policy.yaml",
     "config/provider-registry.yaml",
     "config/provider-registry-schema.json",
+    "config/evolution.yaml",
     "requirements.txt",
 )
 

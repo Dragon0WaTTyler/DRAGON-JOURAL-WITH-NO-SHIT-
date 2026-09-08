@@ -1,0 +1,10 @@
+{
+  "science_prompt": "v1",
+  "media_critic": "v1",
+  "source_policy": "v1",
+  "chief_editor": "v1",
+  "cover_director": "v1",
+  "arabic_editor": "v1",
+  "layout_policy": "v1",
+  "event_clusterer": "v1"
+}

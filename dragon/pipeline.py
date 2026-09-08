@@ -25,6 +25,7 @@ from dragon.discovery import (
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 from dragon.epubcheck import EPUBCheckError, resolve_epubcheck_jar, run_epubcheck
 from dragon.evidence import build_claim_graph, validate_claim_graph
+from dragon.evolution import build_evolution_report
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.investigations import InvestigationError, update_investigation_dossiers
 from dragon.media_critic import build_media_critic, validate_media_critic
@@ -662,6 +663,26 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             continuity_path,
             build_snapshot(context.edition_date, provider.mode, decisions),
         )
+        evolution_path = context.root / "evolution" / "reports" / f"{context.edition_date}.json"
+        atomic_write_json(
+            evolution_path,
+            build_evolution_report(
+                context.root,
+                context.edition_date,
+                provider.mode,
+                articles=decisions,
+                source_intelligence=_load(
+                    context.run_dir / "source-intelligence" / "report.json"
+                ),
+                claim_graph=_load(context.run_dir / "evidence" / "claim-graph.json"),
+                science_report=_load(
+                    context.run_dir / "science" / "integrity-report.json"
+                ),
+                layout_plan=layout_plan,
+                pdf_report=pdf_report,
+                epub_report=epub_report,
+            ),
+        )
         source_artifacts = [
             context.edition_dir / "edition.md",
             context.edition_dir / "edition.html",
@@ -679,6 +700,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             context.run_dir / "qa" / "pdf-visual.json",
             context.run_dir / "qa" / "epubcheck-raw.json",
             context.run_dir / "qa" / "epubcheck.json",
+            evolution_path,
         ]
         artifacts = source_artifacts + [continuity_path]
         report = {

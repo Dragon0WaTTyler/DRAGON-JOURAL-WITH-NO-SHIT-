@@ -179,6 +179,14 @@ Every run emits machine-readable state and a concise human report with date,
 start, end, duration, publication/PDF/EPUB/cover/archive/WhatsApp outcomes,
 recoveries, and unresolved warnings.
 
+The same daily pipeline writes a threshold-aware evolution report; there is no
+second schedule or dashboard. Important prompt/policy resources are versioned.
+Feedback and objective metrics may propose an isolated candidate, but production
+never rewrites itself. Promotion eligibility requires fixed DRAGON-EVAL scores
+for presentation, analysis, evidence, citation support, journalism, Arabic, and
+visual quality, no dimension regression, an explicit decision, and a rollback
+pointer.
+
 ## 10. Cutover and acceptance
 
 V5 is built beside V4, then proven with synthetic tests, one manual real edition,
