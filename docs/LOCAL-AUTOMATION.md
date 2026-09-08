@@ -103,7 +103,9 @@ enabled with type `git-cli`, it stages only files beneath the dated edition
 directory, creates a normal non-force commit when needed, pushes the configured
 branch, fetches the remote ref, and compares the SHA-256 of every remote blob
 with the exact local file. Its receipt records both commit identities and every
-verified artifact. A rejected push or byte mismatch fails only the archive
+verified artifact, plus the edition date, producing runtime fingerprint,
+completed-publication state, and final manifest hash. A rejected push or byte
+mismatch fails only the archive
 outcome; an already completed local publication stays complete and archive-only
 retry reuses its checkpoints.
 
@@ -115,6 +117,9 @@ recipient. The Graph API version is configuration, not a silently changing
 default. Tokens, the sender phone-number ID, and comma-separated recipients are
 read only from the environment names in `.env.example`. Receipts store provider
 message IDs and hashes of recipients, never tokens or raw recipient numbers.
+The stage wrapper also binds the receipt to production mode, edition date,
+runtime fingerprint, completed publication, and the exact PDF SHA-256. Cutover
+revalidates every one of those fields and every recipient acceptance record.
 
 The capability remains unavailable until `enabled` is true,
 `integration_test_status` is `PASS`, the version is explicit, and all required

@@ -49,6 +49,17 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert run_report["result"] == "DEGRADED"
     assert run_report["publication"] == "COMPLETE"
     assert run_report["cover"] == "COVER_FALLBACK"
+    archive_receipt = json.loads(
+        (tmp_path / "daily-runs" / DATE / "archive-receipt.json").read_text(encoding="utf-8")
+    )
+    delivery_receipt = json.loads(
+        (tmp_path / "daily-runs" / DATE / "delivery-receipt.json").read_text(encoding="utf-8")
+    )
+    for receipt in (archive_receipt, delivery_receipt):
+        assert receipt["schema_version"] == 5
+        assert receipt["edition_date"] == DATE
+        assert receipt["runtime_fingerprint"] == state["runtime_fingerprint"]
+        assert receipt["publication_status"] == "COMPLETE"
     cover_brief = json.loads((edition / "cover-brief.json").read_text(encoding="utf-8"))
     assert cover_brief["cover_status"] == "COVER_FALLBACK"
     assert cover_brief["asset_type"] == "DETERMINISTIC_PNG_FALLBACK"

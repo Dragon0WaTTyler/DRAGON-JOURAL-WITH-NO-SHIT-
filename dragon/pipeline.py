@@ -22,7 +22,7 @@ from dragon.publication import (
     validate_publication_source,
 )
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
-from dragon.state import atomic_write_json
+from dragon.state import atomic_write_json, runtime_fingerprint, sha256_file
 from dragon.whatsapp import DisabledWhatsAppProvider, WhatsAppError
 
 
@@ -376,17 +376,30 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def github_archive(context: StageContext) -> StageResult:
         receipt = context.run_dir / "archive-receipt.json"
+        manifest_path = context.edition_dir / "manifest.json"
         try:
             result = archive_provider.archive(context.root, context.edition_dir, context.edition_date)
         except ArchiveError as exc:
             raise StageFailure(exc.code, exc.detail) from exc
-        atomic_write_json(receipt, {"stage": "github_archive", "mode": provider.mode, **result})
+        atomic_write_json(
+            receipt,
+            {
+                "schema_version": 5,
+                "stage": "github_archive",
+                "mode": provider.mode,
+                "edition_date": context.edition_date,
+                "runtime_fingerprint": runtime_fingerprint(context.root),
+                "publication_status": "COMPLETE",
+                "manifest_sha256": sha256_file(manifest_path),
+                **result,
+            },
+        )
         status = result["status"]
         return StageResult(
             (receipt,),
             status=status,
             metadata={"state_updates": {"archive_status": status}},
-            inputs=(context.edition_dir / "manifest.json",),
+            inputs=(manifest_path,),
         )
 
     def whatsapp_delivery(context: StageContext) -> StageResult:
@@ -424,14 +437,29 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 atomic_write_json(
                     receipt,
                     {
+                        "schema_version": 5,
                         "stage": "whatsapp_delivery",
                         "mode": provider.mode,
+                        "edition_date": context.edition_date,
+                        "runtime_fingerprint": runtime_fingerprint(context.root),
+                        "publication_status": "COMPLETE",
                         **exc.partial_receipt,
                     },
                 )
                 outputs = (receipt,)
             raise StageFailure(exc.code, str(exc), outputs=outputs) from exc
-        atomic_write_json(receipt, {"stage": "whatsapp_delivery", "mode": provider.mode, **result})
+        atomic_write_json(
+            receipt,
+            {
+                "schema_version": 5,
+                "stage": "whatsapp_delivery",
+                "mode": provider.mode,
+                "edition_date": context.edition_date,
+                "runtime_fingerprint": runtime_fingerprint(context.root),
+                "publication_status": "COMPLETE",
+                **result,
+            },
+        )
         status = result["status"]
         return StageResult(
             (receipt,),

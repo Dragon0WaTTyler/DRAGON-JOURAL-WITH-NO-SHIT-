@@ -91,6 +91,93 @@ def _checkpointed_receipt(root: Path, state: dict, stage_name: str, filename: st
     return value if isinstance(value, dict) else None
 
 
+def _archive_receipt_valid(root: Path, state: dict, receipt: dict | None) -> bool:
+    if not isinstance(receipt, dict):
+        return False
+    edition_date = str(state.get("date", ""))
+    manifest_relative = f"editions/{edition_date[:4]}/{edition_date[5:7]}/{edition_date}/manifest.json"
+    manifest_path = root / manifest_relative
+    expected_manifest = state.get("stages", {}).get("github_archive", {}).get(
+        "input_hashes", {}
+    ).get(manifest_relative)
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(manifest, dict) or not isinstance(manifest.get("artifacts"), list):
+        return False
+    receipt_artifacts = receipt.get("artifacts")
+    if not isinstance(receipt_artifacts, list):
+        return False
+    required_artifacts = {
+        str(item.get("path")): item.get("sha256")
+        for item in manifest.get("artifacts", [])
+        if isinstance(item, dict)
+    }
+    required_artifacts[manifest_relative] = expected_manifest
+    archived = {
+        str(item.get("path")): item.get("sha256")
+        for item in receipt_artifacts
+        if isinstance(item, dict)
+    }
+    return bool(
+        state.get("archive_status") == "COMPLETE"
+        and receipt.get("schema_version") == 5
+        and receipt.get("stage") == "github_archive"
+        and receipt.get("mode") == "production"
+        and receipt.get("edition_date") == edition_date
+        and receipt.get("runtime_fingerprint") == state.get("runtime_fingerprint")
+        and receipt.get("publication_status") == "COMPLETE"
+        and receipt.get("status") == "COMPLETE"
+        and receipt.get("verified") is True
+        and receipt.get("commit") == receipt.get("remote_commit")
+        and expected_manifest
+        and manifest_path.is_file()
+        and sha256_file(manifest_path) == expected_manifest
+        and receipt.get("manifest_sha256") == expected_manifest
+        and required_artifacts
+        and all(archived.get(path) == digest for path, digest in required_artifacts.items())
+    )
+
+
+def _delivery_receipt_valid(root: Path, state: dict, receipt: dict | None) -> bool:
+    if not isinstance(receipt, dict):
+        return False
+    edition_date = str(state.get("date", ""))
+    pdf_relative = f"editions/{edition_date[:4]}/{edition_date[5:7]}/{edition_date}/DRAGON-{edition_date}.pdf"
+    expected_pdf = state.get("stages", {}).get("whatsapp_delivery", {}).get(
+        "input_hashes", {}
+    ).get(pdf_relative)
+    pdf_path = root / pdf_relative
+    recipients = receipt.get("recipients")
+    return bool(
+        state.get("delivery_status") == "COMPLETE"
+        and receipt.get("schema_version") == 5
+        and receipt.get("stage") == "whatsapp_delivery"
+        and receipt.get("mode") == "production"
+        and receipt.get("edition_date") == edition_date
+        and receipt.get("runtime_fingerprint") == state.get("runtime_fingerprint")
+        and receipt.get("publication_status") == "COMPLETE"
+        and receipt.get("status") == "COMPLETE"
+        and receipt.get("accepted") is True
+        and expected_pdf
+        and pdf_path.is_file()
+        and sha256_file(pdf_path) == expected_pdf
+        and receipt.get("pdf_sha256") == expected_pdf
+        and isinstance(receipt.get("delivery_fingerprint"), str)
+        and len(receipt["delivery_fingerprint"]) == 64
+        and isinstance(recipients, list)
+        and recipients
+        and all(
+            isinstance(item, dict)
+            and item.get("status") == "ACCEPTED_BY_PROVIDER"
+            and bool(item.get("recipient_hash"))
+            and bool(item.get("message_id"))
+            for item in recipients
+        )
+    )
+
+
 def _mode(root: Path, state: dict) -> str:
     parsed = date.fromisoformat(state["date"])
     path = root / "editions" / f"{parsed:%Y}" / f"{parsed:%m}" / state["date"] / "manifest.json"
@@ -305,19 +392,11 @@ def audit_cutover(root: Path) -> dict[str, Any]:
         delivery_receipt = _checkpointed_receipt(
             root, state, "whatsapp_delivery", "delivery-receipt.json"
         )
-        entry["archive_receipt_valid"] = bool(
-            state.get("archive_status") == "COMPLETE"
-            and archive_receipt
-            and archive_receipt.get("status") == "COMPLETE"
-            and archive_receipt.get("verified") is True
-            and archive_receipt.get("commit") == archive_receipt.get("remote_commit")
+        entry["archive_receipt_valid"] = _archive_receipt_valid(
+            root, state, archive_receipt
         )
-        entry["delivery_receipt_valid"] = bool(
-            state.get("delivery_status") == "COMPLETE"
-            and delivery_receipt
-            and delivery_receipt.get("status") == "COMPLETE"
-            and delivery_receipt.get("accepted") is True
-            and delivery_receipt.get("publication_status") == "COMPLETE"
+        entry["delivery_receipt_valid"] = _delivery_receipt_valid(
+            root, state, delivery_receipt
         )
         if valid:
             valid_runs.append(entry)

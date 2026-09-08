@@ -3,8 +3,10 @@ from pathlib import Path
 import json
 
 from dragon.acceptance import (
+    _archive_receipt_valid,
     _checkpointed_receipt,
     _consecutive,
+    _delivery_receipt_valid,
     _provider_trial_evidence,
     _review_file_evidence,
     _state_valid,
@@ -78,6 +80,85 @@ def test_external_receipt_must_match_its_complete_checkpoint(tmp_path: Path) -> 
     assert _checkpointed_receipt(
         tmp_path, state, "github_archive", "archive-receipt.json"
     ) is None
+
+
+def test_archive_receipt_binds_runtime_manifest_and_remote_artifacts(tmp_path: Path) -> None:
+    day = "2099-01-02"
+    edition = tmp_path / "editions" / "2099" / "01" / day
+    edition.mkdir(parents=True)
+    article = edition / "edition.md"
+    article.write_text("نسخة", encoding="utf-8")
+    article_relative = f"editions/2099/01/{day}/edition.md"
+    manifest = edition / "manifest.json"
+    manifest.write_text(
+        json.dumps({"artifacts": [{"path": article_relative, "sha256": sha256_file(article)}]}),
+        encoding="utf-8",
+    )
+    manifest_relative = f"editions/2099/01/{day}/manifest.json"
+    manifest_hash = sha256_file(manifest)
+    state = {
+        "date": day,
+        "runtime_fingerprint": "runtime-1",
+        "archive_status": "COMPLETE",
+        "stages": {"github_archive": {"input_hashes": {manifest_relative: manifest_hash}}},
+    }
+    receipt = {
+        "schema_version": 5,
+        "stage": "github_archive",
+        "mode": "production",
+        "edition_date": day,
+        "runtime_fingerprint": "runtime-1",
+        "publication_status": "COMPLETE",
+        "status": "COMPLETE",
+        "verified": True,
+        "commit": "abc",
+        "remote_commit": "abc",
+        "manifest_sha256": manifest_hash,
+        "artifacts": [
+            {"path": article_relative, "sha256": sha256_file(article)},
+            {"path": manifest_relative, "sha256": manifest_hash},
+        ],
+    }
+    assert _archive_receipt_valid(tmp_path, state, receipt) is True
+    receipt["manifest_sha256"] = "tampered"
+    assert _archive_receipt_valid(tmp_path, state, receipt) is False
+
+
+def test_delivery_receipt_binds_runtime_pdf_and_recipient_acceptance(tmp_path: Path) -> None:
+    day = "2099-01-02"
+    pdf = tmp_path / "editions" / "2099" / "01" / day / f"DRAGON-{day}.pdf"
+    pdf.parent.mkdir(parents=True)
+    pdf.write_bytes(b"%PDF-1.7\nfixture")
+    relative = f"editions/2099/01/{day}/DRAGON-{day}.pdf"
+    pdf_hash = sha256_file(pdf)
+    state = {
+        "date": day,
+        "runtime_fingerprint": "runtime-1",
+        "delivery_status": "COMPLETE",
+        "stages": {"whatsapp_delivery": {"input_hashes": {relative: pdf_hash}}},
+    }
+    receipt = {
+        "schema_version": 5,
+        "stage": "whatsapp_delivery",
+        "mode": "production",
+        "edition_date": day,
+        "runtime_fingerprint": "runtime-1",
+        "publication_status": "COMPLETE",
+        "status": "COMPLETE",
+        "accepted": True,
+        "pdf_sha256": pdf_hash,
+        "delivery_fingerprint": "a" * 64,
+        "recipients": [
+            {
+                "status": "ACCEPTED_BY_PROVIDER",
+                "recipient_hash": "recipient-1",
+                "message_id": "message-1",
+            }
+        ],
+    }
+    assert _delivery_receipt_valid(tmp_path, state, receipt) is True
+    receipt["recipients"][0]["status"] = "UNKNOWN"
+    assert _delivery_receipt_valid(tmp_path, state, receipt) is False
 
 
 def test_acceptance_rejects_missing_or_stale_runtime_fingerprint(tmp_path: Path) -> None:

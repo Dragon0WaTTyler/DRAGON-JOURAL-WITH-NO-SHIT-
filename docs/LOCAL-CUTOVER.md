@@ -68,7 +68,12 @@ review additionally requires the configured `task_name` and
 The audit also rejects a run whose declared `run-report.json` does not match its
 date, run ID, and completed publication state. GitHub and WhatsApp evidence is
 accepted only when the receipt bytes still match a `COMPLETE` stage checkpoint;
-an edited or loose receipt cannot satisfy cutover.
+an edited or loose receipt cannot satisfy cutover. Archive receipts must also
+match the edition date, production mode, current runtime, final manifest input,
+every manifest artifact hash, and identical local/remote commit IDs. Delivery
+receipts must match the same production identity and exact PDF input, include a
+stable delivery fingerprint, and contain a provider-accepted message ID for
+every hashed recipient.
 
 ## Activation sequence
 
