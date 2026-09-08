@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from html import escape
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,14 +17,15 @@ from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl
 from dragon.state import sha256_file
 
 
-def _article_markup(article: dict) -> str:
+def _article_markup(article: dict, layout: dict | None = None) -> str:
     paragraphs = "".join(f"<p>{escape(value)}</p>" for value in article["body"])
     sources = "".join(
         f'<li><a href="{escape(url, quote=True)}">{escape(url)}</a></li>'
         for url in article.get("source_urls", [])
     )
+    grammar = (layout or {}).get("page_role", "NORMAL_NEWS")
     return (
-        f'<article id="{escape(article["id"])}">'
+        f'<article id="{escape(article["id"])}" data-page-grammar="{escape(grammar)}">'
         f'<p class="section">{escape(article["section"])}</p>'
         f'<h2>{escape(article["headline"])}</h2>'
         f'<p class="standfirst">{escape(article["standfirst"])}</p>'
@@ -39,6 +41,8 @@ def build_cover_png(
     standfirst: str,
     *,
     mode: str = "production",
+    hero_art_path: Path | None = None,
+    composition_variant: str = "single-symbol",
 ) -> Path:
     """Build the one canonical cover image consumed by every output format."""
     from PIL import Image, ImageDraw
@@ -51,15 +55,47 @@ def build_cover_png(
     draw.text((413, 185), "DRAGON", font=_font(82), fill="#111111", anchor="mm")
     _draw_rtl(draw, (735, 305), headline, _font(42), fill="#111111", spacing=57, width=645)
     draw.line((92, 495, 735, 495), fill="#9e1523", width=6)
-    _draw_rtl(draw, (735, 550), standfirst, _font(24), fill="#222222", spacing=38, width=645)
+    if hero_art_path is not None:
+        with Image.open(hero_art_path) as hero:
+            hero_image = hero.convert("RGB").resize((643, 230))
+        cover.paste(hero_image, (92, 520))
+        hero_image.close()
+        standfirst_y = 775
+    else:
+        standfirst_y = 550
+    _draw_rtl(draw, (735, standfirst_y), standfirst, _font(24), fill="#222222", spacing=38, width=645)
     label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
     footer = "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة"
-    _draw_rtl(draw, (735, 880), label, _font(25), fill="#9e1523", spacing=38, width=645)
-    draw.text((413, 955), edition_date, font=_font(22), fill="#333333", anchor="mm")
-    _draw_rtl(draw, (735, 1050), footer, _font(17), fill="#333333", spacing=28, width=645)
+    _draw_rtl(draw, (735, 930), label, _font(25), fill="#9e1523", spacing=38, width=645)
+    draw.text((413, 1000), edition_date, font=_font(22), fill="#333333", anchor="mm")
+    _draw_rtl(draw, (735, 1060), footer, _font(17), fill="#333333", spacing=28, width=645)
     destination.parent.mkdir(parents=True, exist_ok=True)
     cover.save(destination, "PNG", optimize=True)
     cover.close()
+    return destination
+
+
+def build_hero_art_png(destination: Path, seed: str, mode: str, variant: str) -> Path:
+    """Build text-free fallback art; it is never classified as documentary evidence."""
+    from PIL import Image, ImageDraw
+
+    digest = hashlib.sha256(f"{seed}:{mode}:{variant}".encode("utf-8")).digest()
+    image = Image.new("RGB", (643, 285), "#111111")
+    draw = ImageDraw.Draw(image)
+    accent = "#9e1523"
+    for index in range(7):
+        x = 25 + (digest[index] * 2) % 560
+        y = 18 + (digest[index + 7]) % 220
+        radius = 18 + digest[index + 14] % 70
+        if mode == "DRAMATIC_CURRENT_EVENT":
+            draw.rectangle((x, y, min(642, x + radius * 2), min(284, y + radius)), fill=accent)
+        elif mode == "PORTRAIT_DOSSIER":
+            draw.ellipse((x, y, min(642, x + radius), min(284, y + radius * 2)), outline=accent, width=8)
+        else:
+            draw.polygon(((x, y), (min(642, x + radius), min(284, y + radius * 2)), (max(0, x - radius), min(284, y + radius * 2))), fill=accent)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    image.save(destination, "PNG", optimize=True)
+    image.close()
     return destination
 
 
@@ -83,11 +119,21 @@ a { color: #333; overflow-wrap: anywhere; }
 """
 
 
-def build_html(edition_dir: Path, edition_date: str, articles: list[dict], *, mode: str = "production") -> Path:
+def build_html(
+    edition_dir: Path,
+    edition_date: str,
+    articles: list[dict],
+    *,
+    mode: str = "production",
+    layout_plan: dict | None = None,
+) -> Path:
     assets = edition_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
     (edition_dir / "print-v5.css").write_text(PRINT_CSS, encoding="utf-8", newline="\n")
-    article_html = "".join(_article_markup(article) for article in articles)
+    layouts = {
+        item["article_id"]: item for item in (layout_plan or {}).get("pages", [])
+    }
+    article_html = "".join(_article_markup(article, layouts.get(article["id"])) for article in articles)
     document = f'''<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"/>
 <meta name="date" content="{edition_date}"/><title>DRAGON — {edition_date}</title>
 <link rel="stylesheet" href="print-v5.css"/></head><body dir="rtl">
@@ -100,12 +146,22 @@ def build_html(edition_dir: Path, edition_date: str, articles: list[dict], *, mo
     return path
 
 
-def validate_publication_source(document: str, articles: list[dict]) -> list[str]:
+def validate_publication_source(
+    document: str, articles: list[dict], layout_plan: dict | None = None
+) -> list[str]:
     issues = validate_html_rtl(document)
     for article in articles:
         article_id = article.get("id")
         if not article_id or f'id="{escape(str(article_id), quote=True)}"' not in document:
             issues.append(f"HTML_ARTICLE_MISSING:{article_id}")
+        if layout_plan is not None:
+            page = next(
+                (item for item in layout_plan.get("pages", []) if item.get("article_id") == article_id),
+                None,
+            )
+            grammar = page.get("page_role") if page else None
+            if not grammar or f'data-page-grammar="{escape(str(grammar), quote=True)}"' not in document:
+                issues.append(f"HTML_PAGE_GRAMMAR_MISSING:{article_id}")
         source_urls = article.get("source_urls")
         if not isinstance(source_urls, list) or not source_urls:
             issues.append(f"HTML_SOURCES_MISSING:{article_id}")
@@ -183,7 +239,7 @@ def _ltr_lines(draw, text: str, font, width: int) -> list[str]:
     return lines
 
 
-def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
+def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int = 29) -> None:
     """Portable Windows renderer with explicit Arabic shaping and bidi."""
     from PIL import Image, ImageDraw
 
@@ -191,91 +247,107 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
     article_data = json.loads(articles_path.read_text(encoding="utf-8"))
     mode = article_data.get("mode", "production")
     articles = [item for item in article_data["articles"] if item["status"] == "ACTIVE"]
+    layout_path = html_path.with_name("layout-plan.json")
+    layout = json.loads(layout_path.read_text(encoding="utf-8")) if layout_path.exists() else {"pages": []}
+    layouts = {item["article_id"]: item for item in layout.get("pages", [])}
     edition_date = html_path.parent.name
     size = (827, 1169)
     pages = []
-    page_links: list[list[tuple[str, int]]] = [[]]
+    page_links: list[list[tuple[str, int, int, int]]] = [[]]
     with Image.open(html_path.parent / "assets" / "cover.png") as source_cover:
         cover = source_cover.convert("RGB").resize(size)
     pages.append(cover)
-    def new_content_page():
+    role_labels = {
+        "LEAD": "المادة الرئيسية", "NORMAL_NEWS": "أخبار", "ANALYSIS": "تحليل",
+        "INVESTIGATION_DOSSIER": "ملف تحقيق", "SCIENCE": "الدليل العلمي",
+        "HISTORY": "تاريخ", "CULTURE": "ثقافة وأدب", "DATA": "بيانات وخدمات",
+    }
+    role_colors = {
+        "SCIENCE": "#24566f", "INVESTIGATION_DOSSIER": "#55151a",
+        "HISTORY": "#6d4d2f", "CULTURE": "#6b315d", "DATA": "#2f6047",
+        "ANALYSIS": "#333333", "LEAD": "#9e1523", "NORMAL_NEWS": "#9e1523",
+    }
+
+    def new_content_page(role: str):
         page = Image.new("RGB", size, "white")
         draw = ImageDraw.Draw(page)
         draw.rectangle((45, 45, 782, 1124), outline="#d2d2d2", width=2)
+        draw.rectangle((45, 45, 782, 66), fill=role_colors.get(role, "#9e1523"))
+        _draw_rtl(
+            draw, (750, 76), role_labels.get(role, "أخبار"), _font(12),
+            fill=role_colors.get(role, "#9e1523"), spacing=18, width=300,
+        )
         return page, draw
 
     for article in articles:
-        page, draw = new_content_page()
-        links: list[tuple[str, int]] = []
-        y = 85
-        y = _draw_rtl(draw, (750, y), article["section"], _font(19), fill="#9e1523", spacing=30, width=675)
-        y += 10
-        y = _draw_rtl(draw, (750, y), article["headline"], _font(32), fill="#111111", spacing=44, width=675)
-        y += 10
-        y = _draw_rtl(draw, (750, y), article["standfirst"], _font(20), fill="#333333", spacing=32, width=675)
-        y += 12
-        y = _draw_rtl(draw, (750, y), article["byline"], _font(16), fill="#555555", spacing=25, width=675)
-        draw.line((75, y + 5, 750, y + 5), fill="#9e1523", width=3)
-        y += 30
+        page_layout = layouts.get(article["id"], {})
+        role = page_layout.get("page_role", "NORMAL_NEWS")
+        column_count = 2 if int(page_layout.get("columns", 1)) == 2 else 1
+        column_width = 315 if column_count == 2 else 675
+        column_xs = (750, 405) if column_count == 2 else (750,)
+        body_font = _font(18)
+
+        # Wrap once, then balance the immutable copy over the minimum page count.
+        # Layout may reflow copy but never rewrites editorial facts or wording.
+        flow: list[tuple[str, str | None]] = []
+        scratch_image = Image.new("RGB", (1, 1))
+        scratch = ImageDraw.Draw(scratch_image)
         for paragraph in article["body"]:
-            font = _font(18)
-            lines = _rtl_lines(draw, paragraph, font, 675)
-            for line in lines:
-                if y + 29 > 1030:
-                    pages.append(page)
-                    page_links.append(links)
-                    page, draw = new_content_page()
-                    links = []
-                    y = 85
-                    y = _draw_rtl(
-                        draw,
-                        (750, y),
-                        article["headline"] + " — تابع",
-                        _font(18),
-                        fill="#9e1523",
-                        spacing=29,
-                        width=675,
-                    )
-                    draw.line((75, y + 3, 750, y + 3), fill="#d2d2d2", width=2)
-                    y += 20
-                draw.text(
-                    (750, y),
-                    _visual_arabic(line),
-                    font=font,
-                    fill="#111111",
-                    anchor="ra",
+            flow.extend((line, None) for line in _rtl_lines(scratch, paragraph, body_font, column_width))
+            flow.append(("", None))
+        if flow and flow[-1][0] == "":
+            flow.pop()
+        flow.append(("المصادر:", None))
+        for url in article.get("source_urls", []):
+            flow.extend((line, str(url)) for line in _ltr_lines(scratch, str(url), _font(11), column_width))
+        scratch_image.close()
+
+        remaining = flow
+        continuation = False
+        while remaining:
+            page, draw = new_content_page(role)
+            links: list[tuple[str, int, int, int]] = []
+            if continuation:
+                y = _draw_rtl(
+                    draw, (750, 87), article["headline"] + " — تابع", _font(18),
+                    fill=role_colors.get(role, "#9e1523"), spacing=29, width=675,
                 )
-                y += 29
-            y += 18
-        if y + 75 > 1070:
+                draw.line((75, y + 3, 750, y + 3), fill="#d2d2d2", width=2)
+                content_y = y + 20
+            else:
+                y = 85
+                y = _draw_rtl(draw, (750, y), article["section"], _font(19), fill="#9e1523", spacing=30, width=675)
+                y += 10
+                y = _draw_rtl(draw, (750, y), article["headline"], _font(32), fill="#111111", spacing=44, width=675)
+                y += 10
+                y = _draw_rtl(draw, (750, y), article["standfirst"], _font(20), fill="#333333", spacing=32, width=675)
+                y += 12
+                y = _draw_rtl(draw, (750, y), article["byline"], _font(16), fill="#555555", spacing=25, width=675)
+                draw.line((75, y + 5, 750, y + 5), fill="#9e1523", width=3)
+                content_y = y + 30
+            rows_per_column = max(1, (1035 - content_y) // line_height)
+            page_capacity = rows_per_column * column_count
+            pages_needed = max(1, (len(remaining) + page_capacity - 1) // page_capacity)
+            take = min(page_capacity, (len(remaining) + pages_needed - 1) // pages_needed)
+            page_flow, remaining = remaining[:take], remaining[take:]
+            rows_used = (len(page_flow) + column_count - 1) // column_count
+            if column_count == 2:
+                draw.line((420, content_y, 420, min(1040, content_y + rows_used * line_height)), fill="#dedede", width=2)
+            for column_index, x in enumerate(column_xs):
+                start = column_index * rows_used
+                column_flow = page_flow[start : start + rows_used]
+                line_y = content_y
+                for line, url in column_flow:
+                    if line:
+                        font = _font(11) if url else body_font
+                        visual = line if url else _visual_arabic(line)
+                        draw.text((x, line_y), visual, font=font, fill="#555555" if url else "#111111", anchor="ra")
+                        if url:
+                            links.append((url, x - column_width, x, line_y))
+                    line_y += line_height
             pages.append(page)
             page_links.append(links)
-            page, draw = new_content_page()
-            links = []
-            y = 85
-        source_y = _draw_rtl(
-            draw,
-            (750, min(y + 5, 1035)),
-            "المصادر:",
-            _font(13),
-            fill="#555555",
-            spacing=20,
-            width=675,
-        )
-        for url in article.get("source_urls", []):
-            font = _font(11)
-            for line in _ltr_lines(draw, url, font, 675):
-                if source_y + 18 > 1090:
-                    pages.append(page)
-                    page_links.append(links)
-                    page, draw = new_content_page()
-                    links = []
-                    source_y = 85
-                draw.text((750, source_y), line, font=font, fill="#555555", anchor="ra")
-                links.append((str(url), source_y))
-                source_y += 18
-        pages.append(page)
-        page_links.append(links)
+            continuation = True
     first, rest = pages[0], pages[1:]
     subject = "synthetic acceptance fixture" if mode == "synthetic" else "Arabic daily newspaper"
     raster_destination = destination.with_name(f".{destination.name}.raster.pdf")
@@ -288,15 +360,15 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
         x_scale = float(reader.pages[0].mediabox.width) / size[0]
         y_scale = float(reader.pages[0].mediabox.height) / size[1]
         for page_number, links_for_page in enumerate(page_links):
-            for url, top in links_for_page:
+            for url, left, right, top in links_for_page:
                 writer.add_uri(
                     page_number,
                     url,
                     RectangleObject(
                         (
-                            75 * x_scale,
+                            left * x_scale,
                             (size[1] - (top + 18)) * y_scale,
-                            750 * x_scale,
+                            right * x_scale,
                             (size[1] - top) * y_scale,
                         )
                     ),
@@ -313,15 +385,87 @@ def _render_pdf_pillow(html_path: Path, destination: Path) -> None:
             page.close()
 
 
-def render_pdf(html_path: Path, destination: Path) -> Path:
+def render_pdf(html_path: Path, destination: Path, *, line_height: int = 29) -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     if __import__("os").name == "nt":
-        _render_pdf_pillow(html_path, destination)
+        _render_pdf_pillow(html_path, destination, line_height=line_height)
     else:
         from weasyprint import HTML
 
         HTML(filename=str(html_path)).write_pdf(destination)
     return destination
+
+
+def build_pdf_contact_sheet(path: Path, destination: Path, *, columns: int = 4) -> Path:
+    """Persist a compact all-pages preview used by automated and human visual QA."""
+    from PIL import Image, ImageDraw, ImageOps
+
+    reader = PdfReader(str(path))
+    thumb_size = (207, 292)
+    gutter = 18
+    label_height = 24
+    rows = (len(reader.pages) + columns - 1) // columns
+    sheet = Image.new(
+        "RGB",
+        (gutter + columns * (thumb_size[0] + gutter), gutter + rows * (thumb_size[1] + label_height + gutter)),
+        "#d9d9d9",
+    )
+    draw = ImageDraw.Draw(sheet)
+    for index, page in enumerate(reader.pages):
+        if not page.images:
+            continue
+        raster = page.images[0].image.convert("RGB")
+        thumb = ImageOps.contain(raster, thumb_size)
+        column = index % columns
+        row = index // columns
+        x = gutter + column * (thumb_size[0] + gutter)
+        y = gutter + row * (thumb_size[1] + label_height + gutter)
+        sheet.paste(thumb, (x, y))
+        draw.text((x, y + thumb_size[1] + 3), f"{index + 1}", fill="#111111", font=_font(14))
+        raster.close()
+        thumb.close()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    sheet.save(destination, "PNG", optimize=True)
+    sheet.close()
+    return destination
+
+
+def validate_pdf_visuals(
+    structural_report: dict,
+    contact_sheet: Path,
+    layout_plan: dict,
+    *,
+    minimum_content_fill: float,
+) -> dict:
+    """Run deterministic raster heuristics without pretending they are human review."""
+    issues: list[str] = []
+    metrics = structural_report.get("page_visual_metrics", [])
+    sparse = [
+        item["page"]
+        for item in metrics[1:]
+        if item.get("vertical_fill") is not None
+        and item["vertical_fill"] < minimum_content_fill
+    ]
+    if sparse:
+        issues.append("VISUAL_SPARSE_PAGES:" + ",".join(str(page) for page in sparse))
+    roles = {item.get("page_role") for item in layout_plan.get("pages", [])}
+    roles.discard(None)
+    if len(roles) < 4:
+        issues.append(f"VISUAL_PAGE_GRAMMAR_VARIETY_LOW:{len(roles)}")
+    if not contact_sheet.exists() or contact_sheet.stat().st_size < 10_000:
+        issues.append("VISUAL_CONTACT_SHEET_INVALID")
+    return {
+        "status": "PASS" if not issues else "FAIL",
+        "review_type": "AUTOMATED_RASTER_HEURISTICS",
+        "human_review_status": "NOT_RUN",
+        "contact_sheet": contact_sheet.name,
+        "page_count": structural_report.get("pages"),
+        "page_grammar_count": len(roles),
+        "page_grammars": sorted(roles),
+        "minimum_content_fill": minimum_content_fill,
+        "sparse_pages": sparse,
+        "issues": issues,
+    }
 
 
 def _xhtml(edition_date: str, articles: list[dict], *, mode: str) -> str:
@@ -360,6 +504,7 @@ def validate_pdf(
     minimum_pages: int = 2,
     canonical_cover: Path | None = None,
     expected_source_urls: tuple[str, ...] = (),
+    minimum_content_fill: float | None = None,
 ) -> dict:
     issues: list[str] = []
     try:
@@ -402,11 +547,57 @@ def validate_pdf(
         language = {"status": "NOT_APPLICABLE", "reason": "raster PDF; Arabic validated at canonical source and visual renderer inputs"}
         extraction = "UNAVAILABLE_RASTER"
     populated_pages = 0
+    page_visual_metrics: list[dict] = []
     linked_urls: set[str] = set()
-    for page in reader.pages:
+    for page_number, page in enumerate(reader.pages, start=1):
         resources = page.get("/Resources") or {}
-        if page.extract_text().strip() or resources.get("/XObject"):
+        visual_fill = None
+        vertical_fill = None
+        try:
+            from PIL import Image, ImageChops
+
+            if page.images:
+                raster = page.images[0].image.convert("RGB")
+                crop = raster.crop(
+                    (
+                        int(raster.width * 0.085),
+                        int(raster.height * 0.07),
+                        int(raster.width * 0.915),
+                        int(raster.height * 0.93),
+                    )
+                )
+                white = Image.new("RGB", crop.size, "white")
+                difference = ImageChops.difference(crop, white).convert("L")
+                mask = difference.point(lambda value: 255 if value > 16 else 0)
+                histogram = mask.histogram()
+                visual_fill = histogram[255] / max(1, sum(histogram))
+                bounds = mask.getbbox()
+                vertical_fill = (bounds[3] / crop.height) if bounds else 0.0
+                raster.close()
+                crop.close()
+                white.close()
+                difference.close()
+                mask.close()
+        except Exception:
+            pass
+        if page.extract_text().strip() or (resources.get("/XObject") and vertical_fill):
             populated_pages += 1
+        page_visual_metrics.append(
+            {
+                "page": page_number,
+                "ink_fraction": round(visual_fill, 4) if visual_fill is not None else None,
+                "vertical_fill": round(vertical_fill, 4) if vertical_fill is not None else None,
+            }
+        )
+        if (
+            minimum_content_fill is not None
+            and page_number > 1
+            and vertical_fill is not None
+            and vertical_fill < minimum_content_fill
+        ):
+            issues.append(
+                f"PDF_SPARSE_PAGE:{page_number}:{vertical_fill:.3f}<{minimum_content_fill:.3f}"
+            )
         for annotation_reference in page.get("/Annots", []):
             annotation = annotation_reference.get_object()
             action = annotation.get("/A") or {}
@@ -422,6 +613,7 @@ def validate_pdf(
         "status": "PASS" if not issues else "FAIL",
         "pages": pages,
         "populated_pages": populated_pages,
+        "page_visual_metrics": page_visual_metrics,
         "bytes": path.stat().st_size,
         "text_extraction": extraction,
         "language": language,

@@ -41,8 +41,10 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `ADVERSARIAL_REVIEW_FAILED` | CONTENT | Independent review found contradiction, unavailable provenance, partial material support, or untested framing | Repair/remove only the affected claim or article |
 | `FACTCHECK_FAILED` | CONTENT | An active article lacks accepted source linkage | Repair/remove the affected editorial unit |
 | `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |
+| `COVER_BRIEF_INVALID` | VALIDATION | Final lead, cover mode/variant, art classification, or RTL typography direction is invalid | Block before generating cover bytes |
+| `LAYOUT_PLAN_INVALID` | VALIDATION | Active-article inventory or functional page grammar is inconsistent | Block before HTML/PDF/EPUB source generation |
 | `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
-| `PDF_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A format or strict final acceptance gate failed | Repair the affected output stage |
+| `PDF_QA_FAILED` / `PDF_VISUAL_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A structural, raster-visual, format, or strict final acceptance gate failed | Repair the affected output stage; visual QA uses a contact sheet and the Layout Doctor may only change safe presentation parameters |
 | `STAGE_INPUT_INVALID` | DEPENDENCY | A declared consumed input is missing or outside the repository | Block at the exact dependency boundary |
 | `RUNTIME_FINGERPRINT_MISMATCH` | DEPENDENCY | The executable V5 runtime/config no longer matches the run's recorded producer | Preserve completed bytes; restart explicitly from `preflight` |
 | `STAGE_ACCEPTANCE_FAILED` | VALIDATION | A runner returned artifacts rejected by its validator | Targeted stage repair |

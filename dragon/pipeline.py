@@ -10,6 +10,12 @@ from jsonschema import Draft202012Validator
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
 from dragon.continuity import build_snapshot, prior_context
+from dragon.design import (
+    build_cover_brief,
+    build_layout_plan,
+    validate_cover_brief,
+    validate_layout_plan,
+)
 from dragon.editorial import adversarial_review, chief_editor_report, factcheck_report
 from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.language import decode_utf8, validate_arabic_text
@@ -24,9 +30,12 @@ from dragon.publication import (
     build_epub,
     build_html,
     build_cover_png,
+    build_hero_art_png,
+    build_pdf_contact_sheet,
     render_pdf,
     validate_epub,
     validate_pdf,
+    validate_pdf_visuals,
     validate_publication_source,
 )
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
@@ -329,17 +338,26 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
 
     def cover(context: StageContext) -> StageResult:
         decisions = _load(context.edition_dir / "articles.json")["articles"]
-        plan = _load(context.edition_dir / "edition-plan.json")
-        lead_id = next(iter(plan.get("front_page_article_ids", [])), None)
+        direction_path = context.run_dir / "cover" / "direction.json"
+        direction = _load(direction_path)
+        lead_id = direction["source_article_id"]
         lead = next((item for item in decisions if item.get("id") == lead_id), None)
         if lead is None:
             raise StageFailure("COVER_FAILED", "no active final-edition story is available")
+        hero_path = build_hero_art_png(
+            context.edition_dir / "assets" / "hero-art.png",
+            direction["source_story_key"],
+            direction["mode"],
+            direction["composition_variant"],
+        )
         path = build_cover_png(
             context.edition_dir / "assets" / "cover.png",
             context.edition_date,
             lead["headline"],
             lead["standfirst"],
             mode=provider.mode,
+            hero_art_path=hero_path,
+            composition_variant=direction["composition_variant"],
         )
         try:
             from PIL import Image
@@ -352,28 +370,64 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         if dimensions != (827, 1169):
             raise StageFailure("COVER_FAILED", f"unexpected dimensions {dimensions}", outputs=(path,))
         brief = context.edition_dir / "cover-brief.json"
-        atomic_write_json(
-            brief,
-            {
-                "mode": provider.mode,
+        atomic_write_json(brief, {
+                **direction,
+                "provider_mode": provider.mode,
                 "cover_status": "COVER_FALLBACK",
                 "asset_type": "DETERMINISTIC_PNG_FALLBACK",
                 "canonical": "assets/cover.png",
+                "hero_asset": "assets/hero-art.png",
                 "accepted": True,
-                "source_article_id": lead["id"],
-                "headline": lead["headline"],
                 "warning": "غلاف اختبار اصطناعي" if synthetic else None,
-            },
-        )
+            })
         return StageResult(
-            (path, brief), inputs=(context.edition_dir / "edition-plan.json",)
+            (hero_path, path, brief), inputs=(direction_path, context.edition_dir / "articles.json")
         )
+
+    def cover_direction(context: StageContext) -> StageResult:
+        decisions = _load(context.edition_dir / "articles.json")["articles"]
+        plan = _load(context.edition_dir / "edition-plan.json")
+        lead_id = next(iter(plan.get("front_page_article_ids", [])), None)
+        lead = next((item for item in decisions if item.get("id") == lead_id), None)
+        if lead is None:
+            raise StageFailure("COVER_BRIEF_INVALID", "no final lead is available")
+        secondary = [
+            item for item in decisions
+            if item.get("status") == "ACTIVE" and item.get("id") != lead_id
+        ]
+        brief = build_cover_brief(context.edition_date, lead, secondary, synthetic=synthetic)
+        issues = validate_cover_brief(
+            brief, {item["id"] for item in decisions if item.get("status") == "ACTIVE"}
+        )
+        if issues:
+            raise StageFailure("COVER_BRIEF_INVALID", "; ".join(issues))
+        path = context.run_dir / "cover" / "direction.json"
+        atomic_write_json(path, brief)
+        return StageResult(
+            (path,), inputs=(context.edition_dir / "edition-plan.json", context.edition_dir / "articles.json")
+        )
+
+    def layout_direction(context: StageContext) -> StageResult:
+        articles_path = context.edition_dir / "articles.json"
+        brief_path = context.edition_dir / "cover-brief.json"
+        articles_value = _load(articles_path)["articles"]
+        plan = build_layout_plan(articles_value, _load(brief_path))
+        issues = validate_layout_plan(plan, articles_value)
+        if issues:
+            raise StageFailure("LAYOUT_PLAN_INVALID", "; ".join(issues))
+        path = context.edition_dir / "layout-plan.json"
+        atomic_write_json(path, plan)
+        return StageResult((path,), inputs=(articles_path, brief_path))
 
     def publication_source(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
-        path = build_html(context.edition_dir, context.edition_date, articles_value, mode=provider.mode)
+        layout_plan = _load(context.edition_dir / "layout-plan.json")
+        path = build_html(
+            context.edition_dir, context.edition_date, articles_value,
+            mode=provider.mode, layout_plan=layout_plan,
+        )
         document = decode_utf8(path.read_bytes())
-        issues = validate_publication_source(document, articles_value)
+        issues = validate_publication_source(document, articles_value, layout_plan)
         if issues:
             raise StageFailure("PUBLICATION_SOURCE_INVALID", "; ".join(issues), outputs=(path,))
         return StageResult(
@@ -382,37 +436,90 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.edition_dir / "articles.json",
                 context.edition_dir / "edition-plan.json",
                 context.edition_dir / "assets" / "cover.png",
+                context.edition_dir / "layout-plan.json",
             ),
         )
 
     def pdf(context: StageContext) -> StageResult:
-        path = render_pdf(context.edition_dir / "edition.html", context.edition_dir / f"DRAGON-{context.edition_date}.pdf")
+        html_path = context.edition_dir / "edition.html"
+        path = render_pdf(html_path, context.edition_dir / f"DRAGON-{context.edition_date}.pdf")
         active_count = sum(
             item["status"] == "ACTIVE"
             for item in _load(context.edition_dir / "articles.json")["articles"]
         )
-        report = validate_pdf(
-            path,
-            minimum_pages=active_count + 1,
-            canonical_cover=context.edition_dir / "assets" / "cover.png",
-            expected_source_urls=tuple(
-                url
-                for item in _load(context.edition_dir / "articles.json")["articles"]
-                if item["status"] == "ACTIVE"
-                for url in item["source_urls"]
-            ),
+        expected_urls = tuple(
+            url
+            for item in _load(context.edition_dir / "articles.json")["articles"]
+            if item["status"] == "ACTIVE"
+            for url in item["source_urls"]
         )
+
+        def inspect() -> dict:
+            return validate_pdf(
+                path,
+                minimum_pages=active_count + 1,
+                canonical_cover=context.edition_dir / "assets" / "cover.png",
+                expected_source_urls=expected_urls,
+                minimum_content_fill=0.55,
+            )
+
+        report = inspect()
+        doctor = {
+            "status": "PASS",
+            "policy": "LEAST_INTRUSIVE_SAFE_REFLOW",
+            "initial_line_height": 29,
+            "action": "KEEP",
+            "before_issues": report["issues"],
+            "after_issues": report["issues"],
+        }
+        sparse_only = report["issues"] and all(
+            issue.startswith("PDF_SPARSE_PAGE:") for issue in report["issues"]
+        )
+        if sparse_only:
+            render_pdf(html_path, path, line_height=34)
+            repaired = inspect()
+            doctor["repair_line_height"] = 34
+            doctor["after_issues"] = repaired["issues"]
+            if repaired["status"] == "PASS":
+                report = repaired
+                doctor["action"] = "KEEP_SAFE_SPACING_REPAIR"
+            else:
+                render_pdf(html_path, path, line_height=29)
+                doctor["status"] = "FAIL"
+                doctor["action"] = "REVERT_AND_BLOCK"
+        doctor_path = context.run_dir / "qa" / "layout-doctor.json"
+        atomic_write_json(doctor_path, doctor)
         report_path = context.run_dir / "qa" / "pdf.json"
         atomic_write_json(report_path, report)
         if report["status"] != "PASS":
-            raise StageFailure("PDF_QA_FAILED", "; ".join(report["issues"]), outputs=(path, report_path))
+            raise StageFailure(
+                "PDF_QA_FAILED", "; ".join(report["issues"]),
+                outputs=(path, report_path, doctor_path),
+            )
+        contact_sheet = build_pdf_contact_sheet(
+            path, context.run_dir / "qa" / "pdf-contact-sheet.png"
+        )
+        visual_report = validate_pdf_visuals(
+            report,
+            contact_sheet,
+            _load(context.edition_dir / "layout-plan.json"),
+            minimum_content_fill=0.55,
+        )
+        visual_path = context.run_dir / "qa" / "pdf-visual.json"
+        atomic_write_json(visual_path, visual_report)
+        if visual_report["status"] != "PASS":
+            raise StageFailure(
+                "PDF_VISUAL_QA_FAILED", "; ".join(visual_report["issues"]),
+                outputs=(path, report_path, doctor_path, contact_sheet, visual_path),
+            )
         return StageResult(
-            (path, report_path),
+            (path, report_path, doctor_path, contact_sheet, visual_path),
             inputs=(
                 context.edition_dir / "edition.html",
                 context.edition_dir / "print-v5.css",
                 context.edition_dir / "assets" / "cover.png",
                 context.edition_dir / "articles.json",
+                context.edition_dir / "layout-plan.json",
             ),
         )
 
@@ -443,12 +550,15 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         plan = _load(context.edition_dir / "edition-plan.json")
         pdf_report = _load(context.run_dir / "qa" / "pdf.json")
         epub_report = _load(context.run_dir / "qa" / "epub.json")
+        pdf_visual_report = _load(context.run_dir / "qa" / "pdf-visual.json")
         arabic_report = _load(context.run_dir / "qa" / "arabic-language.json")
         editorial_report = _load(
             context.run_dir / "editorial" / "chief-editor-report.json"
         )
         factcheck_report_value = _load(context.run_dir / "factcheck" / "report.json")
         cover_brief = _load(context.edition_dir / "cover-brief.json")
+        layout_plan = _load(context.edition_dir / "layout-plan.json")
+        decisions = _load(context.edition_dir / "articles.json")["articles"]
         active = sum(item["status"] == "ACTIVE" for item in plan["section_inventory"])
         issues = []
         if active + sum(item["status"] == "SKIPPED" for item in plan["section_inventory"]) != len(SECTION_HEADINGS):
@@ -457,6 +567,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             ("EDITORIAL", editorial_report),
             ("FACTCHECK", factcheck_report_value),
             ("PDF", pdf_report),
+            ("PDF_VISUAL", pdf_visual_report),
             ("EPUB", epub_report),
             ("ARABIC", arabic_report),
         ):
@@ -467,7 +578,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             or not cover_brief.get("accepted")
         ):
             issues.append("COVER_NOT_ACCEPTED")
-        decisions = _load(context.edition_dir / "articles.json")["articles"]
+        issues.extend(validate_cover_brief(
+            cover_brief, {item["id"] for item in decisions if item.get("status") == "ACTIVE"}
+        ))
+        issues.extend(validate_layout_plan(layout_plan, decisions))
         continuity_path = context.edition_dir / "continuity.json"
         atomic_write_json(
             continuity_path,
@@ -480,9 +594,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             context.edition_dir / "articles.json",
             context.edition_dir / "sources.json",
             context.edition_dir / "cover-brief.json",
+            context.edition_dir / "layout-plan.json",
             context.edition_dir / f"DRAGON-{context.edition_date}.pdf",
             context.edition_dir / f"DRAGON-{context.edition_date}.epub",
             context.edition_dir / "assets" / "cover.png",
+            context.edition_dir / "assets" / "hero-art.png",
+            context.run_dir / "qa" / "layout-doctor.json",
+            context.run_dir / "qa" / "pdf-contact-sheet.png",
+            context.run_dir / "qa" / "pdf-visual.json",
         ]
         artifacts = source_artifacts + [continuity_path]
         report = {
@@ -493,8 +612,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             "factcheck_status": factcheck_report_value["status"],
             "arabic_status": arabic_report["status"],
             "pdf_status": pdf_report["status"],
+            "pdf_visual_status": pdf_visual_report["status"],
+            "pdf_human_review_status": pdf_visual_report["human_review_status"],
             "epub_status": epub_report["status"],
             "cover_status": cover_brief.get("cover_status"),
+            "layout_status": "PASS" if not validate_layout_plan(layout_plan, decisions) else "FAIL",
             "issues": issues,
             **artifact_manifest(artifacts, context.root, mode=provider.mode),
         }
@@ -630,8 +752,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("factcheck", ("adversarial_review",), factcheck),
         _json_stage("chief_editor", ("factcheck",), chief_editor),
         _json_stage("arabic_language_qa", ("chief_editor",), arabic_qa),
-        _json_stage("cover", ("arabic_language_qa",), cover),
-        _json_stage("publication_source", ("cover",), publication_source),
+        _json_stage("cover_direction", ("arabic_language_qa",), cover_direction),
+        _json_stage("cover", ("cover_direction",), cover),
+        _json_stage("layout_direction", ("cover",), layout_direction),
+        _json_stage("publication_source", ("layout_direction",), publication_source),
         _json_stage("pdf", ("publication_source",), pdf),
         _json_stage("epub", ("publication_source",), epub),
         _json_stage("final_qa", ("pdf", "epub"), final_qa),

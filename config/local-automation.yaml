@@ -35,7 +35,9 @@ orchestrator:
     - factcheck
     - chief_editor
     - arabic_language_qa
+    - cover_direction
     - cover
+    - layout_direction
     - publication_source
     - pdf
     - epub
@@ -78,7 +80,9 @@ watchdog:
     chief_editor: 3600
     factcheck: 3600
     arabic_language_qa: 1800
+    cover_direction: 600
     cover: 1800
+    layout_direction: 600
     publication_source: 1200
     pdf: 1200
     epub: 1200

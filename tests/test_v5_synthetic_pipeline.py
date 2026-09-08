@@ -28,7 +28,7 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert state["stages"]["whatsapp_delivery"]["prerequisites"] == ["final_qa"]
     assert state["stages"]["pdf"]["input_hashes"]
     assert "editions/2099/01/2099-01-02/edition.html" in state["stages"]["pdf"]["input_hashes"]
-    assert len(PdfReader(str(pdf)).pages) == 24
+    assert len(PdfReader(str(pdf)).pages) >= 24
     with ZipFile(epub) as archive:
         assert archive.namelist()[0] == "mimetype"
         assert archive.getinfo("mimetype").compress_type == ZIP_STORED
@@ -43,6 +43,14 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     assert report["editorial_status"] == "PASS"
     assert report["factcheck_status"] == "PASS"
     assert report["cover_status"] == "COVER_FALLBACK"
+    pdf_report = json.loads(
+        (tmp_path / "daily-runs" / DATE / "qa" / "pdf.json").read_text(encoding="utf-8")
+    )
+    assert pdf_report["populated_pages"] == pdf_report["pages"]
+    assert all(
+        metric["vertical_fill"] is None or metric["vertical_fill"] >= 0.55
+        for metric in pdf_report["page_visual_metrics"][1:]
+    )
     assert "daily-runs/2099-01-02/factcheck/report.json" in state["stages"]["final_qa"]["input_hashes"]
     assert "daily-runs/2099-01-02/editorial/chief-editor-report.json" in state["stages"]["final_qa"]["input_hashes"]
     run_report = json.loads((tmp_path / "daily-runs" / DATE / "run-report.json").read_text(encoding="utf-8"))

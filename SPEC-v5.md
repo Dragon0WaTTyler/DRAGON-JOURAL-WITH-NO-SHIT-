@@ -29,13 +29,15 @@ The authoritative stage order is:
 11. `factcheck`
 12. `chief_editor`
 13. `arabic_language_qa`
-14. `cover`
-15. `publication_source`
-16. `pdf`
-17. `epub`
-18. `final_qa`
-19. `github_archive`
-20. `whatsapp_delivery`
+14. `cover_direction`
+15. `cover`
+16. `layout_direction`
+17. `publication_source`
+18. `pdf`
+19. `epub`
+20. `final_qa`
+21. `github_archive`
+22. `whatsapp_delivery`
 
 Every stage declares prerequisites, inputs, outputs, acceptance validation, and
 retry policy. A stage record contains status, start/end timestamps, attempt
@@ -136,6 +138,13 @@ regression tests, validates the failed stage, and rolls back a failing patch.
 Local publication is `COMPLETE` only when editorial work is complete, fact check
 passes, Arabic QA passes, the required cover state is satisfied, PDF passes,
 EPUB passes, and final QA passes. File existence alone is never sufficient.
+
+PDF validation has separate structural and raster-visual evidence. The renderer
+persists an all-pages contact sheet, per-page ink/fill metrics, page-grammar
+variety, and an explicit human-review status. The bounded Layout Doctor may
+increase line spacing once when sparse pages are the only defect; it keeps the
+repair only when every PDF gate then passes, otherwise it restores the original
+render and blocks publication. Automated heuristics never claim human review.
 
 Archive and delivery are separate outcomes. GitHub archives only a locally
 complete edition, pushes without force, reads back exact identities, and records
