@@ -108,6 +108,13 @@ def runtime_fingerprint(root: Path) -> str:
         relatives.update(
             path.relative_to(root).as_posix() for path in dragon_dir.rglob("*.py")
         )
+    design_dir = root / "design"
+    if design_dir.is_dir():
+        relatives.update(
+            path.relative_to(root).as_posix()
+            for path in design_dir.rglob("*")
+            if path.is_file() and path.suffix in {".css", ".json"}
+        )
     digest = hashlib.sha256(b"DRAGON-V5-RUNTIME-FINGERPRINT\0")
     for relative in sorted(relatives):
         digest.update(relative.encode("utf-8"))

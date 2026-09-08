@@ -22,6 +22,7 @@ from dragon.design import (
     validate_cover_brief,
     validate_layout_plan,
 )
+from dragon.design_system import DesignSystemError, design_source_paths
 from dragon.discovery import (
     DiscoveryError,
     load_provider_registry,
@@ -516,10 +517,18 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     def publication_source(context: StageContext) -> StageResult:
         articles_value = [item for item in _load(context.edition_dir / "articles.json")["articles"] if item["status"] == "ACTIVE"]
         layout_plan = _load(context.edition_dir / "layout-plan.json")
-        path = build_html(
-            context.edition_dir, context.edition_date, articles_value,
-            mode=provider.mode, layout_plan=layout_plan,
-        )
+        design_root = context.root / "design"
+        design_inputs: tuple[Path, ...] = design_source_paths(design_root)
+        if synthetic and not design_root.is_dir():
+            design_root = Path(__file__).resolve().parents[1] / "design"
+            design_inputs = ()
+        try:
+            path = build_html(
+                context.edition_dir, context.edition_date, articles_value,
+                mode=provider.mode, layout_plan=layout_plan, design_root=design_root,
+            )
+        except DesignSystemError as exc:
+            raise StageFailure("DESIGN_SYSTEM_INVALID", str(exc)) from exc
         document = decode_utf8(path.read_bytes())
         issues = validate_publication_source(document, articles_value, layout_plan)
         if issues:
@@ -531,6 +540,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.edition_dir / "edition-plan.json",
                 context.edition_dir / "assets" / "cover.png",
                 context.edition_dir / "layout-plan.json",
+                *design_inputs,
             ),
         )
 

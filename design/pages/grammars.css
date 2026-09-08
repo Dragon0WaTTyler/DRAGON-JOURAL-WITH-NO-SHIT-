@@ -1,0 +1,22 @@
+article { break-before: page; }
+/* grammar:LEAD */
+article[data-page-grammar="LEAD"] { column-count: 2; column-gap: var(--column-gutter); }
+/* grammar:NORMAL_NEWS */
+article[data-page-grammar="NORMAL_NEWS"] { column-count: 2; column-gap: var(--column-gutter); }
+/* grammar:ANALYSIS */
+article[data-page-grammar="ANALYSIS"] { --grammar-accent: #333333; }
+/* grammar:INVESTIGATION_DOSSIER */
+article[data-page-grammar="INVESTIGATION_DOSSIER"] { --grammar-accent: #55151a; column-count: 2; column-gap: var(--column-gutter); }
+/* grammar:SCIENCE */
+article[data-page-grammar="SCIENCE"] { --grammar-accent: #24566f; }
+/* grammar:HISTORY */
+article[data-page-grammar="HISTORY"] { --grammar-accent: #6d4d2f; }
+/* grammar:CULTURE */
+article[data-page-grammar="CULTURE"] { --grammar-accent: #6b315d; }
+/* grammar:FACT_CHECK */
+article[data-page-grammar="FACT_CHECK"] { --grammar-accent: #8a6415; }
+/* grammar:DATA */
+article[data-page-grammar="DATA"] { --grammar-accent: #2f6047; }
+/* grammar:DOCUMENT_PUBLIC_RECORD */
+article[data-page-grammar="DOCUMENT_PUBLIC_RECORD"] { --grammar-accent: #4a4a4a; }
+article[data-page-grammar] > .section { color: var(--grammar-accent, var(--dragon-red)); }

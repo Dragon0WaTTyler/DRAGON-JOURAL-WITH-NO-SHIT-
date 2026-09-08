@@ -47,6 +47,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `ARABIC_LANGUAGE_QA_FAILED` | VALIDATION | Arabic language, leakage, or mojibake gate failed | Repair language only without changing facts |
 | `COVER_BRIEF_INVALID` | VALIDATION | Final lead, cover mode/variant, art classification, or RTL typography direction is invalid | Block before generating cover bytes |
 | `LAYOUT_PLAN_INVALID` | VALIDATION | Active-article inventory or functional page grammar is inconsistent | Block before HTML/PDF/EPUB source generation |
+| `DESIGN_SYSTEM_INVALID` | VALIDATION | A required token, RTL rule, component, page grammar, or stylesheet bundle is missing/invalid | Block publication-source generation and repair only the design bundle |
 | `PUBLICATION_SOURCE_INVALID` | VALIDATION | Semantic HTML, RTL, cover, article, or source identity failed | Rebuild publication source only |
 | `PDF_QA_FAILED` / `PDF_VISUAL_QA_FAILED` / `EPUB_QA_FAILED` / `FINAL_QA_FAILED` | VALIDATION | A structural, raster-visual, format, or strict final acceptance gate failed | Repair the affected output stage; visual QA uses a contact sheet and the Layout Doctor may only change safe presentation parameters |
 | `EPUBCHECK_FAILED` | VALIDATION | W3C EPUBCheck reported fatal or error messages | Repair/rebuild EPUB only and rerun EPUBCheck |

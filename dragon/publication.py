@@ -13,6 +13,7 @@ from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import RectangleObject
+from dragon.design_system import compose_print_css
 from dragon.language import decode_utf8, validate_arabic_text, validate_html_rtl, validate_xhtml_rtl
 from dragon.state import sha256_file
 
@@ -99,26 +100,6 @@ def build_hero_art_png(destination: Path, seed: str, mode: str, variant: str) ->
     return destination
 
 
-PRINT_CSS = """
-@page { size: A4; margin: 15mm; }
-@page:first { margin: 0; }
-html, body { direction: rtl; font-family: Tahoma, Arial, sans-serif; color: #111; }
-body { margin: 0; }
-.cover { page: cover; break-after: page; height: 297mm; }
-.cover img { width: 210mm; height: 297mm; object-fit: cover; }
-.content { padding: 0; }
-.masthead { border-bottom: 4px solid #9e1523; margin-bottom: 8mm; }
-.brand { direction: ltr; font: 800 26pt Arial; letter-spacing: .08em; }
-article { break-before: page; }
-h1, h2, .standfirst, .byline, .section { break-after: avoid; text-align: right; }
-h2 { font-size: 24pt; line-height: 1.35; }
-.section { color: #9e1523; font-weight: bold; }
-p { font-size: 12pt; line-height: 1.8; orphans: 3; widows: 3; text-align: right; }
-.source { border-top: 1px solid #aaa; padding-top: 3mm; font-size: 9pt; }
-a { color: #333; overflow-wrap: anywhere; }
-"""
-
-
 def build_html(
     edition_dir: Path,
     edition_date: str,
@@ -126,10 +107,14 @@ def build_html(
     *,
     mode: str = "production",
     layout_plan: dict | None = None,
+    design_root: Path | None = None,
 ) -> Path:
     assets = edition_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    (edition_dir / "print-v5.css").write_text(PRINT_CSS, encoding="utf-8", newline="\n")
+    design_root = design_root or Path(__file__).resolve().parents[1] / "design"
+    (edition_dir / "print-v5.css").write_text(
+        compose_print_css(design_root), encoding="utf-8", newline="\n"
+    )
     layouts = {
         item["article_id"]: item for item in (layout_plan or {}).get("pages", [])
     }

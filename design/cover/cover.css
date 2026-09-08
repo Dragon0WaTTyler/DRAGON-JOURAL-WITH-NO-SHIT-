@@ -1,0 +1,2 @@
+.cover { break-after: page; height: 297mm; page: cover; }
+.cover img { height: 297mm; object-fit: cover; width: 210mm; }
