@@ -9,6 +9,12 @@ from jsonschema import Draft202012Validator
 
 from dragon.builtin_stages import preflight_stage
 from dragon.archive import ArchiveError, DisabledGitArchiveProvider
+from dragon.change_monitoring import (
+    ChangeMonitoringError,
+    find_previous_monitor_report,
+    load_change_watchlist,
+    monitor_watchlist,
+)
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
     build_cover_brief,
@@ -88,13 +94,54 @@ def synthetic_preflight_stage() -> StageDefinition:
 def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None, whatsapp_provider=None) -> list[StageDefinition]:
     archive_provider = archive_provider or DisabledGitArchiveProvider()
     whatsapp_provider = whatsapp_provider or DisabledWhatsAppProvider()
+    def source_monitoring(context: StageContext) -> StageResult:
+        config_path = context.root / "config" / "change-watchlist.yaml"
+        schema_path = context.root / "config" / "change-watchlist-schema.json"
+        if synthetic and not config_path.exists():
+            report = {
+                "schema_version": 1,
+                "status": "NOT_APPLICABLE",
+                "reference_architecture": "isolated synthetic fixture has no live watchlist",
+                "targets": [],
+                "discovery_candidates": [],
+                "summary": {
+                    "configured": 0,
+                    "enabled": 0,
+                    "changed": 0,
+                    "required_failures": [],
+                    "optional_failures": [],
+                },
+            }
+            path = context.run_dir / "source-monitoring" / "report.json"
+            atomic_write_json(path, report)
+            return StageResult((path,))
+        try:
+            watchlist = load_change_watchlist(config_path, schema_path)
+        except ChangeMonitoringError as exc:
+            raise StageFailure(exc.code, exc.detail) from exc
+        prior_path = find_previous_monitor_report(context.root, context.edition_date)
+        prior = _load(prior_path) if prior_path else None
+        report = monitor_watchlist(watchlist, prior, execute=not synthetic)
+        path = context.run_dir / "source-monitoring" / "report.json"
+        atomic_write_json(path, report)
+        inputs = (config_path, schema_path, *((prior_path,) if prior_path else ()))
+        if report["status"] == "FAIL":
+            raise StageFailure(
+                "SOURCE_MONITORING_REQUIRED_FAILED",
+                ", ".join(report["summary"]["required_failures"]),
+                outputs=(path,),
+            )
+        return StageResult((path,), inputs=inputs)
+
     def research(context: StageContext) -> StageResult:
         continuity = prior_context(context.root, context.edition_date)
         continuity_path = context.run_dir / "research" / "continuity-context.json"
         atomic_write_json(continuity_path, continuity)
         registry_path = context.root / "config" / "provider-registry.yaml"
         provider_input = dict(continuity)
-        inputs: tuple[Path, ...] = ()
+        monitoring_path = context.run_dir / "source-monitoring" / "report.json"
+        provider_input["source_change_monitoring"] = _load(monitoring_path)
+        inputs: tuple[Path, ...] = (monitoring_path,)
         if registry_path.exists():
             try:
                 registry = load_provider_registry(registry_path)
@@ -840,7 +887,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
     preflight = synthetic_preflight_stage() if synthetic else preflight_stage()
     return [
         preflight,
-        _json_stage("research", ("preflight",), research),
+        _json_stage("source_monitoring", ("preflight",), source_monitoring),
+        _json_stage("research", ("source_monitoring",), research),
         _json_stage("source_intelligence", ("research",), source_intelligence),
         _json_stage("research_planning", ("source_intelligence",), research_planning),
         _json_stage("article_generation", ("research_planning",), articles),

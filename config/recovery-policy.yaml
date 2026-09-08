@@ -37,6 +37,14 @@ categories:
     action: INCIDENT
     max_attempts: 1
 error_codes:
+  CHANGE_WATCHLIST_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_MONITORING_REQUIRED_FAILED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
   PROVIDER_REGISTRY_INVALID:
     category: VALIDATION
     action: BLOCK

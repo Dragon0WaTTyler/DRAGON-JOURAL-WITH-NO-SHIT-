@@ -45,6 +45,9 @@ def test_operational_metrics_collect_evidence_counts_and_format_gates(tmp_path: 
     run = tmp_path / "daily-runs" / "2099-01-02"
     edition = tmp_path / "editions" / "2099" / "01" / "2099-01-02"
     for path, value in {
+        run / "source-monitoring" / "report.json": {
+            "status": "PASS", "summary": {"enabled": 3, "changed": 1}
+        },
         run / "source-intelligence" / "report.json": {
             "summary": {"source_count": 2, "event_count": 1},
             "source_records": [{"publisher": "A"}, {"publisher": "B"}],
@@ -65,6 +68,9 @@ def test_operational_metrics_collect_evidence_counts_and_format_gates(tmp_path: 
         path.write_text(json.dumps(value), encoding="utf-8")
     metrics = collect_operational_metrics(tmp_path, run, {"date": "2099-01-02"})
     assert metrics["source_count"] == 2
+    assert metrics["watched_target_count"] == 3
+    assert metrics["changed_target_count"] == 1
+    assert metrics["source_monitoring"] == "PASS"
     assert metrics["publisher_count"] == 2
     assert metrics["independent_origin_count"] == 2
     assert metrics["claim_count"] == 2

@@ -1,0 +1,28 @@
+version: 1
+targets:
+  - target_id: commune-meknes
+    label: Commune de Meknes official site
+    url: https://communemeknes.ma/
+    enabled: false
+    required: false
+    material_type: HTML
+    strategy: html-visible-text
+    expected_content_types: [text/html, application/xhtml+xml]
+    timeout_seconds: 15
+    maximum_bytes: 5000000
+    integration_test_status: NOT_RUN
+    provenance_behavior: A detected change is a discovery lead until the exact official page or document is reviewed.
+    license_terms_notes: Retain URL and minimal change evidence; do not republish the page body.
+  - target_id: hcp-publications
+    label: Haut-Commissariat au Plan publications
+    url: https://www.hcp.ma/
+    enabled: false
+    required: false
+    material_type: HTML
+    strategy: html-visible-text
+    expected_content_types: [text/html, application/xhtml+xml]
+    timeout_seconds: 15
+    maximum_bytes: 5000000
+    integration_test_status: NOT_RUN
+    provenance_behavior: A page hash change prompts exact report discovery and never verifies a statistical claim by itself.
+    license_terms_notes: Preserve official document identity and publication terms.

@@ -7,6 +7,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 STAGES = [
     "preflight",
+    "source_monitoring",
     "research",
     "source_intelligence",
     "research_planning",

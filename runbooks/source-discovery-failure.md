@@ -3,11 +3,11 @@
 ## Symptoms
 Provider registry is invalid, a required adapter is unavailable, or no candidates are discovered.
 ## Failure codes
-`PROVIDER_REGISTRY_INVALID`, `PROVIDER_REGISTRY_UNAVAILABLE`, `SOURCE_INSUFFICIENT`.
+`CHANGE_WATCHLIST_INVALID`, `SOURCE_MONITORING_REQUIRED_FAILED`, `PROVIDER_REGISTRY_INVALID`, `PROVIDER_REGISTRY_UNAVAILABLE`, `SOURCE_INSUFFICIENT`.
 ## Likely causes
-Bad registry schema, unproved required adapter, optional outage, or overly narrow query.
+Bad watchlist/registry schema, failed required watch target, unproved required adapter, optional outage, or overly narrow query.
 ## Automatic actions
-Validate registry, record health truthfully, and continue past optional outages using configured fallbacks.
+Validate the watchlist and registry, record health truthfully, and continue past optional outages using configured fallbacks.
 ## Fallback order
 Primary/original; direct specialist; independent reporting; discovery aggregator.
 ## Data never to overwrite

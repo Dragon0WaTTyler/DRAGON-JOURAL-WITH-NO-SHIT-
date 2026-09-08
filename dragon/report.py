@@ -44,6 +44,7 @@ def collect_operational_metrics(root: Path, run_dir: Path, state: dict) -> dict:
     date_value = state["date"]
     edition = root / "editions" / date_value[:4] / date_value[5:7] / date_value
     intelligence = _read_json(run_dir / "source-intelligence" / "report.json")
+    monitoring = _read_json(run_dir / "source-monitoring" / "report.json")
     claim_graph = _read_json(run_dir / "evidence" / "claim-graph.json")
     arabic = _read_json(run_dir / "qa" / "arabic-language.json")
     pdf = _read_json(run_dir / "qa" / "pdf.json")
@@ -62,6 +63,9 @@ def collect_operational_metrics(root: Path, run_dir: Path, state: dict) -> dict:
     }
     return {
         "source_count": intelligence.get("summary", {}).get("source_count"),
+        "watched_target_count": monitoring.get("summary", {}).get("enabled"),
+        "changed_target_count": monitoring.get("summary", {}).get("changed"),
+        "source_monitoring": monitoring.get("status", "NOT_PRESENT"),
         "publisher_count": len({
             item.get("publisher") for item in intelligence.get("source_records", [])
             if item.get("publisher")

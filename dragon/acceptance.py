@@ -13,6 +13,7 @@ from dragon.state import runtime_fingerprint, sha256_file
 
 LOCAL_STAGES = (
     "preflight",
+    "source_monitoring",
     "research",
     "source_intelligence",
     "research_planning",

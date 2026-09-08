@@ -27,7 +27,7 @@ edition.
 
 The orchestrator owns these ordered stages:
 
-`preflight -> research -> article_generation -> chief_editor -> factcheck ->
+`preflight -> source_monitoring -> research -> article_generation -> chief_editor -> factcheck ->
 arabic_language_qa -> cover -> publication_source -> pdf -> epub -> final_qa
 -> github_archive -> whatsapp_delivery`
 

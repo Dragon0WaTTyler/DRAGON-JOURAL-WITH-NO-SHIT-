@@ -6,6 +6,8 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 
 | Code | Category | Meaning | Automatic first action |
 | --- | --- | --- | --- |
+| `CHANGE_WATCHLIST_INVALID` | VALIDATION | The Git-backed source watchlist violates its strict contract | Block before research and repair only the watchlist |
+| `SOURCE_MONITORING_REQUIRED_FAILED` | DEPENDENCY | A target explicitly marked required could not be checked | Block before research; optional targets only degrade the monitoring report |
 | `SOURCE_TIMEOUT` | TRANSIENT | A source request exceeded its deadline | Bounded exponential retry |
 | `SOURCE_INSUFFICIENT` | CONTENT | Evidence is too weak for the planned item | Reopen only affected research item or skip with reason |
 | `ARTICLE_SCHEMA_INVALID` | CONTENT | Generated article violates its schema | Repair only the article |

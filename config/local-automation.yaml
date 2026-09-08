@@ -23,6 +23,7 @@ orchestrator:
   preserve_historical_status: true
   stages:
     - preflight
+    - source_monitoring
     - research
     - source_intelligence
     - research_planning

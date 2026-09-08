@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "targets"],
+  "properties": {
+    "version": {"const": 1},
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {"properties": {"enabled": {"const": true}}, "required": ["enabled"]},
+            "then": {"properties": {"integration_test_status": {"const": "PASS"}}}
+          },
+          {
+            "if": {"properties": {"material_type": {"const": "HTML"}}, "required": ["material_type"]},
+            "then": {"properties": {"strategy": {"const": "html-visible-text"}}}
+          },
+          {
+            "if": {"properties": {"material_type": {"const": "JSON"}}, "required": ["material_type"]},
+            "then": {"properties": {"strategy": {"const": "json-canonical"}}}
+          },
+          {
+            "if": {"properties": {"material_type": {"enum": ["PDF", "BINARY"]}}, "required": ["material_type"]},
+            "then": {"properties": {"strategy": {"const": "bytes"}}}
+          }
+        ],
+        "required": ["target_id", "label", "url", "enabled", "required", "material_type", "strategy", "expected_content_types", "timeout_seconds", "maximum_bytes", "integration_test_status", "provenance_behavior", "license_terms_notes"],
+        "properties": {
+          "target_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]+$"},
+          "label": {"type": "string", "minLength": 1},
+          "url": {"type": "string", "pattern": "^https://"},
+          "enabled": {"type": "boolean"},
+          "required": {"type": "boolean"},
+          "material_type": {"enum": ["HTML", "JSON", "PDF", "BINARY"]},
+          "strategy": {"enum": ["html-visible-text", "json-canonical", "bytes"]},
+          "expected_content_types": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
+          "maximum_bytes": {"type": "integer", "minimum": 1024, "maximum": 25000000},
+          "integration_test_status": {"enum": ["PASS", "NOT_RUN", "FAIL"]},
+          "provenance_behavior": {"type": "string", "minLength": 1},
+          "license_terms_notes": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}
