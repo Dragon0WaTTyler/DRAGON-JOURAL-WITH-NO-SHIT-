@@ -32,6 +32,61 @@ def _atomic_text(path: Path, value: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def _read_json(path: Path) -> dict:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+        return value if isinstance(value, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def collect_operational_metrics(root: Path, run_dir: Path, state: dict) -> dict:
+    date_value = state["date"]
+    edition = root / "editions" / date_value[:4] / date_value[5:7] / date_value
+    intelligence = _read_json(run_dir / "source-intelligence" / "report.json")
+    claim_graph = _read_json(run_dir / "evidence" / "claim-graph.json")
+    arabic = _read_json(run_dir / "qa" / "arabic-language.json")
+    pdf = _read_json(run_dir / "qa" / "pdf.json")
+    pdf_visual = _read_json(run_dir / "qa" / "pdf-visual.json")
+    epub = _read_json(run_dir / "qa" / "epub.json")
+    epubcheck = _read_json(run_dir / "qa" / "epubcheck.json")
+    cover = _read_json(edition / "cover-brief.json")
+    layout = _read_json(edition / "layout-plan.json")
+    archive = _read_json(run_dir / "archive-receipt.json")
+    delivery = _read_json(run_dir / "delivery-receipt.json")
+    claims = claim_graph.get("claims", [])
+    origins = {
+        origin
+        for event in intelligence.get("event_clusters", [])
+        for origin in event.get("independent_origin_groups", [])
+    }
+    return {
+        "source_count": intelligence.get("summary", {}).get("source_count"),
+        "publisher_count": len({
+            item.get("publisher") for item in intelligence.get("source_records", [])
+            if item.get("publisher")
+        }),
+        "independent_origin_count": len(origins),
+        "event_count": intelligence.get("summary", {}).get("event_count"),
+        "claim_count": len(claims),
+        "unsupported_claim_count": sum(
+            item.get("assessment") in {"UNAVAILABLE", "CONTRADICTED"} for item in claims
+        ),
+        "arabic_qa": arabic.get("status", "NOT_PRESENT"),
+        "cover_mode": cover.get("mode"),
+        "cover_qa": "PASS" if cover.get("accepted") else "NOT_PRESENT",
+        "layout_qa": layout.get("status", "NOT_PRESENT"),
+        "pdf_qa": pdf.get("status", "NOT_PRESENT"),
+        "pdf_visual_qa": pdf_visual.get("status", "NOT_PRESENT"),
+        "epub_qa": epub.get("status", "NOT_PRESENT"),
+        "epubcheck": epubcheck.get("status", "NOT_PRESENT"),
+        "remote_readback": (
+            "PASS" if archive.get("verified") is True else archive.get("status", "NOT_PRESENT")
+        ),
+        "delivery_receipt": delivery.get("status", "NOT_PRESENT"),
+    }
+
+
 def evaluate_deadlines(state: dict, timezone: str, target_deadline: str | None) -> dict:
     if not target_deadline:
         return {
@@ -109,6 +164,9 @@ def finalize_report(
         "schema_version": 5,
         "date": state["date"],
         "run_id": state["run_id"],
+        "trigger": state.get("trigger"),
+        "trigger_time": state["started_at"],
+        "resume_or_new": state.get("invocation", "UNKNOWN"),
         "runtime_fingerprint": state.get("runtime_fingerprint"),
         "result": state["run_result"],
         "started_at": state["started_at"],
@@ -124,6 +182,22 @@ def finalize_report(
         "warnings": warnings,
         "last_successful_checkpoint": state.get("last_successful_checkpoint"),
         "error_code": state.get("error_code"),
+        "operational_metrics": collect_operational_metrics(root, run_dir, state),
+        "stage_receipts": [
+            {
+                "stage": name,
+                "status": record["status"],
+                "started_at": record.get("started_at"),
+                "ended_at": record.get("ended_at"),
+                "duration_seconds": _duration_seconds(record.get("started_at"), record.get("ended_at")),
+                "attempts": record.get("attempt_count", 0),
+                "failure_code": record.get("error_code"),
+                "fallbacks": record.get("recovery_history", []),
+                "input_hashes": record.get("input_hashes", {}),
+                "output_hashes": record.get("artifact_hashes", {}),
+            }
+            for name, record in state["stages"].items()
+        ],
         **evaluate_deadlines(state, timezone, target_deadline),
     }
     json_path = run_dir / "run-report.json"

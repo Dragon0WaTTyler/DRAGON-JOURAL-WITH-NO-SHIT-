@@ -173,6 +173,15 @@ class Orchestrator:
         elif from_stage:
             self.invalidate_from(from_stage, reason="explicit_from")
         state = self.store.initialize()
+        state["invocation"] = (
+            "RETRY"
+            if retry_stage
+            else "FROM_STAGE"
+            if from_stage
+            else "RESUME"
+            if resume
+            else "NEW"
+        )
         start_at = retry_stage or from_stage
         state.pop("run_result", None)
         state.pop("error_code", None)
