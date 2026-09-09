@@ -4,6 +4,8 @@ import hashlib
 from pathlib import Path
 import subprocess
 
+import pytest
+
 from dragon.archive import ArchiveError, GitArchiveProvider, archive_provider_from_config
 
 
@@ -24,9 +26,10 @@ def test_git_archive_pushes_and_reads_back_exact_bytes(tmp_path: Path) -> None:
     subprocess.run(["git", "clone", str(remote), str(root)], check=True, capture_output=True)
     git(root, "config", "user.name", "DRAGON Test")
     git(root, "config", "user.email", "dragon@example.invalid")
-    git(root, "config", "core.autocrlf", "false")
+    git(root, "config", "core.autocrlf", "true")
     (root / "README.md").write_text("seed\n", encoding="utf-8")
-    git(root, "add", "README.md")
+    (root / ".gitattributes").write_text("* text=auto eol=lf\neditions/** -text\n", encoding="utf-8")
+    git(root, "add", "README.md", ".gitattributes")
     git(root, "commit", "-m", "seed")
     git(root, "push", "origin", "main")
     edition = root / "editions" / "2099" / "01" / "2099-01-02"
@@ -63,3 +66,69 @@ def test_archive_rejects_an_edition_outside_repository(tmp_path: Path) -> None:
         assert exc.code == "GIT_PUSH_FAILED"
     else:
         raise AssertionError("out-of-repository archive was accepted")
+
+
+def test_archive_refuses_stale_checkout_without_overwriting_remote_change(tmp_path: Path) -> None:
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "--initial-branch=main", str(remote)], check=True, capture_output=True)
+    root = tmp_path / "work"
+    peer = tmp_path / "peer"
+    subprocess.run(["git", "clone", str(remote), str(root)], check=True, capture_output=True)
+    git(root, "config", "user.name", "DRAGON Test")
+    git(root, "config", "user.email", "dragon@example.invalid")
+    git(root, "config", "core.autocrlf", "true")
+    (root / "README.md").write_text("seed\n", encoding="utf-8")
+    (root / ".gitattributes").write_text("* text=auto eol=lf\neditions/** -text\n", encoding="utf-8")
+    git(root, "add", "README.md", ".gitattributes")
+    git(root, "commit", "-m", "seed")
+    git(root, "push", "origin", "main")
+    subprocess.run(["git", "clone", str(remote), str(peer)], check=True, capture_output=True)
+    git(peer, "config", "user.name", "Peer")
+    git(peer, "config", "user.email", "peer@example.invalid")
+    git(peer, "config", "core.autocrlf", "true")
+    (peer / "remote-note.txt").write_text("remote change\n", encoding="utf-8")
+    git(peer, "add", "remote-note.txt")
+    git(peer, "commit", "-m", "remote change")
+    git(peer, "push", "origin", "main")
+    edition = root / "editions" / "2099" / "01" / "2099-01-02"
+    edition.mkdir(parents=True)
+    (edition / "edition.md").write_text("# نسخة محلية\n", encoding="utf-8")
+
+    with pytest.raises(ArchiveError) as caught:
+        GitArchiveProvider().archive(root, edition, "2099-01-02")
+
+    assert caught.value.code == "GIT_PUSH_FAILED"
+    assert "stale checkout" in caught.value.detail
+    remote_note = subprocess.run(
+        ["git", "--git-dir", str(remote), "show", "main:remote-note.txt"],
+        capture_output=True, check=True, text=True,
+    ).stdout
+    assert remote_note == "remote change\n"
+    assert git(root, "status", "--short", "--", "editions") == "?? editions/"
+
+
+def test_archive_resumes_after_crash_between_local_commit_and_push(tmp_path: Path) -> None:
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "--initial-branch=main", str(remote)], check=True, capture_output=True)
+    root = tmp_path / "work"
+    subprocess.run(["git", "clone", str(remote), str(root)], check=True, capture_output=True)
+    git(root, "config", "user.name", "DRAGON Test")
+    git(root, "config", "user.email", "dragon@example.invalid")
+    git(root, "config", "core.autocrlf", "true")
+    (root / "README.md").write_text("seed\n", encoding="utf-8")
+    (root / ".gitattributes").write_text("* text=auto eol=lf\neditions/** -text\n", encoding="utf-8")
+    git(root, "add", "README.md", ".gitattributes")
+    git(root, "commit", "-m", "seed")
+    git(root, "push", "origin", "main")
+    edition = root / "editions" / "2099" / "01" / "2099-01-02"
+    edition.mkdir(parents=True)
+    artifact = edition / "edition.md"
+    artifact.write_text("# نسخة ملتزمة محليا\n", encoding="utf-8")
+    git(root, "add", "--", "editions/2099/01/2099-01-02/edition.md")
+    git(root, "commit", "-m", "simulated crash after binary commit")
+
+    receipt = GitArchiveProvider().archive(root, edition, "2099-01-02")
+
+    assert receipt["status"] == "COMPLETE"
+    assert receipt["action"] == "ALREADY_COMMITTED"
+    assert receipt["commit"] == receipt["remote_commit"]

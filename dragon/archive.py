@@ -60,6 +60,24 @@ class GitArchiveProvider:
         if not files:
             raise ArchiveError("GIT_PUSH_FAILED", "edition has no files to archive")
         relative_files = [str(path.relative_to(root)).replace("\\", "/") for path in files]
+        remote_ref = f"refs/remotes/{self.remote}/{self.branch}"
+        # Refresh the remote identity before touching the index.  A stale or
+        # diverged checkout must be reconciled explicitly; archive publication
+        # never force-pushes or silently rebases unrelated user work.
+        _git(root, "fetch", self.remote, self.branch)
+        ancestry = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", remote_ref, "HEAD"],
+            cwd=root,
+            capture_output=True,
+            timeout=30,
+        )
+        if ancestry.returncode == 1:
+            raise ArchiveError(
+                "GIT_PUSH_FAILED",
+                f"remote {self.remote}/{self.branch} changed; reconcile the stale checkout before archive retry",
+            )
+        if ancestry.returncode != 0:
+            raise ArchiveError("GIT_PUSH_FAILED", "could not compare local and remote archive history")
         _git(root, "add", "--", *relative_files)
         staged = subprocess.run(
             ["git", "diff", "--cached", "--quiet", "--", *relative_files],
@@ -78,7 +96,6 @@ class GitArchiveProvider:
             _git(root, "fetch", self.remote, self.branch)
         except ArchiveError as exc:
             raise ArchiveError("GIT_PUSH_FAILED", exc.detail) from exc
-        remote_ref = f"refs/remotes/{self.remote}/{self.branch}"
         remote_commit = str(_git(root, "rev-parse", remote_ref)).strip()
         if remote_commit != commit:
             raise ArchiveError(
