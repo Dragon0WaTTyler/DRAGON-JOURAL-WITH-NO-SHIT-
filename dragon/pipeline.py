@@ -36,6 +36,7 @@ from dragon.evidence import build_claim_graph, validate_claim_graph
 from dragon.evolution import build_evolution_report
 from dragon.language import decode_utf8, validate_arabic_text
 from dragon.investigations import InvestigationError, update_investigation_dossiers
+from dragon.layout_doctor import apply_layout_doctor
 from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.research_planning import (
@@ -632,29 +633,12 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             )
 
         report = inspect()
-        doctor = {
-            "status": "PASS",
-            "policy": "LEAST_INTRUSIVE_SAFE_REFLOW",
-            "initial_line_height": 29,
-            "action": "KEEP",
-            "before_issues": report["issues"],
-            "after_issues": report["issues"],
-        }
-        sparse_only = report["issues"] and all(
-            issue.startswith("PDF_SPARSE_PAGE:") for issue in report["issues"]
+        report, doctor = apply_layout_doctor(
+            path,
+            report,
+            render=lambda line_height: render_pdf(html_path, path, line_height=line_height),
+            inspect=inspect,
         )
-        if sparse_only:
-            render_pdf(html_path, path, line_height=34)
-            repaired = inspect()
-            doctor["repair_line_height"] = 34
-            doctor["after_issues"] = repaired["issues"]
-            if repaired["status"] == "PASS":
-                report = repaired
-                doctor["action"] = "KEEP_SAFE_SPACING_REPAIR"
-            else:
-                render_pdf(html_path, path, line_height=29)
-                doctor["status"] = "FAIL"
-                doctor["action"] = "REVERT_AND_BLOCK"
         doctor_path = context.run_dir / "qa" / "layout-doctor.json"
         atomic_write_json(doctor_path, doctor)
         report_path = context.run_dir / "qa" / "pdf.json"

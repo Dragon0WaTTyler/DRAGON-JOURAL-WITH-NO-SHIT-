@@ -9,6 +9,7 @@ import json
 import os
 from pathlib import Path
 import re
+import time
 from xml.etree import ElementTree
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
@@ -236,7 +237,7 @@ def _searchable_text_overlay(page_texts: list[list[str]], page_size: tuple[float
     if font_name not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont(font_name, str(font_path)))
     payload = BytesIO()
-    document = canvas.Canvas(payload, pagesize=page_size, pageCompression=1)
+    document = canvas.Canvas(payload, pagesize=page_size, pageCompression=1, invariant=1)
     for lines in page_texts:
         text = document.beginText(18, page_size[1] - 18)
         text.setFont(font_name, 7)
@@ -461,7 +462,20 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
     raster_destination = destination.with_name(f".{destination.name}.raster.pdf")
     linked_destination = destination.with_name(f".{destination.name}.linked.pdf")
     try:
-        first.save(raster_destination, "PDF", resolution=110.0, save_all=True, append_images=rest, title=f"DRAGON {edition_date}", author="DRAGON", subject=subject, creator="DRAGON Pillow RTL renderer")
+        invariant_time = time.gmtime(0)
+        first.save(
+            raster_destination,
+            "PDF",
+            resolution=110.0,
+            save_all=True,
+            append_images=rest,
+            title=f"DRAGON {edition_date}",
+            author="DRAGON",
+            subject=subject,
+            creator="DRAGON Pillow RTL renderer",
+            creationDate=invariant_time,
+            modDate=invariant_time,
+        )
         reader = PdfReader(str(raster_destination))
         writer = PdfWriter()
         writer.clone_document_from_reader(reader)

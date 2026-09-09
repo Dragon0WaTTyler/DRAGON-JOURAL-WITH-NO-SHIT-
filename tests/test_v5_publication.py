@@ -12,6 +12,7 @@ from dragon.publication import (
     validate_pdf_visuals,
     validate_publication_source,
 )
+from dragon.state import sha256_file
 
 
 def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -> None:
@@ -69,6 +70,8 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
         str((annotation.get("/A") or {}).get("/URI")) == article["source_urls"][0]
         for annotation in annotations
     )
+    repeated = render_pdf(html, edition / "DRAGON-2099-01-02-repeated.pdf")
+    assert sha256_file(repeated) == sha256_file(pdf)
 
 
 def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> None:
