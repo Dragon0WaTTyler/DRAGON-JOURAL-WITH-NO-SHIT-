@@ -29,17 +29,17 @@ the editorial provider or substitutes for a real edition.
 | 7 | Resume after crash is safe | MACHINE_PASS | `tests/test_v5_chaos.py::test_abrupt_process_interrupt_leaves_running_state_and_resume_reuses_upstream`; chaos scenario `resume_after_crash` | Human review of machine evidence remains required for cutover. |
 | 8 | Africa/Casablanca publication date is correct | MACHINE_PASS | `tests/test_v5_scheduler_repair.py`; chaos scenario `casablanca_midnight` | Actual scheduler trial must retain this timezone. |
 | 9 | Editorial role responsibilities remain internal | VERIFIED | `tests/test_v5_contract.py::test_executable_stage_graph_matches_authoritative_config`; `config/roles.yaml` | Real editorial output remains subject to items 37 and 39. |
-| 10 | Canonical edition Markdown is Arabic | MACHINE_PASS | `tests/test_v5_synthetic_pipeline.py::test_synthetic_pipeline_creates_real_arabic_publications`; accepted `2099-03-21` fixture | Real edition remains covered by item 62. |
+| 10 | Canonical edition Markdown is Arabic | MACHINE_PASS | `tests/test_v5_synthetic_pipeline.py::test_synthetic_pipeline_creates_real_arabic_publications`; accepted `2099-03-22` fixture | Real edition remains covered by item 62. |
 | 11 | Reader-facing article content is Arabic | VERIFIED | `tests/test_arabic_language_qa_v5.py::test_professional_arabic_passes`; `tests/test_v5_editorial_provider.py` | Real provider/human review remains covered by items 37, 39, and 62. |
 | 12 | Cover reader-facing text is Arabic | VERIFIED | `tests/test_v5_publication.py::test_cover_renders_arabic_teaser_rail_without_corrupting_png`; shaping fail-closed test | Human visual comparison remains a cutover review requirement. |
-| 13 | PDF reader-facing content is Arabic | MACHINE_PASS | accepted `2099-03-21` fixture; `tests/test_v5_publication.py::test_pdf_validator_rejects_non_arabic_reader_text` | Human visual comparison remains required. |
-| 14 | EPUB reader-facing content is Arabic | MACHINE_PASS | accepted `2099-03-21` fixture; `tests/test_v5_epub.py::test_epub_is_deterministic_valid_reflowable_arabic` | Human artifact comparison remains required. |
+| 13 | PDF reader-facing content is Arabic | MACHINE_PASS | accepted `2099-03-22` fixture; `tests/test_v5_publication.py::test_pdf_validator_rejects_non_arabic_reader_text` | Human visual comparison remains required. |
+| 14 | EPUB reader-facing content is Arabic | MACHINE_PASS | accepted `2099-03-22` fixture; `tests/test_v5_epub.py::test_epub_is_deterministic_valid_reflowable_arabic` | Human artifact comparison remains required. |
 | 15 | Arabic UTF-8 passes | VERIFIED | `tests/test_arabic_language_qa_v5.py::test_utf8_decode_is_strict` | None. |
 | 16 | Arabic shaping passes | VERIFIED | `tests/test_v5_publication.py::test_cover_fails_closed_when_arabic_shaping_stops_working`; accepted fixture | Human raster review remains required. |
 | 17 | RTL passes | VERIFIED | `tests/test_arabic_language_qa_v5.py`; `tests/test_v5_epub.py` | None for deterministic metadata/layout gates. |
 | 18 | Mixed Arabic/Latin bidi fixtures pass | VERIFIED | `tests/test_v5_design_system.py::test_arabic_design_fixture_covers_mixed_direction_publication_cases`; Arabic QA tests | None. |
-| 19 | PDF Arabic font/render test passes | MACHINE_PASS | accepted `2099-03-21` PDF and PDF QA; `tests/test_v5_publication.py` | Human contact-sheet review remains required. |
-| 20 | EPUB RTL metadata/read direction passes | MACHINE_PASS | accepted `2099-03-21` EPUB; `tests/test_v5_epub.py::test_epub_rejects_wrong_direction_missing_cover_metadata_and_corrupt_zip` | None for deterministic validation. |
+| 19 | PDF Arabic font/render test passes | MACHINE_PASS | accepted `2099-03-22` PDF and PDF QA; `tests/test_v5_publication.py` | Human contact-sheet review remains required. |
+| 20 | EPUB RTL metadata/read direction passes | MACHINE_PASS | accepted `2099-03-22` EPUB; `tests/test_v5_epub.py::test_epub_rejects_wrong_direction_missing_cover_metadata_and_corrupt_zip` | None for deterministic validation. |
 | 21 | Discovery is provider-based | VERIFIED | `tests/test_v5_discovery.py::test_registry_is_strict_and_truthful_about_availability` | Production providers must remain truthfully configured. |
 | 22 | Important sources have provenance | VERIFIED | `tests/test_v5_discovery.py::test_trafilatura_adapter_extracts_bounded_html_with_provenance`; evidence graph tests | Real source review remains part of item 62. |
 | 23 | Wire dependence can be detected | VERIFIED | `tests/test_v5_source_intelligence.py::test_source_intelligence_preserves_lineage_and_detects_wire_duplicates`; media critic tests | None. |
@@ -66,8 +66,8 @@ the editorial provider or substitutes for a real edition.
 | 44 | Interior pages use functional grammars | VERIFIED | `tests/test_v5_design.py::test_layout_uses_functional_page_grammars_without_editorial_authority`; design-system tests | Human visual comparison remains required. |
 | 45 | Charts retain provenance | VERIFIED | `tests/test_v5_assets.py::test_chart_requires_data_provenance_units_period_axis_and_arabic_labels` | None. |
 | 46 | Layout Doctor safely repairs or reverts | VERIFIED | `tests/test_v5_layout_doctor.py` | None. |
-| 47 | PDF is generated and validated | MACHINE_PASS | accepted `2099-03-21` fixture; `tests/test_v5_publication.py` | Human visual review remains required. |
-| 48 | EPUB is generated and EPUBCheck passes | MACHINE_PASS | accepted `2099-03-21`; W3C EPUBCheck 5.3.0, zero fatal/errors; `tests/test_v5_epubcheck.py` | Real edition validation remains part of item 62. |
+| 47 | PDF is generated and validated | MACHINE_PASS | accepted `2099-03-22` fixture; `tests/test_v5_publication.py` | Human visual review remains required. |
+| 48 | EPUB is generated and EPUBCheck passes | MACHINE_PASS | accepted `2099-03-22`; W3C EPUBCheck 5.3.0, zero fatal/errors; `tests/test_v5_epubcheck.py` | Real edition validation remains part of item 62. |
 | 49 | Existing GitHub publication finality remains correct | VERIFIED | `tests/test_automatic_publication.py`; `tests/test_scheduled_workflow_contract.py`; V4 fallback remains enabled | Retire V4 only through documented cutover. |
 | 50 | Remote read-back verifies binaries | PENDING_REAL_RUN | exact-byte local-remote Git integration in `tests/test_v5_archive.py::test_git_archive_pushes_and_reads_back_exact_bytes` | Obtain a hash-bound archive receipt from the configured real remote for a production edition. |
 | 51 | `PUBLICATION_COMPLETE` cannot lie | VERIFIED | `tests/test_v5_acceptance.py::test_publication_evidence_is_semantically_revalidated`; finality/tamper tests | None for implementation. |
@@ -79,7 +79,7 @@ the editorial provider or substitutes for a real edition.
 | 57 | No dashboard is required | VERIFIED | `docs/LOCAL-AUTOMATION.md`; CLI status/reporting tests | None. |
 | 58 | Dependency/license decisions are documented | VERIFIED | `docs/adr/ADR-007-open-source-component-matrix.md`; `docs/adr/ADR-008-openpaper-reference-architecture.md`; component-matrix test | None. |
 | 59 | Runbooks match code | VERIFIED | `tests/test_v5_runbooks.py::test_required_failure_runbooks_are_complete`; failure catalog/recovery policy | Keep synchronized as codes change. |
-| 60 | Full deterministic E2E fixture edition passes | MACHINE_PASS | accepted `2099-03-21` canonical synthetic run; `tests/test_v5_synthetic_pipeline.py` | Synthetic evidence does not satisfy item 62. |
+| 60 | Full deterministic E2E fixture edition passes | MACHINE_PASS | accepted `2099-03-22` canonical synthetic run; `tests/test_v5_synthetic_pipeline.py` | Synthetic evidence does not satisfy item 62. |
 | 61 | Chaos/recovery suite passes | MACHINE_PASS | `acceptance/machine/failure-injection/receipt.json`: 31 scenarios, 112 tests, runtime-bound PASS | Human review file is still absent and must not be fabricated. |
 | 62 | One real or production-equivalent Arabic smoke edition passes | PENDING_REAL_RUN | fail-closed `python dragon_acceptance.py` reports `manual_real_publication: false` and provider unproven | Run a real provider-backed manual edition, human review it, then complete three unattended production dates. |
 | 63 | Evolution metrics exist | VERIFIED | `tests/test_v5_evolution.py::test_daily_evolution_is_thresholded_and_never_self_mutates`; reporting metrics test | None. |
@@ -91,10 +91,10 @@ the editorial provider or substitutes for a real edition.
 ## Current acceptance facts
 
 - The current regression baseline is 322 passed and 2 skipped.
-- The current machine chaos receipt records 31 named scenarios and 112 passing
+- The current machine chaos receipt records 31 named scenarios and 123 passing
   targeted tests for runtime fingerprint
-  `bdb2316c959c59a9e93450eff781614d745cfbc0e4879e4fcd23b1405c482b96`.
-- Synthetic date `2099-03-21` completed local publication with final QA `PASS`
+  `4696e4c8d0a6473159145a097da39b2a157532ef93789e456422304bef0ed213`.
+- Synthetic date `2099-03-22` completed local publication with final QA `PASS`
   and W3C EPUBCheck 5.3.0 reporting zero fatal errors and zero errors.
 - GitHub archive and WhatsApp delivery for that fixture are independently
   `DEGRADED`, as expected while both providers are disabled.
