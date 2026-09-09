@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from pypdf import PdfReader
+from reportlab.pdfgen.canvas import Canvas
 
 from dragon.publication import (
     _safe_flow_take,
@@ -166,6 +167,19 @@ def test_pdf_validator_rejects_zero_byte_file_explicitly(tmp_path: Path) -> None
     assert report["status"] == "FAIL"
     assert "PDF_SIGNATURE_INVALID" in report["issues"]
     assert any(issue.startswith("PDF_OPEN_FAILED:") for issue in report["issues"])
+
+
+def test_pdf_validator_rejects_non_arabic_reader_text(tmp_path: Path) -> None:
+    pdf = tmp_path / "latin-only.pdf"
+    canvas = Canvas(str(pdf))
+    for page in range(2):
+        for line in range(30):
+            canvas.drawString(72, 780 - line * 20, f"English-only publication line {page}-{line}")
+        canvas.showPage()
+    canvas.save()
+    report = validate_pdf(pdf)
+    assert report["status"] == "FAIL"
+    assert any("ARABIC_LANGUAGE_INSUFFICIENT" in issue for issue in report["issues"])
 
 
 def test_publication_source_binds_functional_layout_grammar(tmp_path: Path) -> None:
