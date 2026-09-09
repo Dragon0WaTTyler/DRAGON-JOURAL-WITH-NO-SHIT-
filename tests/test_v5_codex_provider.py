@@ -92,6 +92,8 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
     assert "minimum_edition_words" in prompt
     assert "تحرير: اسم القلم" in prompt
     assert "تحرير: DRAGON" not in prompt
+    assert "original Arabic synthesis" in prompt
+    assert "never reproduce a full copyrighted article" in prompt
 
 
 def test_structured_output_schemas_are_strict_and_complete() -> None:
@@ -111,6 +113,7 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
         "methods_read", "limitations_read",
         "science_metadata",
     }
+    assert source["properties"]["claim_supported"]["maxLength"] == 600
     science = source["properties"]["science_metadata"]
     assert {"sample_size", "locators", "doi_verified", "metadata_matches", "claim_alignment", "correlation_only"}.issubset(
         set(science["properties"])
@@ -121,6 +124,9 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     ]
     assert section["properties"]["status"]["enum"] == ["ACTIVE", "NO_NEWS"]
     assert "minItems" not in section["properties"]["candidates"]
+    candidate = section["properties"]["candidates"]["items"]
+    for field in ("facts", "claims", "unknowns", "disputed_points"):
+        assert candidate["properties"][field]["items"]["maxLength"] == 600
     assert "null" in section["properties"]["selected_candidate_id"]["type"]
     assert section["properties"]["fallback_action"]["enum"] == [
         "RADAR", "DOSSIER_FOLLOW_UP", "PUBLIC_DATA_ANALYSIS", "SKIP", None,

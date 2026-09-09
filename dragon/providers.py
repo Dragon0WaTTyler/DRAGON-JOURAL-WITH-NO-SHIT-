@@ -486,6 +486,7 @@ class LocalCommandEditorialProvider:
                     )
                 )
                 or not isinstance(source.get("id"), str)
+                or len(str(source.get("claim_supported") or "")) > 600
                 or not _https_url(source.get("url"))
                 or not _valid_source_time(source.get("publication_date"))
                 or not _valid_source_time(source.get("accessed_at"), retrieval=True)
@@ -592,6 +593,11 @@ class LocalCommandEditorialProvider:
                     or candidate["rank"] < 1
                     or any(not isinstance(candidate[field], list) for field in evidence_fields)
                     or any(not isinstance(candidate[field], list) for field in content_fields)
+                    or any(
+                        not isinstance(item, str) or len(item) > 600
+                        for field in content_fields
+                        for item in candidate[field]
+                    )
                 ):
                     raise ProviderError(
                         "RESEARCH_PACKET_INVALID",

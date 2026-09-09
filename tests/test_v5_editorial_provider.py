@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import sys
 
+import pytest
+
 from dragon.providers import (
     LocalCommandEditorialProvider,
     ProviderError,
@@ -61,6 +63,33 @@ def test_local_command_provider_health_research_and_section_decisions(tmp_path: 
     assert len(decisions) == 23
     assert decisions[0]["status"] == "ACTIVE"
     assert all(item["status"] == "SKIPPED" for item in decisions[1:])
+
+
+@pytest.mark.parametrize(
+    ("needle", "replacement"),
+    [
+        ("'ادعاء اختباري'", repr("مادة منسوخة " * 80)),
+        ("['حقيقة اختبارية']", repr(["مادة منسوخة " * 80])),
+    ],
+)
+def test_provider_rejects_source_prose_disguised_as_research_metadata(
+    tmp_path: Path, needle: str, replacement: str
+) -> None:
+    script = tmp_path / "provider.py"
+    _provider_script(script)
+    original = script.read_text(encoding="utf-8")
+    script.write_text(
+        original.replace(needle, replacement),
+        encoding="utf-8",
+    )
+    provider = LocalCommandEditorialProvider(
+        (sys.executable, str(script)), timeout_seconds=30
+    )
+
+    with pytest.raises(ProviderError) as caught:
+        provider.research("2099-01-02")
+
+    assert caught.value.code == "RESEARCH_PACKET_INVALID"
 
 
 def test_provider_factory_cannot_claim_availability_before_proven_check(tmp_path: Path) -> None:
