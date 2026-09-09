@@ -36,6 +36,9 @@ def test_git_archive_pushes_and_reads_back_exact_bytes(tmp_path: Path) -> None:
     edition.mkdir(parents=True)
     artifact = edition / "edition.md"
     artifact.write_text("# نسخة عربية\n", encoding="utf-8")
+    cover = edition / "assets" / "cover.png"
+    cover.parent.mkdir()
+    cover.write_bytes(b"canonical cover fixture\x00\xff")
 
     receipt = GitArchiveProvider().archive(root, edition, "2099-01-02")
 
@@ -47,7 +50,18 @@ def test_git_archive_pushes_and_reads_back_exact_bytes(tmp_path: Path) -> None:
         capture_output=True,
         check=True,
     ).stdout
-    assert hashlib.sha256(remote_bytes).hexdigest() == receipt["artifacts"][0]["sha256"]
+    receipt_artifacts = {item["path"]: item["sha256"] for item in receipt["artifacts"]}
+    assert hashlib.sha256(remote_bytes).hexdigest() == receipt_artifacts[
+        "editions/2099/01/2099-01-02/edition.md"
+    ]
+    remote_cover = subprocess.run(
+        ["git", "--git-dir", str(remote), "show", "main:editions/2099/01/2099-01-02/assets/cover.png"],
+        capture_output=True, check=True,
+    ).stdout
+    assert remote_cover == cover.read_bytes()
+    assert hashlib.sha256(remote_cover).hexdigest() == receipt_artifacts[
+        "editions/2099/01/2099-01-02/assets/cover.png"
+    ]
 
     again = GitArchiveProvider().archive(root, edition, "2099-01-02")
     assert again["status"] == "COMPLETE"

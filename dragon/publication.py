@@ -308,7 +308,13 @@ def _visual_arabic(text: str) -> str:
     import arabic_reshaper
     from bidi.algorithm import get_display
 
-    return get_display(arabic_reshaper.reshape(text))
+    reshaped = arabic_reshaper.reshape(text)
+    if re.search(r"[\u0621-\u063a\u0641-\u064a]", text) and reshaped == text:
+        raise ValueError("ARABIC_SHAPING_FAILED")
+    visual = get_display(reshaped)
+    if text and not visual:
+        raise ValueError("ARABIC_BIDI_FAILED")
+    return visual
 
 
 def _draw_rtl(draw, xy: tuple[int, int], text: str, font, *, fill: str, spacing: int, width: int) -> int:

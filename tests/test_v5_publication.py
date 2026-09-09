@@ -258,3 +258,15 @@ def test_cover_fits_long_arabic_copy_around_hero_and_teaser_rail(tmp_path: Path)
     )
     with Image.open(cover) as image:
         image.verify()
+
+
+def test_cover_fails_closed_when_arabic_shaping_stops_working(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("arabic_reshaper.reshape", lambda value: value)
+    try:
+        build_cover_png(
+            tmp_path / "broken-cover.png", "2099-01-02", "عنوان عربي", "مقدمة عربية"
+        )
+    except ValueError as exc:
+        assert str(exc) == "ARABIC_SHAPING_FAILED"
+    else:
+        raise AssertionError("unshaped Arabic cover was accepted")
