@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,3 +41,23 @@ def test_component_matrix_classifies_every_required_project() -> None:
     assert "REJECT" in text
     assert "second scheduler" in text
     assert "Do not install it as a core DRAGON runtime" in text
+
+
+def test_runtime_license_adr_covers_every_direct_requirement() -> None:
+    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    packages = {
+        re.split(r"[<>=!~]", line, maxsplit=1)[0].strip()
+        for line in requirements
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+    adr = (ROOT / "docs" / "adr" / "ADR-010-runtime-dependency-licenses.md").read_text(
+        encoding="utf-8"
+    )
+    assert packages == {
+        "Pillow", "reportlab", "pypdf", "PyYAML", "jsonschema", "weasyprint",
+        "markdown-it-py", "tzdata", "arabic-reshaper", "python-bidi", "trafilatura",
+    }
+    for package in packages:
+        assert f"`{package}`" in adr
+    assert "LGPL-3.0" in adr
+    assert "no AGPL or non-commercial dependency is directly required" in adr
