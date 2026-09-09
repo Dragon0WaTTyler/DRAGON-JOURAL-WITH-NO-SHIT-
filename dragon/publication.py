@@ -184,6 +184,13 @@ def validate_publication_source(
         article_id = article.get("id")
         if not article_id or f'id="{escape(str(article_id), quote=True)}"' not in document:
             issues.append(f"HTML_ARTICLE_MISSING:{article_id}")
+        for field in ("section", "headline", "standfirst", "byline"):
+            value = article.get(field)
+            if value and escape(str(value)) not in document:
+                issues.append(f"HTML_CONTENT_MISMATCH:{article_id}:{field}")
+        for paragraph_index, paragraph in enumerate(article.get("body", []), start=1):
+            if escape(str(paragraph)) not in document:
+                issues.append(f"HTML_CONTENT_MISMATCH:{article_id}:body-{paragraph_index}")
         if layout_plan is not None:
             page = next(
                 (item for item in layout_plan.get("pages", []) if item.get("article_id") == article_id),
@@ -201,6 +208,10 @@ def validate_publication_source(
                 issues.append(f"HTML_SOURCE_LINK_MISSING:{article_id}:{url}")
     if 'src="assets/cover.png"' not in document:
         issues.append("HTML_CANONICAL_COVER_MISSING")
+    for asset in re.findall(r"\bsrc=[\"']([^\"']+)[\"']", document, flags=re.IGNORECASE):
+        path = PurePosixPath(asset.split("?", 1)[0].split("#", 1)[0])
+        if "://" in asset or asset.startswith(("//", "/", "\\")) or ".." in path.parts:
+            issues.append(f"HTML_REMOTE_OR_UNSAFE_ASSET:{asset}")
     return issues
 
 
@@ -689,11 +700,17 @@ def validate_pdf(
 ) -> dict:
     issues: list[str] = []
     try:
+        signature = path.read_bytes()[:5]
+    except OSError as exc:
+        return {"status": "FAIL", "issues": [f"PDF_OPEN_FAILED:{exc}"]}
+    if signature != b"%PDF-":
+        issues.append("PDF_SIGNATURE_INVALID")
+    try:
         reader = PdfReader(str(path))
         pages = len(reader.pages)
         text = "\n".join(page.extract_text() or "" for page in reader.pages)
     except Exception as exc:
-        return {"status": "FAIL", "issues": [f"PDF_OPEN_FAILED:{exc}"]}
+        return {"status": "FAIL", "issues": [*issues, f"PDF_OPEN_FAILED:{exc}"]}
     if pages < minimum_pages:
         issues.append(f"PDF_PAGE_COUNT_LOW:{pages}")
     if path.stat().st_size < 10_000:
@@ -732,6 +749,10 @@ def validate_pdf(
     page_visual_metrics: list[dict] = []
     linked_urls: set[str] = set()
     for page_number, page in enumerate(reader.pages, start=1):
+        width = float(page.mediabox.width)
+        height = float(page.mediabox.height)
+        if width <= 0 or height <= 0:
+            issues.append(f"PDF_PAGE_GEOMETRY_INVALID:{page_number}:{width}x{height}")
         resources = page.get("/Resources") or {}
         visual_fill = None
         vertical_fill = None

@@ -140,6 +140,34 @@ def test_publication_source_requires_exact_article_sources() -> None:
     assert any(issue.startswith("HTML_SOURCE_LINK_MISSING") for issue in issues)
 
 
+def test_publication_source_rejects_stale_copy_and_remote_assets() -> None:
+    article = {
+        "id": "a1", "section": "الواجهة", "headline": "العنوان الحالي",
+        "standfirst": "المقدمة الحالية", "byline": "تحرير: اسم القلم",
+        "body": ["المتن العربي الحالي"], "source_urls": ["https://example.org/source"],
+    }
+    valid = (
+        '<html lang="ar" dir="rtl"><body><img src="assets/cover.png">'
+        '<article id="a1"><p>الواجهة</p><h2>العنوان الحالي</h2><p>المقدمة الحالية</p>'
+        '<p>تحرير: اسم القلم</p><p>المتن العربي الحالي</p>'
+        '<a href="https://example.org/source">مصدر</a></article></body></html>'
+    )
+    assert validate_publication_source(valid, [article]) == []
+    stale = valid.replace("العنوان الحالي", "عنوان قديم")
+    assert "HTML_CONTENT_MISMATCH:a1:headline" in validate_publication_source(stale, [article])
+    remote = valid.replace('src="assets/cover.png"', 'src="assets/cover.png"><img src="https://tracker.example/pixel"')
+    assert "HTML_REMOTE_OR_UNSAFE_ASSET:https://tracker.example/pixel" in validate_publication_source(remote, [article])
+
+
+def test_pdf_validator_rejects_zero_byte_file_explicitly(tmp_path: Path) -> None:
+    pdf = tmp_path / "zero.pdf"
+    pdf.write_bytes(b"")
+    report = validate_pdf(pdf)
+    assert report["status"] == "FAIL"
+    assert "PDF_SIGNATURE_INVALID" in report["issues"]
+    assert any(issue.startswith("PDF_OPEN_FAILED:") for issue in report["issues"])
+
+
 def test_publication_source_binds_functional_layout_grammar(tmp_path: Path) -> None:
     article = {
         "id": "science-1", "section": "العلوم", "headline": "دراسة جديدة",
