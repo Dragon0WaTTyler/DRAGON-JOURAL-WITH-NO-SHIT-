@@ -6,9 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import time
-from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from dragon.archive import DisabledGitArchiveProvider, archive_provider_from_config
 from dragon.config import load_local_config
@@ -17,6 +15,7 @@ from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
 from dragon.providers import SyntheticEditorialProvider, configured_byline, editorial_provider_from_config
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
+from dragon.scheduler import current_edition_date
 from dragon.whatsapp import DisabledWhatsAppProvider, whatsapp_provider_from_config
 
 
@@ -88,7 +87,7 @@ def main() -> int:
         parser().error("--synthetic requires an explicit --date")
     config = load_local_config(ROOT)
     timezone = config["timezone"]
-    edition_date = args.date or datetime.now(ZoneInfo(timezone)).date().isoformat()
+    edition_date = args.date or current_edition_date(timezone)
     orchestrator = build_orchestrator(edition_date, synthetic=args.synthetic)
     if args.status:
         state = orchestrator.status()

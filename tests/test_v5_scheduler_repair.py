@@ -1,12 +1,14 @@
 import unittest
+from datetime import datetime, timedelta
 from pathlib import Path
 import json
 import subprocess
 import sys
+from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
 from dragon.repair import RepairRequest, repair_agent_from_config
-from dragon.scheduler import settings
+from dragon.scheduler import current_edition_date, settings
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,6 +49,14 @@ class V5SchedulerRepairTests(unittest.TestCase):
         value = json.loads(result.stdout)
         self.assertEqual(value["task_name"], "DRAGON V5 Daily Newspaper")
         self.assertEqual(value["canonical_command"], "python dragon_watchdog.py")
+
+    def test_casablanca_edition_date_changes_only_at_local_midnight(self):
+        before = datetime(2099, 1, 2, 23, 59, tzinfo=ZoneInfo("Africa/Casablanca"))
+        after = before + timedelta(minutes=2)
+        self.assertEqual(current_edition_date("Africa/Casablanca", before), "2099-01-02")
+        self.assertEqual(current_edition_date("Africa/Casablanca", after), "2099-01-03")
+        with self.assertRaisesRegex(ValueError, "SCHEDULER_TIME_MUST_BE_TIMEZONE_AWARE"):
+            current_edition_date("Africa/Casablanca", datetime(2099, 1, 2, 23, 59))
 
     def test_unproved_repair_provider_is_unavailable(self):
         config = load_local_config(ROOT)

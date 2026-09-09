@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
 import json
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
+from dragon.scheduler import current_edition_date
 from dragon.watchdog import assess, recover
 
 
@@ -22,7 +21,7 @@ def main() -> int:
     parser.add_argument("--check-only", action="store_true")
     args = parser.parse_args()
     config = load_local_config(ROOT)
-    day = args.date or datetime.now(ZoneInfo(config["timezone"])).date().isoformat()
+    day = args.date or current_edition_date(config["timezone"])
     assessment = assess(ROOT, day)
     value = {**assessment.__dict__} if args.check_only else recover(ROOT, day, assessment=assessment)
     print(json.dumps(value, ensure_ascii=False, indent=2))

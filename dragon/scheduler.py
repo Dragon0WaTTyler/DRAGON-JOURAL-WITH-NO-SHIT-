@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 from pathlib import Path
 import sys
+from zoneinfo import ZoneInfo
 
 # The Windows helper scripts execute this file by path so they work regardless
 # of the operator's current directory. Make that supported entry mode resolve
@@ -15,6 +17,14 @@ if __package__ in {None, ""}:
 
 from dragon.config import load_local_config
 from dragon.state import runtime_fingerprint, source_revision
+
+
+def current_edition_date(timezone: str, now: datetime | None = None) -> str:
+    zone = ZoneInfo(timezone)
+    instant = now or datetime.now(zone)
+    if instant.tzinfo is None:
+        raise ValueError("SCHEDULER_TIME_MUST_BE_TIMEZONE_AWARE")
+    return instant.astimezone(zone).date().isoformat()
 
 
 def settings(root: Path) -> dict[str, object]:
