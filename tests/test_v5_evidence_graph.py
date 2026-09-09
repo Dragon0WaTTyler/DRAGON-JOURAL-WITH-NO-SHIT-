@@ -15,8 +15,8 @@ def _article(value: str = "1") -> dict:
 
 def _intelligence() -> dict:
     return {"source_records": [
-        {"source_id": "official", "canonical_url": "https://gov.example/report", "source_type": "official", "independent_origin_group": "DOMAIN:gov.example", "wire_origin": None},
-        {"source_id": "independent", "canonical_url": "https://news.example/story", "source_type": "independent", "independent_origin_group": "DOMAIN:news.example", "wire_origin": None},
+        {"source_id": "official", "canonical_url": "https://gov.example/report", "source_type": "official", "independent_origin_group": "DOMAIN:gov.example", "wire_origin": None, "claims_supported": ["قيمة رسمية موثقة"]},
+        {"source_id": "independent", "canonical_url": "https://news.example/story", "source_type": "independent", "independent_origin_group": "DOMAIN:news.example", "wire_origin": None, "claims_supported": ["مراجعة مستقلة للقيمة الموثقة"]},
     ]}
 
 
@@ -41,3 +41,16 @@ def test_claim_graph_marks_contradictions_and_missing_provenance() -> None:
         evidence["alignment"] == "PROVENANCE_UNAVAILABLE"
         for evidence in value["claims"][1]["evidence"]
     )
+
+
+def test_existing_citation_that_does_not_support_claim_fails_semantically() -> None:
+    article = _article()
+    article["claims"][0]["text"] = "ارتفعت الميزانية بنسبة كبيرة"
+    value = build_claim_graph([article], _intelligence())
+    claim = value["claims"][0]
+    assert claim["assessment"] == "NOT_SUPPORTED"
+    assert claim["independent_origins"] == 0
+    assert all(not item["supports"] for item in claim["evidence"])
+    assert {item["alignment"] for item in claim["evidence"]} == {
+        "CITATION_DOES_NOT_SUPPORT_CLAIM"
+    }

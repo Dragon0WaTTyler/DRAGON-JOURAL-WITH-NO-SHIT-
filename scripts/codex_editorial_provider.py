@@ -364,7 +364,9 @@ one sections entry per fixed section. Every source needs id, exact HTTPS article
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
 secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
 and limitations_read. Never claim methods or limitations were read unless verified legal full
-text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. For a paper
+text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. claim_supported
+must state the precise fact or attributed claim supported by that exact source, not merely its
+topic, so deterministic alignment can reject decorative citations. For a paper
 or study source, science_metadata must preserve paper identity, title, authors, journal, version,
 sample and sample_size, design, effect/result, statistics, corrections or retractions,
 conflicting study source IDs, page/section/table locators, confidence, DOI and metadata
@@ -401,7 +403,9 @@ FACT_CHECK, DATA, DOCUMENT_PUBLIC_RECORD, or SECTION_OPENER. This is editorial
 classification, not permission to alter facts during layout. Each claim
 needs text, claim_type (date/person/organization/number/statistic/study/political/general),
 classification (FACT/CLAIM/DISPUTED/UNKNOWN/ESTIMATE), source_ids, attribution where applicable,
-material boolean, and fact_key/value when contradiction checking is meaningful. editorial_elements
+material boolean, and fact_key/value when contradiction checking is meaningful. Claim wording
+must retain material terms from the cited source records' claim_supported fields; a URL about the
+same broad topic is not supporting evidence. editorial_elements
 must contain lead, nut_graf, verified_facts, context, uncertainty, consequences, and next_steps.
 Any research section marked NO_NEWS must remain SKIPPED; it cannot become an ACTIVE article.
 An ACTIVE investigations decision must include investigation_checks with an honest serious-claim

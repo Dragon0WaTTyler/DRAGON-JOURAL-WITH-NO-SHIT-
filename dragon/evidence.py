@@ -4,11 +4,36 @@ from __future__ import annotations
 
 from collections import defaultdict
 import hashlib
+import re
 
 
 def _claim_id(article_id: str, index: int, text: str) -> str:
     digest = hashlib.sha256(f"{article_id}\0{index}\0{text}".encode("utf-8")).hexdigest()[:12]
     return f"CLM-{digest.upper()}"
+
+
+def _tokens(value: object) -> set[str]:
+    result = set()
+    for token in re.findall(r"[\w\u0600-\u06ff]+", str(value or "").casefold()):
+        normalized = token
+        if re.search(r"[\u0600-\u06ff]", normalized):
+            if len(normalized) > 4 and normalized[0] in "وفبكل":
+                normalized = normalized[1:]
+            if len(normalized) > 4 and normalized.startswith("ال"):
+                normalized = normalized[2:]
+        if len(normalized) >= 3:
+            result.add(normalized)
+    return result
+
+
+def _source_supports_claim(source: dict, claim: dict) -> bool:
+    if source.get("source_type") == "synthetic":
+        return True
+    claim_tokens = _tokens(claim.get("text"))
+    support_tokens = set().union(*(
+        _tokens(value) for value in source.get("claims_supported", []) if value
+    ))
+    return bool(claim_tokens and support_tokens and claim_tokens & support_tokens)
 
 
 def build_claim_graph(articles: list[dict], intelligence: dict) -> dict:
@@ -38,21 +63,31 @@ def build_claim_graph(articles: list[dict], intelligence: dict) -> dict:
                     })
                     continue
                 origin = source["independent_origin_group"]
-                origins.add(origin)
-                types.add(source.get("source_type"))
+                supports = _source_supports_claim(source, claim)
+                if supports:
+                    origins.add(origin)
+                    types.add(source.get("source_type"))
                 evidence.append({
                     "source_id": source_id,
                     "url": source["canonical_url"],
                     "source_type": source.get("source_type"),
                     "independent_origin_group": origin,
                     "wire_origin": source.get("wire_origin"),
-                    "supports": True,
+                    "supports": supports,
                     "contradicts": False,
-                    "alignment": "PROVIDER_ASSERTED_SUPPORT_NOT_TEXT_VERIFIED",
+                    "alignment": (
+                        "SYNTHETIC_FIXTURE" if source.get("source_type") == "synthetic"
+                        else "CLAIM_SUPPORT_TEXT_ALIGNED" if supports
+                        else "CITATION_DOES_NOT_SUPPORT_CLAIM"
+                    ),
                 })
             material_fact = bool(claim.get("material")) and claim.get("classification") == "FACT"
             if not source_ids or any(item["alignment"] == "PROVENANCE_UNAVAILABLE" for item in evidence):
                 assessment = "PROVENANCE_UNAVAILABLE"
+            elif not any(item["supports"] for item in evidence):
+                assessment = "NOT_SUPPORTED"
+            elif any(not item["supports"] for item in evidence):
+                assessment = "PARTIALLY_SUPPORTED"
             elif material_fact and not ({"primary", "official"} & types):
                 assessment = "PARTIALLY_SUPPORTED"
             elif material_fact and "independent" not in types and not claim.get("independent_evidence_unavailable_reason"):
@@ -122,7 +157,8 @@ def validate_claim_graph(value: dict, articles: list[dict]) -> list[str]:
             not claim_id
             or claim_id in ids
             or claim.get("assessment") not in {
-                "SUPPORTED", "PARTIALLY_SUPPORTED", "CONTRADICTED", "PROVENANCE_UNAVAILABLE"
+                "SUPPORTED", "PARTIALLY_SUPPORTED", "NOT_SUPPORTED", "CONTRADICTED",
+                "PROVENANCE_UNAVAILABLE"
             }
             or not isinstance(claim.get("evidence"), list)
         ):

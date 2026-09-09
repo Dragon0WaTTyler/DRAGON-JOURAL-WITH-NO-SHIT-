@@ -104,7 +104,11 @@ manually changes `integration_test_status` to `PASS`.
   `INVESTIGATION`, `SCIENCE`, `HISTORY`, `CULTURE`, `FACT_CHECK`, `DATA`,
   `DOCUMENT_PUBLIC_RECORD`, or `SECTION_OPENER`), structured claim records, and explicit lead, nut graf,
   verified facts, context, uncertainty, consequences, and next steps. Material
-  facts must survive claim-level primary and independent evidence checks.
+  facts must survive claim-level primary and independent evidence checks. Each
+  source's `claim_supported` is a precise support statement rather than a topic
+  label. The deterministic evidence graph admits an origin only when material
+  Arabic/Latin terms align with the article claim; a present but non-supporting
+  citation becomes `NOT_SUPPORTED` and the adversarial gate removes the claim.
 
 The adapter enforces configurable hard safeguards of 350 words per active item
 and 4,000 words per edition by default. These are rejection thresholds, not

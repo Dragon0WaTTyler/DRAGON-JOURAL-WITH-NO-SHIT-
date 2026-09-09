@@ -111,3 +111,19 @@ def test_adversarial_review_rejects_contradicted_framing_explicitly() -> None:
     result = adversarial_review([value], graph, plan)["articles"][0]
     assert result["outcome"] == "HOLD"
     assert result["framing_decision"] == "REJECT_THE_FRAMING"
+
+
+def test_adversarial_review_removes_claim_with_non_supporting_citation() -> None:
+    value = article("a1", "story")
+    value["editorial_elements"] = {"uncertainty": "تبقى حدود معلومة"}
+    graph = {"claims": [{
+        "claim_id": "CLM-1", "article_id": "a1", "assessment": "NOT_SUPPORTED",
+        "material": True,
+    }]}
+    plan = {"plans": [{
+        "section_id": "front", "perspectives": ["أ", "ب", "ج"],
+        "questions": ["ما أقوى تفسير بديل؟"], "critical_thinking_checks": {},
+    }]}
+    result = adversarial_review([value], graph, plan)["articles"][0]
+    assert result["outcome"] == "REMOVE_CLAIM"
+    assert result["issues"] == ["CITED_SOURCE_DOES_NOT_SUPPORT_CLAIM:CLM-1"]

@@ -157,6 +157,10 @@ def adversarial_review(
                 issues.append(f"PROVENANCE_UNAVAILABLE:{claim.get('claim_id')}")
                 if outcome != "HOLD":
                     outcome = "REMOVE_CLAIM"
+            elif assessment == "NOT_SUPPORTED":
+                issues.append(f"CITED_SOURCE_DOES_NOT_SUPPORT_CLAIM:{claim.get('claim_id')}")
+                if outcome != "HOLD":
+                    outcome = "REMOVE_CLAIM"
             elif assessment == "PARTIALLY_SUPPORTED" and claim.get("material"):
                 issues.append(f"MATERIAL_SUPPORT_INCOMPLETE:{claim.get('claim_id')}")
                 if outcome not in {"HOLD", "REMOVE_CLAIM"}:
