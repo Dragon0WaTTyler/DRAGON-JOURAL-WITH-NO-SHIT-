@@ -42,6 +42,19 @@ class V5RecoveryTests(unittest.TestCase):
             ErrorCategory.CODE_DEFECT,
         )
 
+    def test_unsafe_source_targets_are_validation_blocks_without_retry(self):
+        engine = RecoveryEngine(POLICY)
+        for code in (
+            "SOURCE_URL_UNSAFE",
+            "SOURCE_REDIRECT_UNSAFE",
+            "SOURCE_RESPONSE_TOO_LARGE",
+        ):
+            decision = engine.decide(code, 1)
+            self.assertEqual(decision.category, ErrorCategory.VALIDATION)
+            self.assertEqual(decision.action, "BLOCK")
+            self.assertEqual(decision.max_attempts, 1)
+            self.assertEqual(decision.delay_seconds, 0)
+
     def test_orchestrator_retries_transient_stage_only_until_success(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

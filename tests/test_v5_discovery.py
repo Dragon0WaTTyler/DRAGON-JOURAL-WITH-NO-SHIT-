@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from dragon.discovery import (
+    _validate_source_url,
     DiscoveryError,
     FetchResponse,
     discover_rss,
@@ -118,6 +119,55 @@ def test_source_timeout_has_an_explicit_retryable_failure_code() -> None:
     with pytest.raises(DiscoveryError) as caught:
         fetch_and_extract_source("https://example.org/slow", transport=timeout)
     assert caught.value.code == "SOURCE_TIMEOUT"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://127.0.0.1/private",
+        "https://[::1]/private",
+        "https://localhost/private",
+        "https://service.internal/private",
+        "https://user:password@example.org/source",
+        "https://example.org:not-a-port/source",
+    ],
+)
+def test_source_fetch_rejects_local_addresses_and_embedded_credentials(url: str) -> None:
+    called = False
+
+    def transport(*_: object) -> FetchResponse:
+        nonlocal called
+        called = True
+        raise AssertionError("unsafe target reached the transport")
+
+    with pytest.raises(DiscoveryError) as caught:
+        fetch_and_extract_source(url, transport=transport)
+
+    assert caught.value.code == "SOURCE_URL_UNSAFE"
+    assert called is False
+
+
+def test_source_redirect_to_private_address_is_rejected() -> None:
+    with pytest.raises(DiscoveryError) as caught:
+        fetch_and_extract_source(
+            "https://example.org/source",
+            transport=lambda *_: FetchResponse(
+                "https://169.254.169.254/latest/meta-data", 200, "text/html", b"private"
+            ),
+        )
+    assert caught.value.code == "SOURCE_REDIRECT_UNSAFE"
+
+
+def test_dns_resolution_cannot_route_public_name_to_private_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "dragon.discovery.socket.getaddrinfo",
+        lambda *args, **kwargs: [(2, 1, 6, "", ("10.0.0.8", 443))],
+    )
+    with pytest.raises(DiscoveryError) as caught:
+        _validate_source_url("https://news.example/source", resolve_dns=True)
+    assert caught.value.code == "SOURCE_URL_UNSAFE"
 
 
 def test_extractor_routes_non_html_material_instead_of_forcing_parser() -> None:

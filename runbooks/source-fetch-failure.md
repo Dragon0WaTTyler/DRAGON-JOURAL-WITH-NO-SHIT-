@@ -1,13 +1,13 @@
 # Source fetch failure
 
 ## Symptoms
-HTTPS fetch times out, redirects unsafely, returns an error, or exceeds the byte bound.
+HTTPS fetch times out, targets or redirects to a local/private address, returns an error, or exceeds the byte bound.
 ## Failure codes
 `SOURCE_TIMEOUT`, `SOURCE_HTTP_FAILED`, `SOURCE_URL_UNSAFE`, `SOURCE_REDIRECT_UNSAFE`, `SOURCE_RESPONSE_TOO_LARGE`.
 ## Likely causes
-Origin outage, rate limiting, bad URL, unsafe redirect, or unexpectedly large material.
+Origin outage, rate limiting, embedded URL credentials, private/reserved DNS resolution, unsafe redirect, or unexpectedly large material.
 ## Automatic actions
-Retry only transient HTTPS failures with bounded backoff and preserve response metadata.
+Reject unsafe targets before opening a connection or following a redirect. Retry only transient public-HTTPS failures with bounded backoff and preserve response metadata.
 ## Fallback order
 Exact origin URL; official mirror; archive reference; independent source; skip.
 ## Data never to overwrite

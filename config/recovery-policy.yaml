@@ -169,6 +169,18 @@ error_codes:
     category: TRANSIENT
     action: RETRY
     max_attempts: 3
+  SOURCE_URL_UNSAFE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_REDIRECT_UNSAFE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_RESPONSE_TOO_LARGE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
   SOURCE_BLOCKED:
     category: DEPENDENCY
     action: BLOCK

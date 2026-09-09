@@ -5,11 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
+from ipaddress import ip_address
 import json
 from pathlib import Path
+import socket
 from typing import Callable
 from urllib.parse import urljoin, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 from xml.etree import ElementTree
 
 from jsonschema import Draft202012Validator
@@ -37,11 +39,59 @@ class FetchResponse:
 Transport = Callable[[str, int, int], FetchResponse]
 
 
+def _validate_source_url(
+    url: str, *, error_code: str = "SOURCE_URL_UNSAFE", resolve_dns: bool = False
+) -> None:
+    parsed = urlparse(url)
+    hostname = parsed.hostname
+    if parsed.scheme.casefold() != "https" or not hostname or not parsed.netloc:
+        raise DiscoveryError(error_code, "only absolute HTTPS source URLs are permitted")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise DiscoveryError(error_code, "source URL port is invalid") from exc
+    if parsed.username is not None or parsed.password is not None:
+        raise DiscoveryError(error_code, "source URLs must not contain credentials")
+    normalized = hostname.rstrip(".").casefold()
+    if normalized == "localhost" or normalized.endswith((".localhost", ".local", ".internal")):
+        raise DiscoveryError(error_code, "local source hosts are not permitted")
+    try:
+        literal = ip_address(normalized)
+    except ValueError:
+        literal = None
+    if literal is not None and not literal.is_global:
+        raise DiscoveryError(error_code, "non-public source addresses are not permitted")
+    if not resolve_dns or literal is not None:
+        return
+    try:
+        addresses = {
+            item[4][0]
+            for item in socket.getaddrinfo(
+                hostname, port or 443, type=socket.SOCK_STREAM
+            )
+        }
+    except OSError as exc:
+        raise DiscoveryError("SOURCE_FETCH_FAILED", f"source host resolution failed: {hostname}") from exc
+    if not addresses:
+        raise DiscoveryError("SOURCE_FETCH_FAILED", f"source host has no addresses: {hostname}")
+    if any(not ip_address(address.split("%", 1)[0]).is_global for address in addresses):
+        raise DiscoveryError(error_code, "source host resolves to a non-public address")
+
+
+class _SafeRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        _validate_source_url(
+            new_url, error_code="SOURCE_REDIRECT_UNSAFE", resolve_dns=True
+        )
+        return super().redirect_request(
+            request, file_pointer, code, message, headers, new_url
+        )
+
+
 def _fetch(
     url: str, transport: Transport, timeout_seconds: int, maximum_bytes: int
 ) -> FetchResponse:
-    if urlparse(url).scheme != "https" or not urlparse(url).netloc:
-        raise DiscoveryError("SOURCE_URL_UNSAFE", "only absolute HTTPS source URLs are permitted")
+    _validate_source_url(url)
     try:
         response = transport(url, timeout_seconds, maximum_bytes)
     except DiscoveryError:
@@ -50,8 +100,7 @@ def _fetch(
         raise DiscoveryError("SOURCE_TIMEOUT", str(exc) or url) from exc
     except OSError as exc:
         raise DiscoveryError("SOURCE_FETCH_FAILED", str(exc) or url) from exc
-    if urlparse(response.url).scheme != "https" or not urlparse(response.url).netloc:
-        raise DiscoveryError("SOURCE_REDIRECT_UNSAFE", response.url)
+    _validate_source_url(response.url, error_code="SOURCE_REDIRECT_UNSAFE")
     if len(response.body) > maximum_bytes:
         raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")
     if response.status in {401, 403}:
@@ -189,13 +238,14 @@ def discover_rss(xml: bytes, *, provider_id: str, endpoint: str) -> list[dict]:
 
 
 def default_transport(url: str, timeout_seconds: int, maximum_bytes: int) -> FetchResponse:
-    if urlparse(url).scheme != "https":
-        raise DiscoveryError("SOURCE_URL_UNSAFE", "only HTTPS source URLs are permitted")
+    _validate_source_url(url, resolve_dns=True)
     request = Request(url, headers={"User-Agent": "DRAGON/5 source-research (+local newsroom)"})
-    with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310 - HTTPS checked above
+    opener = build_opener(_SafeRedirectHandler())
+    with opener.open(request, timeout=timeout_seconds) as response:  # noqa: S310 - URL and DNS checked above
         final_url = response.geturl()
-        if urlparse(final_url).scheme != "https":
-            raise DiscoveryError("SOURCE_REDIRECT_UNSAFE", final_url)
+        _validate_source_url(
+            final_url, error_code="SOURCE_REDIRECT_UNSAFE", resolve_dns=True
+        )
         body = response.read(maximum_bytes + 1)
         if len(body) > maximum_bytes:
             raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")

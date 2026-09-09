@@ -92,6 +92,12 @@ python dragon_daily.py --date YYYY-MM-DD --retry STAGE
 - Evidence: exact HTTPS URL, transport error class, attempt count, and source-stage log.
 - Safe action: retry the affected source only with bounded backoff; then record the unresolved failure.
 
+### SOURCE_URL_UNSAFE / SOURCE_REDIRECT_UNSAFE / SOURCE_RESPONSE_TOO_LARGE
+
+- Evidence: redacted target host, whether the rejection occurred before fetch or before redirect follow, and the configured byte ceiling.
+- Safe action: block immediately. Never retry credentials in URLs, local/private/reserved addresses, DNS answers containing non-public addresses, unsafe redirects, or oversized material.
+- Manual recovery: supply a verified public exact-source URL or an approved bounded artifact; never weaken the network or byte boundary.
+
 ### SOURCE_BLOCKED
 
 - Evidence: exact HTTPS URL and HTTP 401/403 response status.

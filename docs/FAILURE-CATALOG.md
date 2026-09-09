@@ -10,6 +10,8 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `SOURCE_MONITORING_REQUIRED_FAILED` | DEPENDENCY | A target explicitly marked required could not be checked | Block before research; optional targets only degrade the monitoring report |
 | `SOURCE_TIMEOUT` | TRANSIENT | A source request exceeded its deadline | Bounded exponential retry |
 | `SOURCE_FETCH_FAILED` | TRANSIENT | A source request failed before a valid response arrived | Bounded exponential retry, then preserve the exact source failure |
+| `SOURCE_URL_UNSAFE` / `SOURCE_REDIRECT_UNSAFE` | VALIDATION | A source target is not absolute HTTPS, contains credentials, is local/private, or a redirect resolves outside the public network | Block immediately; never follow or repair around the safety boundary |
+| `SOURCE_RESPONSE_TOO_LARGE` | VALIDATION | A source response exceeds its configured byte limit | Block the material; never increase the limit automatically |
 | `SOURCE_BLOCKED` | DEPENDENCY | A source explicitly denied access with HTTP 401/403 | Record the block and use an approved independent or primary fallback |
 | `SOURCE_CONTENT_EMPTY` | CONTENT | A successful response contained no source bytes | Retry/replace only the affected source; never treat it as evidence |
 | `SOURCE_INSUFFICIENT` | CONTENT | Evidence is too weak for the planned item | Reopen only affected research item or skip with reason |
