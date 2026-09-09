@@ -117,6 +117,7 @@ class SyntheticEditorialProvider:
                     "full_text_status": "NOT_APPLICABLE",
                     "methods_read": False,
                     "limitations_read": False,
+                    "science_metadata": None,
                 }
             ],
         }
@@ -216,6 +217,51 @@ def _https_url(value: object) -> bool:
     return parsed.scheme == "https" and bool(parsed.netloc) and parsed.path not in {"", "/"}
 
 
+def _valid_science_metadata(value: object) -> bool:
+    required = {
+        "paper_id", "title", "authors", "journal", "version_type", "sample",
+        "sample_size", "design", "effect_result", "statistics",
+        "corrections_retractions", "conflicting_study_source_ids", "locators",
+        "confidence", "doi_verified", "metadata_matches", "claim_alignment",
+        "correlation_only",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        return False
+    return (
+        all(
+            value[field] is None or isinstance(value[field], str)
+            for field in (
+                "paper_id", "title", "journal", "sample", "design",
+                "effect_result", "statistics",
+            )
+        )
+        and isinstance(value["authors"], list)
+        and all(isinstance(item, str) for item in value["authors"])
+        and all(
+            isinstance(value[field], list)
+            and all(isinstance(item, str) for item in value[field])
+            for field in (
+                "corrections_retractions", "conflicting_study_source_ids", "locators"
+            )
+        )
+        and value["version_type"] in {
+            "PREPRINT", "ACCEPTED_MANUSCRIPT", "VERSION_OF_RECORD", "UNKNOWN", None
+        }
+        and value["confidence"] in {"HIGH", "MEDIUM", "LOW", "UNKNOWN"}
+        and value["claim_alignment"] in {
+            "ALIGNED", "PARTIAL", "MISALIGNED", "NOT_ASSESSED"
+        }
+        and (
+            value["sample_size"] is None
+            or isinstance(value["sample_size"], int) and value["sample_size"] >= 0
+        )
+        and all(
+            isinstance(value[field], bool)
+            for field in ("doi_verified", "metadata_matches", "correlation_only")
+        )
+    )
+
+
 @dataclass(frozen=True)
 class LocalCommandEditorialProvider:
     """JSON stdin/stdout adapter for an explicitly configured local runtime."""
@@ -307,6 +353,7 @@ class LocalCommandEditorialProvider:
             "full_text_status",
             "methods_read",
             "limitations_read",
+            "science_metadata",
         )
         for source in sources:
             if (
@@ -334,6 +381,10 @@ class LocalCommandEditorialProvider:
                 or (
                     source.get("full_text_status") != "FULL_TEXT_VERIFIED"
                     and (source.get("methods_read") or source.get("limitations_read"))
+                )
+                or (
+                    source.get("science_metadata") is not None
+                    and not _valid_science_metadata(source.get("science_metadata"))
                 )
             ):
                 raise ProviderError(

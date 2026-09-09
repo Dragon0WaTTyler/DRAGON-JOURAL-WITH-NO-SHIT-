@@ -117,6 +117,7 @@ def build_source_intelligence(packet: dict) -> dict:
             "full_text_status": source.get("full_text_status"),
             "methods_read": bool(source.get("methods_read")),
             "limitations_read": bool(source.get("limitations_read")),
+            "science_metadata": source.get("science_metadata"),
             "uncertainty": ["FULL_TEXT_NOT_CAPTURED", "FETCH_NOT_INDEPENDENTLY_VERIFIED"],
             "event_ids": [],
             "claims_supported": [source.get("claim_supported")],

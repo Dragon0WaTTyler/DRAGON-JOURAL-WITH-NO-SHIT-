@@ -24,7 +24,7 @@ payload=json.load(sys.stdin)
 if a.operation == 'healthcheck':
     value={'status':'PASS','unattended':True,'provider':'test-local'}
 elif a.operation == 'research':
-    sources=[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر أولي اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري','doi':None,'publication_status':'report','full_text_status':'FULL_TEXT_VERIFIED','methods_read':True,'limitations_read':True},{'id':'s2','url':'https://example.net/independent-page','publisher':'مصدر مستقل اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:01:00+01:00','source_type':'independent','claim_supported':'مراجعة مستقلة','doi':None,'publication_status':'news','full_text_status':'NOT_APPLICABLE','methods_read':False,'limitations_read':False}]
+    sources=[{'id':'s1','url':'https://example.org/exact-page','publisher':'مصدر أولي اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:00:00+01:00','source_type':'primary','claim_supported':'ادعاء اختباري','doi':None,'publication_status':'report','full_text_status':'FULL_TEXT_VERIFIED','methods_read':True,'limitations_read':True,'science_metadata':None},{'id':'s2','url':'https://example.net/independent-page','publisher':'مصدر مستقل اختباري','publication_date':'2099-01-02','accessed_at':'2099-01-02T07:01:00+01:00','source_type':'independent','claim_supported':'مراجعة مستقلة','doi':None,'publication_status':'news','full_text_status':'NOT_APPLICABLE','methods_read':False,'limitations_read':False,'science_metadata':None}]
     sections=[]
     for key,heading in SECTION_HEADINGS:
         candidates=[]
@@ -205,6 +205,7 @@ def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:
                         "full_text_status": "FULL_TEXT_VERIFIED",
                         "methods_read": True,
                         "limitations_read": True,
+                        "science_metadata": None,
                     }
                 ],
                 "sections": sections,
@@ -290,3 +291,18 @@ def test_no_news_rejects_placeholder_candidates() -> None:
         assert "no fabricated candidates" in exc.detail
     else:
         raise AssertionError("no-news decision retained placeholder candidates")
+
+
+def test_research_rejects_partial_science_metadata() -> None:
+    class BadScienceProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            packet = SyntheticEditorialProvider().research(payload["edition_date"])
+            packet["sources"][0]["science_metadata"] = {"paper_id": "partial"}
+            return packet
+
+    try:
+        BadScienceProvider(("unused",)).research("2099-01-02")
+    except ProviderError as exc:
+        assert exc.code == "RESEARCH_PACKET_INVALID"
+    else:
+        raise AssertionError("partial science passport was accepted")

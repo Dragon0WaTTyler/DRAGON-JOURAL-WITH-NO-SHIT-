@@ -11,7 +11,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
+        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "science_metadata", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
         "properties": {
           "source_id": {"type": "string", "minLength": 1},
           "canonical_url": {"type": "string", "pattern": "^https://"},
@@ -45,6 +45,31 @@
           "full_text_status": {"type": ["string", "null"]},
           "methods_read": {"type": "boolean"},
           "limitations_read": {"type": "boolean"},
+          "science_metadata": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["paper_id", "title", "authors", "journal", "version_type", "sample", "sample_size", "design", "effect_result", "statistics", "corrections_retractions", "conflicting_study_source_ids", "locators", "confidence", "doi_verified", "metadata_matches", "claim_alignment", "correlation_only"],
+            "properties": {
+              "paper_id": {"type": ["string", "null"]},
+              "title": {"type": ["string", "null"]},
+              "authors": {"type": "array", "items": {"type": "string"}},
+              "journal": {"type": ["string", "null"]},
+              "version_type": {"enum": ["PREPRINT", "ACCEPTED_MANUSCRIPT", "VERSION_OF_RECORD", "UNKNOWN", null]},
+              "sample": {"type": ["string", "null"]},
+              "sample_size": {"type": ["integer", "null"], "minimum": 0},
+              "design": {"type": ["string", "null"]},
+              "effect_result": {"type": ["string", "null"]},
+              "statistics": {"type": ["string", "null"]},
+              "corrections_retractions": {"type": "array", "items": {"type": "string"}},
+              "conflicting_study_source_ids": {"type": "array", "items": {"type": "string"}},
+              "locators": {"type": "array", "items": {"type": "string"}},
+              "confidence": {"enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]},
+              "doi_verified": {"type": "boolean"},
+              "metadata_matches": {"type": "boolean"},
+              "claim_alignment": {"enum": ["ALIGNED", "PARTIAL", "MISALIGNED", "NOT_ASSESSED"]},
+              "correlation_only": {"type": "boolean"}
+            }
+          },
           "uncertainty": {"type": "array", "items": {"type": "string"}},
           "event_ids": {"type": "array", "items": {"type": "string", "pattern": "^EVT-[A-F0-9]{12}$"}},
           "claims_supported": {"type": "array", "items": {"type": ["string", "null"]}},

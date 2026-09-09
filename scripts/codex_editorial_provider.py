@@ -51,6 +51,45 @@ def _schema(operation: str) -> dict:
     section_ids = [section_id for section_id, _ in SECTION_HEADINGS]
     string_array = {"type": "array", "items": {"type": "string"}}
     if operation == "research":
+        nullable_string = {"type": ["string", "null"]}
+        science_metadata = {
+            "type": ["object", "null"],
+            "properties": {
+                "paper_id": nullable_string,
+                "title": nullable_string,
+                "authors": string_array,
+                "journal": nullable_string,
+                "version_type": {
+                    "type": ["string", "null"],
+                    "enum": ["PREPRINT", "ACCEPTED_MANUSCRIPT", "VERSION_OF_RECORD", "UNKNOWN", None],
+                },
+                "sample": nullable_string,
+                "sample_size": {"type": ["integer", "null"], "minimum": 0},
+                "design": nullable_string,
+                "effect_result": nullable_string,
+                "statistics": nullable_string,
+                "corrections_retractions": string_array,
+                "conflicting_study_source_ids": string_array,
+                "locators": string_array,
+                "confidence": {
+                    "type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"],
+                },
+                "doi_verified": {"type": "boolean"},
+                "metadata_matches": {"type": "boolean"},
+                "claim_alignment": {
+                    "type": "string", "enum": ["ALIGNED", "PARTIAL", "MISALIGNED", "NOT_ASSESSED"],
+                },
+                "correlation_only": {"type": "boolean"},
+            },
+            "required": [
+                "paper_id", "title", "authors", "journal", "version_type", "sample",
+                "sample_size", "design", "effect_result", "statistics",
+                "corrections_retractions", "conflicting_study_source_ids", "locators",
+                "confidence", "doi_verified", "metadata_matches", "claim_alignment",
+                "correlation_only",
+            ],
+            "additionalProperties": False,
+        }
         source = {
             "type": "object",
             "properties": {
@@ -75,12 +114,13 @@ def _schema(operation: str) -> dict:
                 },
                 "methods_read": {"type": "boolean"},
                 "limitations_read": {"type": "boolean"},
+                "science_metadata": science_metadata,
             },
             "required": [
                 "id", "url", "publisher", "publication_date", "accessed_at",
                 "source_type", "claim_supported",
                 "doi", "publication_status", "full_text_status", "methods_read",
-                "limitations_read",
+                "limitations_read", "science_metadata",
             ],
             "additionalProperties": False,
         }
@@ -269,7 +309,12 @@ one sections entry per fixed section. Every source needs id, exact HTTPS article
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
 secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
 and limitations_read. Never claim methods or limitations were read unless verified legal full
-text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. Every section
+text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. For a paper
+or study source, science_metadata must preserve paper identity, title, authors, journal, version,
+sample and sample_size, design, effect/result, statistics, corrections or retractions,
+conflicting study source IDs, page/section/table locators, confidence, DOI and metadata
+verification, claim alignment, and whether the result is correlation-only. Use null, empty
+arrays, UNKNOWN, or NOT_ASSESSED honestly for non-science sources; never infer access. Every section
 must set status ACTIVE or NO_NEWS. ACTIVE needs at least two ranked candidates,
 selected_candidate_id, a substantive selection_reason, and null no-news fields. Every candidate needs id, integer
 rank, title, discovery_source_ids, verification_source_ids, primary_evidence_source_ids,

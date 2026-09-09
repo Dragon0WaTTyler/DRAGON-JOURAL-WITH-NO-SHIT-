@@ -89,7 +89,12 @@ manually changes `integration_test_status` to `PASS`.
   skipped article decision. This prevents template quotas from creating filler.
   Every source requires a unique ID, exact HTTPS
   page URL (not a homepage), publisher, publication/access timestamps, source
-  type, and the claim it supports.
+  type, and the claim it supports. Paper/study sources also carry a material
+  passport: paper identity, DOI verification, title/authors/journal, version,
+  sample, design, effect/statistics, corrections or retractions, conflicting
+  studies, precise locators, confidence, metadata match, claim alignment, and
+  a correlation-only flag. Unknown values remain explicit; they are never
+  inferred from unavailable full text.
 - `articles` receives the verified research packet. It returns exactly one
   decision for every fixed V5 section. A skipped section requires a specific
   reason. An active section requires headline, standfirst, the exact byline

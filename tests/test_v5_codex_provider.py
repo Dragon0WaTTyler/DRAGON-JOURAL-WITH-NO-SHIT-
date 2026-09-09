@@ -109,7 +109,12 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
         "id", "url", "publisher", "publication_date", "accessed_at", "source_type",
         "claim_supported", "doi", "publication_status", "full_text_status",
         "methods_read", "limitations_read",
+        "science_metadata",
     }
+    science = source["properties"]["science_metadata"]
+    assert {"sample_size", "locators", "doi_verified", "metadata_matches", "claim_alignment", "correlation_only"}.issubset(
+        set(science["properties"])
+    )
     section = research["properties"]["sections"]["items"]
     assert section["properties"]["section_id"]["enum"] == [
         section_id for section_id, _ in SECTION_HEADINGS
