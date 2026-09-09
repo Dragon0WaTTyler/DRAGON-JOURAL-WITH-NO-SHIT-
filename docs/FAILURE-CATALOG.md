@@ -9,6 +9,9 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `CHANGE_WATCHLIST_INVALID` | VALIDATION | The Git-backed source watchlist violates its strict contract | Block before research and repair only the watchlist |
 | `SOURCE_MONITORING_REQUIRED_FAILED` | DEPENDENCY | A target explicitly marked required could not be checked | Block before research; optional targets only degrade the monitoring report |
 | `SOURCE_TIMEOUT` | TRANSIENT | A source request exceeded its deadline | Bounded exponential retry |
+| `SOURCE_FETCH_FAILED` | TRANSIENT | A source request failed before a valid response arrived | Bounded exponential retry, then preserve the exact source failure |
+| `SOURCE_BLOCKED` | DEPENDENCY | A source explicitly denied access with HTTP 401/403 | Record the block and use an approved independent or primary fallback |
+| `SOURCE_CONTENT_EMPTY` | CONTENT | A successful response contained no source bytes | Retry/replace only the affected source; never treat it as evidence |
 | `SOURCE_INSUFFICIENT` | CONTENT | Evidence is too weak for the planned item | Reopen only affected research item or skip with reason |
 | `SOURCE_DYNAMIC_ROUTE_REQUIRED` | DEPENDENCY | A script-driven page has insufficient static text | Route only that exceptional source to an approved bounded browser adapter |
 | `DOCUMENT_EXTRACTION_EMPTY` | CONTENT | A PDF, Office file, JSON, or table source produced no usable text | Retry/repair only that material or reject it |

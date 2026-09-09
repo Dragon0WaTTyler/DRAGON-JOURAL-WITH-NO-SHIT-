@@ -165,6 +165,18 @@ error_codes:
     category: TRANSIENT
     action: RETRY
     max_attempts: 3
+  SOURCE_FETCH_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 3
+  SOURCE_BLOCKED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_CONTENT_EMPTY:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
   SOURCE_INSUFFICIENT:
     category: CONTENT
     action: TARGETED_REPAIR

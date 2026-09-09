@@ -144,6 +144,21 @@ def test_provider_rejects_homepage_as_exact_research_evidence(tmp_path: Path) ->
         raise AssertionError("homepage was accepted as exact evidence")
 
 
+def test_provider_rejects_bad_source_dates_before_chronology() -> None:
+    class BadDateProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict) -> dict:
+            value = SyntheticEditorialProvider().research(payload["edition_date"])
+            value["sources"][0]["publication_date"] = "sometime recently"
+            return value
+
+    try:
+        BadDateProvider(("unused",)).research("2099-01-02")
+    except ProviderError as exc:
+        assert exc.code == "RESEARCH_PACKET_INVALID"
+    else:
+        raise AssertionError("invalid publication date entered source chronology")
+
+
 def test_provider_retries_invalid_article_output_once_with_exact_feedback(tmp_path: Path) -> None:
     calls = []
 

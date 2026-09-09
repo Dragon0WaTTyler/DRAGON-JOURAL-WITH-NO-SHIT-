@@ -110,3 +110,20 @@ def test_layered_duplicate_detection_catches_rewritten_url_copies() -> None:
         "TOKEN_SIMILARITY", "EDIT_SIMILARITY"
     }
     assert all(record["duplicate_group_ids"] == [group["duplicate_group_id"]] for record in report["source_records"])
+
+
+def test_ten_tracking_url_copies_collapse_to_one_duplicate_origin() -> None:
+    sources = [
+        _source(
+            f"copy-{index}",
+            f"https://wire.example/exact?id=42&utm_source=publisher-{index}",
+            "Reuters",
+        )
+        for index in range(10)
+    ]
+    report = build_source_intelligence({"sources": sources, "sections": []})
+    assert report["summary"]["source_count"] == 10
+    assert report["summary"]["canonical_source_count"] == 1
+    assert report["summary"]["duplicate_group_count"] == 1
+    assert report["duplicate_groups"][0]["source_ids"] == [f"copy-{index}" for index in range(10)]
+    assert {record["independent_origin_group"] for record in report["source_records"]} == {"WIRE:REUTERS"}

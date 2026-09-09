@@ -37,6 +37,43 @@ class FetchResponse:
 Transport = Callable[[str, int, int], FetchResponse]
 
 
+def _fetch(
+    url: str, transport: Transport, timeout_seconds: int, maximum_bytes: int
+) -> FetchResponse:
+    if urlparse(url).scheme != "https" or not urlparse(url).netloc:
+        raise DiscoveryError("SOURCE_URL_UNSAFE", "only absolute HTTPS source URLs are permitted")
+    try:
+        response = transport(url, timeout_seconds, maximum_bytes)
+    except DiscoveryError:
+        raise
+    except TimeoutError as exc:
+        raise DiscoveryError("SOURCE_TIMEOUT", str(exc) or url) from exc
+    except OSError as exc:
+        raise DiscoveryError("SOURCE_FETCH_FAILED", str(exc) or url) from exc
+    if urlparse(response.url).scheme != "https" or not urlparse(response.url).netloc:
+        raise DiscoveryError("SOURCE_REDIRECT_UNSAFE", response.url)
+    if len(response.body) > maximum_bytes:
+        raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")
+    if response.status in {401, 403}:
+        raise DiscoveryError("SOURCE_BLOCKED", f"HTTP {response.status}")
+    if response.status < 200 or response.status >= 300:
+        raise DiscoveryError("SOURCE_HTTP_FAILED", f"HTTP {response.status}")
+    if not response.body.strip():
+        raise DiscoveryError("SOURCE_CONTENT_EMPTY", response.url)
+    return response
+
+
+def _published_at(value: object) -> tuple[str | None, list[str]]:
+    if value is None or not str(value).strip():
+        return None, ["PUBLISHED_AT_MISSING"]
+    candidate = str(value).strip()
+    try:
+        datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+    except ValueError:
+        return None, ["PUBLISHED_AT_INVALID"]
+    return candidate, []
+
+
 def load_provider_registry(path: Path, schema_path: Path | None = None) -> dict:
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
     schema_file = schema_path or path.with_name("provider-registry-schema.json")
@@ -178,9 +215,7 @@ def fetch_and_extract_html(
     maximum_bytes: int = 5_000_000,
     retrieved_at: str | None = None,
 ) -> dict:
-    response = transport(url, timeout_seconds, maximum_bytes)
-    if response.status < 200 or response.status >= 300:
-        raise DiscoveryError("SOURCE_HTTP_FAILED", f"HTTP {response.status}")
+    response = _fetch(url, transport, timeout_seconds, maximum_bytes)
     if response.content_type not in {"text/html", "application/xhtml+xml"}:
         raise DiscoveryError("SOURCE_MATERIAL_ROUTE_REQUIRED", response.content_type)
     try:
@@ -211,22 +246,29 @@ def fetch_and_extract_html(
         raise DiscoveryError("SOURCE_EXTRACTION_LOW_QUALITY", f"only {len(text)} characters")
     quality = "HIGH" if len(text) >= 1_000 else "MEDIUM"
     timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
+    published_at, metadata_warnings = _published_at(extracted.get("date"))
+    author = extracted.get("author")
+    if not author:
+        metadata_warnings.append("AUTHOR_MISSING")
     return {
         "canonical_url": str(extracted.get("url") or response.url),
         "discovered_url": url,
         "title": extracted.get("title"),
-        "author": extracted.get("author"),
-        "published_at": extracted.get("date"),
+        "author": author,
+        "publisher": extracted.get("sitename") or extracted.get("hostname") or urlparse(response.url).hostname,
+        "published_at": published_at,
         "retrieved_at": timestamp,
         "fetch_status": "FETCHED",
         "http_status": response.status,
         "content_type": response.content_type,
         "extraction_method": "trafilatura-bare-extraction",
         "extraction_quality": quality,
+        "quality_score": min(1.0, round(len(text) / 1_000, 3)),
         "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         "language": extracted.get("language"),
         "text": text,
         "links": extracted.get("links") or [],
+        "metadata_warnings": sorted(metadata_warnings),
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }
 
@@ -240,9 +282,7 @@ def fetch_and_extract_source(
     retrieved_at: str | None = None,
 ) -> dict:
     """Fetch once, then route by the returned material type."""
-    response = transport(url, timeout_seconds, maximum_bytes)
-    if response.status < 200 or response.status >= 300:
-        raise DiscoveryError("SOURCE_HTTP_FAILED", f"HTTP {response.status}")
+    response = _fetch(url, transport, timeout_seconds, maximum_bytes)
     if response.content_type in {"text/html", "application/xhtml+xml"}:
         return fetch_and_extract_html(
             url,

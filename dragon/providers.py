@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import os
 from pathlib import Path
@@ -86,6 +87,17 @@ def _synthetic_story_type(section_id: str) -> str:
         "opinion": "ANALYSIS",
         "service": "DATA",
     }.get(section_id, "NEWS")
+
+
+def _valid_source_time(value: object, *, retrieval: bool = False) -> bool:
+    if not isinstance(value, str) or not value.strip():
+        return False
+    candidate = value.strip()
+    try:
+        parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return not retrieval or ("T" in candidate and parsed.tzinfo is not None)
 
 
 def _synthetic_investigation_data() -> dict:
@@ -475,6 +487,8 @@ class LocalCommandEditorialProvider:
                 )
                 or not isinstance(source.get("id"), str)
                 or not _https_url(source.get("url"))
+                or not _valid_source_time(source.get("publication_date"))
+                or not _valid_source_time(source.get("accessed_at"), retrieval=True)
                 or source.get("publication_status") not in {
                     "peer_reviewed", "preprint", "report", "news", "not_applicable", "unknown"
                 }

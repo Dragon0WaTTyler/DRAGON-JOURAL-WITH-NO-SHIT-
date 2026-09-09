@@ -68,6 +68,56 @@ def test_trafilatura_adapter_extracts_bounded_html_with_provenance() -> None:
     assert value["verification_status"] == "EXTRACTED_NOT_VERIFIED"
     assert value["content_hash"]
     assert len(value["text"]) >= 200
+    assert value["publisher"] == "example.org"
+    assert value["author"] is None
+    assert "AUTHOR_MISSING" in value["metadata_warnings"]
+    assert "PUBLISHED_AT_MISSING" in value["metadata_warnings"]
+    assert 0 < value["quality_score"] <= 1
+
+
+def test_bad_source_date_is_quarantined_instead_of_entering_chronology(monkeypatch: pytest.MonkeyPatch) -> None:
+    html = (
+        "<html><head><meta name='date' content='not-a-date'><title>Report</title></head>"
+        "<body><article>" + "<p>Substantive independently checkable report text.</p>" * 12
+        + "</article></body></html>"
+    ).encode()
+
+    class Extracted:
+        def as_dict(self) -> dict:
+            return {
+                "url": "https://example.org/report", "title": "Report", "author": None,
+                "date": "not-a-date", "text": "checkable report evidence " * 20,
+            }
+
+    monkeypatch.setattr("trafilatura.bare_extraction", lambda *args, **kwargs: Extracted())
+    value = fetch_and_extract_html(
+        "https://example.org/report",
+        transport=lambda *_: FetchResponse("https://example.org/report", 200, "text/html", html),
+    )
+    assert value["published_at"] is None
+    assert set(value["metadata_warnings"]) >= {"AUTHOR_MISSING", "PUBLISHED_AT_INVALID"}
+
+
+@pytest.mark.parametrize(
+    ("response", "expected"),
+    [
+        (FetchResponse("https://example.org/blocked", 403, "text/html", b"denied"), "SOURCE_BLOCKED"),
+        (FetchResponse("https://example.org/empty", 200, "text/html", b""), "SOURCE_CONTENT_EMPTY"),
+    ],
+)
+def test_blocked_and_empty_sources_have_explicit_failure_codes(response: FetchResponse, expected: str) -> None:
+    with pytest.raises(DiscoveryError) as caught:
+        fetch_and_extract_html(response.url, transport=lambda *_: response)
+    assert caught.value.code == expected
+
+
+def test_source_timeout_has_an_explicit_retryable_failure_code() -> None:
+    def timeout(*_: object) -> FetchResponse:
+        raise TimeoutError("fixture timeout")
+
+    with pytest.raises(DiscoveryError) as caught:
+        fetch_and_extract_source("https://example.org/slow", transport=timeout)
+    assert caught.value.code == "SOURCE_TIMEOUT"
 
 
 def test_extractor_routes_non_html_material_instead_of_forcing_parser() -> None:
@@ -86,6 +136,23 @@ def test_js_heavy_static_shell_requests_exceptional_browser_route() -> None:
     with pytest.raises(DiscoveryError) as caught:
         fetch_and_extract_html("https://example.org/dynamic", transport=transport)
     assert caught.value.code == "SOURCE_DYNAMIC_ROUTE_REQUIRED"
+
+
+def test_broken_but_substantive_html_is_recovered_without_inventing_metadata() -> None:
+    html = (
+        "<html><head><title>Broken report</title><body><article><h1>Broken report</h1>"
+        + "".join(
+            f"<p>Substantive recoverable evidence {index} from a malformed source document.</p>"
+            for index in range(12)
+        )
+    ).encode()
+    value = fetch_and_extract_html(
+        "https://example.org/broken",
+        transport=lambda *_: FetchResponse("https://example.org/broken", 200, "text/html", html),
+    )
+    assert value["extraction_quality"] in {"MEDIUM", "HIGH"}
+    assert len(value["text"]) >= 200
+    assert value["author"] is None
 
 
 def test_material_router_extracts_json_without_calling_html_parser() -> None:

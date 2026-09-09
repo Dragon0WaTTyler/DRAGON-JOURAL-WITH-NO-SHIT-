@@ -87,6 +87,21 @@ python dragon_daily.py --date YYYY-MM-DD --retry STAGE
 - Resume: `--retry research` only after automatic attempts are exhausted.
 - Escalate: incident when repeated sources fail; never invent access or facts.
 
+### SOURCE_FETCH_FAILED
+
+- Evidence: exact HTTPS URL, transport error class, attempt count, and source-stage log.
+- Safe action: retry the affected source only with bounded backoff; then record the unresolved failure.
+
+### SOURCE_BLOCKED
+
+- Evidence: exact HTTPS URL and HTTP 401/403 response status.
+- Safe action: do not bypass access controls; record the block and route to an approved primary or independent fallback.
+
+### SOURCE_CONTENT_EMPTY
+
+- Evidence: exact HTTPS URL, HTTP status, content type, and zero-byte response.
+- Safe action: retry or replace only the affected source and never admit it as evidence.
+
 ### SOURCE_INSUFFICIENT
 
 - Meaning/causes: no independent trail, only a homepage, stale or disputed proof.
