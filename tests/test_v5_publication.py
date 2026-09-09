@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen.canvas import Canvas
 
 from dragon.publication import (
@@ -180,6 +180,54 @@ def test_pdf_validator_rejects_non_arabic_reader_text(tmp_path: Path) -> None:
     report = validate_pdf(pdf)
     assert report["status"] == "FAIL"
     assert any("ARABIC_LANGUAGE_INSUFFICIENT" in issue for issue in report["issues"])
+
+
+def test_pdf_validator_rejects_an_inserted_blank_page(tmp_path: Path) -> None:
+    edition = tmp_path / "edition"
+    edition.mkdir()
+    build_cover_png(
+        edition / "assets" / "cover.png", "2099-01-02", "عنوان عربي", "مقدمة عربية"
+    )
+    article = {
+        "id": "a", "section": "الواجهة", "status": "ACTIVE",
+        "headline": "عنوان عربي", "standfirst": "مقدمة عربية",
+        "byline": "تحرير: DRAGON", "body": ["متن عربي موثق " * 100],
+        "source_urls": [],
+    }
+    (edition / "articles.json").write_text(
+        json.dumps({"mode": "synthetic", "articles": [article]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    html = edition / "edition.html"
+    html.write_text("x", encoding="utf-8")
+    rendered = render_pdf(html, edition / "rendered.pdf")
+    writer = PdfWriter()
+    writer.append(str(rendered))
+    writer.add_blank_page(width=595, height=842)
+    corrupted = edition / "blank-page.pdf"
+    with corrupted.open("wb") as stream:
+        writer.write(stream)
+
+    report = validate_pdf(corrupted)
+
+    assert report["status"] == "FAIL"
+    assert report["populated_pages"] == report["pages"] - 1
+    assert "PDF_BLANK_PAGES:1" in report["issues"]
+
+
+def test_pdf_validator_rejects_mojibake_glyph_corruption(tmp_path: Path) -> None:
+    pdf = tmp_path / "mojibake.pdf"
+    canvas = Canvas(str(pdf))
+    for page in range(2):
+        for line in range(30):
+            canvas.drawString(72, 780 - line * 20, f"Ø§Ù corrupted Arabic text {page}-{line}")
+        canvas.showPage()
+    canvas.save()
+
+    report = validate_pdf(pdf)
+
+    assert report["status"] == "FAIL"
+    assert any("MOJIBAKE_DETECTED" in issue for issue in report["issues"])
 
 
 def test_publication_source_binds_functional_layout_grammar(tmp_path: Path) -> None:
