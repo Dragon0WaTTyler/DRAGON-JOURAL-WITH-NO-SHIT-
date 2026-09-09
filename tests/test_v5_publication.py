@@ -4,6 +4,7 @@ from pathlib import Path
 from pypdf import PdfReader
 
 from dragon.publication import (
+    _safe_flow_take,
     build_pdf_contact_sheet,
     build_cover_png,
     build_html,
@@ -72,6 +73,15 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
     )
     repeated = render_pdf(html, edition / "DRAGON-2099-01-02-repeated.pdf")
     assert sha256_file(repeated) == sha256_file(pdf)
+
+
+def test_pagination_avoids_single_line_orphans_and_widows() -> None:
+    first = [(f"a-{index}", None, 1) for index in range(5)]
+    second = [(f"b-{index}", None, 2) for index in range(5)]
+    flow = first + second
+    assert _safe_flow_take(flow, 6, 8) == 5  # do not strand one new-paragraph line
+    assert _safe_flow_take(flow, 4, 8) == 5  # pull a one-line widow back when space exists
+    assert _safe_flow_take(flow, 4, 4) == 3  # otherwise leave two lines for the next frame
 
 
 def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> None:

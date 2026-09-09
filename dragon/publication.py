@@ -329,6 +329,37 @@ def _ltr_lines(draw, text: str, font, width: int) -> list[str]:
     return lines
 
 
+def _safe_flow_take(
+    flow: list[tuple[str, str | None, int | None]], proposed: int, capacity: int
+) -> int:
+    """Avoid a one-line paragraph fragment at a page or column boundary."""
+    take = min(max(1, proposed), capacity, len(flow))
+    if take >= len(flow):
+        return take
+    left_group = flow[take - 1][2]
+    right_group = flow[take][2]
+    if left_group is None or left_group != right_group:
+        return take
+    left = 0
+    index = take - 1
+    while index >= 0 and flow[index][2] == left_group:
+        left += 1
+        index -= 1
+    right = 0
+    index = take
+    while index < len(flow) and flow[index][2] == right_group:
+        right += 1
+        index += 1
+    if left == 1 and take > 1:
+        return take - 1
+    if right == 1:
+        if take + 1 <= capacity:
+            return take + 1
+        if take > 2:
+            return take - 1
+    return take
+
+
 def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int = 29) -> None:
     """Portable Windows renderer with explicit Arabic shaping and bidi."""
     from PIL import Image, ImageDraw
@@ -390,17 +421,23 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
 
         # Wrap once, then balance the immutable copy over the minimum page count.
         # Layout may reflow copy but never rewrites editorial facts or wording.
-        flow: list[tuple[str, str | None]] = []
+        flow: list[tuple[str, str | None, int | None]] = []
         scratch_image = Image.new("RGB", (1, 1))
         scratch = ImageDraw.Draw(scratch_image)
-        for paragraph in article["body"]:
-            flow.extend((line, None) for line in _rtl_lines(scratch, paragraph, body_font, column_width))
-            flow.append(("", None))
+        for paragraph_index, paragraph in enumerate(article["body"]):
+            flow.extend(
+                (line, None, paragraph_index)
+                for line in _rtl_lines(scratch, paragraph, body_font, column_width)
+            )
+            flow.append(("", None, None))
         if flow and flow[-1][0] == "":
             flow.pop()
-        flow.append(("المصادر:", None))
-        for url in article.get("source_urls", []):
-            flow.extend((line, str(url)) for line in _ltr_lines(scratch, str(url), _font(11), column_width))
+        flow.append(("المصادر:", None, None))
+        for source_index, url in enumerate(article.get("source_urls", [])):
+            flow.extend(
+                (line, str(url), len(article["body"]) + source_index)
+                for line in _ltr_lines(scratch, str(url), _font(11), column_width)
+            )
         scratch_image.close()
 
         remaining = flow
@@ -429,16 +466,22 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
             rows_per_column = max(1, (1035 - content_y) // line_height)
             page_capacity = rows_per_column * column_count
             pages_needed = max(1, (len(remaining) + page_capacity - 1) // page_capacity)
-            take = min(page_capacity, (len(remaining) + pages_needed - 1) // pages_needed)
+            proposed_take = min(page_capacity, (len(remaining) + pages_needed - 1) // pages_needed)
+            take = _safe_flow_take(remaining, proposed_take, page_capacity)
             page_flow, remaining = remaining[:take], remaining[take:]
-            rows_used = (len(page_flow) + column_count - 1) // column_count
+            if column_count == 2:
+                first_count = _safe_flow_take(
+                    page_flow, (len(page_flow) + 1) // 2, rows_per_column
+                )
+                column_chunks = (page_flow[:first_count], page_flow[first_count:])
+            else:
+                column_chunks = (page_flow,)
+            rows_used = max(len(chunk) for chunk in column_chunks)
             if column_count == 2:
                 draw.line((420, content_y, 420, min(1040, content_y + rows_used * line_height)), fill="#dedede", width=2)
-            for column_index, x in enumerate(column_xs):
-                start = column_index * rows_used
-                column_flow = page_flow[start : start + rows_used]
+            for x, column_flow in zip(column_xs, column_chunks):
                 line_y = content_y
-                for line, url in column_flow:
+                for line, url, _group in column_flow:
                     if line:
                         font = _font(11) if url else body_font
                         visual = line if url else _visual_arabic(line)
@@ -454,7 +497,7 @@ def _render_pdf_pillow(html_path: Path, destination: Path, *, line_height: int =
                 *([] if continuation else [
                     article["section"], article["standfirst"], article["byline"],
                 ]),
-                *(line for line, _url in page_flow if line),
+                *(line for line, _url, _group in page_flow if line),
             ])
             continuation = True
     first, rest = pages[0], pages[1:]
