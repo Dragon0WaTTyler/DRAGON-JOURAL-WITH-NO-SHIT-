@@ -7,11 +7,11 @@ import hashlib
 from io import BytesIO
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import time
 from xml.etree import ElementTree
-from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
+from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile, ZipInfo
 
 from pypdf import PdfReader, PdfWriter
 from pypdf.generic import RectangleObject
@@ -607,6 +607,13 @@ def _xhtml(edition_date: str, articles: list[dict], *, mode: str) -> str:
 <body><header><h1>{'نسخة اختبار اصطناعية' if mode == 'synthetic' else 'النسخة اليومية'}</h1><p>{edition_date}</p></header>{body}</body></html>'''
 
 
+def _write_epub_member(archive: ZipFile, name: str, payload: str | bytes, compression: int) -> None:
+    info = ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+    info.compress_type = compression
+    info.create_system = 0
+    archive.writestr(info, payload.encode("utf-8") if isinstance(payload, str) else payload)
+
+
 def build_epub(destination: Path, edition_date: str, articles: list[dict], cover_path: Path, *, mode: str = "production") -> Path:
     destination.parent.mkdir(parents=True, exist_ok=True)
     identifier = f"urn:dragon:{mode}:{edition_date}"
@@ -619,13 +626,13 @@ def build_epub(destination: Path, edition_date: str, articles: list[dict], cover
     nav = '''<?xml version="1.0" encoding="utf-8"?><html xmlns="http://www.w3.org/1999/xhtml" lang="ar" xml:lang="ar" dir="rtl"><head><title>الفهرس</title></head><body><nav epub:type="toc" xmlns:epub="http://www.idpf.org/2007/ops"><h1>الفهرس</h1><ol><li><a href="edition.xhtml">النسخة الكاملة</a></li></ol></nav></body></html>'''
     css = "html,body{font-family:serif;line-height:1.7} article{break-before:page} h1,h2,p{text-align:right}.section{font-weight:bold}"
     with ZipFile(destination, "w") as archive:
-        archive.writestr("mimetype", "application/epub+zip", compress_type=ZIP_STORED)
-        archive.writestr("META-INF/container.xml", container, compress_type=ZIP_DEFLATED)
-        archive.writestr("OEBPS/content.opf", package, compress_type=ZIP_DEFLATED)
-        archive.writestr("OEBPS/nav.xhtml", nav, compress_type=ZIP_DEFLATED)
-        archive.writestr("OEBPS/edition.xhtml", _xhtml(edition_date, articles, mode=mode), compress_type=ZIP_DEFLATED)
-        archive.writestr("OEBPS/style.css", css, compress_type=ZIP_DEFLATED)
-        archive.write(cover_path, "OEBPS/cover.png", compress_type=ZIP_DEFLATED)
+        _write_epub_member(archive, "mimetype", "application/epub+zip", ZIP_STORED)
+        _write_epub_member(archive, "META-INF/container.xml", container, ZIP_DEFLATED)
+        _write_epub_member(archive, "OEBPS/content.opf", package, ZIP_DEFLATED)
+        _write_epub_member(archive, "OEBPS/nav.xhtml", nav, ZIP_DEFLATED)
+        _write_epub_member(archive, "OEBPS/edition.xhtml", _xhtml(edition_date, articles, mode=mode), ZIP_DEFLATED)
+        _write_epub_member(archive, "OEBPS/style.css", css, ZIP_DEFLATED)
+        _write_epub_member(archive, "OEBPS/cover.png", cover_path.read_bytes(), ZIP_DEFLATED)
     return destination
 
 
@@ -765,17 +772,57 @@ def validate_epub(
 ) -> dict:
     issues: list[str] = []
     required = {"mimetype", "META-INF/container.xml", "OEBPS/content.opf", "OEBPS/nav.xhtml", "OEBPS/edition.xhtml", "OEBPS/cover.png"}
+    language: dict = {"status": "FAIL", "issues": ["EPUB_XHTML_UNAVAILABLE"]}
     try:
         with ZipFile(path) as archive:
-            names = set(archive.namelist())
+            name_list = archive.namelist()
+            names = set(name_list)
+            if len(names) != len(name_list):
+                issues.append("EPUB_DUPLICATE_MEMBERS")
+            unsafe = sorted(
+                name for name in names
+                if name.startswith("/") or "\\" in name or ".." in PurePosixPath(name).parts
+            )
+            if unsafe:
+                issues.append("EPUB_UNSAFE_MEMBER_PATHS:" + ",".join(unsafe))
             missing = sorted(required - names)
             if missing:
                 issues.append("EPUB_MEMBERS_MISSING:" + ",".join(missing))
-            if archive.namelist()[0] != "mimetype" or archive.getinfo("mimetype").compress_type != ZIP_STORED:
+            if (
+                not name_list
+                or name_list[0] != "mimetype"
+                or "mimetype" not in names
+                or archive.getinfo("mimetype").compress_type != ZIP_STORED
+                or archive.read("mimetype") != b"application/epub+zip"
+            ):
                 issues.append("EPUB_MIMETYPE_INVALID")
-            package = decode_utf8(archive.read("OEBPS/content.opf"))
-            xhtml = decode_utf8(archive.read("OEBPS/edition.xhtml"))
-            if canonical_cover is not None and archive.read("OEBPS/cover.png") != canonical_cover.read_bytes():
+            container_root = package_root = nav_root = xhtml_root = None
+            package = xhtml = ""
+            for member, code in (
+                ("META-INF/container.xml", "EPUB_CONTAINER_XML_INVALID"),
+                ("OEBPS/content.opf", "EPUB_OPF_XML_INVALID"),
+                ("OEBPS/nav.xhtml", "EPUB_NAV_XML_INVALID"),
+                ("OEBPS/edition.xhtml", "EPUB_XHTML_XML_INVALID"),
+            ):
+                if member not in names:
+                    continue
+                try:
+                    content = decode_utf8(archive.read(member))
+                    parsed = ElementTree.fromstring(content)
+                    if member == "META-INF/container.xml":
+                        container_root = parsed
+                    elif member == "OEBPS/content.opf":
+                        package, package_root = content, parsed
+                    elif member == "OEBPS/nav.xhtml":
+                        nav_root = parsed
+                    else:
+                        xhtml, xhtml_root = content, parsed
+                except Exception:
+                    issues.append(code)
+            if canonical_cover is not None and (
+                "OEBPS/cover.png" not in names
+                or archive.read("OEBPS/cover.png") != canonical_cover.read_bytes()
+            ):
                 issues.append("EPUB_CANONICAL_COVER_MISMATCH")
             for article_id in expected_article_ids:
                 if f'id="{article_id}"' not in xhtml:
@@ -783,13 +830,62 @@ def validate_epub(
             for url in expected_source_urls:
                 if f'href="{escape(url, quote=True)}"' not in xhtml:
                     issues.append(f"EPUB_SOURCE_LINK_MISSING:{url}")
-            ElementTree.fromstring(package)
-            issues.extend(validate_xhtml_rtl(xhtml))
+            if container_root is not None:
+                rootfile = container_root.find(
+                    ".//{urn:oasis:names:tc:opendocument:xmlns:container}rootfile"
+                )
+                if rootfile is None or rootfile.get("full-path") != "OEBPS/content.opf":
+                    issues.append("EPUB_CONTAINER_ROOTFILE_INVALID")
+            if package_root is not None:
+                opf = "{http://www.idpf.org/2007/opf}"
+                manifest = {
+                    item.get("id"): item
+                    for item in package_root.findall(f".//{opf}manifest/{opf}item")
+                }
+                for item_id, item in manifest.items():
+                    href = item.get("href", "")
+                    if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", href):
+                        issues.append(f"EPUB_REMOTE_MANIFEST_ASSET:{item_id}")
+                    elif f"OEBPS/{href}" not in names:
+                        issues.append(f"EPUB_MANIFEST_ASSET_MISSING:{item_id}:{href}")
+                spine_refs = [
+                    item.get("idref")
+                    for item in package_root.findall(f".//{opf}spine/{opf}itemref")
+                ]
+                if not spine_refs or any(item not in manifest for item in spine_refs):
+                    issues.append("EPUB_SPINE_INVALID")
+                nav_item = manifest.get("nav")
+                if nav_item is None or "nav" not in (nav_item.get("properties") or "").split():
+                    issues.append("EPUB_NAV_MANIFEST_INVALID")
+                cover_item = manifest.get("cover-image")
+                cover_meta = package_root.find(f".//{opf}metadata/{opf}meta[@name='cover']")
+                if (
+                    cover_item is None
+                    or "cover-image" not in (cover_item.get("properties") or "").split()
+                    or cover_meta is None
+                    or cover_meta.get("content") != "cover-image"
+                ):
+                    issues.append("EPUB_COVER_METADATA_INVALID")
+            if nav_root is not None:
+                xhtml_ns = "{http://www.w3.org/1999/xhtml}"
+                nav_element = nav_root.find(f".//{xhtml_ns}nav")
+                if nav_element is None or nav_element.get("{http://www.idpf.org/2007/ops}type") != "toc":
+                    issues.append("EPUB_NAV_TOC_INVALID")
+                else:
+                    for anchor in nav_element.findall(f".//{xhtml_ns}a"):
+                        href = (anchor.get("href") or "").split("#", 1)[0]
+                        if not href or f"OEBPS/{href}" not in names:
+                            issues.append(f"EPUB_NAV_TARGET_MISSING:{href}")
+            if xhtml_root is not None:
+                issues.extend(validate_xhtml_rtl(xhtml))
+                text = re.sub(r"<[^>]+>", " ", xhtml)
+                qa = validate_arabic_text(
+                    text, minimum_arabic_letters=50, allowed_latin_terms=("DRAGON",)
+                )
+                language = qa.to_dict()
+                issues.extend(qa.issues)
             if "page-progression-direction=\"rtl\"" not in package or "<dc:language>ar</dc:language>" not in package:
                 issues.append("EPUB_RTL_METADATA_INVALID")
-            text = re.sub(r"<[^>]+>", " ", xhtml)
-            language = validate_arabic_text(text, minimum_arabic_letters=50, allowed_latin_terms=("DRAGON",))
-            issues.extend(language.issues)
     except Exception as exc:
         return {"status": "FAIL", "issues": [f"EPUB_OPEN_FAILED:{exc}"]}
     return {
@@ -797,7 +893,7 @@ def validate_epub(
         "bytes": path.stat().st_size,
         "canonical_cover_sha256": sha256_file(canonical_cover) if canonical_cover else None,
         "article_count": len(expected_article_ids),
-        "language": language.to_dict(),
+        "language": language,
         "issues": issues,
     }
 
