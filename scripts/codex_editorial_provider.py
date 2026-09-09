@@ -18,6 +18,7 @@ if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from dragon.providers import SECTION_HEADINGS, STORY_TYPES
+from dragon.redaction import redact_text
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -457,7 +458,11 @@ def _run_codex(
             timeout=int(os.environ.get("DRAGON_CODEX_TIMEOUT_SECONDS", "7200")),
         )
         if result.returncode:
-            raise RuntimeError(f"Codex editorial execution failed with exit code {result.returncode}")
+            diagnostic = redact_text(result.stderr.strip())[-4000:]
+            suffix = f": {diagnostic}" if diagnostic else ""
+            raise RuntimeError(
+                f"Codex editorial execution failed with exit code {result.returncode}{suffix}"
+            )
         try:
             value = json.loads(output_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:

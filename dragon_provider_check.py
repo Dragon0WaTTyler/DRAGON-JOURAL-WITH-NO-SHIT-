@@ -12,6 +12,7 @@ from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, editorial_provider_from_config
+from dragon.redaction import redact_text
 from dragon.state import atomic_write_json, runtime_fingerprint, sha256_file, source_revision
 
 
@@ -40,6 +41,7 @@ def main() -> int:
     trial_dir = ROOT / "acceptance" / "provider-trials" / edition_date
     if args.full and is_dataclass(provider) and hasattr(provider, "capture_directory"):
         provider = replace(provider, capture_directory=trial_dir)
+    health = None
     try:
         health = provider.healthcheck()
         if not args.full:
@@ -51,12 +53,31 @@ def main() -> int:
         )
         articles = provider.articles(research)
     except ProviderError as exc:
-        failure = {"status": "FAIL", "error_code": exc.code, "detail": exc.detail}
+        failure = {
+            "schema_version": 5,
+            "status": "FAIL",
+            "edition_date": edition_date,
+            "created_at": datetime.now(ZoneInfo(str(config["timezone"]))).isoformat(),
+            "error_code": exc.code,
+            "detail": redact_text(exc.detail),
+            "provider": health,
+            "runtime_fingerprint": runtime_fingerprint(ROOT),
+            "source_git_revision": source_revision(ROOT),
+            "integration_test_status_changed": False,
+        }
         raw_files = sorted(trial_dir.glob("*.raw.json")) if args.full else []
         if raw_files:
-            failure["raw_evidence"] = [
-                str(path.relative_to(ROOT)).replace("\\", "/") for path in raw_files
-            ]
+            failure["raw_evidence"] = {
+                str(path.relative_to(ROOT)).replace("\\", "/"): sha256_file(path)
+                for path in raw_files
+            }
+        if args.full:
+            trial_dir.mkdir(parents=True, exist_ok=True)
+            failure_path = trial_dir / "failure.json"
+            atomic_write_json(failure_path, failure)
+            failure["failure_evidence"] = str(failure_path.relative_to(ROOT)).replace(
+                "\\", "/"
+            )
         print(json.dumps(failure, ensure_ascii=False, indent=2))
         return 1
     research_path = trial_dir / "research.json"

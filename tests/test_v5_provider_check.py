@@ -97,6 +97,12 @@ def test_failed_full_trial_reports_persisted_raw_evidence(
     assert dragon_provider_check.main() == 1
     value = json.loads(capsys.readouterr().out)
     assert value["error_code"] == "RESEARCH_PACKET_INVALID"
-    assert value["raw_evidence"] == [
+    assert set(value["raw_evidence"]) == {
         "acceptance/provider-trials/2099-01-02/research.raw.json"
-    ]
+    }
+    assert len(next(iter(value["raw_evidence"].values()))) == 64
+    failure = tmp_path / value["failure_evidence"]
+    persisted = json.loads(failure.read_text(encoding="utf-8"))
+    assert persisted["status"] == "FAIL"
+    assert persisted["integration_test_status_changed"] is False
+    assert "failure_evidence" not in persisted

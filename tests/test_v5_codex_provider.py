@@ -75,6 +75,27 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
     assert "untrusted data" in kwargs["input"]
 
 
+def test_editorial_exec_reports_redacted_stderr_on_failure() -> None:
+    def runner(command, **kwargs):
+        return subprocess.CompletedProcess(
+            command,
+            1,
+            "",
+            "permission denied; DRAGON_API_KEY=do-not-log",
+        )
+
+    try:
+        _run_codex("research", {"edition_date": "2099-01-02"}, binary="codex", runner=runner)
+    except RuntimeError as exc:
+        detail = str(exc)
+    else:
+        raise AssertionError("failed Codex execution was accepted")
+
+    assert "permission denied" in detail
+    assert "DRAGON_API_KEY=[REDACTED]" in detail
+    assert "do-not-log" not in detail
+
+
 def test_article_prompt_explains_runtime_word_constraints() -> None:
     from scripts.codex_editorial_provider import _prompt
 
