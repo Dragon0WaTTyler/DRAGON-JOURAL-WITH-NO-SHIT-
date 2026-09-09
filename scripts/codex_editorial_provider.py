@@ -50,8 +50,14 @@ def _probe(binary: str, runner: Runner = subprocess.run) -> dict:
 def _schema(operation: str) -> dict:
     section_ids = [section_id for section_id, _ in SECTION_HEADINGS]
     string_array = {"type": "array", "items": {"type": "string"}}
+    nullable_string = {"type": ["string", "null"]}
+
+    def record(properties: dict) -> dict:
+        return {
+            "type": "object", "properties": properties,
+            "required": list(properties), "additionalProperties": False,
+        }
     if operation == "research":
-        nullable_string = {"type": ["string", "null"]}
         science_metadata = {
             "type": ["object", "null"],
             "properties": {
@@ -185,7 +191,6 @@ def _schema(operation: str) -> dict:
     if operation != "articles":
         raise ValueError(f"unsupported editorial operation: {operation}")
 
-    nullable_string = {"type": ["string", "null"]}
     claim = {
         "type": "object",
         "properties": {
@@ -248,6 +253,54 @@ def _schema(operation: str) -> dict:
         ],
         "additionalProperties": False,
     }
+    confidence = {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]}
+    entity = record({
+        "entity_id": {"type": "string"},
+        "entity_type": {"type": "string", "enum": [
+            "Person", "Organization", "Company", "PublicBody", "Asset", "Address",
+            "Identifier", "Contract", "Payment", "Ownership", "Directorship", "CourtCase",
+        ]},
+        "name": {"type": "string"}, "aliases": string_array,
+        "confidence": confidence, "source_ids": string_array,
+    })
+    investigation_data = {
+        "type": ["object", "null"],
+        "properties": {
+            "question": {"type": "string"},
+            "entities": {"type": "array", "items": entity},
+            "relationships": {"type": "array", "items": record({
+                "from_entity_id": {"type": "string"}, "to_entity_id": {"type": "string"},
+                "relationship_type": {"type": "string"}, "source_ids": string_array,
+                "confidence": confidence, "ambiguity": nullable_string,
+            })},
+            "contracts": {"type": "array", "items": record({
+                "contract_id": {"type": "string"}, "buyer_entity_id": {"type": "string"},
+                "supplier_entity_id": {"type": "string"}, "amount": {"type": "number"},
+                "currency": {"type": "string"}, "award_date": nullable_string,
+                "amendments": {"type": "array", "items": {"type": "number"}},
+                "execution_status": nullable_string, "source_ids": string_array,
+            })},
+            "timeline": {"type": "array", "items": record({
+                "event_id": {"type": "string"}, "date": {"type": "string"},
+                "description": {"type": "string"}, "source_ids": string_array,
+            })},
+            "archive_references": {"type": "array", "items": record({
+                "source_id": {"type": "string"}, "canonical_url": {"type": "string"},
+                "retrieved_at": {"type": "string"}, "sha256": {"type": "string"},
+                "archive_locator": nullable_string,
+            })},
+            "leads": {"type": "array", "items": record({
+                "description": {"type": "string"}, "confidence": confidence,
+                "source_ids": string_array, "not_proof_of_wrongdoing": {"const": True},
+            })},
+            "material_uncertainties": string_array,
+        },
+        "required": [
+            "question", "entities", "relationships", "contracts", "timeline",
+            "archive_references", "leads", "material_uncertainties",
+        ],
+        "additionalProperties": False,
+    }
     decision = {
         "type": "object",
         "properties": {
@@ -266,6 +319,7 @@ def _schema(operation: str) -> dict:
             "claims": {"type": "array", "items": claim},
             "editorial_elements": editorial_elements,
             "investigation_checks": investigation_checks,
+            "investigation_data": investigation_data,
             "skip_reason": nullable_string,
         },
         "required": [
@@ -274,6 +328,7 @@ def _schema(operation: str) -> dict:
             "story_type",
             "editorial_elements", "skip_reason",
             "investigation_checks",
+            "investigation_data",
         ],
         "additionalProperties": False,
     }
@@ -350,7 +405,11 @@ material boolean, and fact_key/value when contradiction checking is meaningful. 
 must contain lead, nut_graf, verified_facts, context, uncertainty, consequences, and next_steps.
 Any research section marked NO_NEWS must remain SKIPPED; it cannot become an ACTIVE article.
 An ACTIVE investigations decision must include investigation_checks with an honest serious-claim
-flag, counter-evidence status, response/counter-position status, and publication_ready. Use
+flag, counter-evidence status, response/counter-position status, and publication_ready, plus
+investigation_data with the question, evidence-lined entities/aliases, relationships, contracts,
+timeline events, archive references, cautious leads, and material uncertainties. Every graph or
+money relationship needs known source_ids. Leads must explicitly say they are not proof of
+wrongdoing. Use
 SKIPPED when those gates do not support publication; a suspicious pattern is not wrongdoing.
 Write real newspaper prose, not repeating digest cards. Expand only with supported context,
 uncertainty, consequences, and next steps; never manufacture text to reach length."""

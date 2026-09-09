@@ -88,6 +88,19 @@ def _synthetic_story_type(section_id: str) -> str:
     }.get(section_id, "NEWS")
 
 
+def _synthetic_investigation_data() -> dict:
+    return {
+        "question": "كيف يختبر النظام حفظ ملف مساءلة اصطناعي من دون اتهام واقعي؟",
+        "entities": [],
+        "relationships": [],
+        "contracts": [],
+        "timeline": [],
+        "archive_references": [],
+        "leads": [],
+        "material_uncertainties": [],
+    }
+
+
 @dataclass(frozen=True)
 class SyntheticEditorialProvider:
     """Deterministic, clearly labelled fixture data; never a news source."""
@@ -204,6 +217,10 @@ class SyntheticEditorialProvider:
                         "response_status": "NOT_APPLICABLE",
                         "publication_ready": True,
                     } if section_id == "investigations" else None,
+                    "investigation_data": (
+                        _synthetic_investigation_data()
+                        if section_id == "investigations" else None
+                    ),
                     "fixture": True,
                 }
             )
@@ -260,6 +277,95 @@ def _valid_science_metadata(value: object) -> bool:
             for field in ("doi_verified", "metadata_matches", "correlation_only")
         )
     )
+
+
+def _valid_investigation_data(value: object, source_ids: set[str]) -> bool:
+    required = {
+        "question", "entities", "relationships", "contracts", "timeline",
+        "archive_references", "leads", "material_uncertainties",
+    }
+    if not isinstance(value, dict) or set(value) != required or not isinstance(value["question"], str):
+        return False
+    if not value["question"].strip() or not all(isinstance(value[field], list) for field in required - {"question"}):
+        return False
+
+    def exact(item: object, fields: set[str]) -> bool:
+        return isinstance(item, dict) and set(item) == fields
+
+    def valid_source_list(item: dict, *, nonempty: bool = False) -> bool:
+        values = item.get("source_ids")
+        return (
+            isinstance(values, list)
+            and (not nonempty or bool(values))
+            and all(isinstance(source_id, str) for source_id in values)
+            and set(values).issubset(source_ids)
+        )
+
+    entity_fields = {"entity_id", "entity_type", "name", "aliases", "confidence", "source_ids"}
+    relation_fields = {"from_entity_id", "to_entity_id", "relationship_type", "source_ids", "confidence", "ambiguity"}
+    contract_fields = {"contract_id", "buyer_entity_id", "supplier_entity_id", "amount", "currency", "award_date", "amendments", "execution_status", "source_ids"}
+    timeline_fields = {"event_id", "date", "description", "source_ids"}
+    archive_fields = {"source_id", "canonical_url", "retrieved_at", "sha256", "archive_locator"}
+    lead_fields = {"description", "confidence", "source_ids", "not_proof_of_wrongdoing"}
+    entities = value["entities"]
+    entity_ids = {item.get("entity_id") for item in entities if isinstance(item, dict)}
+    if len(entity_ids) != len(entities) or None in entity_ids:
+        return False
+    for item in entities:
+        if (
+            not exact(item, entity_fields)
+            or item["entity_type"] not in {
+                "Person", "Organization", "Company", "PublicBody", "Asset", "Address",
+                "Identifier", "Contract", "Payment", "Ownership", "Directorship", "CourtCase",
+            }
+            or item["confidence"] not in {"HIGH", "MEDIUM", "LOW", "UNKNOWN"}
+            or not isinstance(item["aliases"], list)
+            or not all(isinstance(alias, str) for alias in item["aliases"])
+            or not valid_source_list(item)
+        ):
+            return False
+    for item in value["relationships"]:
+        if (
+            not exact(item, relation_fields)
+            or item["from_entity_id"] not in entity_ids
+            or item["to_entity_id"] not in entity_ids
+            or item["confidence"] not in {"HIGH", "MEDIUM", "LOW", "UNKNOWN"}
+            or not valid_source_list(item, nonempty=True)
+        ):
+            return False
+    for item in value["contracts"]:
+        if (
+            not exact(item, contract_fields)
+            or item["buyer_entity_id"] not in entity_ids
+            or item["supplier_entity_id"] not in entity_ids
+            or not isinstance(item["amount"], (int, float))
+            or isinstance(item["amount"], bool)
+            or not isinstance(item["amendments"], list)
+            or not all(isinstance(amount, (int, float)) and not isinstance(amount, bool) for amount in item["amendments"])
+            or not valid_source_list(item, nonempty=True)
+        ):
+            return False
+    for item in value["timeline"]:
+        if not exact(item, timeline_fields) or not valid_source_list(item, nonempty=True):
+            return False
+    for item in value["archive_references"]:
+        if (
+            not exact(item, archive_fields)
+            or item["source_id"] not in source_ids
+            or not _https_url(item["canonical_url"])
+            or not isinstance(item["sha256"], str)
+            or re.fullmatch(r"[a-f0-9]{64}", item["sha256"]) is None
+        ):
+            return False
+    for item in value["leads"]:
+        if (
+            not exact(item, lead_fields)
+            or item["confidence"] not in {"HIGH", "MEDIUM", "LOW", "UNKNOWN"}
+            or item["not_proof_of_wrongdoing"] is not True
+            or not valid_source_list(item)
+        ):
+            return False
+    return all(isinstance(item, str) for item in value["material_uncertainties"])
 
 
 @dataclass(frozen=True)
@@ -644,6 +750,7 @@ class LocalCommandEditorialProvider:
                 raise ProviderError("ARTICLE_SCHEMA_INVALID", f"article {item.get('id')} lacks required journalism elements")
             if section_id == "investigations":
                 checks = item.get("investigation_checks")
+                investigation_data = item.get("investigation_data")
                 if (
                     not isinstance(checks, dict)
                     or any(
@@ -660,6 +767,7 @@ class LocalCommandEditorialProvider:
                     or not isinstance(checks.get("counter_evidence_checked"), bool)
                     or not isinstance(checks.get("publication_ready"), bool)
                     or not checks["publication_ready"]
+                    or not _valid_investigation_data(investigation_data, set(item["source_ids"]))
                 ):
                     raise ProviderError(
                         "ARTICLE_SCHEMA_INVALID",

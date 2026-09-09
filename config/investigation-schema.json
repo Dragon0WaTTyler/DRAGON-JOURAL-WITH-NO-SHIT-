@@ -1,20 +1,87 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Daily Newspaper Investigation Dossier",
+  "title": "DRAGON V5 persistent investigation dossier",
   "type": "object",
-  "required": ["dossier_id", "question", "status", "claims", "supporting_evidence", "contradictory_evidence", "timeline", "sources", "missing_evidence", "unanswered_questions", "confidence"],
+  "additionalProperties": false,
+  "required": ["schema_version", "case_id", "story_key", "first_observed", "dates_observed", "question", "claims", "evidence_index", "entities", "relationships", "contracts", "timeline", "archive_references", "leads", "material_uncertainties", "contradictions", "unanswered_questions", "publication_state", "modular_artifacts"],
   "properties": {
-    "dossier_id": {"type": "string"},
-    "question": {"type": "string"},
-    "status": {"enum": ["RESEARCHING", "NEEDS_VERIFICATION", "READY", "PUBLISHED"]},
-    "claims": {"type": "array"},
-    "supporting_evidence": {"type": "array"},
-    "contradictory_evidence": {"type": "array"},
-    "timeline": {"type": "array"},
-    "sources": {"type": "array"},
-    "missing_evidence": {"type": "array"},
-    "unanswered_questions": {"type": "array"},
-    "confidence": {"enum": ["high", "medium", "low", "unknown"]}
+    "schema_version": {"const": 1},
+    "case_id": {"type": "string", "pattern": "^CASE-[A-F0-9]{12}$"},
+    "story_key": {"type": "string", "minLength": 1},
+    "first_observed": {"type": "string", "format": "date"},
+    "dates_observed": {"type": "array", "items": {"type": "string", "format": "date"}, "uniqueItems": true},
+    "question": {"type": ["string", "null"]},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "evidence_index": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+    "entities": {"type": "array", "items": {"$ref": "#/$defs/entity"}},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}},
+    "contracts": {"type": "array", "items": {"$ref": "#/$defs/contract"}},
+    "timeline": {"type": "array", "items": {"$ref": "#/$defs/timeline"}},
+    "archive_references": {"type": "array", "items": {"$ref": "#/$defs/archive"}},
+    "leads": {"type": "array", "items": {"$ref": "#/$defs/lead"}},
+    "material_uncertainties": {"$ref": "#/$defs/strings"},
+    "contradictions": {"$ref": "#/$defs/strings"},
+    "unanswered_questions": {"$ref": "#/$defs/strings"},
+    "publication_state": {"$ref": "#/$defs/publication_state"},
+    "modular_artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entities.json", "timeline.json", "claims.json", "evidence-index.json", "contradictions.json", "unanswered-questions.json", "publication-state.json"],
+      "properties": {
+        "entities.json": {"$ref": "#/$defs/hash"}, "timeline.json": {"$ref": "#/$defs/hash"},
+        "claims.json": {"$ref": "#/$defs/hash"}, "evidence-index.json": {"$ref": "#/$defs/hash"},
+        "contradictions.json": {"$ref": "#/$defs/hash"}, "unanswered-questions.json": {"$ref": "#/$defs/hash"},
+        "publication-state.json": {"$ref": "#/$defs/hash"}
+      }
+    }
   },
-  "additionalProperties": false
+  "$defs": {
+    "strings": {"type": "array", "items": {"type": "string"}},
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["claim_id", "text", "classification", "assessment", "disputed", "last_observed"],
+      "properties": {"claim_id": {"type": "string"}, "text": {"type": ["string", "null"]}, "classification": {"type": ["string", "null"]}, "assessment": {"type": ["string", "null"]}, "disputed": {"type": "boolean"}, "last_observed": {"type": "string", "format": "date"}}
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["claim_id", "source_id", "url", "alignment", "observed_at"],
+      "properties": {"claim_id": {"type": "string"}, "source_id": {"type": "string"}, "url": {"type": ["string", "null"]}, "alignment": {"type": ["string", "null"]}, "observed_at": {"type": "string", "format": "date"}}
+    },
+    "entity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entity_id", "entity_type", "name", "aliases", "confidence", "source_ids"],
+      "properties": {"entity_id": {"type": "string"}, "entity_type": {"type": "string"}, "name": {"type": "string"}, "aliases": {"$ref": "#/$defs/strings"}, "confidence": {"$ref": "#/$defs/confidence"}, "source_ids": {"$ref": "#/$defs/strings"}}
+    },
+    "relationship": {
+      "type": "object", "additionalProperties": false,
+      "required": ["from_entity_id", "to_entity_id", "relationship_type", "source_ids", "confidence", "ambiguity"],
+      "properties": {"from_entity_id": {"type": "string"}, "to_entity_id": {"type": "string"}, "relationship_type": {"type": "string"}, "source_ids": {"$ref": "#/$defs/strings"}, "confidence": {"$ref": "#/$defs/confidence"}, "ambiguity": {"type": ["string", "null"]}}
+    },
+    "contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract_id", "buyer_entity_id", "supplier_entity_id", "amount", "currency", "award_date", "amendments", "execution_status", "source_ids"],
+      "properties": {"contract_id": {"type": "string"}, "buyer_entity_id": {"type": "string"}, "supplier_entity_id": {"type": "string"}, "amount": {"type": "number"}, "currency": {"type": "string"}, "award_date": {"type": ["string", "null"]}, "amendments": {"type": "array", "items": {"type": "number"}}, "execution_status": {"type": ["string", "null"]}, "source_ids": {"$ref": "#/$defs/strings"}}
+    },
+    "timeline": {
+      "type": "object", "additionalProperties": false,
+      "required": ["event_id", "date", "description", "source_ids"],
+      "properties": {"event_id": {"type": "string"}, "date": {"type": "string"}, "description": {"type": "string"}, "source_ids": {"$ref": "#/$defs/strings"}}
+    },
+    "archive": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_id", "canonical_url", "retrieved_at", "sha256", "archive_locator"],
+      "properties": {"source_id": {"type": "string"}, "canonical_url": {"type": ["string", "null"]}, "retrieved_at": {"type": ["string", "null"]}, "sha256": {"$ref": "#/$defs/hash"}, "archive_locator": {"type": ["string", "null"]}}
+    },
+    "lead": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "confidence", "source_ids", "not_proof_of_wrongdoing"],
+      "properties": {"description": {"type": "string"}, "confidence": {"$ref": "#/$defs/confidence"}, "source_ids": {"$ref": "#/$defs/strings"}, "not_proof_of_wrongdoing": {"const": true}}
+    },
+    "confidence": {"enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]},
+    "publication_state": {
+      "type": "object", "additionalProperties": false,
+      "required": ["publication_ready", "last_evaluated", "primary_evidence_present", "independent_origin_count", "counter_evidence_checked", "response_status", "serious_accountability_claim", "unsupported_claim_present", "evidence_quality", "material_uncertainties", "source_independence"],
+      "properties": {"publication_ready": {"type": "boolean"}, "last_evaluated": {"type": "string", "format": "date"}, "primary_evidence_present": {"type": "boolean"}, "independent_origin_count": {"type": "integer", "minimum": 0}, "counter_evidence_checked": {"type": "boolean"}, "response_status": {"type": ["string", "null"]}, "serious_accountability_claim": {"type": "boolean"}, "unsupported_claim_present": {"type": "boolean"}, "evidence_quality": {"enum": ["HIGH", "MEDIUM", "LOW"]}, "material_uncertainties": {"$ref": "#/$defs/strings"}, "source_independence": {"type": "integer", "minimum": 0}}
+    }
+  }
 }
