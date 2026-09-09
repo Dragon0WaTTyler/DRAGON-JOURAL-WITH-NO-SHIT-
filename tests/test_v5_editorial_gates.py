@@ -94,3 +94,20 @@ def test_adversarial_review_does_not_count_one_wire_origin_as_independent() -> N
     report = adversarial_review([value], graph, plan, media)
     assert report["status"] == "FAIL"
     assert "WIRE_ORIGIN_INDEPENDENCE_INSUFFICIENT" in report["articles"][0]["issues"]
+
+
+def test_adversarial_review_rejects_contradicted_framing_explicitly() -> None:
+    value = article("a1", "story")
+    value["editorial_elements"] = {"uncertainty": "تبقى حدود معلومة"}
+    graph = {"claims": [{
+        "claim_id": "CLM-1", "article_id": "a1", "assessment": "CONTRADICTED",
+        "material": True,
+    }]}
+    plan = {"plans": [{
+        "section_id": "front", "perspectives": ["أ", "ب", "ج"],
+        "questions": ["ما أقوى تفسير بديل؟"],
+        "critical_thinking_checks": {"unsupported_premise": "PLANNED"},
+    }]}
+    result = adversarial_review([value], graph, plan)["articles"][0]
+    assert result["outcome"] == "HOLD"
+    assert result["framing_decision"] == "REJECT_THE_FRAMING"

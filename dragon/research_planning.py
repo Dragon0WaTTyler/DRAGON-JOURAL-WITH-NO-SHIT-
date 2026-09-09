@@ -172,19 +172,33 @@ def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | 
         key = f"{section['section_id']}:{selected_id}"
         event_id = events_by_candidate.get(key)
         independent_origins = origins_by_event.get(event_id, 0)
-        questions = [
+        question_catalog = [
             "ما الذي حدث، وما الدليل الأولي المباشر عليه؟",
             "ما الذي نعرفه بثقة، وما الذي لا يزال مجهولا أو متنازعا عليه؟",
             "هل تعتمد المصادر الظاهرة على أصل خبري واحد؟",
             "ما أقوى تفسير بديل، وما الدليل الذي قد يفند تفسيرنا؟",
             "من يتأثر، وما النتيجة القابلة للقياس أو المتابعة لاحقا؟",
+            "هل يمكن أن تكون السببية عكسية أو أن يفسر عامل آخر النتيجة؟",
+            "هل يوجد تحيز اختيار أو عدم تطابق في المؤشر أو إهمال لمعدل الأساس أو مفارقة سيمبسون؟",
+            "ما أقوى صياغة للموقف المنافس (STEELMANNING)، وهل يقوم الإطار على مقدمة غير مدعومة أو استدلال دائري أو تعميم متسرع أو قياس ضعيف أو فخ تأطير يستلزم REJECT THE FRAMING؟",
         ]
-        if candidate.get("unknowns"):
-            questions.append("ما السؤال التالي الذي يمكن أن يقلص مواطن الجهل المسجلة؟")
-        if candidate.get("disputed_points"):
-            questions.append("كيف نصوغ نقاط الخلاف من دون تحويل ادعاء طرف إلى حقيقة؟")
         perspectives = list(SECTION_PERSPECTIVES.get(section["section_id"], DEFAULT_PERSPECTIVES))
         budget = _budget(section["section_id"], candidate, independent_origins, budget_config)
+        questions = question_catalog[:budget["maximum_followup_questions"]]
+        # The bounded questions control external research work.  The editorial
+        # checklist is cheap and must remain available even for a brief; making
+        # it share the question budget would create a story that can never pass
+        # review without first being promoted to a larger budget.
+        critical_thinking_checks = {
+            name: "PLANNED"
+            for name in (
+                "source_credibility", "alternative_cause_and_falsification",
+                "reverse_causation", "selection_bias", "proxy_mismatch",
+                "base_rate_neglect", "simpsons_paradox", "steelmanning",
+                "unsupported_premise", "circular_reasoning", "hasty_generalization",
+                "weak_analogy", "framing_trap_rejection",
+            )
+        }
         context_limit = budget_config["context"]["maximum_items_per_bucket"]
         known = list(candidate.get("facts", []))
         reported = list(candidate.get("claims", []))
@@ -204,6 +218,7 @@ def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | 
             "event_id": event_id,
             "perspectives": perspectives,
             "questions": questions,
+            "critical_thinking_checks": critical_thinking_checks,
             "research_budget": budget,
             "research_branches": [
                 {"perspective": perspective, "question": questions[index % len(questions)]}
@@ -269,6 +284,15 @@ def validate_research_plan(value: dict, expected_sections: set[str]) -> list[str
                 "what_we_know", "what_is_strongly_supported", "what_is_disputed",
                 "what_remains_unknown", "what_to_search_next",
             }
+            or len(item.get("questions", [])) > budget.get("maximum_followup_questions", 0)
+            or set(item.get("critical_thinking_checks", {})) != {
+                "source_credibility", "alternative_cause_and_falsification",
+                "reverse_causation", "selection_bias", "proxy_mismatch",
+                "base_rate_neglect", "simpsons_paradox", "steelmanning",
+                "unsupported_premise", "circular_reasoning", "hasty_generalization",
+                "weak_analogy", "framing_trap_rejection",
+            }
+            or set(item.get("critical_thinking_checks", {}).values()) != {"PLANNED"}
         ):
             issues.append(f"RESEARCH_PLAN_INCOMPLETE:{item.get('section_id')}")
     return issues

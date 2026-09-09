@@ -60,6 +60,10 @@ def test_research_plan_is_stable_relevant_and_evidence_budgeted() -> None:
         "what_remains_unknown", "what_to_search_next",
     }
     assert plans["front"]["research_budget"]["signal_contributions"]
+    assert len(plans["front"]["questions"]) <= plans["front"]["research_budget"]["maximum_followup_questions"]
+    assert plans["front"]["critical_thinking_checks"]["alternative_cause_and_falsification"] == "PLANNED"
+    assert plans["investigations"]["critical_thinking_checks"]["steelmanning"] == "PLANNED"
+    assert set(plans["front"]["critical_thinking_checks"].values()) == {"PLANNED"}
 
 
 def test_research_plan_validator_rejects_missing_inventory() -> None:

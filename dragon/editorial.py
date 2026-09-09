@@ -146,9 +146,11 @@ def adversarial_review(
             continue
         issues = []
         outcome = "PASS"
+        contradicted = False
         for claim in claims_by_article.get(item["id"], []):
             assessment = claim.get("assessment")
             if assessment == "CONTRADICTED":
+                contradicted = True
                 issues.append(f"CONTRADICTED:{claim.get('claim_id')}")
                 outcome = "HOLD"
             elif assessment == "PROVENANCE_UNAVAILABLE":
@@ -189,8 +191,30 @@ def adversarial_review(
             issues.append("WIRE_ORIGIN_INDEPENDENCE_INSUFFICIENT")
             if outcome == "PASS":
                 outcome = "FIX"
+        critical_thinking = dict((plan or {}).get("critical_thinking_checks", {}))
+        if (
+            media_item
+            and media_item.get("headline_framing", {}).get("causal_language")
+            and critical_thinking.get("reverse_causation") != "PLANNED"
+        ):
+            issues.append("REVERSE_CAUSATION_NOT_TESTED")
+            if outcome == "PASS":
+                outcome = "FIX"
+        if (
+            (plan or {}).get("disputed_points")
+            and critical_thinking.get("steelmanning") != "PLANNED"
+        ):
+            issues.append("STEELMANNING_NOT_TESTED")
+            if outcome == "PASS":
+                outcome = "FIX"
         edition_issues.extend(f"{item['id']}:{issue}" for issue in issues)
-        results.append({"article_id": item["id"], "outcome": outcome, "issues": issues})
+        results.append({
+            "article_id": item["id"],
+            "outcome": outcome,
+            "framing_decision": "REJECT_THE_FRAMING" if contradicted else "FRAME_RETAINED",
+            "critical_thinking_checks": critical_thinking,
+            "issues": issues,
+        })
     return {
         "status": "PASS" if results and not edition_issues else "FAIL",
         "allowed_outcomes": ["PASS", "FIX", "HOLD", "REMOVE_CLAIM"],
