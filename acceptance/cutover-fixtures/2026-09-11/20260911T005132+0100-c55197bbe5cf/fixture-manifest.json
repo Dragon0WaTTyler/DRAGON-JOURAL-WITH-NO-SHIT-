@@ -1,0 +1,13 @@
+{
+  "schema_version": 5,
+  "fixture": true,
+  "fixture_id": "20260911T005132+0100-c55197bbe5cf",
+  "classification": "CUTOVER_ARCHIVE_FIXTURE_NOT_A_NEWSPAPER",
+  "artifacts": {
+    "assets/canonical-cover.png": "2573079b2fe9f13f86df23dfa72abb3a9107414bd6610b7bd2dd3f3b7c2f6db8",
+    "fixture-readme.md": "88a28e6e86a34bdec70f8bafe37112e46b5fbe7915f71dfaf8942abf458a83a0",
+    "fixture-status.json": "6709fa73f4b8cbe6b28dd8861e85b59a5d7c8d7dac1e6344c24022520e14287f",
+    "fixture.epub": "e45405ba9e26a1b29944bddf1c8d70d762d93bcc56ff2a88e988c9ffe42aaa3c",
+    "fixture.pdf": "d11443b3868f3d88e5f091426ab9a0b6c402329fb79147aad507d267fe993866"
+  }
+}
