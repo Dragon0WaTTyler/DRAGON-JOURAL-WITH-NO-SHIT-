@@ -309,9 +309,14 @@ def _provider_trial_evidence(
         "article_depth",
         "section_decisions",
     }
-    for receipt_path in sorted(trial_root.glob("????-??-??/receipt.json")):
+    receipt_paths = [
+        *trial_root.glob("????-??-??/receipt.json"),
+        *trial_root.glob("????-??-??/attempts/attempt-*/receipt.json"),
+    ]
+    for receipt_path in sorted(receipt_paths):
         trial_dir = receipt_path.parent
-        trial_date = trial_dir.name
+        date_dir = trial_dir.parent.parent if trial_dir.parent.name == "attempts" else trial_dir
+        trial_date = date_dir.name
         issues: list[str] = []
         try:
             date.fromisoformat(trial_date)
@@ -347,9 +352,14 @@ def _provider_trial_evidence(
         if receipt.get("runtime_fingerprint") != expected_runtime_fingerprint:
             issues.append("TRIAL_RUNTIME_FINGERPRINT_MISMATCH")
         artifacts = receipt.get("artifacts")
+        try:
+            trial_relative = trial_dir.relative_to(root).as_posix()
+        except ValueError:
+            issues.append("TRIAL_ARTIFACT_PATH_ESCAPE")
+            trial_relative = ""
         required_artifacts = {
-            f"acceptance/provider-trials/{trial_date}/research.json",
-            f"acceptance/provider-trials/{trial_date}/articles.json",
+            f"{trial_relative}/research.json",
+            f"{trial_relative}/articles.json",
         }
         if not isinstance(artifacts, dict) or not required_artifacts.issubset(artifacts):
             issues.append("TRIAL_ARTIFACTS_INCOMPLETE")
@@ -395,6 +405,7 @@ def _provider_trial_evidence(
         evidence.append(
             {
                 "date": trial_date,
+                "attempt": trial_dir.relative_to(date_dir).as_posix() if trial_dir != date_dir else "root",
                 "status": "PASS" if not issues else "REJECTED",
                 "issues": issues,
             }

@@ -303,6 +303,47 @@ def test_provider_trial_requires_hash_bound_human_review(tmp_path: Path) -> None
     assert any(issue.startswith("TRIAL_ARTIFACT_HASH_INVALID") for issue in evidence[0]["issues"])
 
 
+def test_provider_trial_attempt_preserves_date_and_hash_bound_review(tmp_path: Path) -> None:
+    trial = tmp_path / "acceptance" / "provider-trials" / "2099-01-02" / "attempts" / "attempt-a"
+    trial.mkdir(parents=True)
+    research = trial / "research.json"
+    articles = trial / "articles.json"
+    research.write_text('{"sources":[]}', encoding="utf-8")
+    articles.write_text('{"articles":[]}', encoding="utf-8")
+    fingerprint = runtime_fingerprint(tmp_path)
+    relative = "acceptance/provider-trials/2099-01-02/attempts/attempt-a"
+    receipt = {
+        "schema_version": 5,
+        "status": "VALIDATED_AWAITING_HUMAN_REVIEW",
+        "edition_date": "2099-01-02",
+        "created_at": "2099-01-02T11:00:00+01:00",
+        "editorial_generation_tested": True,
+        "runtime_fingerprint": fingerprint,
+        "source_git_revision": "abc123",
+        "provider": {"status": "PASS", "unattended": True},
+        "artifacts": {
+            f"{relative}/research.json": sha256_file(research),
+            f"{relative}/articles.json": sha256_file(articles),
+        },
+    }
+    receipt_path = trial / "receipt.json"
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    (trial / "review.json").write_text(json.dumps({
+        "schema_version": 5, "status": "PASS", "reviewed_by": "Human Editor",
+        "reviewed_at": "2099-01-02T12:00:00+01:00",
+        "receipt_sha256": sha256_file(receipt_path),
+        "checks": {
+            "sources": "PASS", "factual_accuracy": "PASS", "arabic_quality": "PASS",
+            "article_depth": "PASS", "section_decisions": "PASS",
+        },
+    }), encoding="utf-8")
+
+    valid, evidence = _provider_trial_evidence(tmp_path, fingerprint)
+
+    assert valid is True
+    assert evidence == [{"date": "2099-01-02", "attempt": "attempts/attempt-a", "status": "PASS", "issues": []}]
+
+
 def test_cutover_review_requires_current_runtime_checks_and_hashed_evidence(
     tmp_path: Path,
 ) -> None:

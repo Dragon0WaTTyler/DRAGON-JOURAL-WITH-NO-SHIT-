@@ -28,6 +28,22 @@ def test_emit_json_is_ascii_safe_for_windows_legacy_consoles(capsys) -> None:
     assert all(ord(character) < 128 for character in output)
 
 
+def test_full_trial_preserves_prior_date_evidence_in_a_new_attempt_directory(tmp_path) -> None:
+    base = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"
+    base.mkdir(parents=True)
+    prior = base / "failure.json"
+    prior.write_text('{"status":"FAIL"}', encoding="utf-8")
+
+    attempt = dragon_provider_check._trial_directory(tmp_path, "2099-01-02", full=True)
+
+    assert attempt.parent == base / "attempts"
+    assert attempt.name.startswith("attempt-")
+    assert prior.read_text(encoding="utf-8") == '{"status":"FAIL"}'
+    assert dragon_provider_check._trial_directory(tmp_path, "2099-01-03", full=True) == (
+        tmp_path / "acceptance" / "provider-trials" / "2099-01-03"
+    )
+
+
 @dataclass(frozen=True)
 class FailingTrialProvider:
     capture_directory: object = None

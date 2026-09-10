@@ -8,6 +8,7 @@ from dataclasses import is_dataclass, replace
 from datetime import datetime
 import json
 from pathlib import Path
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
@@ -22,6 +23,22 @@ ROOT = Path(__file__).resolve().parent
 def _emit_json(value: object) -> None:
     """Keep unattended Windows diagnostics printable even on cp1252 consoles."""
     print(json.dumps(value, ensure_ascii=True, indent=2))
+
+
+def _trial_directory(root: Path, edition_date: str, *, full: bool) -> Path:
+    """Never overwrite prior raw/provider evidence for the same edition date."""
+    base = root / "acceptance" / "provider-trials" / edition_date
+    terminal_evidence = (
+        "receipt.json",
+        "failure.json",
+        "research.raw.json",
+        "articles.raw.json",
+        "research.json",
+        "articles.json",
+    )
+    if not full or not any((base / name).exists() for name in terminal_evidence):
+        return base
+    return base / "attempts" / f"attempt-{uuid4().hex}"
 
 
 def main() -> int:
@@ -43,7 +60,7 @@ def main() -> int:
     edition_date = args.date or datetime.now(
         ZoneInfo(str(config["timezone"]))
     ).date().isoformat()
-    trial_dir = ROOT / "acceptance" / "provider-trials" / edition_date
+    trial_dir = _trial_directory(ROOT, edition_date, full=args.full)
     if args.full and is_dataclass(provider) and hasattr(provider, "capture_directory"):
         provider = replace(provider, capture_directory=trial_dir)
     health = None
