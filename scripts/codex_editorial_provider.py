@@ -396,6 +396,11 @@ section lacks meaningful verified material, use NO_NEWS with an empty candidates
 selection fields, a specific no_news_reason, and fallback_action RADAR, DOSSIER_FOLLOW_UP,
 PUBLIC_DATA_ANALYSIS, or SKIP. Never invent filler or weak candidates to satisfy a quota."""
     expected_byline = payload.get("editorial_identity", {}).get("expected_byline")
+    constraints = payload.get("quality_constraints", {})
+    minimum_edition_words = int(constraints.get("minimum_edition_words", 4000))
+    # A small buffer makes the model re-count instead of returning a response
+    # that narrowly misses the deterministic whitespace-token validator.
+    edition_word_target = minimum_edition_words + max(500, (minimum_edition_words + 9) // 10)
     return f"""You are the article desk for a professional Arabic newspaper. {safety}
 Research packet: {source}
 Fixed sections: {sections}
@@ -403,9 +408,14 @@ Return one root object containing an articles array with exactly one decision pe
 The research packet includes quality_constraints. Every ACTIVE article must meet or exceed
 minimum_active_article_words, and the combined words of all ACTIVE article bodies must meet or
 exceed minimum_edition_words. Count whitespace-delimited words in body paragraphs only.
+Before returning, independently re-count every ACTIVE body. Target at least {edition_word_target}
+combined body words, rather than merely the configured minimum of {minimum_edition_words}; expand
+only with source-supported context, uncertainty, consequences, or next steps.
 If repair_context is present, this is the only allowed repair attempt. Obey its exact validation
-error, preserve every already-valid decision verbatim, change only invalid decisions, and still
-return the complete 23-decision wrapper.
+error, preserve each already-valid decision's identity, evidence linkage, and factual claims, and
+change only the fields needed to correct the invalidity. If the error names combined edition words,
+the aggregate is invalid even where individual articles meet their own minimum: append supported
+paragraphs to ACTIVE bodies and re-count before returning the complete 23-decision wrapper.
 Every decision must include every schema field. For fields that do not apply, use null or an empty
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,
