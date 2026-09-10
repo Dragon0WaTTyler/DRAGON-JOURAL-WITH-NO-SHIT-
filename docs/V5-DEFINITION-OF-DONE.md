@@ -103,7 +103,9 @@ the editorial provider or substitutes for a real edition.
   hash-bound raw research and both article attempts but failed
   `ARTICLE_SCHEMA_INVALID`: 3,499 validated active-article words against the
   required 4,000. It has no technically valid receipt and is not acceptance
-  evidence; no promotion or human-review attestation may be fabricated from it.
+  evidence; no promotion or human-review attestation may be fabricated from it;
+  no further provider usage is authorized without a separate explicit
+  authorization.
 - Human review evidence, the actual Codex automation, three consecutive
   unattended production runs, verified real-remote archive, activation flags,
   and cutover remain outstanding.
