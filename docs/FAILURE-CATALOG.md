@@ -44,7 +44,7 @@ an incident unless the policy explicitly blocks or degrades an optional stage.
 | `AI_PROVIDER_EXECUTION_FAILED` | TRANSIENT | Configured local provider failed to start or exited nonzero | One bounded retry, then incident |
 | `AI_PROVIDER_RESPONSE_INVALID` | VALIDATION | Provider stdout is not the required single JSON value | Targeted provider-stage repair |
 | `RESEARCH_PACKET_INVALID` | CONTENT | Research lacks date, provenance, claims, or exact source URLs | Repair research only |
-| `RESEARCH_INSUFFICIENT` | CONTENT | Every section is `NO_NEWS`, so no selected evidence-backed article can satisfy the edition contract | Block before article generation; preserve research and obtain adequate evidence |
+| `RESEARCH_INSUFFICIENT` | CONTENT | Research has no selected lead, too few selected sections, or misses inherited coverage rules, so it cannot form a valid edition | Block before article generation; preserve research and obtain adequate evidence |
 | `PROVIDER_REGISTRY_INVALID` | VALIDATION | Discovery-provider configuration violates its strict schema or has duplicate identities | Block before research and repair only the registry |
 | `PROVIDER_REGISTRY_UNAVAILABLE` | DEPENDENCY | A provider explicitly marked required is not proven available | Block before downstream research; optional outages remain non-blocking |
 | `SOURCE_INTELLIGENCE_INVALID` | VALIDATION | Deterministic normalized-source or event-cluster output violates its strict schema | Block; preserve research and create an incident |

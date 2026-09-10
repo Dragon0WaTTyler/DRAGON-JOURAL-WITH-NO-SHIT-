@@ -119,6 +119,27 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
     assert "تحرير: DRAGON" not in prompt
     assert "original Arabic synthesis" in prompt
     assert "never reproduce a full copyrighted article" in prompt
+    assert "repair_skip_reason_code" in prompt
+    assert "SOURCE_INVALIDATED" in prompt
+
+
+def test_research_prompt_explains_inherited_edition_readiness() -> None:
+    from scripts.codex_editorial_provider import _prompt
+
+    prompt = _prompt(
+        "research",
+        {
+            "edition_readiness": {
+                "minimum_active_sections": 10,
+                "coverage_rules": [{"id": "morocco_breadth", "minimum_active": 3}],
+                "minimum_edition_words": 4000,
+            },
+        },
+    )
+
+    assert "Edition readiness" in prompt
+    assert "minimum_active_sections" in prompt
+    assert "morocco_breadth" in prompt
 
 
 def test_structured_output_schemas_are_strict_and_complete() -> None:
@@ -166,6 +187,9 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert articles["properties"]["articles"]["maxItems"] == len(SECTION_HEADINGS)
     assert decision["properties"]["status"]["enum"] == ["ACTIVE", "SKIPPED"]
     assert "null" in decision["properties"]["skip_reason"]["type"]
+    assert set(decision["properties"]["repair_skip_reason_code"]["enum"]) == {
+        "EVIDENCE_RETRACTED", "CANDIDATE_REMOVED", "SOURCE_INVALIDATED", None,
+    }
     assert {"FACT_CHECK", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER"}.issubset(
         set(decision["properties"]["story_type"]["enum"])
     )

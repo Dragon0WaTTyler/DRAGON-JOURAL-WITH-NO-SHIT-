@@ -1,0 +1,21 @@
+{
+  "fixture": "minimized-2026-09-11-live-provider-one-service-lead",
+  "sources": [
+    {
+      "id": "s1",
+      "source_type": "official",
+      "url": "https://habous.gov.ma/2012-01-24-11-49-11/695"
+    }
+  ],
+  "sections": [
+    {
+      "section_id": "service",
+      "status": "ACTIVE",
+      "selected_candidate_id": "c1",
+      "candidates": [
+        {"id": "c1", "rank": 1, "primary_evidence_source_ids": ["s1"]},
+        {"id": "c2", "rank": 2, "primary_evidence_source_ids": ["s1"]}
+      ]
+    }
+  ]
+}

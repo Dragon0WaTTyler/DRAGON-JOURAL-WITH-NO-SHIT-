@@ -17,7 +17,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from dragon.providers import SECTION_HEADINGS, STORY_TYPES
+from dragon.providers import REPAIR_SKIP_REASON_CODES, SECTION_HEADINGS, STORY_TYPES
 from dragon.redaction import redact_text
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
@@ -329,6 +329,10 @@ def _schema(operation: str) -> dict:
             "investigation_checks": investigation_checks,
             "investigation_data": investigation_data,
             "skip_reason": nullable_string,
+            "repair_skip_reason_code": {
+                "type": ["string", "null"],
+                "enum": [*sorted(REPAIR_SKIP_REASON_CODES), None],
+            },
         },
         "required": [
             "id", "section_id", "section", "status", "headline", "standfirst", "byline",
@@ -337,6 +341,7 @@ def _schema(operation: str) -> dict:
             "editorial_elements", "skip_reason",
             "investigation_checks",
             "investigation_data",
+            "repair_skip_reason_code",
         ],
         "additionalProperties": False,
     }
@@ -369,6 +374,11 @@ def _prompt(operation: str, payload: dict) -> str:
         return f"""You are the research desk for an Arabic daily newspaper. {safety}
 Edition input: {source}
 Fixed sections: {sections}
+Edition readiness: {json.dumps(payload.get("edition_readiness", {}), ensure_ascii=False)}
+Do not call a packet edition-ready unless it satisfies minimum_active_sections and every
+listed coverage rule. Continue evidence-led research where support exists; where it does not,
+record honest NO_NEWS decisions rather than manufacturing a story. The local runtime will block
+an undercovered packet before article generation.
 Use live web search and return edition_date unchanged, a deduplicated sources array, and exactly
 one sections entry per fixed section. Every source needs id, exact HTTPS article/document URL,
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
@@ -419,6 +429,10 @@ paragraphs to ACTIVE bodies and re-count before returning the complete 23-decisi
 If the error says there are zero ACTIVE articles while the research packet contains ACTIVE selected
 candidates, the skipped decisions for those candidates are invalid: write supported ACTIVE articles
 from those selected candidates. Never activate a NO_NEWS section or invent evidence.
+During repair, do not change an ACTIVE decision traced to its selected candidate into SKIPPED
+merely to satisfy validation. If evidence was actually retracted, its candidate was removed, or a
+source was invalidated, retain the specific Arabic skip_reason and set repair_skip_reason_code to
+EVIDENCE_RETRACTED, CANDIDATE_REMOVED, or SOURCE_INVALIDATED respectively; otherwise use null.
 Every decision must include every schema field. For fields that do not apply, use null or an empty
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,

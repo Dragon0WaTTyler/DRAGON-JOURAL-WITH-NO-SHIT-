@@ -76,6 +76,12 @@ STORY_TYPES = {
     "FACT_CHECK", "DATA", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER",
 }
 
+REPAIR_SKIP_REASON_CODES = {
+    "EVIDENCE_RETRACTED",
+    "CANDIDATE_REMOVED",
+    "SOURCE_INVALIDATED",
+}
+
 
 def _synthetic_story_type(section_id: str) -> str:
     return {
@@ -247,6 +253,7 @@ class SyntheticEditorialProvider:
                         _synthetic_investigation_data()
                         if section_id == "investigations" else None
                     ),
+                    "repair_skip_reason_code": None,
                     "fixture": True,
                 }
             )
@@ -402,6 +409,8 @@ class LocalCommandEditorialProvider:
     timeout_seconds: int = 7200
     minimum_active_article_words: int = 350
     minimum_edition_words: int = 4000
+    minimum_active_sections: int = 1
+    coverage_requirements: tuple[tuple[str, tuple[str, ...], int], ...] = ()
     expected_byline: str = "تحرير: DRAGON"
     capture_directory: Path | None = None
     mode: str = "production"
@@ -467,6 +476,7 @@ class LocalCommandEditorialProvider:
                 "edition_date": edition_date,
                 "language": "ar",
                 "continuity": continuity or {"edition_count": 0, "editions": []},
+                "edition_readiness": self._edition_readiness_context(),
             },
         )
         value = _stamp_retrieval_times(raw_value) if isinstance(raw_value, dict) else raw_value
@@ -700,10 +710,23 @@ class LocalCommandEditorialProvider:
                     },
                 },
             )
-            return self._validate_articles(repaired, research)
+            return self._validate_articles(repaired, research, repair_from=value)
 
-    @staticmethod
-    def _ensure_research_sufficient_for_articles(research: dict) -> None:
+    def _edition_readiness_context(self) -> dict:
+        return {
+            "minimum_active_sections": self.minimum_active_sections,
+            "coverage_rules": [
+                {
+                    "id": rule_id,
+                    "sections": list(section_ids),
+                    "minimum_active": minimum,
+                }
+                for rule_id, section_ids, minimum in self.coverage_requirements
+            ],
+            "minimum_edition_words": self.minimum_edition_words,
+        }
+
+    def _ensure_research_sufficient_for_articles(self, research: dict) -> None:
         """Block article generation when research has no publishable selection.
 
         ``NO_NEWS`` is valid per section, but an all-``NO_NEWS`` packet cannot
@@ -714,24 +737,42 @@ class LocalCommandEditorialProvider:
         """
         sources = research.get("sources") if isinstance(research, dict) else None
         sections = research.get("sections") if isinstance(research, dict) else None
-        publishable_sections = [
-            item
+        publishable_sections = {
+            item.get("section_id")
             for item in sections or []
             if isinstance(item, dict)
             and item.get("selected_candidate_id")
-        ]
-        if publishable_sections:
-            return
+            and isinstance(item.get("section_id"), str)
+        }
         source_count = len(sources) if isinstance(sources, list) else 0
         section_count = len(sections) if isinstance(sections, list) else 0
+        if len(publishable_sections) < self.minimum_active_sections:
+            raise ProviderError(
+                "RESEARCH_INSUFFICIENT",
+                "research has "
+                f"{len(publishable_sections)} selected section(s), but the inherited edition "
+                f"architecture requires at least {self.minimum_active_sections} active sections "
+                f"({source_count} sources, {section_count} section decisions); "
+                "refusing an article-provider invocation that cannot meet the edition contract",
+            )
+        coverage_failures = []
+        for rule_id, section_ids, minimum in self.coverage_requirements:
+            actual = len(publishable_sections.intersection(section_ids))
+            if actual < minimum:
+                coverage_failures.append(f"{rule_id}:{actual}/{minimum}")
+        if not coverage_failures:
+            return
         raise ProviderError(
             "RESEARCH_INSUFFICIENT",
-            "research has no section with a selected candidate "
+            "research does not meet inherited edition coverage "
             f"({source_count} sources, {section_count} section decisions); "
+            f"missing={','.join(coverage_failures)}; "
             "refusing an article-provider invocation that cannot meet the edition contract",
         )
 
-    def _validate_articles(self, value: object, research: dict) -> list[dict]:
+    def _validate_articles(
+        self, value: object, research: dict, *, repair_from: object | None = None
+    ) -> list[dict]:
         if not isinstance(value, list):
             raise ProviderError("ARTICLE_SCHEMA_INVALID", "provider must return an article/skip list")
         expected = {section_id for section_id, _ in SECTION_HEADINGS}
@@ -739,6 +780,11 @@ class LocalCommandEditorialProvider:
         research_sections = {
             item["section_id"]: item for item in research.get("sections", [])
         }
+        previous_by_section = {
+            item.get("section_id"): item
+            for item in repair_from or []
+            if isinstance(item, dict) and isinstance(item.get("section_id"), str)
+        } if isinstance(repair_from, list) else {}
         seen = set()
         edition_words = 0
         active_count = 0
@@ -760,6 +806,19 @@ class LocalCommandEditorialProvider:
             seen.add(section_id)
             status = item.get("status")
             if status == "SKIPPED":
+                previous = previous_by_section.get(section_id)
+                selected = research_sections.get(section_id, {}).get("selected_candidate_id")
+                if (
+                    isinstance(previous, dict)
+                    and previous.get("status") == "ACTIVE"
+                    and previous.get("research_candidate_id") == selected
+                    and item.get("repair_skip_reason_code") not in REPAIR_SKIP_REASON_CODES
+                ):
+                    raise ProviderError(
+                        "ARTICLE_SCHEMA_INVALID",
+                        f"repair changed selected active section {section_id} to SKIPPED without "
+                        "an approved repair_skip_reason_code",
+                    )
                 if not isinstance(item.get("skip_reason"), str) or len(item["skip_reason"].strip()) < 10:
                     raise ProviderError("ARTICLE_SCHEMA_INVALID", f"section {section_id} needs a specific skip reason")
                 continue
@@ -898,10 +957,31 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
     executable = command[0]
     if not Path(executable).is_file() and shutil.which(executable) is None:
         return UnconfiguredEditorialProvider(reason="AI_PROVIDER_EXECUTABLE_MISSING")
+    readiness = config.get("editorial_readiness", {})
+    coverage = readiness.get("coverage_rules", []) if isinstance(readiness, dict) else []
+    try:
+        coverage_requirements = tuple(
+            (
+                str(rule["id"]),
+                tuple(str(section) for section in rule["sections"]),
+                int(rule["minimum_active"]),
+            )
+            for rule in coverage
+        )
+        minimum_active_sections = int(readiness.get("minimum_active_sections", 1))
+    except (KeyError, TypeError, ValueError) as exc:
+        return UnconfiguredEditorialProvider(reason="EDITORIAL_READINESS_CONFIG_INVALID")
+    if minimum_active_sections < 1 or any(
+        not rule_id or not section_ids or minimum < 1
+        for rule_id, section_ids, minimum in coverage_requirements
+    ):
+        return UnconfiguredEditorialProvider(reason="EDITORIAL_READINESS_CONFIG_INVALID")
     return LocalCommandEditorialProvider(
         command=tuple(command),
         timeout_seconds=int(value.get("timeout_seconds", 7200)),
         minimum_active_article_words=int(value.get("minimum_active_article_words", 350)),
         minimum_edition_words=int(value.get("minimum_edition_words", 4000)),
+        minimum_active_sections=minimum_active_sections,
+        coverage_requirements=coverage_requirements,
         expected_byline=configured_byline(config),
     )

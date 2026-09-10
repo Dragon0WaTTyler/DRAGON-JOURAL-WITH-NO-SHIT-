@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 import sys
 
 import pytest
 
+from dragon.config import load_local_config
 from dragon.providers import (
     LocalCommandEditorialProvider,
     ProviderError,
@@ -316,10 +318,179 @@ def test_validated_all_no_news_research_never_reaches_article_provider() -> None
 
     provider = RecordingProvider(("unused",))
     research = provider.research("2099-01-02")
-    with pytest.raises(ProviderError, match="no section with a selected candidate"):
+    with pytest.raises(ProviderError, match="0 selected section"):
         provider.articles(research)
 
     assert calls == ["research"]
+
+
+def _configured_readiness_provider(provider_type=LocalCommandEditorialProvider):
+    configured = editorial_provider_from_config(load_local_config(ROOT), require_proven=False)
+    assert isinstance(configured, LocalCommandEditorialProvider)
+    return provider_type(
+        ("unused",),
+        minimum_active_sections=configured.minimum_active_sections,
+        coverage_requirements=configured.coverage_requirements,
+    )
+
+
+def test_inherited_edition_architecture_drives_provider_readiness() -> None:
+    provider = _configured_readiness_provider()
+
+    assert provider.minimum_active_sections == 10
+    assert provider.coverage_requirements == (
+        ("morocco_breadth", (
+            "siyasa_dawla", "iqtisad_flous", "mojtama3", "ta3lim", "se77a",
+            "3adl_7o9o9", "bi2a_manakh", "bniya_transport",
+        ), 3),
+        ("world_breadth", ("filastin_middle_east", "africa_sahel", "world"), 2),
+        ("reader_life", ("sport", "culture", "science"), 2),
+        ("accountability_and_service", ("investigations", "opinion", "service"), 2),
+    )
+
+
+def test_one_selected_lead_blocks_before_article_provider_invocation() -> None:
+    research = json.loads(
+        (ROOT / "tests" / "fixtures" / "live_provider_one_lead_insufficient.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    calls: list[str] = []
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            calls.append(operation)
+            raise AssertionError("insufficient research must not reach the article provider")
+
+    provider = _configured_readiness_provider(RecordingProvider)
+    with pytest.raises(ProviderError) as caught:
+        provider.articles(research)
+
+    assert caught.value.code == "RESEARCH_INSUFFICIENT"
+    assert "1 selected section(s)" in caught.value.detail
+    assert "at least 10 active sections" in caught.value.detail
+    assert calls == []
+
+
+def test_validated_one_lead_research_blocks_before_article_provider_invocation() -> None:
+    raw_research = SyntheticEditorialProvider().research("2099-01-02")
+    for section in raw_research["sections"]:
+        if section["section_id"] == "service":
+            continue
+        section.update(
+            {
+                "status": "NO_NEWS",
+                "candidates": [],
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لا توجد أدلة كافية لنشر مادة في هذا القسم اليوم",
+                "fallback_action": "RADAR",
+            }
+        )
+    calls: list[str] = []
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            calls.append(operation)
+            if operation == "research":
+                return raw_research
+            raise AssertionError("one selected lead must not reach article generation")
+
+    provider = _configured_readiness_provider(RecordingProvider)
+    research = provider.research("2099-01-02")
+    with pytest.raises(ProviderError, match="at least 10 active sections"):
+        provider.articles(research)
+
+    assert calls == ["research"]
+
+
+def test_readiness_requires_inherited_section_coverage_before_article_generation() -> None:
+    research = SyntheticEditorialProvider().research("2099-01-02")
+    retained = {"siyasa_dawla", "iqtisad_flous", "mojtama3", "ta3lim", "se77a", "3adl_7o9o9", "bi2a_manakh", "bniya_transport", "business_companies", "technology"}
+    for section in research["sections"]:
+        if section["section_id"] in retained:
+            continue
+        section.update(
+            {
+                "status": "NO_NEWS",
+                "candidates": [],
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لا توجد أدلة كافية لنشر مادة في هذا القسم اليوم",
+                "fallback_action": "RADAR",
+            }
+        )
+    provider = _configured_readiness_provider()
+
+    with pytest.raises(ProviderError) as caught:
+        provider.articles(research)
+
+    assert caught.value.code == "RESEARCH_INSUFFICIENT"
+    assert "world_breadth:0/2" in caught.value.detail
+    assert "reader_life:0/2" in caught.value.detail
+    assert "accountability_and_service:0/2" in caught.value.detail
+
+
+def test_structurally_ready_research_reaches_article_generation() -> None:
+    calls: list[dict] = []
+    research = SyntheticEditorialProvider().research("2099-01-02")
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            assert operation == "articles"
+            calls.append(payload)
+            return SyntheticEditorialProvider().articles(payload["research"])
+
+    provider = _configured_readiness_provider(RecordingProvider)
+    articles = provider.articles(research)
+
+    assert len(articles) == len(SECTION_HEADINGS)
+    assert len(calls) == 1
+
+
+def test_repair_receives_complete_original_output_and_preserves_candidate_mapping() -> None:
+    research = SyntheticEditorialProvider().research("2099-01-02")
+    initial = SyntheticEditorialProvider().articles(research)
+    initial[0]["headline"] = None
+    repaired = SyntheticEditorialProvider().articles(research)
+    calls: list[dict] = []
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            assert operation == "articles"
+            calls.append(payload)
+            return initial if len(calls) == 1 else repaired
+
+    articles = RecordingProvider(("unused",)).articles(research)
+
+    repair = calls[1]["repair_context"]
+    assert repair["validation_error"] == "active section front is incomplete"
+    assert repair["previous_articles"] == initial
+    assert [item["research_candidate_id"] for item in repair["previous_articles"]] == [
+        item["research_candidate_id"] for item in initial
+    ]
+    assert [item["research_candidate_id"] for item in articles] == [
+        item["research_candidate_id"] for item in repaired
+    ]
+
+
+def test_repair_cannot_silently_skip_a_selected_active_article() -> None:
+    research = SyntheticEditorialProvider().research("2099-01-02")
+    initial = SyntheticEditorialProvider().articles(research)
+    repaired = copy.deepcopy(initial)
+    repaired[0].update(
+        {
+            "status": "SKIPPED",
+            "skip_reason": "تم حذف المادة من دون بيان سبب قابل للتدقيق",
+        }
+    )
+    provider = LocalCommandEditorialProvider(("unused",))
+
+    with pytest.raises(ProviderError, match="repair changed selected active section"):
+        provider._validate_articles(repaired, research, repair_from=initial)
+
+    repaired[0]["repair_skip_reason_code"] = "SOURCE_INVALIDATED"
+    assert provider._validate_articles(repaired, research, repair_from=initial)
 
 
 def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:

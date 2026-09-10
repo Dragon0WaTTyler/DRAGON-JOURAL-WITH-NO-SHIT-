@@ -17,6 +17,16 @@ def test_chaos_check_persists_hash_bound_machine_evidence(tmp_path, monkeypatch)
         "version: 5\ntimezone: Africa/Casablanca\norchestrator:\n  stages: [preflight]\n",
         encoding="utf-8",
     )
+    (config.parent / "edition-architecture.yaml").write_text(
+        "edition:\n"
+        "  lead_articles: [4, 6]\n"
+        "  secondary_articles: [6, 10]\n"
+        "coverage_rules:\n"
+        "  - id: morocco_breadth\n"
+        "    sections: [siyasa_dawla]\n"
+        "    minimum_active: 1\n",
+        encoding="utf-8",
+    )
 
     def runner(command, **kwargs):
         target = next(item.split("=", 1)[1] for item in command if item.startswith("--junitxml="))
