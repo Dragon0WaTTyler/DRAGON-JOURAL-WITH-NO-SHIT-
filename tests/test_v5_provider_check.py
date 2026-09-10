@@ -21,6 +21,13 @@ class TrialProvider:
         ]
 
 
+def test_emit_json_is_ascii_safe_for_windows_legacy_consoles(capsys) -> None:
+    dragon_provider_check._emit_json({"message": "صحافة عربية"})
+    output = capsys.readouterr().out
+    assert "\\u0635" in output
+    assert all(ord(character) < 128 for character in output)
+
+
 @dataclass(frozen=True)
 class FailingTrialProvider:
     capture_directory: object = None

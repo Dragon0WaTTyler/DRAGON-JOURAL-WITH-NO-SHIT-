@@ -19,6 +19,11 @@ from dragon.state import atomic_write_json, runtime_fingerprint, sha256_file, so
 ROOT = Path(__file__).resolve().parent
 
 
+def _emit_json(value: object) -> None:
+    """Keep unattended Windows diagnostics printable even on cp1252 consoles."""
+    print(json.dumps(value, ensure_ascii=True, indent=2))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -33,7 +38,7 @@ def main() -> int:
         config, require_proven=False
     )
     if not isinstance(provider, LocalCommandEditorialProvider):
-        print(json.dumps({"status": "FAIL", "error_code": provider.reason}, indent=2))
+        _emit_json({"status": "FAIL", "error_code": provider.reason})
         return 1
     edition_date = args.date or datetime.now(
         ZoneInfo(str(config["timezone"]))
@@ -45,7 +50,7 @@ def main() -> int:
     try:
         health = provider.healthcheck()
         if not args.full:
-            print(json.dumps({"status": "PASS", "provider": health}, ensure_ascii=False, indent=2))
+            _emit_json({"status": "PASS", "provider": health})
             return 0
         research = provider.research(
             edition_date,
@@ -78,7 +83,7 @@ def main() -> int:
             failure["failure_evidence"] = str(failure_path.relative_to(ROOT)).replace(
                 "\\", "/"
             )
-        print(json.dumps(failure, ensure_ascii=False, indent=2))
+        _emit_json(failure)
         return 1
     research_path = trial_dir / "research.json"
     articles_path = trial_dir / "articles.json"
@@ -108,7 +113,7 @@ def main() -> int:
     }
     receipt_path = trial_dir / "receipt.json"
     atomic_write_json(receipt_path, receipt)
-    print(json.dumps(receipt, ensure_ascii=False, indent=2))
+    _emit_json(receipt)
     return 0
 
 

@@ -442,6 +442,7 @@ def _run_codex(
         command = [
             binary, "--search", "--ask-for-approval", "never", "exec", "-",
             "--ephemeral", "--skip-git-repo-check", "--ignore-rules",
+            "--ignore-user-config",
             "--sandbox", "read-only", "--output-schema", str(schema_path),
             "--output-last-message", str(output_path), "--color", "never",
         ]

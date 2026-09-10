@@ -69,6 +69,7 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
     command, kwargs = calls[0]
     assert value["edition_date"] == "2099-01-02"
     assert "--ephemeral" in command and "--search" in command
+    assert "--ignore-user-config" in command
     assert command[command.index("--sandbox") + 1] == "read-only"
     assert command[command.index("--ask-for-approval") + 1] == "never"
     assert "--output-schema" in command
