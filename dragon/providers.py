@@ -440,7 +440,10 @@ class LocalCommandEditorialProvider:
         except (OSError, subprocess.SubprocessError) as exc:
             raise ProviderError("AI_PROVIDER_EXECUTION_FAILED", str(exc)) from exc
         if result.returncode:
-            detail = result.stderr.strip()[:2000] or f"provider exited {result.returncode}"
+            # Preserve the terminal diagnostic. A large generated prompt can
+            # otherwise obscure the actual provider error (for example, an
+            # authorization or quota condition) in the incident packet.
+            detail = result.stderr.strip()[-2000:] or f"provider exited {result.returncode}"
             raise ProviderError("AI_PROVIDER_EXECUTION_FAILED", detail)
         try:
             value = json.loads(result.stdout)

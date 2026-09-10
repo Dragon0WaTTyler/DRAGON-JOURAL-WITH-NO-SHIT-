@@ -65,6 +65,23 @@ def test_local_command_provider_health_research_and_section_decisions(tmp_path: 
     assert all(item["status"] == "SKIPPED" for item in decisions[1:])
 
 
+def test_provider_execution_failure_keeps_terminal_diagnostic(tmp_path: Path) -> None:
+    script = tmp_path / "failing-provider.py"
+    script.write_text(
+        "import sys; sys.stderr.write('prompt ' * 800 + 'AUTHORIZATION_REQUIRED'); raise SystemExit(1)",
+        encoding="utf-8",
+    )
+    provider = LocalCommandEditorialProvider((sys.executable, str(script)), timeout_seconds=30)
+
+    with pytest.raises(ProviderError) as caught:
+        provider.research("2099-01-02")
+
+    assert caught.value.code == "AI_PROVIDER_EXECUTION_FAILED"
+    assert "AUTHORIZATION_REQUIRED" in caught.value.detail
+    assert len(caught.value.detail) == 2000
+    assert caught.value.detail.endswith("AUTHORIZATION_REQUIRED")
+
+
 @pytest.mark.parametrize(
     ("needle", "replacement"),
     [
