@@ -663,6 +663,7 @@ class LocalCommandEditorialProvider:
         return value
 
     def articles(self, research: dict) -> list[dict]:
+        self._ensure_research_sufficient_for_articles(research)
         payload = {
             "schema_version": 5,
             "research": research,
@@ -690,13 +691,45 @@ class LocalCommandEditorialProvider:
                         "validation_error": exc.detail,
                         "previous_articles": value,
                         "instruction": (
-                            "Preserve valid decisions verbatim, repair only invalid decisions, "
-                            "and return the complete articles wrapper."
+                            "Preserve valid decision identity, evidence linkage, and factual claims; "
+                            "repair every field needed to address the validation error and return "
+                            "the complete articles wrapper. A zero-active or aggregate-word failure "
+                            "is a collection-level defect, not a reason to preserve every skipped "
+                            "decision verbatim."
                         ),
                     },
                 },
             )
             return self._validate_articles(repaired, research)
+
+    @staticmethod
+    def _ensure_research_sufficient_for_articles(research: dict) -> None:
+        """Block article generation when research has no publishable selection.
+
+        ``NO_NEWS`` is valid per section, but an all-``NO_NEWS`` packet cannot
+        satisfy the edition-wide active-article and word-count contract. Calling
+        a live article provider in that state only wastes a bounded editorial
+        attempt and can never create a supported article: the validator and
+        prompt both prohibit activating a no-news section.
+        """
+        sources = research.get("sources") if isinstance(research, dict) else None
+        sections = research.get("sections") if isinstance(research, dict) else None
+        publishable_sections = [
+            item
+            for item in sections or []
+            if isinstance(item, dict)
+            and item.get("selected_candidate_id")
+        ]
+        if publishable_sections:
+            return
+        source_count = len(sources) if isinstance(sources, list) else 0
+        section_count = len(sections) if isinstance(sections, list) else 0
+        raise ProviderError(
+            "RESEARCH_INSUFFICIENT",
+            "research has no section with a selected candidate "
+            f"({source_count} sources, {section_count} section decisions); "
+            "refusing an article-provider invocation that cannot meet the edition contract",
+        )
 
     def _validate_articles(self, value: object, research: dict) -> list[dict]:
         if not isinstance(value, list):

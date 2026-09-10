@@ -416,6 +416,9 @@ error, preserve each already-valid decision's identity, evidence linkage, and fa
 change only the fields needed to correct the invalidity. If the error names combined edition words,
 the aggregate is invalid even where individual articles meet their own minimum: append supported
 paragraphs to ACTIVE bodies and re-count before returning the complete 23-decision wrapper.
+If the error says there are zero ACTIVE articles while the research packet contains ACTIVE selected
+candidates, the skipped decisions for those candidates are invalid: write supported ACTIVE articles
+from those selected candidates. Never activate a NO_NEWS section or invent evidence.
 Every decision must include every schema field. For fields that do not apply, use null or an empty
 array as allowed by the schema. Use status ACTIVE only for a sufficiently verified
 story; otherwise use SKIPPED with a specific Arabic skip_reason. An ACTIVE item requires id,

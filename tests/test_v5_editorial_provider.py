@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -14,6 +15,9 @@ from dragon.providers import (
     editorial_provider_from_config,
     configured_byline,
 )
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _provider_script(path: Path) -> None:
@@ -264,9 +268,28 @@ def test_provider_retries_invalid_article_output_once_with_exact_feedback(tmp_pa
         assert repair["previous_articles"] == [
             {"section_id": "front", "status": "ACTIVE"}
         ]
+        assert "zero-active or aggregate-word failure" in repair["instruction"]
         assert (tmp_path / "articles.attempt-1.raw.json").is_file()
     else:
         raise AssertionError("invalid article output was accepted")
+
+
+def test_all_no_news_research_blocks_article_provider_before_live_invocation() -> None:
+    research = json.loads(
+        (ROOT / "tests" / "fixtures" / "live_provider_all_no_news.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            raise AssertionError(f"article provider must not run for insufficient research: {operation}")
+
+    with pytest.raises(ProviderError) as caught:
+        RecordingProvider(("unused",)).articles(research)
+
+    assert caught.value.code == "RESEARCH_INSUFFICIENT"
+    assert "1 sources, 23 section decisions" in caught.value.detail
 
 
 def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:

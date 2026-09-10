@@ -114,6 +114,7 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
     assert "minimum_edition_words" in prompt
     assert "Target at least 4500" in prompt
     assert "combined edition words" in prompt
+    assert "zero ACTIVE articles" in prompt
     assert "تحرير: اسم القلم" in prompt
     assert "تحرير: DRAGON" not in prompt
     assert "original Arabic synthesis" in prompt

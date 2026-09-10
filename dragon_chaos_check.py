@@ -43,6 +43,7 @@ SCENARIO_MARKERS = {
     "blocked_source": "response0-SOURCE_BLOCKED",
     "empty_extraction": "response1-SOURCE_CONTENT_EMPTY",
     "research_desk_failure": "[research]",
+    "research_insufficient": "test_all_no_news_research_blocks_article_provider_before_live_invocation",
     "ten_duplicate_urls": "test_ten_tracking_url_copies_collapse_to_one_duplicate_origin",
     "malformed_model_output": "test_provider_retries_invalid_article_output_once_with_exact_feedback",
     "upstream_content_change": "test_changed_artifact_invalidates_checkpoint_and_downstream_runs",

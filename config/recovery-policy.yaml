@@ -121,6 +121,10 @@ error_codes:
     category: CONTENT
     action: TARGETED_REPAIR
     max_attempts: 2
+  RESEARCH_INSUFFICIENT:
+    category: CONTENT
+    action: BLOCK
+    max_attempts: 1
   SOURCE_INTELLIGENCE_INVALID:
     category: VALIDATION
     action: BLOCK
