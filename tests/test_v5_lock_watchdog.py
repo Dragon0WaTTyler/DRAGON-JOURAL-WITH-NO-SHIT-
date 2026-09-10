@@ -52,6 +52,15 @@ class V5LockWatchdogTests(unittest.TestCase):
             self.assertEqual(launch_orchestrator(root, DATE, resume=False), 456)
             self.assertEqual(popen.call_args.kwargs["env"]["DRAGON_TRIGGER"], "watchdog")
 
+    def test_watchdog_synthetic_launch_is_explicit_and_provider_free(self):
+        process = type("Process", (), {"pid": 1234})()
+        with tempfile.TemporaryDirectory() as directory, patch(
+            "dragon.watchdog.subprocess.Popen", return_value=process
+        ) as popen:
+            launch_orchestrator(Path(directory), DATE, resume=False, synthetic=True)
+        self.assertIn("--synthetic", popen.call_args.args[0])
+        self.assertEqual(popen.call_args.args[0][-1], "--synthetic")
+
     def test_lock_is_exclusive_and_owner_releases_it(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "run.lock"

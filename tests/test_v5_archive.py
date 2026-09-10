@@ -82,6 +82,50 @@ def test_archive_rejects_an_edition_outside_repository(tmp_path: Path) -> None:
         raise AssertionError("out-of-repository archive was accepted")
 
 
+def test_archive_rejects_wrong_canonical_path_and_zero_byte_artifact(tmp_path: Path) -> None:
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "--initial-branch=main", str(remote)], check=True, capture_output=True)
+    root = tmp_path / "work"
+    subprocess.run(["git", "clone", str(remote), str(root)], check=True, capture_output=True)
+    git(root, "config", "user.name", "DRAGON Test")
+    git(root, "config", "user.email", "dragon@example.invalid")
+    (root / "README.md").write_text("seed\n", encoding="utf-8")
+    git(root, "add", "README.md")
+    git(root, "commit", "-m", "seed")
+    git(root, "push", "origin", "main")
+    wrong = root / "editions" / "2099" / "01" / "2099-01-03"
+    wrong.mkdir(parents=True)
+    (wrong / "edition.md").write_text("fixture\n", encoding="utf-8")
+    with pytest.raises(ArchiveError, match="canonical dated edition"):
+        GitArchiveProvider().archive(root, wrong, "2099-01-02")
+    canonical = root / "editions" / "2099" / "01" / "2099-01-02"
+    canonical.mkdir(parents=True)
+    (canonical / "edition.md").write_bytes(b"")
+    with pytest.raises(ArchiveError, match="zero-byte"):
+        GitArchiveProvider().archive(root, canonical, "2099-01-02")
+
+
+def test_archive_rejects_immutable_remote_bytes_after_finality(tmp_path: Path) -> None:
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "--initial-branch=main", str(remote)], check=True, capture_output=True)
+    root = tmp_path / "work"
+    subprocess.run(["git", "clone", str(remote), str(root)], check=True, capture_output=True)
+    git(root, "config", "user.name", "DRAGON Test")
+    git(root, "config", "user.email", "dragon@example.invalid")
+    (root / "README.md").write_text("seed\n", encoding="utf-8")
+    git(root, "add", "README.md")
+    git(root, "commit", "-m", "seed")
+    git(root, "push", "origin", "main")
+    edition = root / "editions" / "2099" / "01" / "2099-01-02"
+    edition.mkdir(parents=True)
+    artifact = edition / "edition.md"
+    artifact.write_bytes(b"first bytes")
+    GitArchiveProvider().archive(root, edition, "2099-01-02")
+    artifact.write_bytes(b"attempted historical mutation")
+    with pytest.raises(ArchiveError, match="immutable archive directory"):
+        GitArchiveProvider().archive(root, edition, "2099-01-02")
+
+
 def test_archive_refuses_stale_checkout_without_overwriting_remote_change(tmp_path: Path) -> None:
     remote = tmp_path / "remote.git"
     subprocess.run(["git", "init", "--bare", "--initial-branch=main", str(remote)], check=True, capture_output=True)

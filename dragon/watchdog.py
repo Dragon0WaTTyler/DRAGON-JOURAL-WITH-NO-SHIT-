@@ -148,10 +148,14 @@ def _quarantine_lock(root: Path, lock_relative: str) -> Path | None:
     return target
 
 
-def launch_orchestrator(root: Path, edition_date: str, *, resume: bool) -> int:
+def launch_orchestrator(
+    root: Path, edition_date: str, *, resume: bool, synthetic: bool = False
+) -> int:
     command = [sys.executable, str(root / "dragon_daily.py"), "--date", edition_date]
     if resume:
         command.append("--resume")
+    if synthetic:
+        command.append("--synthetic")
     environment = os.environ.copy()
     environment["DRAGON_TRIGGER"] = "watchdog"
     kwargs: dict[str, Any] = {"cwd": root, "env": environment}
@@ -167,6 +171,7 @@ def recover(
     *,
     launcher: Callable[[Path, str], int] | None = None,
     assessment: WatchdogAssessment | None = None,
+    synthetic: bool = False,
 ) -> dict[str, Any]:
     root = root.resolve()
     config = load_local_config(root)
@@ -182,7 +187,12 @@ def recover(
         if launcher:
             launched_pid = launcher(root, edition_date)
         else:
-            launched_pid = launch_orchestrator(root, edition_date, resume=result.action == "RESUME")
+            launched_pid = launch_orchestrator(
+                root,
+                edition_date,
+                resume=result.action == "RESUME",
+                synthetic=synthetic,
+            )
     report = {
         "timestamp": datetime.now(ZoneInfo(timezone)).isoformat(),
         "date": edition_date,

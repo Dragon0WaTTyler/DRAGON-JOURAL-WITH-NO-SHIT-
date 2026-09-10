@@ -39,7 +39,7 @@ class DisabledGitArchiveProvider:
     reason: str = "PROVIDER_DISABLED_OR_UNCONFIGURED"
     enabled: bool = False
 
-    def archive(self, root: Path, edition_dir: Path, edition_date: str) -> dict:
+    def archive(self, root: Path, edition_dir: Path, edition_date: str, *, fixture: bool = False) -> dict:
         return {"status": "DEGRADED", "reason": self.reason, "verified": False}
 
 
@@ -49,16 +49,31 @@ class GitArchiveProvider:
     branch: str = "main"
     enabled: bool = True
 
-    def archive(self, root: Path, edition_dir: Path, edition_date: str) -> dict:
+    def archive(self, root: Path, edition_dir: Path, edition_date: str, *, fixture: bool = False) -> dict:
         root = root.resolve()
         edition_dir = edition_dir.resolve()
         try:
             edition_dir.relative_to(root)
         except ValueError as exc:
             raise ArchiveError("GIT_PUSH_FAILED", "edition directory escapes repository") from exc
+        expected = root / "editions" / edition_date[:4] / edition_date[5:7] / edition_date
+        fixture_root = root / "acceptance" / "cutover-fixtures"
+        if fixture:
+            try:
+                edition_dir.relative_to(fixture_root)
+            except ValueError as exc:
+                raise ArchiveError(
+                    "GIT_PUSH_FAILED", "archive fixture must stay below acceptance/cutover-fixtures"
+                ) from exc
+        elif edition_dir != expected:
+            raise ArchiveError(
+                "GIT_PUSH_FAILED", "archive path must match the canonical dated edition directory"
+            )
         files = sorted(path for path in edition_dir.rglob("*") if path.is_file())
         if not files:
             raise ArchiveError("GIT_PUSH_FAILED", "edition has no files to archive")
+        if any(path.stat().st_size == 0 for path in files):
+            raise ArchiveError("GIT_PUSH_FAILED", "zero-byte archive artifact is not publishable")
         relative_files = [str(path.relative_to(root)).replace("\\", "/") for path in files]
         remote_ref = f"refs/remotes/{self.remote}/{self.branch}"
         # Refresh the remote identity before touching the index.  A stale or
@@ -78,6 +93,17 @@ class GitArchiveProvider:
             )
         if ancestry.returncode != 0:
             raise ArchiveError("GIT_PUSH_FAILED", "could not compare local and remote archive history")
+        existing_under_directory = str(
+            _git(root, "ls-tree", "-r", "--name-only", remote_ref, "--", str(edition_dir.relative_to(root)))
+        ).splitlines()
+        if existing_under_directory:
+            if set(existing_under_directory) != set(relative_files):
+                raise ArchiveError("GIT_PUSH_FAILED", "immutable archive directory already has a different file set")
+            for path, relative in zip(files, relative_files):
+                remote_bytes = _git(root, "show", f"{remote_ref}:{relative}", binary=True)
+                assert isinstance(remote_bytes, bytes)
+                if hashlib.sha256(remote_bytes).hexdigest() != sha256_file(path):
+                    raise ArchiveError("GIT_PUSH_FAILED", "immutable archive directory already has different bytes")
         _git(root, "add", "--", *relative_files)
         staged = subprocess.run(
             ["git", "diff", "--cached", "--quiet", "--", *relative_files],
@@ -86,7 +112,8 @@ class GitArchiveProvider:
         ).returncode
         action = "ALREADY_COMMITTED"
         if staged == 1:
-            _git(root, "commit", "-m", f"archive: DRAGON edition {edition_date}", "--", *relative_files)
+            label = f"cutover fixture {edition_date}" if fixture else f"edition {edition_date}"
+            _git(root, "commit", "-m", f"archive: DRAGON {label}", "--", *relative_files)
             action = "COMMITTED"
         elif staged != 0:
             raise ArchiveError("GIT_PUSH_FAILED", "could not inspect staged archive changes")
@@ -122,6 +149,7 @@ class GitArchiveProvider:
             "branch": self.branch,
             "commit": commit,
             "remote_commit": remote_commit,
+            "fixture": fixture,
             "artifacts": artifacts,
         }
 
