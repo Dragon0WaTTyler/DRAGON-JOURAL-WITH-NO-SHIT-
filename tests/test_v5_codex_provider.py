@@ -166,6 +166,10 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert {"FACT_CHECK", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER"}.issubset(
         set(decision["properties"]["story_type"]["enum"])
     )
+    leads = decision["properties"]["investigation_data"]["properties"]["leads"]["items"]
+    assert leads["properties"]["not_proof_of_wrongdoing"] == {
+        "type": "boolean", "const": True
+    }
 
 
 def test_article_wrapper_is_unwrapped_for_provider_protocol() -> None:

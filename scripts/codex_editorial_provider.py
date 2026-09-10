@@ -298,7 +298,8 @@ def _schema(operation: str) -> dict:
             })},
             "leads": {"type": "array", "items": record({
                 "description": {"type": "string"}, "confidence": confidence,
-                "source_ids": string_array, "not_proof_of_wrongdoing": {"const": True},
+                "source_ids": string_array,
+                "not_proof_of_wrongdoing": {"type": "boolean", "const": True},
             })},
             "material_uncertainties": string_array,
         },
