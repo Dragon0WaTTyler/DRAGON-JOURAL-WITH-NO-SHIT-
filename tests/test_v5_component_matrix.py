@@ -43,6 +43,35 @@ def test_component_matrix_classifies_every_required_project() -> None:
     assert "Do not install it as a core DRAGON runtime" in text
 
 
+def test_openpaper_is_reference_only_and_never_a_runtime_dependency() -> None:
+    adr = (ROOT / "docs" / "adr" / "ADR-008-openpaper-reference-architecture.md").read_text(
+        encoding="utf-8"
+    )
+    assert "`falense/openpaper`" in adr
+    assert "`BORROW / SELECTIVELY ADAPT`" in adr
+    for boundary in (
+        "deduplicate before expensive retrieval",
+        "machine-testable contract",
+        "versioned editorial input",
+        "semantic layout slots",
+    ):
+        assert boundary in adr
+    assert "not install OpenPaper as a core runtime" in adr
+    assert "NOT_INSTALLED_REFERENCE_ONLY" in adr
+
+    runtime_sources = [
+        *(ROOT / "dragon").rglob("*.py"),
+        *(ROOT / "scripts").rglob("*.py"),
+    ]
+    for path in runtime_sources:
+        text = path.read_text(encoding="utf-8").lower()
+        assert "openpaper" not in text and "falense" not in text, path
+
+    direct_requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").lower()
+    assert "openpaper" not in direct_requirements
+    assert "falense" not in direct_requirements
+
+
 def test_runtime_license_adr_covers_every_direct_requirement() -> None:
     requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8").splitlines()
     packages = {
