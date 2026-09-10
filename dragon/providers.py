@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -98,6 +98,20 @@ def _valid_source_time(value: object, *, retrieval: bool = False) -> bool:
     except ValueError:
         return False
     return not retrieval or ("T" in candidate and parsed.tzinfo is not None)
+
+
+def _stamp_retrieval_times(value: dict) -> dict:
+    """The local provider, not the model, owns the evidence retrieval instant."""
+    sources = value.get("sources")
+    if not isinstance(sources, list):
+        return value
+    retrieved_at = datetime.now(timezone.utc).isoformat()
+    normalized = dict(value)
+    normalized["sources"] = [
+        {**source, "accessed_at": retrieved_at} if isinstance(source, dict) else source
+        for source in sources
+    ]
+    return normalized
 
 
 def _synthetic_investigation_data() -> dict:
@@ -443,7 +457,7 @@ class LocalCommandEditorialProvider:
         return value
 
     def research(self, edition_date: str, continuity: dict | None = None) -> dict:
-        value = self._invoke(
+        raw_value = self._invoke(
             "research",
             {
                 "schema_version": 5,
@@ -452,6 +466,7 @@ class LocalCommandEditorialProvider:
                 "continuity": continuity or {"edition_count": 0, "editions": []},
             },
         )
+        value = _stamp_retrieval_times(raw_value) if isinstance(raw_value, dict) else raw_value
         if not isinstance(value, dict) or value.get("edition_date") != edition_date:
             raise ProviderError("RESEARCH_PACKET_INVALID", "date or root object is invalid")
         sources = value.get("sources")

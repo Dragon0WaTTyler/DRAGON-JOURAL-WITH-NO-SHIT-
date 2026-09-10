@@ -106,8 +106,11 @@ def _schema(operation: str) -> dict:
                 "id": {"type": "string"},
                 "url": {"type": "string"},
                 "publisher": {"type": "string"},
-                "publication_date": {"type": "string"},
-                "accessed_at": {"type": "string"},
+                "publication_date": {
+                    "type": "string",
+                    "pattern": r"^\d{4}-\d{2}-\d{2}$",
+                },
+                "accessed_at": {"type": "string", "minLength": 1},
                 "source_type": {
                     "type": "string",
                     "enum": ["primary", "official", "independent", "secondary"],
@@ -370,7 +373,10 @@ one sections entry per fixed section. Every source needs id, exact HTTPS article
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
 secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
 and limitations_read. Never claim methods or limitations were read unless verified legal full
-text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. claim_supported
+text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. publication_date
+must be the exact `YYYY-MM-DD` date stated on the source; do not include a source when only a
+month, year, or guessed date is available. accessed_at must be nonempty; the local provider will
+replace it with its own authoritative timezone-aware retrieval timestamp. claim_supported
 must state the precise fact or attributed claim supported by that exact source, not merely its
 topic, and must be a bounded summary of at most 600 characters, not copied source prose, so
 deterministic alignment can reject decorative citations. Candidate facts, claims, unknowns, and

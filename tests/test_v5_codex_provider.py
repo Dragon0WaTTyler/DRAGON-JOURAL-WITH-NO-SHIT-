@@ -136,6 +136,8 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
         "science_metadata",
     }
     assert source["properties"]["claim_supported"]["maxLength"] == 600
+    assert source["properties"]["publication_date"]["pattern"] == r"^\d{4}-\d{2}-\d{2}$"
+    assert source["properties"]["accessed_at"]["minLength"] == 1
     science = source["properties"]["science_metadata"]
     assert {"sample_size", "locators", "doi_verified", "metadata_matches", "claim_alignment", "correlation_only"}.issubset(
         set(science["properties"])

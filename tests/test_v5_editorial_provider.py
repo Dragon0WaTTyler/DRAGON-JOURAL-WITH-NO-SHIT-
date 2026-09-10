@@ -188,6 +188,32 @@ def test_provider_rejects_bad_source_dates_before_chronology() -> None:
         raise AssertionError("invalid publication date entered source chronology")
 
 
+def test_provider_rejects_partial_source_date_and_stamps_its_own_retrieval_time() -> None:
+    class PartialDateProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict) -> dict:
+            value = SyntheticEditorialProvider().research(payload["edition_date"])
+            value["sources"][0]["publication_date"] = "2099-01"
+            value["sources"][0]["accessed_at"] = "2099-01-02"
+            return value
+
+    try:
+        PartialDateProvider(("unused",)).research("2099-01-02")
+    except ProviderError as exc:
+        assert exc.code == "RESEARCH_PACKET_INVALID"
+    else:
+        raise AssertionError("partial publication date entered source chronology")
+
+    class RetrievalStampProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict) -> dict:
+            value = SyntheticEditorialProvider().research(payload["edition_date"])
+            value["sources"][0]["accessed_at"] = "date-only-model-value"
+            return value
+
+    research = RetrievalStampProvider(("unused",)).research("2099-01-02")
+    assert "T" in research["sources"][0]["accessed_at"]
+    assert research["sources"][0]["accessed_at"].endswith("+00:00")
+
+
 def test_provider_retries_invalid_article_output_once_with_exact_feedback(tmp_path: Path) -> None:
     calls = []
 
