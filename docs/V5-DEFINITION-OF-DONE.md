@@ -79,7 +79,7 @@ the editorial provider or substitutes for a real edition.
 | 57 | No dashboard is required | VERIFIED | `docs/LOCAL-AUTOMATION.md`; CLI status/reporting tests | None. |
 | 58 | Dependency/license decisions are documented | VERIFIED | `docs/adr/ADR-007-open-source-component-matrix.md`; `docs/adr/ADR-008-openpaper-reference-architecture.md`; component-matrix test | None. |
 | 59 | Runbooks match code | VERIFIED | `tests/test_v5_runbooks.py::test_required_failure_runbooks_are_complete`; failure catalog/recovery policy | Keep synchronized as codes change. |
-| 60 | Full deterministic E2E fixture edition passes | MACHINE_PASS | accepted `2099-03-24` canonical synthetic run; `tests/test_v5_synthetic_pipeline.py` | Synthetic evidence does not satisfy item 62. |
+| 60 | Full deterministic E2E fixture edition passes | MACHINE_PASS | accepted `2099-03-25` canonical synthetic run; `tests/test_v5_synthetic_pipeline.py` | Synthetic evidence does not satisfy item 62. |
 | 61 | Chaos/recovery suite passes | MACHINE_PASS | `acceptance/machine/failure-injection/receipt.json`: 31 scenarios, 127 tests, runtime-bound PASS | Human review file is still absent and must not be fabricated. |
 | 62 | One real or production-equivalent Arabic smoke edition passes | PENDING_REAL_RUN | fail-closed `python dragon_acceptance.py` reports `manual_real_publication: false` and provider unproven | Run a real provider-backed manual edition, human review it, then complete three unattended production dates. |
 | 63 | Evolution metrics exist | VERIFIED | `tests/test_v5_evolution.py::test_daily_evolution_is_thresholded_and_never_self_mutates`; reporting metrics test | None. |
@@ -93,8 +93,8 @@ the editorial provider or substitutes for a real edition.
 - The current regression baseline is 332 passed and 2 skipped.
 - The current machine chaos receipt records 31 named scenarios and 127 passing
   targeted tests for runtime fingerprint
-  `8970f1bad134bf429b9f0495ba68b5eb8d96dd0f96de819a012c619402de2bd4`.
-- Synthetic date `2099-03-24` completed local publication with final QA `PASS`
+  `c70d96501f5885a432c62e7d7ce2be39355ed43770ee9d5dcb60c2fae699fb67`.
+- Synthetic date `2099-03-25` completed local publication with final QA `PASS`
   and W3C EPUBCheck 5.3.0 reporting zero fatal errors and zero errors.
 - GitHub archive and WhatsApp delivery for that fixture are independently
   `DEGRADED`, as expected while both providers are disabled.
