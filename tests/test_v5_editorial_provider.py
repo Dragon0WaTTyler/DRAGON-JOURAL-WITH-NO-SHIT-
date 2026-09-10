@@ -292,6 +292,36 @@ def test_all_no_news_research_blocks_article_provider_before_live_invocation() -
     assert "1 sources, 23 section decisions" in caught.value.detail
 
 
+def test_validated_all_no_news_research_never_reaches_article_provider() -> None:
+    raw_research = SyntheticEditorialProvider().research("2099-01-02")
+    for section in raw_research["sections"]:
+        section.update(
+            {
+                "status": "NO_NEWS",
+                "candidates": [],
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لا توجد أدلة كافية لنشر مادة في هذا القسم اليوم",
+                "fallback_action": "RADAR",
+            }
+        )
+    calls: list[str] = []
+
+    class RecordingProvider(LocalCommandEditorialProvider):
+        def _invoke(self, operation: str, payload: dict):
+            calls.append(operation)
+            if operation == "research":
+                return raw_research
+            raise AssertionError(f"article provider must not run: {operation}")
+
+    provider = RecordingProvider(("unused",))
+    research = provider.research("2099-01-02")
+    with pytest.raises(ProviderError, match="no section with a selected candidate"):
+        provider.articles(research)
+
+    assert calls == ["research"]
+
+
 def test_research_section_error_identifies_missing_and_duplicate_ids() -> None:
     class InvalidResearchProvider(LocalCommandEditorialProvider):
         def _invoke(self, operation: str, payload: dict):
