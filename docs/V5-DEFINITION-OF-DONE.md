@@ -90,7 +90,7 @@ the editorial provider or substitutes for a real edition.
 
 ## Current acceptance facts
 
-- The current regression baseline is 330 passed and 2 skipped.
+- The current regression baseline is 331 passed and 2 skipped.
 - The current machine chaos receipt records 31 named scenarios and 125 passing
   targeted tests for runtime fingerprint
   `8d762f8a42dcc456d3ef457fbb6492dcb5a2465e50db5a1ca80d99abd3c77590`.
@@ -98,8 +98,12 @@ the editorial provider or substitutes for a real edition.
   and W3C EPUBCheck 5.3.0 reporting zero fatal errors and zero errors.
 - GitHub archive and WhatsApp delivery for that fixture are independently
   `DEGRADED`, as expected while both providers are disabled.
-- Editorial provider status is `NOT_RUN`; prior failed raw trials are not valid
-  acceptance evidence and no further provider usage is authorized by this file.
+- Editorial provider status is `NOT_RUN`. The latest explicitly authorized live
+  trial (`2026-09-10`, `attempt-150be12506fc4d1f8911d330b9b654cf`) preserved
+  hash-bound raw research and both article attempts but failed
+  `ARTICLE_SCHEMA_INVALID`: 3,499 validated active-article words against the
+  required 4,000. It has no technically valid receipt and is not acceptance
+  evidence; no promotion or human-review attestation may be fabricated from it.
 - Human review evidence, the actual Codex automation, three consecutive
   unattended production runs, verified real-remote archive, activation flags,
   and cutover remain outstanding.
