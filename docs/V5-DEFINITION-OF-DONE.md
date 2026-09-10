@@ -90,7 +90,7 @@ the editorial provider or substitutes for a real edition.
 
 ## Current acceptance facts
 
-- The current regression baseline is 331 passed and 2 skipped.
+- The current regression baseline is 332 passed and 2 skipped.
 - The current machine chaos receipt records 31 named scenarios and 127 passing
   targeted tests for runtime fingerprint
   `8970f1bad134bf429b9f0495ba68b5eb8d96dd0f96de819a012c619402de2bd4`.
