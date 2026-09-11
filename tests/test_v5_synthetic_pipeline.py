@@ -73,12 +73,16 @@ def test_synthetic_pipeline_creates_real_arabic_publications(tmp_path: Path) -> 
     cover_brief = json.loads((edition / "cover-brief.json").read_text(encoding="utf-8"))
     assert cover_brief["cover_status"] == "COVER_FALLBACK"
     assert cover_brief["asset_type"] == "DETERMINISTIC_PNG_FALLBACK"
+    assert cover_brief["skill"]["version"] == "1.1.0"
+    assert cover_brief["cover_provenance"]["qa_result"] == "PASS"
+    assert cover_brief["cover_provenance"]["final_cover_sha256"]
     assets = json.loads((edition / "assets-manifest.json").read_text(encoding="utf-8"))
     assert assets["remote_assets_allowed"] is False
     assert {item["classification"] for item in assets["assets"]} == {
         "EDITORIAL_ILLUSTRATION", "DECORATIVE"
     }
     assert all(item["documentary_evidence"] is False for item in assets["assets"])
+    assert assets["cover_provenance"] == cover_brief["cover_provenance"]
     assert "editions/2099/01/2099-01-02/assets-manifest.json" in state["stages"]["publication_source"]["input_hashes"]
 
 

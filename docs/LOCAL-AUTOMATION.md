@@ -261,6 +261,31 @@ matching clickable annotation.
 
 ## Migration safety
 
+## ALOUSBOU COVER SYSTEM v2
+
+V5's active cover art-direction authority is the vendored
+`design/skills/alousbou.cover.v2.md` skill. `config/cover-system.json` records
+its immutable source path, SHA-256, version, and active state. A cover brief
+records that identity, its own hash, one archetype (A–J), one hero mode, lead
+story/evidence links, colour and RTL typography decisions, teaser provenance,
+metadata/QR target, and final artwork and canonical-cover hashes.
+
+The Cover Director runs only after the completed editorial, fact-check, and
+Arabic gates. It consumes the canonical lead and supported claim graph. A
+real-face or satire-heavy concept is possible only when every pictured public
+actor, documented contradiction, evidence prop, and quote is linked to a
+supported claim. Otherwise it chooses a non-factual symbolic concept. Artwork
+is hero art only: it contains no words, Arabic typography, logos, or QR code;
+the local compositor independently shapes and renders all reader-facing Arabic.
+
+The deterministic fallback remains valid when no image provider is configured.
+It preserves the black/warm-paper/limited-red visual grammar, masthead, rails,
+teasers, metadata, sharp black-on-white QR with a four-module quiet zone, and
+canonical PDF/EPUB cover identity. Machine QA checks fields, provenance, RTL,
+one-mode/one-archetype, semantic red emphasis, QR geometry, and factual-satire
+links. Human review remains responsible for visual metaphor clarity, satire,
+hierarchy, facial coherence, thumbnail impact, and periodical authenticity.
+
 The V4 system remains enabled until `docs/LOCAL-CUTOVER.md` records the required
 trials and authorizes retirement. During build-behind, V5 code must use explicit
 V5 state and cannot treat legacy `status.json` as writable V5 state. GitHub

@@ -34,6 +34,7 @@ from dragon.deep_research_executor import (
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
     build_cover_brief,
+    build_hero_art_prompt,
     build_layout_plan,
     validate_cover_brief,
     validate_layout_plan,
@@ -750,7 +751,8 @@ def build_stage_definitions(
             mode=provider.mode,
             hero_art_path=hero_path,
             composition_variant=direction["composition_variant"],
-            secondary_teasers=direction["secondary_teasers"],
+            secondary_teasers=direction.get("supporting", {}).get("top_teasers", []),
+            cover_brief=direction,
         )
         try:
             from PIL import Image
@@ -763,16 +765,40 @@ def build_stage_definitions(
         if dimensions != (827, 1169):
             raise StageFailure("COVER_FAILED", f"unexpected dimensions {dimensions}", outputs=(path,))
         brief = context.edition_dir / "cover-brief.json"
-        atomic_write_json(brief, {
-                **direction,
-                "provider_mode": provider.mode,
-                "cover_status": "COVER_FALLBACK",
-                "asset_type": "DETERMINISTIC_PNG_FALLBACK",
-                "canonical": "assets/cover.png",
-                "hero_asset": "assets/hero-art.png",
-                "accepted": True,
-                "warning": "غلاف اختبار اصطناعي" if synthetic else None,
-            })
+        direction["hero_art"] = {
+            **direction["hero_art"],
+            "generation_status": "FALLBACK_USED",
+            "provider_mode": "NONE",
+            "prompt": build_hero_art_prompt(direction),
+        }
+        direction["qa"] = {
+            **direction["qa"],
+            "machine": {"status": "PASS", "checks": ["brief_fields", "single_archetype", "single_hero_mode", "rtl", "headline_semantics", "metadata_rail", "qr_quiet_zone", "factual_satire_provenance"]},
+        }
+        direction.update({
+            "provider_mode": provider.mode,
+            "cover_status": "COVER_FALLBACK",
+            "asset_type": "DETERMINISTIC_PNG_FALLBACK",
+            "canonical": "assets/cover.png", "hero_asset": "assets/hero-art.png",
+            "accepted": True, "warning": "غلاف اختبار اصطناعي" if synthetic else None,
+            "cover_provenance": {
+                "cover_skill_id": direction["skill"]["skill_id"],
+                "cover_skill_version": direction["skill"]["version"],
+                "brief_hash": direction["brief_hash"],
+                "archetype": direction["visual"]["archetype"],
+                "hero_mode": direction["visual"]["hero_mode"],
+                "lead_story_id": direction["source_article_id"],
+                "evidence_references": direction["lead_story"]["evidence_ids"],
+                "hero_art_provider_mode": "NONE",
+                "artwork_sha256": sha256_file(hero_path),
+                "final_cover_sha256": sha256_file(path),
+                "qa_result": "PASS",
+            },
+        })
+        cover_issues = validate_cover_brief(direction, {item["id"] for item in decisions if item.get("status") == "ACTIVE"}, expected_date=context.edition_date, final=True)
+        if cover_issues:
+            raise StageFailure("COVER_PROVENANCE_INVALID", "; ".join(cover_issues), outputs=(hero_path, path))
+        atomic_write_json(brief, direction)
         asset_manifest_path = context.edition_dir / "assets-manifest.json"
         asset_manifest = build_asset_manifest(
             context.edition_date,
@@ -802,6 +828,7 @@ def build_stage_definitions(
                 ),
             ],
         )
+        asset_manifest["cover_provenance"] = direction["cover_provenance"]
         asset_issues = validate_asset_manifest(asset_manifest, context.edition_dir)
         if asset_issues:
             raise StageFailure(
@@ -824,7 +851,12 @@ def build_stage_definitions(
             item for item in decisions
             if item.get("status") == "ACTIVE" and item.get("id") != lead_id
         ]
-        brief = build_cover_brief(context.edition_date, lead, secondary, synthetic=synthetic)
+        claim_graph_path = context.run_dir / "evidence" / "claim-graph.json"
+        cover_skill_root = context.root if (context.root / "config" / "cover-system.json").is_file() else Path(__file__).resolve().parents[1]
+        brief = build_cover_brief(
+            context.edition_date, lead, secondary, synthetic=synthetic,
+            claim_graph=_load(claim_graph_path), root=cover_skill_root,
+        )
         issues = validate_cover_brief(
             brief,
             {item["id"] for item in decisions if item.get("status") == "ACTIVE"},
@@ -834,8 +866,12 @@ def build_stage_definitions(
             raise StageFailure("COVER_BRIEF_INVALID", "; ".join(issues))
         path = context.run_dir / "cover" / "direction.json"
         atomic_write_json(path, brief)
+        skill_inputs = (
+            (cover_skill_root / "config" / "cover-system.json", cover_skill_root / "design" / "skills" / "alousbou.cover.v2.md")
+            if cover_skill_root == context.root else ()
+        )
         return StageResult(
-            (path,), inputs=(context.edition_dir / "edition-plan.json", context.edition_dir / "articles.json")
+            (path,), inputs=(context.edition_dir / "edition-plan.json", context.edition_dir / "articles.json", claim_graph_path, *skill_inputs)
         )
 
     def layout_direction(context: StageContext) -> StageResult:
@@ -1035,6 +1071,7 @@ def build_stage_definitions(
             cover_brief,
             {item["id"] for item in decisions if item.get("status") == "ACTIVE"},
             expected_date=context.edition_date,
+            final=True,
         ))
         issues.extend(validate_layout_plan(layout_plan, decisions))
         continuity_path = context.edition_dir / "continuity.json"

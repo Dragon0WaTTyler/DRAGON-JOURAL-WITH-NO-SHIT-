@@ -46,6 +46,8 @@ RUNTIME_FIXED_PATHS = (
     "config/source-coverage.yaml",
     "config/open-discovery.yaml",
     "config/general-search.yaml",
+    "config/cover-system.json",
+    "design/skills/alousbou.cover.v2.md",
     "config/extraction-adapters.yaml",
     "config/deep-research.yaml",
     "config/deep-research-schema.json",

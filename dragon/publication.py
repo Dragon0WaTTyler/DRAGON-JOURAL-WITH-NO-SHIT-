@@ -47,78 +47,113 @@ def build_cover_png(
     hero_art_path: Path | None = None,
     composition_variant: str = "single-symbol",
     secondary_teasers: list[dict] | None = None,
+    cover_brief: dict | None = None,
 ) -> Path:
-    """Build the one canonical cover image consumed by every output format."""
+    """Build the canonical Alousbou-style cover; text is never delegated to art."""
     from PIL import Image, ImageDraw
 
     size = (827, 1169)
-    cover = Image.new("RGB", size, "#f5efe3")
+    visual = (cover_brief or {}).get("visual", {})
+    typography = (cover_brief or {}).get("typography", {})
+    supporting = (cover_brief or {}).get("supporting", {})
+    metadata = (cover_brief or {}).get("metadata", {})
+    dark = visual.get("background") == "dark_photo"
+    paper = "#0B0B0B" if dark else ("#D6C09C" if visual.get("background") == "sepia" else "#F2F1EC")
+    ink = "#F2F1EC" if dark else "#0B0B0B"
+    red = "#ED1846"
+    cover = Image.new("RGB", size, paper)
     draw = ImageDraw.Draw(cover)
-    draw.rectangle((42, 42, 785, 1127), outline="#111111", width=3)
-    draw.rectangle((42, 42, 785, 66), fill="#9e1523")
-    draw.text((413, 185), "DRAGON", font=_font(82), fill="#111111", anchor="mm")
-    headline_font, headline_lines = _fit_rtl_lines(
-        draw, headline, width=645, maximum_lines=3, maximum_font_size=42,
-        minimum_font_size=24,
-    )
-    _draw_rtl_lines(
-        draw, (735, 305), headline_lines, headline_font,
-        fill="#111111", spacing=int(headline_font.size * 1.35),
-    )
-    draw.line((92, 495, 735, 495), fill="#9e1523", width=6)
+    draw.rectangle((34, 34, 793, 1135), outline=ink, width=3)
+    # Dense but quiet top editorial rail.
+    top_teasers = supporting.get("top_teasers") if isinstance(supporting, dict) else None
+    top_teasers = list(top_teasers or secondary_teasers or [])[:3]
+    if top_teasers:
+        slot = 690 / len(top_teasers)
+        for index, teaser in enumerate(top_teasers):
+            right = int(760 - index * slot)
+            if index:
+                draw.line((right + 10, 55, right + 10, 105), fill="#77716a", width=1)
+            teaser_text = str(teaser.get("headline", ""))
+            _draw_rtl(draw, (right, 58), teaser_text, _font(13), fill=ink, spacing=18, width=int(slot - 18))
+    draw.line((55, 116, 772, 116), fill=red, width=4)
+    masthead = str((cover_brief or {}).get("masthead") or "DRAGON")
+    draw.text((740, 155), masthead, font=_font(76), fill=ink, anchor="ra")
+    draw.line((474, 177, 740, 177), fill=red, width=7)
+    issue_label = str((cover_brief or {}).get("issue_label") or ("نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"))
+    _draw_rtl(draw, (740, 244), issue_label, _font(16), fill=ink, spacing=22, width=360)
+    headline_lines = typography.get("headline_lines") if isinstance(typography, dict) else None
+    headline_width = 420 if cover_brief else 645
+    if not isinstance(headline_lines, list) or not headline_lines:
+        _headline_font, headline_lines = _fit_rtl_lines(
+            draw, headline, width=headline_width, maximum_lines=3, maximum_font_size=45, minimum_font_size=16,
+        )
+    headline_font = _font(45)
+    while any(draw.textlength(_visual_arabic(line), font=headline_font) > headline_width for line in headline_lines) and headline_font.size > 16:
+        headline_font = _font(headline_font.size - 1)
+    headline_right = 748 if visual.get("headline_position") != "left" else 380
+    headline_y = 285 if visual.get("headline_position") != "lower_center" else 755
+    red_phrase = typography.get("headline_red_phrase") if isinstance(typography, dict) else None
+    for line_index, line in enumerate(headline_lines):
+        color = red if red_phrase and red_phrase in line else ink
+        draw.text((headline_right, headline_y + line_index * int(headline_font.size * 1.18)), _visual_arabic(line), font=headline_font, fill=color, anchor="ra")
+    hero_box = (72, 350, 755, 730) if visual.get("headline_position") != "lower_center" else (72, 280, 755, 700)
     if hero_art_path is not None:
         with Image.open(hero_art_path) as hero:
-            hero_image = hero.convert("RGB").resize((643, 230))
-        cover.paste(hero_image, (92, 520))
+            hero_image = hero.convert("RGB").resize((hero_box[2] - hero_box[0], hero_box[3] - hero_box[1]))
+        cover.paste(hero_image, hero_box[:2])
         hero_image.close()
-        standfirst_y = 775
     else:
-        standfirst_y = 550
+        draw.rectangle(hero_box, outline=ink, width=2)
+    deck_y = max(hero_box[3] + 25, headline_y + len(headline_lines) * int(headline_font.size * 1.18) + 28)
     standfirst_font, standfirst_lines = _fit_rtl_lines(
-        draw, standfirst, width=645, maximum_lines=2 if hero_art_path else 7,
-        maximum_font_size=24, minimum_font_size=14,
+        draw, standfirst, width=650, maximum_lines=4,
+        maximum_font_size=20, minimum_font_size=13,
     )
-    _draw_rtl_lines(
-        draw, (735, standfirst_y), standfirst_lines, standfirst_font,
-        fill="#222222", spacing=int(standfirst_font.size * 1.55),
-    )
-    teasers = list(secondary_teasers or [])[:4]
-    if teasers:
-        rail_top = 875
-        draw.line((92, rail_top, 735, rail_top), fill="#9e1523", width=3)
-        slot_width = 643 / len(teasers)
-        for index, teaser in enumerate(teasers):
-            right = int(735 - index * slot_width - 10)
-            left = int(735 - (index + 1) * slot_width + 10)
-            if index:
-                separator = int(735 - index * slot_width)
-                draw.line((separator, rail_top + 12, separator, 958), fill="#c9bfb2", width=2)
-            lines: list[str] = []
-            teaser_font = None
-            for font_size in range(15, 8, -1):
-                candidate_font = _font(font_size)
-                candidate_lines = _rtl_lines(
-                    draw, str(teaser.get("headline", "")), candidate_font, max(40, right - left)
-                )
-                if len(candidate_lines) <= 3:
-                    teaser_font = candidate_font
-                    lines = candidate_lines
-                    break
-            if teaser_font is None:
-                raise ValueError("cover teaser cannot fit without clipping")
-            y = rail_top + 14
-            for line in lines:
-                draw.text((right, y), _visual_arabic(line), font=teaser_font, fill="#222222", anchor="ra")
-                y += 21
-    label = "نسخة اختبار اصطناعية" if mode == "synthetic" else "النسخة اليومية"
+    _draw_rtl_lines(draw, (748, deck_y), standfirst_lines, standfirst_font, fill=ink, spacing=int(standfirst_font.size * 1.4))
+    # Narrow right-edge metadata rail and a standards-based black-on-white QR.
+    draw.line((777, 290, 777, 1030), fill=red, width=2)
+    rail = " | ".join(str(value) for value in (metadata.get("issue"), metadata.get("date"), metadata.get("price"), metadata.get("website")) if value)
+    # Pillow does not rotate shaped Arabic text safely; this rail remains narrow
+    # and horizontal while the red rule establishes the periodical edge grammar.
+    draw.text((770, 972), rail[:42], font=_font(8), fill=ink, anchor="ra")
+    _draw_qr(cover, str(metadata.get("qr_target") or f"https://dragon.local/edition/{edition_date}"), (690, 1000), 68)
+    bottom_teasers = supporting.get("bottom_teasers") if isinstance(supporting, dict) else []
+    bottom_teasers = list(bottom_teasers or [])[:2]
+    if bottom_teasers:
+        draw.line((58, 1082, 674, 1082), fill=red, width=3)
+        slot = 610 / len(bottom_teasers)
+        for index, teaser in enumerate(bottom_teasers):
+            right = int(668 - index * slot)
+            _draw_rtl(draw, (right, 1092), str(teaser.get("headline", "")), _font(12), fill=ink, spacing=16, width=int(slot - 12))
     footer = "غير مخصصة للنشر أو التوزيع" if mode == "synthetic" else "صحافة عربية مستقلة"
-    _draw_rtl(draw, (735, 982), label, _font(21), fill="#9e1523", spacing=32, width=645)
-    draw.text((413, 1030), edition_date, font=_font(19), fill="#333333", anchor="mm")
-    _draw_rtl(draw, (735, 1070), footer, _font(16), fill="#333333", spacing=25, width=645)
+    _draw_rtl(draw, (670, 1042), footer, _font(11), fill=ink, spacing=16, width=600)
     destination.parent.mkdir(parents=True, exist_ok=True)
     cover.save(destination, "PNG", optimize=True)
     cover.close()
     return destination
+
+
+def _draw_qr(canvas, target: str, xy: tuple[int, int], size: int) -> None:
+    """Rasterize ReportLab's QR encoder directly; preserve a white quiet zone."""
+    from PIL import Image
+    from reportlab.graphics.barcode import qr
+
+    widget = qr.QrCodeWidget(target)
+    widget.qr.make()
+    modules = widget.qr.modules
+    quiet = 4
+    side = len(modules) + quiet * 2
+    unit = max(1, size // side)
+    image = Image.new("RGB", (side * unit, side * unit), "#ffffff")
+    pixels = image.load()
+    for y, row in enumerate(modules):
+        for x, dark in enumerate(row):
+            if dark:
+                for yy in range((y + quiet) * unit, (y + quiet + 1) * unit):
+                    for xx in range((x + quiet) * unit, (x + quiet + 1) * unit):
+                        pixels[xx, yy] = (0, 0, 0)
+    canvas.paste(image, xy)
+    image.close()
 
 
 def build_hero_art_png(destination: Path, seed: str, mode: str, variant: str) -> Path:
@@ -126,19 +161,28 @@ def build_hero_art_png(destination: Path, seed: str, mode: str, variant: str) ->
     from PIL import Image, ImageDraw
 
     digest = hashlib.sha256(f"{seed}:{mode}:{variant}".encode("utf-8")).digest()
-    image = Image.new("RGB", (643, 285), "#111111")
+    image = Image.new("RGB", (643, 285), "#0B0B0B")
     draw = ImageDraw.Draw(image)
-    accent = "#9e1523"
-    for index in range(7):
-        x = 25 + (digest[index] * 2) % 560
-        y = 18 + (digest[index + 7]) % 220
-        radius = 18 + digest[index + 14] % 70
-        if mode == "DRAMATIC_CURRENT_EVENT":
-            draw.rectangle((x, y, min(642, x + radius * 2), min(284, y + radius)), fill=accent)
-        elif mode == "PORTRAIT_DOSSIER":
-            draw.ellipse((x, y, min(642, x + radius), min(284, y + radius * 2)), outline=accent, width=8)
-        else:
-            draw.polygon(((x, y), (min(642, x + radius), min(284, y + radius * 2)), (max(0, x - radius), min(284, y + radius * 2))), fill=accent)
+    accent, paper = "#ED1846", "#F2F1EC"
+    # One graphic subject only: a non-documentary evidence object, split state,
+    # or symbolic seal. This is deliberately not an invented person or event.
+    if mode in {"object_metaphor", "PORTRAIT_DOSSIER"} or variant in {"D", "I"}:
+        x = 160 + digest[0] % 65
+        draw.polygon(((x, 30), (x + 205, 55), (x + 165, 247), (x - 40, 220)), fill=paper)
+        draw.line((x + 12, 94, x + 170, 114), fill="#0B0B0B", width=7)
+        draw.line((x, 133, x + 154, 151), fill="#0B0B0B", width=7)
+        draw.rectangle((x + 22, 172, x + 142, 198), outline=accent, width=8)
+    elif mode in {"split_photo", "DRAMATIC_CURRENT_EVENT"} or variant == "A":
+        split = 300 + digest[0] % 55
+        draw.rectangle((0, 0, split, 285), fill="#171717")
+        draw.rectangle((split, 0, 643, 285), fill="#C9AC84")
+        draw.line((split - 6, 0, split + 12, 285), fill=accent, width=10)
+        draw.ellipse((205, 55, 430, 270), outline=paper, width=14)
+    else:
+        center_x, center_y = 332, 143
+        radius = 94 + digest[0] % 26
+        draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), outline=paper, width=12)
+        draw.rectangle((center_x - 18, center_y - radius - 22, center_x + 18, center_y + radius + 22), fill=accent)
     destination.parent.mkdir(parents=True, exist_ok=True)
     image.save(destination, "PNG", optimize=True)
     image.close()
