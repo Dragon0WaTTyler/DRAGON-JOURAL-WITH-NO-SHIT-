@@ -155,6 +155,21 @@ def test_nonselected_candidate_with_mandatory_recovery_need_gets_one_bounded_job
     assert recovery_jobs[0]["recovery_needs"][0]["need_id"] == "CORROBORATE:world:blocked:INDEPENDENT"
 
 
+def test_distinct_breadth_needs_have_distinct_jobs_even_with_same_desk_topic_date() -> None:
+    needs = [
+        {"need_id": f"BREADTH:world:{index}", "kind": "NEED_WORLD_BREADTH", "candidate_id": None,
+         "topic_identifiers": ["world"], "search_constraints": {"eligible_section_ids": ["world"]}}
+        for index in (1, 2)
+    ]
+    state = build_deep_research_state(
+        {"edition_date": "2099-01-02", "sections": []}, {"event_clusters": []}, {"plans": []},
+        {"needs": needs}, CONFIG,
+    )
+    assert len(state["jobs"]) == 2
+    assert len({item["job_id"] for item in state["jobs"]}) == 2
+    assert {item["recovery_needs"][0]["need_id"] for item in state["jobs"]} == {item["need_id"] for item in needs}
+
+
 def test_official_event_policy_differs_from_serious_allegation_policy() -> None:
     evidence = [{"source_type": "official", "origin": "bank.example", "verification_status": "VERIFIED_EVIDENCE"}]
     official = evaluate_claim_policy("SIMPLE_OFFICIAL_EVENT", evidence, CONFIG)

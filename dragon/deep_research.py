@@ -125,7 +125,11 @@ def create_lead(
     """Create a research lead; source familiarity never makes it evidence."""
     source_url = str(discovery_source.get("url") or "")
     return {
-        "lead_id": _stable_id("LEAD", desk, topic, source_url, observed_at),
+        # The source URL alone is not enough for synthetic recovery tracks:
+        # two distinct edition-wide needs can share desk/topic/date.  Retain
+        # the explicit reason in the identity so their bounded action budgets
+        # and observations never merge.
+        "lead_id": _stable_id("LEAD", desk, topic, source_url, observed_at, reason_interesting),
         "desk": desk,
         "topic": topic,
         "event_entities": list(event_entities or []),
@@ -561,7 +565,7 @@ def build_deep_research_state(
             topic=topic,
             discovery_source={"known_seed": False, "recovery_need_id": need["need_id"]},
             observed_at=str(packet.get("edition_date")),
-            reason_interesting="RECOVERY_BREADTH_NEED",
+            reason_interesting=f"RECOVERY_BREADTH_NEED:{need['need_id']}",
         )
         jobs.append(start_research_job(lead, config, budget_class="QUICK", recovery_needs=[deepcopy(need)]))
     for signal in discovery_signals or []:
