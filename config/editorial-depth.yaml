@@ -4,6 +4,21 @@ version: 1
 edition:
   hard_min_words: 4000
   target_words: "6000-9000"
+
+# V5 editorial targets are quality aims, not permission to pad weak evidence.
+# The local provider derives its single machine-readable article contract from
+# this policy and may constrain targets when unusually broad, evidence-backed
+# coverage would exceed the edition maximum.
+v5_article_roles:
+  LEAD:
+    target_words: 1000
+    maximum_words: 1400
+  STANDARD:
+    target_words: 700
+    maximum_words: 1000
+  INVESTIGATION:
+    target_words: 1200
+    maximum_words: 1600
 history:
   hard_min_words: 800
   target_words: "1000-1500"

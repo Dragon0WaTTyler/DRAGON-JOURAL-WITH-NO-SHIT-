@@ -424,6 +424,9 @@ own minimum_words and target_words, and the combined body count must reach gener
 ({generation_target}), not merely the acceptance floor ({minimum_edition_words}). Before returning,
 independently re-count every ACTIVE body against its budget. Expand only with source-supported
 context, uncertainty, consequences, chronology, competing perspectives, or next steps.
+role_quality_target_words records the normal editorial-quality aim for that role. When
+quality_target_constrained is true, coverage was broader than the configured edition maximum;
+do not compensate with filler, and preserve evidence quality over word-count inflation.
 If repair_context is present, this is the only allowed repair attempt. Obey its exact validation
 error and validation_diagnostics. Repair every entry in failing_articles in one response, using its
 actual_words, minimum_words, target_words, deficits, and evidence_ids, while also satisfying the

@@ -90,7 +90,7 @@ the editorial provider or substitutes for a real edition.
 
 ## Current acceptance facts
 
-- The current complete safe regression baseline is **372 passed and 2 skipped**:
+- The current complete safe regression baseline is **373 passed and 2 skipped**:
   `python -m pytest -q -p no:cacheprovider`, run on 2026-09-11. See
   `docs/V5-TEST-BASELINE.md` for scope and category mapping.
 - The current machine chaos receipt records **34 named scenarios and 152

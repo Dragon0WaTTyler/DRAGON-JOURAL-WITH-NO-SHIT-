@@ -84,6 +84,12 @@ REPAIR_SKIP_REASON_CODES = {
     "SOURCE_INVALIDATED",
 }
 
+DEFAULT_ROLE_QUALITY_TARGETS = (
+    ("LEAD", 1000, 1400),
+    ("STANDARD", 700, 1000),
+    ("INVESTIGATION", 1200, 1600),
+)
+
 
 def _synthetic_story_type(section_id: str) -> str:
     return {
@@ -413,6 +419,7 @@ class LocalCommandEditorialProvider:
     minimum_edition_words: int = 4000
     generation_target_edition_words: int = 6000
     generation_maximum_edition_words: int = 9000
+    role_quality_targets: tuple[tuple[str, int, int], ...] = DEFAULT_ROLE_QUALITY_TARGETS
     minimum_active_sections: int = 1
     coverage_requirements: tuple[tuple[str, tuple[str, ...], int], ...] = ()
     expected_byline: str = "تحرير: DRAGON"
@@ -764,13 +771,62 @@ class LocalCommandEditorialProvider:
             selected.append((section, candidate))
         if not selected:
             raise ProviderError("RESEARCH_BUDGET_INSUFFICIENT", "no active sections have a word budget")
-        target_total = max(self.minimum_edition_words, self.generation_target_edition_words)
+        role_targets = {
+            role: {"target_words": target, "maximum_words": maximum}
+            for role, target, maximum in self.role_quality_targets
+        }
+        if set(role_targets) != {"LEAD", "STANDARD", "INVESTIGATION"}:
+            raise ProviderError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID", "article role quality targets are incomplete")
+        planned = []
+        for section, candidate in selected:
+            section_id = str(section["section_id"])
+            role = (
+                "LEAD" if section_id == "front" else
+                "INVESTIGATION" if section_id == "investigations" else "STANDARD"
+            )
+            planned.append((section, candidate, section_id, role))
+        floor_total = self.minimum_active_article_words * len(planned)
+        preferred_target_total = sum(role_targets[role]["target_words"] for *_rest, role in planned)
+        target_total = max(
+            self.minimum_edition_words,
+            self.generation_target_edition_words,
+            floor_total,
+        )
+        target_total = min(
+            max(target_total, min(preferred_target_total, self.generation_maximum_edition_words)),
+            max(floor_total, self.generation_maximum_edition_words),
+        )
+
+        def allocate(total: int, preferred: list[int], *, baseline: list[int]) -> list[int]:
+            """Distribute an aggregate target deterministically without dropping a hard floor."""
+            remaining = total - sum(baseline)
+            if remaining < 0:
+                raise ProviderError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID", "aggregate budget is below article floors")
+            weights = [max(0, target - floor) for target, floor in zip(preferred, baseline)]
+            if not any(weights):
+                weights = [1] * len(baseline)
+            total_weight = sum(weights)
+            extras = [remaining * weight // total_weight for weight in weights]
+            residue = remaining - sum(extras)
+            order = sorted(range(len(baseline)), key=lambda index: (-weights[index], index))
+            for index in order[:residue]:
+                extras[index] += 1
+            return [floor + extra for floor, extra in zip(baseline, extras)]
+
+        target_words_by_article = allocate(
+            target_total,
+            [role_targets[role]["target_words"] for *_rest, role in planned],
+            baseline=[self.minimum_active_article_words] * len(planned),
+        )
         maximum_total = max(target_total, self.generation_maximum_edition_words)
-        target_words = max(self.minimum_active_article_words, ceil(target_total / len(selected)))
-        maximum_words = max(target_words, ceil(maximum_total / len(selected)))
+        maximum_words_by_article = allocate(
+            maximum_total,
+            [role_targets[role]["maximum_words"] for *_rest, role in planned],
+            baseline=target_words_by_article,
+        )
         budgets = []
         infeasible = []
-        for section, candidate in selected:
+        for index, (section, candidate, section_id, role) in enumerate(planned):
             evidence_ids = sorted(set().union(*(
                 set(candidate.get(field, []))
                 for field in (
@@ -799,18 +855,16 @@ class LocalCommandEditorialProvider:
                     "evidence_ids": evidence_ids,
                     "evidence_item_count": evidence_items,
                 })
-            section_id = str(section["section_id"])
             budgets.append({
                 "article_id": candidate["id"],
                 "section_id": section_id,
                 "candidate_id": candidate["id"],
-                "role": (
-                    "LEAD" if section_id == "front" else
-                    "INVESTIGATION" if section_id == "investigations" else "STANDARD"
-                ),
+                "role": role,
                 "minimum_words": self.minimum_active_article_words,
-                "target_words": target_words,
-                "maximum_words": maximum_words,
+                "target_words": target_words_by_article[index],
+                "maximum_words": maximum_words_by_article[index],
+                "role_quality_target_words": role_targets[role]["target_words"],
+                "quality_target_constrained": target_words_by_article[index] < role_targets[role]["target_words"],
                 "evidence_ids": evidence_ids,
                 "evidence_item_count": evidence_items,
             })
@@ -823,8 +877,9 @@ class LocalCommandEditorialProvider:
         return {
             "schema_version": 1,
             "acceptance_floor_words": self.minimum_edition_words,
-            "generation_target_words": target_words * len(budgets),
-            "generation_maximum_words": maximum_words * len(budgets),
+            "generation_target_words": sum(item["target_words"] for item in budgets),
+            "generation_maximum_words": sum(item["maximum_words"] for item in budgets),
+            "quality_target_constrained": any(item["quality_target_constrained"] for item in budgets),
             "articles": budgets,
         }
 
@@ -1178,6 +1233,11 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
         minimum_edition_words = int(value.get("minimum_edition_words", 4000))
         target_edition_words = int(word_budget.get("generation_target_edition_words", 6000))
         maximum_edition_words = int(word_budget.get("generation_maximum_edition_words", 9000))
+        configured_role_targets = word_budget.get("role_quality_targets")
+        role_quality_targets = tuple(
+            (str(role), int(values["target_words"]), int(values["maximum_words"]))
+            for role, values in configured_role_targets.items()
+        ) if isinstance(configured_role_targets, dict) else DEFAULT_ROLE_QUALITY_TARGETS
     except (TypeError, ValueError):
         return UnconfiguredEditorialProvider(reason="EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
     if (
@@ -1185,6 +1245,8 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
         or maximum_edition_words < target_edition_words
         or int(word_budget.get("acceptance_floor_words", minimum_edition_words))
         != minimum_edition_words
+        or {role for role, _target, _maximum in role_quality_targets}
+        != {"LEAD", "STANDARD", "INVESTIGATION"}
     ):
         return UnconfiguredEditorialProvider(reason="EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
     return LocalCommandEditorialProvider(
@@ -1194,6 +1256,7 @@ def editorial_provider_from_config(config: dict, *, require_proven: bool = True)
         minimum_edition_words=minimum_edition_words,
         generation_target_edition_words=target_edition_words,
         generation_maximum_edition_words=maximum_edition_words,
+        role_quality_targets=role_quality_targets,
         minimum_active_sections=minimum_active_sections,
         coverage_requirements=coverage_requirements,
         expected_byline=configured_byline(config),

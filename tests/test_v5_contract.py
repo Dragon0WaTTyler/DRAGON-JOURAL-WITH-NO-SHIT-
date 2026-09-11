@@ -98,6 +98,11 @@ class V5ContractTests(unittest.TestCase):
             "acceptance_floor_words": 4000,
             "generation_target_edition_words": 6000,
             "generation_maximum_edition_words": 9000,
+            "role_quality_targets": {
+                "LEAD": {"target_words": 1000, "maximum_words": 1400},
+                "STANDARD": {"target_words": 700, "maximum_words": 1000},
+                "INVESTIGATION": {"target_words": 1200, "maximum_words": 1600},
+            },
         })
 
     def test_executable_stage_graph_matches_authoritative_config(self):

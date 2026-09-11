@@ -9,7 +9,7 @@ machine evidence ignored, DRAGON ran:
 PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider
 ```
 
-Result: **372 passed, 2 skipped in 157.47 seconds**.
+Result: **373 passed, 2 skipped in 156.68 seconds**.
 
 This command does not invoke an editorial provider, a production scheduler,
 GitHub archive, or WhatsApp delivery. Test-only fixtures may create ignored

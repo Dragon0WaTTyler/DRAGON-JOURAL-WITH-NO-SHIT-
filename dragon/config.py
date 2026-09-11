@@ -80,10 +80,29 @@ def _editorial_word_budget(root: Path) -> dict[str, Any]:
         raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID") from exc
     if floor < 1 or target < floor or maximum < target:
         raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+    roles = depth.get("v5_article_roles")
+    if not isinstance(roles, dict) or set(roles) != {"LEAD", "STANDARD", "INVESTIGATION"}:
+        raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+    role_targets: dict[str, dict[str, int]] = {}
+    for role, values in roles.items():
+        if not isinstance(values, dict):
+            raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+        try:
+            target_words = int(values["target_words"])
+            maximum_words = int(values["maximum_words"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID") from exc
+        if target_words < 350 or maximum_words < target_words:
+            raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+        role_targets[role] = {
+            "target_words": target_words,
+            "maximum_words": maximum_words,
+        }
     return {
         "acceptance_floor_words": floor,
         "generation_target_edition_words": target,
         "generation_maximum_edition_words": maximum,
+        "role_quality_targets": role_targets,
     }
 
 

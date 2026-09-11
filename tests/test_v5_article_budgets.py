@@ -73,9 +73,10 @@ def test_prompt_receives_authoritative_per_article_budgets() -> None:
     assert provider.articles(research)
     contract = provider.calls[0]["article_budget_contract"]
     assert len(contract["articles"]) == 12
-    assert contract["generation_target_words"] == 6000
+    assert contract["generation_target_words"] == 8700
     assert {item["minimum_words"] for item in contract["articles"]} == {350}
-    assert {item["target_words"] for item in contract["articles"]} == {500}
+    assert next(item for item in contract["articles"] if item["role"] == "LEAD")["target_words"] == 1000
+    assert {item["target_words"] for item in contract["articles"] if item["role"] == "STANDARD"} == {700}
     assert all(item["evidence_ids"] for item in contract["articles"])
 
 
@@ -83,6 +84,16 @@ def test_generation_target_is_coherent_with_edition_budget() -> None:
     contract = _RecordingProvider(_articles(_research(), 500))._article_budget_contract(_research())
     assert contract["generation_target_words"] >= 6000 > contract["acceptance_floor_words"] == 4000
     assert sum(item["target_words"] for item in contract["articles"]) == contract["generation_target_words"]
+
+
+def test_role_quality_targets_constrain_broad_coverage_without_lowering_hard_floors() -> None:
+    research = SyntheticEditorialProvider().research("2099-01-02")
+    contract = _RecordingProvider(_articles(research, 500))._article_budget_contract(research)
+
+    assert contract["generation_target_words"] == 9000
+    assert contract["quality_target_constrained"] is True
+    assert all(item["target_words"] >= item["minimum_words"] == 350 for item in contract["articles"])
+    assert any(item["role"] == "LEAD" and item["quality_target_constrained"] for item in contract["articles"])
 
 
 def test_validator_reports_every_underlength_article_and_aggregate_deficit() -> None:
@@ -96,8 +107,8 @@ def test_validator_reports_every_underlength_article_and_aggregate_deficit() -> 
     assert {item["deficit_to_minimum"] for item in diagnostics["article_length_failures"]} == {100}
     assert diagnostics["aggregate"] == {
         "active_articles": 12, "raw_active_words": 3000, "valid_active_words": 0,
-        "minimum_words": 4000, "target_words": 6000,
-        "deficit_to_minimum": 1000, "deficit_to_target": 3000,
+        "minimum_words": 4000, "target_words": 8700,
+        "deficit_to_minimum": 1000, "deficit_to_target": 5700,
     }
 
 
@@ -113,7 +124,7 @@ def test_repair_receives_all_article_and_aggregate_deficits() -> None:
     }
     assert all(item["actual_words"] == 250 and item["deficit_to_minimum"] == 100 for item in repair["failing_articles"])
     assert repair["aggregate"]["deficit_to_minimum"] == 1000
-    assert repair["aggregate"]["deficit_to_target"] == 3000
+    assert repair["aggregate"]["deficit_to_target"] == 5700
 
 
 def test_repair_must_preserve_active_ids_and_evidence_linkage() -> None:
