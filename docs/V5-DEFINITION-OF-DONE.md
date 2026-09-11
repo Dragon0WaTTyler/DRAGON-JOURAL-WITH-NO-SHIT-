@@ -90,7 +90,7 @@ the editorial provider or substitutes for a real edition.
 
 ## Current acceptance facts
 
-- The current complete safe regression baseline is **373 passed and 2 skipped**:
+- The current complete safe regression baseline is **380 passed and 2 skipped**:
   `python -m pytest -q -p no:cacheprovider`, run on 2026-09-11. See
   `docs/V5-TEST-BASELINE.md` for scope and category mapping.
 - The current machine chaos receipt records **34 named scenarios and 152
@@ -100,7 +100,7 @@ the editorial provider or substitutes for a real edition.
   and W3C EPUBCheck 5.3.0 reporting zero fatal errors and zero errors.
 - GitHub archive and WhatsApp delivery for that fixture are independently
   `DEGRADED`, as expected while both providers are disabled.
-- Editorial provider status is `NOT_RUN`. The latest explicitly authorized live
+- Editorial provider status is `NOT_RUN`. An earlier explicitly authorized live
   trial (`2026-09-11`, `attempt-6d24f562361843da939d2116cb92680e`) preserved
   hash-bound raw research and both article attempts but failed
   `ARTICLE_SCHEMA_INVALID`: `pol_1` had 272 words against the 350-word hard
@@ -110,6 +110,16 @@ the editorial provider or substitutes for a real edition.
   and is not acceptance evidence. No promotion or human-review attestation may
   be fabricated from it; no further provider usage is authorized without a
   separate explicit authorization.
+- A later one-shot 2026-09-11 attempt
+  (`attempt-e5d8cb6026524a25ab8afdefcc300d7c`) also failed before article
+  generation with `RESEARCH_PACKET_INVALID`: `front_1` omitted a primary ID
+  even though real official `s01` was already among its verification IDs and
+  independent `s02` was linked. Its failure receipt and raw SHA-256 are
+  preserved. The offline evidence-eligibility repair deterministically links
+  such unambiguous existing primary evidence, rejects source/origin overlap,
+  and demotes under-evidenced selections before articles. Replay yields five
+  eligible sections and correctly stops at the configured ten-section
+  `RESEARCH_INSUFFICIENT` gate; it is repair evidence, not a successful trial.
 - Human review evidence, the actual Codex automation, three consecutive
   unattended production runs, verified real-remote archive, activation flags,
   and cutover remain outstanding.

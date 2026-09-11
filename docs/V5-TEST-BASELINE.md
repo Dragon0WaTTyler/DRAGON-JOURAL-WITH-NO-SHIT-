@@ -2,14 +2,13 @@
 
 ## Recorded baseline
 
-On 2026-09-11, with the working tree’s source changes committed and generated
-machine evidence ignored, DRAGON ran:
+On 2026-09-11, with generated machine evidence ignored, DRAGON ran:
 
 ```text
 PYTHONDONTWRITEBYTECODE=1 python -m pytest -q -p no:cacheprovider
 ```
 
-Result: **373 passed, 2 skipped in 156.68 seconds**.
+Result: **380 passed, 2 skipped in 154.35 seconds**.
 
 This command does not invoke an editorial provider, a production scheduler,
 GitHub archive, or WhatsApp delivery. Test-only fixtures may create ignored

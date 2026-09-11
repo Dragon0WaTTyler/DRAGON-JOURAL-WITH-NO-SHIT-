@@ -115,6 +115,7 @@ def _schema(operation: str) -> dict:
                     "type": "string",
                     "enum": ["primary", "official", "independent", "secondary"],
                 },
+                "origin": {"type": "string", "minLength": 1},
                 "claim_supported": {"type": "string", "maxLength": 600},
                 "doi": {"type": ["string", "null"]},
                 "publication_status": {
@@ -131,7 +132,7 @@ def _schema(operation: str) -> dict:
             },
             "required": [
                 "id", "url", "publisher", "publication_date", "accessed_at",
-                "source_type", "claim_supported",
+                "source_type", "origin", "claim_supported",
                 "doi", "publication_status", "full_text_status", "methods_read",
                 "limitations_read", "science_metadata",
             ],
@@ -382,7 +383,7 @@ an undercovered packet before article generation.
 Use live web search and return edition_date unchanged, a deduplicated sources array, and exactly
 one sections entry per fixed section. Every source needs id, exact HTTPS article/document URL,
 publisher, publication_date, accessed_at, source_type (primary, official, independent, or
-secondary), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
+secondary), origin (the original institution, newsroom, wire, or domain), claim_supported, nullable DOI, publication_status, full_text_status, methods_read,
 and limitations_read. Never claim methods or limitations were read unless verified legal full
 text was actually inspected; use FULL_TEXT_UNAVAILABLE or ABSTRACT_ONLY honestly. publication_date
 must be the exact `YYYY-MM-DD` date stated on the source; do not include a source when only a
@@ -400,8 +401,12 @@ arrays, UNKNOWN, or NOT_ASSESSED honestly for non-science sources; never infer a
 must set status ACTIVE or NO_NEWS. ACTIVE needs at least two ranked candidates,
 selected_candidate_id, a substantive selection_reason, and null no-news fields. Every candidate needs id, integer
 rank, title, discovery_source_ids, verification_source_ids, primary_evidence_source_ids,
-independent_evidence_source_ids, facts, claims, unknowns, and disputed_points. Evidence IDs must
-refer to returned sources. Rank worthy developments rather than selecting the first result. If a
+independent_evidence_source_ids, facts, claims, unknowns, and disputed_points. Before ranking,
+classify each candidate's verification sources by source_type and origin: evidence eligibility
+always precedes front-page importance. An ACTIVE selected candidate needs a real primary/official
+source ID in primary_evidence_source_ids and a real independent-newsroom source ID in
+independent_evidence_source_ids; the two roles must not share a source or origin. Evidence IDs must
+refer to returned sources. Rank worthy developments only after that evidence check. If a
 section lacks meaningful verified material, use NO_NEWS with an empty candidates array, null
 selection fields, a specific no_news_reason, and fallback_action RADAR, DOSSIER_FOLLOW_UP,
 PUBLIC_DATA_ANALYSIS, or SKIP. Never invent filler or weak candidates to satisfy a quota."""

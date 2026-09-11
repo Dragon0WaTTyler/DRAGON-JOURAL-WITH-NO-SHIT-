@@ -180,14 +180,21 @@ def test_impossible_word_floor_or_unsupported_budget_blocks_before_provider_invo
 
 def test_failed_live_research_packet_now_blocks_before_article_invocation() -> None:
     historical = json.loads((ROOT / "acceptance/provider-trials/2026-09-11/attempts/attempt-6d24f562361843da939d2116cb92680e/research.raw.json").read_text(encoding="utf-8"))
+    calls: list[str] = []
 
     class ResearchOnlyProvider(LocalCommandEditorialProvider):
         def _invoke(self, operation: str, payload: dict):
-            assert operation == "research"
-            return historical
+            calls.append(operation)
+            if operation == "research":
+                return historical
+            raise AssertionError("under-covered research must not invoke articles")
 
-    with pytest.raises(ProviderError, match="primary and independent evidence ids"):
-        ResearchOnlyProvider(("offline",)).research("2026-09-11")
+    replay = ResearchOnlyProvider(("offline",)).research("2026-09-11")
+    assert not [section for section in replay["sections"] if section["status"] == "ACTIVE"]
+    with pytest.raises(ProviderError) as replay_blocked:
+        ResearchOnlyProvider(("offline",)).articles(replay)
+    assert replay_blocked.value.code == "RESEARCH_INSUFFICIENT"
+    assert calls == ["research"]
 
     feasible = _research()
     provider = _RecordingProvider([], [])

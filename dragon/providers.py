@@ -73,6 +73,13 @@ SECTION_HEADINGS = (
     ("service", "البيانات والخدمات وما نتابعه"),
 )
 
+# A source may only fill an evidence role that its declared provenance supports.
+# ``official`` is accepted as primary evidence because it is an original
+# institutional publication; it is never an independent corroborating source.
+PRIMARY_EVIDENCE_SOURCE_TYPES = frozenset({"primary", "official"})
+INDEPENDENT_EVIDENCE_SOURCE_TYPES = frozenset({"independent"})
+VALID_SOURCE_TYPES = PRIMARY_EVIDENCE_SOURCE_TYPES | INDEPENDENT_EVIDENCE_SOURCE_TYPES | {"secondary"}
+
 STORY_TYPES = {
     "NEWS", "ANALYSIS", "INVESTIGATION", "SCIENCE", "HISTORY", "CULTURE",
     "FACT_CHECK", "DATA", "DOCUMENT_PUBLIC_RECORD", "SECTION_OPENER",
@@ -426,6 +433,157 @@ class LocalCommandEditorialProvider:
     capture_directory: Path | None = None
     mode: str = "production"
     available: bool = True
+    normalize_evidence_links: bool = True
+
+    @staticmethod
+    def _source_origin(source: dict) -> str:
+        """Return the deterministic origin used to keep evidence roles independent."""
+        host = (urlparse(str(source.get("url") or "")).hostname or "").casefold()
+        declared = str(source.get("origin") or "").strip().casefold()
+        return declared or host
+
+    @staticmethod
+    def _deduplicate_ids(items: object) -> list[str]:
+        if not isinstance(items, list):
+            return []
+        return list(dict.fromkeys(item for item in items if isinstance(item, str)))
+
+    def _candidate_evidence_issues(
+        self, candidate: dict, sources_by_id: dict[str, dict]
+    ) -> list[str]:
+        """Check role identity, classification, and origin separation for one candidate."""
+        primary_ids = self._deduplicate_ids(candidate.get("primary_evidence_source_ids"))
+        independent_ids = self._deduplicate_ids(candidate.get("independent_evidence_source_ids"))
+        issues: list[str] = []
+        if not primary_ids:
+            issues.append("PRIMARY_EVIDENCE_MISSING")
+        if not independent_ids:
+            issues.append("INDEPENDENT_EVIDENCE_MISSING")
+        if set(primary_ids) & set(independent_ids):
+            issues.append("EVIDENCE_ROLE_SOURCE_OVERLAP")
+        primary_origins: set[str] = set()
+        independent_origins: set[str] = set()
+        for source_id in primary_ids:
+            source = sources_by_id.get(source_id)
+            if source is None:
+                issues.append("PRIMARY_EVIDENCE_UNKNOWN")
+            elif source.get("source_type") not in PRIMARY_EVIDENCE_SOURCE_TYPES:
+                issues.append("PRIMARY_EVIDENCE_TYPE_INVALID")
+            else:
+                primary_origins.add(self._source_origin(source))
+        for source_id in independent_ids:
+            source = sources_by_id.get(source_id)
+            if source is None:
+                issues.append("INDEPENDENT_EVIDENCE_UNKNOWN")
+            elif source.get("source_type") not in INDEPENDENT_EVIDENCE_SOURCE_TYPES:
+                issues.append("INDEPENDENT_EVIDENCE_TYPE_INVALID")
+            else:
+                independent_origins.add(self._source_origin(source))
+        if primary_origins & independent_origins:
+            issues.append("EVIDENCE_ROLE_ORIGIN_OVERLAP")
+        return sorted(set(issues))
+
+    def _normalize_research_evidence(self, value: dict, sources_by_id: dict[str, dict]) -> None:
+        """Repair only unambiguous omitted role links before selecting publishable stories.
+
+        The provider's raw capture is written before this method runs.  The
+        normalized packet is therefore auditable without treating a missing
+        role field as a reason to invent a source.  Candidates without both
+        valid roles cannot remain selected publication candidates.
+        """
+        link_repairs: list[dict] = []
+        demotions: list[dict] = []
+        for section in value.get("sections", []):
+            if not isinstance(section, dict) or section.get("status") != "ACTIVE":
+                continue
+            candidates = section.get("candidates")
+            if not isinstance(candidates, list):
+                continue
+            eligible: list[dict] = []
+            for candidate in candidates:
+                if not isinstance(candidate, dict):
+                    continue
+                fields = (
+                    "discovery_source_ids", "verification_source_ids",
+                    "primary_evidence_source_ids", "independent_evidence_source_ids",
+                )
+                if any(not isinstance(candidate.get(field), list) for field in fields):
+                    continue
+                referenced = [item for field in fields for item in candidate[field]]
+                if not all(isinstance(item, str) for item in referenced) or not set(referenced).issubset(sources_by_id):
+                    # Preserve malformed packets for the normal validator below.
+                    continue
+                primary_ids = self._deduplicate_ids(candidate["primary_evidence_source_ids"])
+                independent_ids = self._deduplicate_ids(candidate["independent_evidence_source_ids"])
+                added_primary = [
+                    source_id for source_id in candidate["verification_source_ids"]
+                    if source_id not in primary_ids
+                    and sources_by_id[source_id].get("source_type") in PRIMARY_EVIDENCE_SOURCE_TYPES
+                ]
+                added_independent = [
+                    source_id for source_id in candidate["verification_source_ids"]
+                    if source_id not in independent_ids
+                    and sources_by_id[source_id].get("source_type") in INDEPENDENT_EVIDENCE_SOURCE_TYPES
+                ]
+                candidate["primary_evidence_source_ids"] = self._deduplicate_ids(primary_ids + added_primary)
+                candidate["independent_evidence_source_ids"] = self._deduplicate_ids(independent_ids + added_independent)
+                if added_primary or added_independent:
+                    link_repairs.append({
+                        "section_id": section.get("section_id"),
+                        "candidate_id": candidate.get("id"),
+                        "linked_primary_evidence_source_ids": added_primary,
+                        "linked_independent_evidence_source_ids": added_independent,
+                    })
+                issues = self._candidate_evidence_issues(candidate, sources_by_id)
+                candidate["evidence_eligibility"] = {
+                    "status": "ELIGIBLE" if not issues else "RESEARCH_INCOMPLETE",
+                    "issues": issues,
+                }
+                if not issues:
+                    eligible.append(candidate)
+            selected_id = section.get("selected_candidate_id")
+            selected = next((item for item in candidates if isinstance(item, dict) and item.get("id") == selected_id), None)
+            if isinstance(selected, dict) and selected.get("evidence_eligibility", {}).get("status") == "ELIGIBLE":
+                continue
+            eligible.sort(key=lambda item: (item.get("rank", 10**9), str(item.get("id") or "")))
+            if eligible:
+                replacement = eligible[0]
+                section["selected_candidate_id"] = replacement["id"]
+                section["selection_reason"] = (
+                    f"{section.get('selection_reason') or ''}\n\n"
+                    "تم استبعاد المرشح الأعلى رتبة لعدم اكتمال أدلته الأولية والمستقلة؛ "
+                    "واختير أعلى مرشح متبقٍ يستوفي أهلية الأدلة."
+                ).strip()
+                demotions.append({
+                    "section_id": section.get("section_id"),
+                    "candidate_id": selected_id,
+                    "outcome": "DEMOTED_TO_ELIGIBLE_CANDIDATE",
+                    "replacement_candidate_id": replacement["id"],
+                })
+                continue
+            # A section with no eligible candidate has no publishable story.
+            # Retain its raw candidates in the immutable capture, but never
+            # pass them to article generation as an ACTIVE publication choice.
+            demotions.append({
+                "section_id": section.get("section_id"),
+                "candidate_id": selected_id,
+                "outcome": "RESEARCH_INCOMPLETE",
+                "reason": "No candidate has distinct primary and independent evidence.",
+            })
+            section.update({
+                "status": "NO_NEWS",
+                "candidates": [],
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لم تستوف حزمة البحث أدلة أولية ومستقلة صالحة للنشر في هذا القسم.",
+                "fallback_action": "DOSSIER_FOLLOW_UP",
+            })
+        value["evidence_normalization"] = {
+            "schema_version": 1,
+            "status": "PASS",
+            "link_repairs": link_repairs,
+            "demotions": demotions,
+        }
 
     def _capture(self, filename: str, value: object) -> None:
         if self.capture_directory is None:
@@ -513,6 +671,8 @@ class LocalCommandEditorialProvider:
             "science_metadata",
         )
         for source in sources:
+            if isinstance(source, dict) and not source.get("origin") and _https_url(source.get("url")):
+                source["origin"] = self._source_origin(source)
             if (
                 not isinstance(source, dict)
                 or any(field not in source for field in required_source_fields)
@@ -536,6 +696,10 @@ class LocalCommandEditorialProvider:
                     "FULL_TEXT_VERIFIED", "ABSTRACT_ONLY", "FULL_TEXT_UNAVAILABLE",
                     "NOT_APPLICABLE", "UNKNOWN",
                 }
+                or (
+                    source.get("source_type") not in VALID_SOURCE_TYPES
+                    and not (value.get("mode") == "synthetic" and source.get("source_type") == "synthetic")
+                )
                 or not isinstance(source.get("methods_read"), bool)
                 or not isinstance(source.get("limitations_read"), bool)
                 or (
@@ -554,6 +718,9 @@ class LocalCommandEditorialProvider:
             if source["id"] in identifiers:
                 raise ProviderError("RESEARCH_PACKET_INVALID", "source ids must be unique")
             identifiers.add(source["id"])
+        sources_by_id = {source["id"]: source for source in sources}
+        if value.get("mode") != "synthetic" and self.normalize_evidence_links:
+            self._normalize_research_evidence(value, sources_by_id)
         sections = value.get("sections")
         expected_sections = {section_id for section_id, _ in SECTION_HEADINGS}
         observed_ids = [
@@ -653,14 +820,6 @@ class LocalCommandEditorialProvider:
                         "RESEARCH_PACKET_INVALID",
                         f"candidate {candidate['id']} cites unknown evidence",
                     )
-                if section_status == "ACTIVE" and value.get("mode") != "synthetic" and (
-                    not candidate["primary_evidence_source_ids"]
-                    or not candidate["independent_evidence_source_ids"]
-                ):
-                    raise ProviderError(
-                        "RESEARCH_PACKET_INVALID",
-                        f"active candidate {candidate['id']} needs primary and independent evidence ids",
-                    )
             selected = section.get("selected_candidate_id")
             if section_status == "NO_NEWS":
                 reason = section.get("no_news_reason")
@@ -689,6 +848,24 @@ class LocalCommandEditorialProvider:
                     "RESEARCH_PACKET_INVALID",
                     f"section {section.get('section_id')} has no justified selected lead",
                 )
+            else:
+                selected_candidate = next(
+                    item for item in candidates if isinstance(item, dict) and item.get("id") == selected
+                )
+                issues = self._candidate_evidence_issues(selected_candidate, sources_by_id)
+                if value.get("mode") != "synthetic" and issues:
+                    if (
+                        not selected_candidate["primary_evidence_source_ids"]
+                        or not selected_candidate["independent_evidence_source_ids"]
+                    ):
+                        raise ProviderError(
+                            "RESEARCH_PACKET_INVALID",
+                            f"active candidate {selected_candidate['id']} needs primary and independent evidence ids",
+                        )
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"active candidate {selected_candidate['id']} needs valid distinct primary and independent evidence: {','.join(issues)}",
+                    )
         return value
 
     def articles(self, research: dict) -> list[dict]:

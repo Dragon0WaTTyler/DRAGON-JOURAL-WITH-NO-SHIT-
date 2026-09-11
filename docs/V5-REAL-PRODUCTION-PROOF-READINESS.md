@@ -15,13 +15,37 @@ change provider promotion state.
 
 Static validation covers the research/articles response schemas, repair schema,
 failure classification, immutable raw-capture path, receipts, word budgets, and
-complete repair diagnostics. The relevant focused regressions passed 58 tests;
-the full safe regression baseline is recorded in `docs/V5-TEST-BASELINE.md`.
+complete repair diagnostics. The evidence-eligibility regression set now covers
+paired evidence, one-role holds, deterministic linking, same-origin rejection,
+ranking demotion, and the preserved 2026-09-11 omission. The full safe
+regression baseline is recorded in `docs/V5-TEST-BASELINE.md`.
 
-## Explicit authorization boundary
+## 2026-09-11 bounded-trial outcome and offline repair
 
-The following command consumes a new live editorial-provider trial and must
-only be run after the owner grants a separate authorization:
+The one authorized trial is preserved at
+`acceptance/provider-trials/2026-09-11/attempts/attempt-e5d8cb6026524a25ab8afdefcc300d7c/`.
+It failed before article generation with `RESEARCH_PACKET_INVALID`: selected
+`front_1` named independent source `s02` but omitted a primary evidence ID.
+The failure receipt's raw SHA-256 matches `research.raw.json`:
+`aa74a53c825eb302583fd55f902c00d2330a9b0b9fc490f5969b34888261805e`.
+
+The offline repair preserves the primary-plus-independent gate. It now derives
+an omitted role link only when a candidate already references an unambiguous
+typed verification source, rejects overlapping source origins, and evaluates
+evidence eligibility before keeping a selected candidate. On replay,
+`front_1` is correctly linked to real official source `s01` and independent
+source `s02`. Candidates without a distinct pair are recorded as
+`RESEARCH_INCOMPLETE` and their sections become `NO_NEWS`; they cannot reach
+article generation. The replay retained five eligible sections, below the
+configured ten-section minimum, so the existing pre-article gate returned
+`RESEARCH_INSUFFICIENT` without an article-provider call. This is a repaired
+offline sub-blocker, not a successful live edition.
+
+## Future authorization boundary
+
+The 2026-09-11 authorization has been consumed. The following command would
+consume a new live editorial-provider trial and must only be run after the
+owner grants a fresh separate authorization:
 
 ```text
 python dragon_provider_check.py --full --date YYYY-MM-DD
@@ -60,6 +84,7 @@ downstream outcomes.
 
 ## Phase-2 status
 
-The real-production proof path is **prepared but blocked on explicit live
-authorization**. The configured provider remains `NOT_RUN`, scheduler remains
-paused, and no completion state is implied by this document.
+The real-production proof path is **blocked**. Its offline research-packet
+sub-blocker is repaired, but the bounded trial failed, the configured provider
+remains unproven, scheduler remains paused, and no completion state is implied
+by this document.

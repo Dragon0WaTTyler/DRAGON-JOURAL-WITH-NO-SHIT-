@@ -2,8 +2,8 @@
 
 | Phase | Status | Current acceptance evidence |
 | --- | --- | --- |
-| 1. Production Baseline Freeze | COMPLETE | Clean source tree; explicit generated-artifact policy; V4/V5 workflow scope; 373 passed, 2 skipped. |
-| 2. Real V5 Production Proof | BLOCKED | Provider health probe PASS; full provider trial needs explicit live authorization. |
+| 1. Production Baseline Freeze | COMPLETE | Clean source tree; explicit generated-artifact policy; V4/V5 workflow scope; 380 passed, 2 skipped. |
+| 2. Real V5 Production Proof | BLOCKED | The one 2026-09-11 provider trial failed at the primary/independent evidence gate. The offline linking-and-demotion repair passes; a new trial still requires fresh authorization and must succeed. |
 | 3. Scheduler and Cutover | NOT_STARTED | Must follow a valid real V5 edition and archive proof. |
 | 4. Source Intelligence Hardening | NOT_STARTED | Existing Trafilatura/normalization path remains preserved. |
 | 5. Journalism Verification Hardening | NOT_STARTED | Existing claim graph and deterministic validators remain preserved. |
