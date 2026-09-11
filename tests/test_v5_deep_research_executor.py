@@ -430,6 +430,35 @@ def test_representative_insufficient_to_ready_replay_and_article_gate() -> None:
     assert replay["article_generation_allowed"] is fixture["expected"]["article_generation_allowed"]
 
 
+def test_exact_page_followup_promotion_closes_recovery_without_fixture_verified_marker() -> None:
+    packet = _otherwise_sufficient_packet()
+    front = next(item for item in packet["sections"] if item["section_id"] == "front")
+    candidate = front["candidates"][0]
+    missing = candidate["independent_evidence_source_ids"].pop()
+    candidate["discovery_source_ids"].remove(missing)
+    candidate["verification_source_ids"].remove(missing)
+    candidate["evidence_eligibility"] = {"status": "INELIGIBLE", "issues": ["INDEPENDENT_EVIDENCE_MISSING"]}
+    coverage, readiness = _coverage(), load_local_config(ROOT)["editorial_readiness"]
+    need = next(item for item in build_recovery_plan(packet, build_source_intelligence(packet), coverage, readiness)["needs"] if item["candidate_id"] == candidate["id"])
+    job = _job(needs=[need])
+    action = create_research_action(job, job["branches"][0], recovery_need=need)
+    adapter = FixtureResearchAdapter({
+        "RECOVER_INDEPENDENT_SOURCE": [{"result_type": "LEAD", "url": "https://news-recovery.example/front", "title": "Discovery lead", "source_class": "unknown"}],
+        "FETCH_URL": [{
+            "url": "https://news-recovery.example/front", "canonical_url": "https://news-recovery.example/front",
+            "title": candidate["title"], "text": f"{candidate['title']} independently reported with direct details.",
+            "fetch_status": "FETCHED", "content_hash": "d" * 64, "source_class": "independent",
+            "claim": f"Independent reporting on {candidate['title']}.", "published_at": "2099-01-02", "retrieved_at": "2099-01-02T08:00:00Z",
+        }],
+    })
+    adapter.follow_discovery_leads = True
+    execution = execute_research_round(job, adapter, CONFIG, actions=[action])
+    assert any(item["verification_status"] == "VALIDATED_EVIDENCE" for item in execution["observations"])
+    replay = replay_recovery_after_execution(packet, execution, coverage, readiness)
+    assert replay["status"] == "READY"
+    assert replay["article_generation_allowed"] is True
+
+
 def test_unresolved_recovery_keeps_article_generation_blocked() -> None:
     packet = _otherwise_sufficient_packet()
     front = next(item for item in packet["sections"] if item["section_id"] == "front")

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from dragon.archive import DisabledGitArchiveProvider, archive_provider_from_config
 from dragon.config import load_local_config
-from dragon.deep_research_executor import rss_search_adapter_from_config
+from dragon.deep_research_executor import discovery_adapter_from_config
 from dragon.lock import DuplicateRunError
 from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
@@ -61,12 +61,7 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
         synthetic=synthetic,
         archive_provider=archive_provider,
         whatsapp_provider=whatsapp_provider,
-        research_adapter=(
-            None if synthetic else rss_search_adapter_from_config(
-                root / "config" / "open-discovery.yaml",
-                source_coverage_path=root / "config" / "source-coverage.yaml",
-            )
-        ),
+        research_adapter=None if synthetic else discovery_adapter_from_config(root),
     )
     configured_stages = list(config["orchestrator"]["stages"])
     actual_stages = [stage.name for stage in definitions]

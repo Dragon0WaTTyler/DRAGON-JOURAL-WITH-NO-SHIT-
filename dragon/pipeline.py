@@ -460,6 +460,10 @@ def build_stage_definitions(
                         update for item in execution.get("jobs", [])
                         for update in item.get("source_packet_patch", {}).get("candidate_evidence_updates", [])
                     ],
+                    "candidate_discoveries": [
+                        discovery for item in execution.get("jobs", [])
+                        for discovery in item.get("source_packet_patch", {}).get("candidate_discoveries", [])
+                    ],
                 },
                 "recovery_attempts": [
                     need_id for item in execution.get("jobs", [])

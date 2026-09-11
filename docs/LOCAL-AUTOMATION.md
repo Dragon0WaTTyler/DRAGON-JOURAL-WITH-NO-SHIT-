@@ -121,6 +121,29 @@ editions/YYYY/MM/YYYY-MM-DD/
 Transient logs never belong in the edition directory. Historical V4 layouts
 remain unchanged.
 
+## Discovery and evidence promotion
+
+Search backends return `DISCOVERY_ONLY` leads, never publication evidence.
+DRAGON follows a promising URL to its exact page, fetches and extracts it, then
+records deterministic source identity, origin, role, URL/hash metadata, and
+event/claim relevance. An exact page can progress through `DISCOVERED`,
+`FETCHED`, `EXTRACTED`, `SOURCE_IDENTIFIED`, `ORIGIN_CLASSIFIED`,
+`ROLE_CLASSIFIED`, `RELEVANCE_CONFIRMED`, `POTENTIAL_EVIDENCE`, and finally
+`VALIDATED_EVIDENCE`. Rejections are explicit: `SOURCE_UNKNOWN`, `WRONG_EVENT`,
+`WRONG_ROLE`, `CONTEXT_ONLY`, `FETCH_FAILED`, or `EXTRACTION_FAILED`.
+
+Validation is claim-aware. A primary official page can directly support what
+that document states; it cannot by itself establish an outside interpretation,
+causation, or misconduct. Evidence records a relation (`SUPPORTS`,
+`CONTRADICTS`, `CONTEXT_ONLY`, or `DOES_NOT_ADDRESS`) and directness. Unknown
+origins remain leads for classification, not automatic rejections or evidence.
+
+Google News RSS remains an enabled discovery-only route. `general-search.yaml`
+defines an optional SearXNG JSON adapter, disabled by default until an operator
+configures a controlled HTTPS endpoint. DRAGON neither installs SearXNG nor
+uses arbitrary public instances. Results from all enabled backends are
+normalized and deduplicated before exact-page follow-up.
+
 ## Configuration and secrets
 
 `config/local-automation.yaml` contains non-secret runtime policy. Provider

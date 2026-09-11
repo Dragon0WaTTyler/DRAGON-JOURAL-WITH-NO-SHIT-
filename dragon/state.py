@@ -44,6 +44,8 @@ RUNTIME_FIXED_PATHS = (
     "config/provider-registry.yaml",
     "config/provider-registry-schema.json",
     "config/source-coverage.yaml",
+    "config/open-discovery.yaml",
+    "config/general-search.yaml",
     "config/extraction-adapters.yaml",
     "config/deep-research.yaml",
     "config/deep-research-schema.json",

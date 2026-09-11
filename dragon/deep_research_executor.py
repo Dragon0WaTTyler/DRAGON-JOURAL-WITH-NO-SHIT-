@@ -14,12 +14,13 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from typing import Protocol
-from urllib.parse import quote_plus, urlsplit
+from urllib.parse import quote_plus, urlencode, urlsplit
 
 import yaml
 
 from dragon.deep_research import advance_research_job
 from dragon.discovery import DiscoveryError, default_transport, discover_rss, fetch_and_extract_source
+from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 
@@ -243,6 +244,14 @@ def create_research_action(
         "discovery_channel": str(strategy.get("channel") or "GOOGLE_NEWS_RSS"),
         "target": target,
         "known_entities": list(job["lead"].get("event_entities", [])),
+        "event_context": {
+            "entities": list((recovery_need or {}).get("query_context", {}).get("entities", [])),
+            "aliases": list((recovery_need or {}).get("query_context", {}).get("aliases", [])),
+            "event_terms": list((recovery_need or {}).get("query_context", {}).get("event_terms", [])),
+            "topic_terms": list((recovery_need or {}).get("topic_identifiers", [])),
+            "geography": list((recovery_need or {}).get("query_context", {}).get("geography", [])),
+            "research_date": (recovery_need or {}).get("query_context", {}).get("research_date"),
+        },
         "known_event_ids": known_events,
         "already_seen_urls": seen_urls,
         "already_seen_origins": seen_origins,
@@ -476,8 +485,14 @@ class RssSearchAdapter:
                 "discovery_channel": self.adapter_id,
                 "discovery_endpoint": response.url,
                 "verification_provenance": "DISCOVERY_ONLY_RSS",
+                "search_result": {
+                    "query": str(action.get("query") or ""), "backend": self.adapter_id,
+                    "result_url": item["discovered_url"], "title": item["title"],
+                    "snippet": None, "published_at": None, "engine": "rss",
+                    "rank": index, "discovered_at": timestamp,
+                },
             }
-            for item in candidates
+            for index, item in enumerate(candidates, start=1)
         ]
 
 
@@ -533,36 +548,226 @@ def rss_search_adapter_from_config(path, *, source_coverage_path=None) -> RssSea
     )
 
 
-def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, str | None]:
+class SearxngSearchAdapter:
+    """Optional provider-neutral SearXNG JSON discovery adapter.
+
+    It is disabled unless a deliberate HTTPS endpoint is configured. Results
+    are normalized discovery leads and cannot supply evidence without the
+    ordinary exact-page fetch and validation path.
+    """
+
+    def __init__(
+        self,
+        *,
+        adapter_id: str,
+        base_url: str,
+        timeout_seconds: int,
+        maximum_bytes: int,
+        maximum_results: int,
+        language: str | None = None,
+        categories: str | None = None,
+        time_range: str | None = None,
+        page: int = 1,
+        source_classes_by_origin: dict[str, str] | None = None,
+        transport=default_transport,
+    ) -> None:
+        if not base_url.startswith("https://"):
+            raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
+        self.adapter_id = adapter_id
+        self.base_url = base_url.rstrip("/")
+        self.timeout_seconds = timeout_seconds
+        self.maximum_bytes = maximum_bytes
+        self.maximum_results = maximum_results
+        self.language = language
+        self.categories = categories
+        self.time_range = time_range
+        self.page = page
+        self.source_classes_by_origin = {
+            str(origin).casefold(): str(source_class).casefold()
+            for origin, source_class in (source_classes_by_origin or {}).items()
+        }
+        self.transport = transport
+        self.follow_discovery_leads = True
+
+    def _search_url(self, action: dict) -> str:
+        params = {"q": str(action.get("query") or ""), "format": "json", "pageno": self.page}
+        if self.language:
+            params["language"] = self.language
+        if self.categories:
+            params["categories"] = self.categories
+        if self.time_range:
+            params["time_range"] = self.time_range
+        return f"{self.base_url}/search?{urlencode(params)}"
+
+    def execute(self, action: dict) -> list[dict]:
+        if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
+            try:
+                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"])
+            except DiscoveryError as exc:
+                return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail, "discovery_channel": f"{self.adapter_id}-followup"}]
+            origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
+            fetched["source_class"] = self.source_classes_by_origin.get(origin.casefold(), "unknown")
+            fetched["discovery_channel"] = f"{self.adapter_id}-followup"
+            return [fetched]
+        if action.get("action_type") not in SEARCH_ACTIONS:
+            raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
+        try:
+            response = self.transport(self._search_url(action), self.timeout_seconds, self.maximum_bytes)
+            if not 200 <= response.status < 300:
+                return [{"result_type": "DEAD_END", "reason": f"SEARXNG_HTTP_{response.status}", "discovery_channel": self.adapter_id}]
+            payload = json.loads(response.body.decode("utf-8"))
+        except (DiscoveryError, OSError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", "SEARXNG_UNAVAILABLE"), "discovery_channel": self.adapter_id}]
+        results = payload.get("results") if isinstance(payload, dict) else None
+        if not isinstance(results, list):
+            return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "discovery_channel": self.adapter_id}]
+        normalized = []
+        timestamp = datetime.now(timezone.utc).isoformat()
+        for rank, item in enumerate(results[: self.maximum_results], start=1):
+            if not isinstance(item, dict) or not isinstance(item.get("url"), str):
+                continue
+            url = item["url"].strip()
+            if not url.startswith(("https://", "http://")):
+                continue
+            normalized.append({
+                "result_type": "LEAD", "canonical_url": url,
+                "title": str(item.get("title") or "Untitled search result"),
+                "claim": str(item.get("content") or item.get("title") or ""),
+                "published_at": item.get("publishedDate") or item.get("published_at"),
+                "retrieved_at": timestamp, "source_class": "unknown",
+                "discovery_channel": self.adapter_id,
+                "verification_provenance": "DISCOVERY_ONLY_SEARXNG",
+                "search_result": {
+                    "query": str(action.get("query") or ""), "backend": self.adapter_id,
+                    "result_url": url, "title": str(item.get("title") or ""),
+                    "snippet": str(item.get("content") or ""), "engine": item.get("engine"),
+                    "rank": rank, "discovered_at": timestamp,
+                },
+            })
+        return normalized or [{"result_type": "DEAD_END", "reason": "SEARXNG_NO_MATCHES", "discovery_channel": self.adapter_id}]
+
+
+class DiscoveryAdapterChain:
+    """Route discovery to every configured backend and deduplicate before fetch."""
+
+    def __init__(self, adapters: list[ResearchAdapter]) -> None:
+        self.adapters = adapters
+        self.follow_discovery_leads = any(getattr(item, "follow_discovery_leads", False) for item in adapters)
+
+    def execute(self, action: dict) -> list[dict]:
+        if action.get("action_type") in FETCH_ACTIONS:
+            return self.adapters[0].execute(action) if self.adapters else [{"result_type": "DEAD_END", "reason": "DISCOVERY_ADAPTER_UNAVAILABLE"}]
+        results = [item for adapter in self.adapters for item in adapter.execute(action)]
+        seen, deduplicated = set(), []
+        for item in results:
+            url = str(item.get("canonical_url") or item.get("url") or "")
+            canonical = normalize_url(url) if url else None
+            if canonical and canonical in seen:
+                continue
+            if canonical:
+                seen.add(canonical)
+            deduplicated.append(item)
+        return deduplicated or [{"result_type": "DEAD_END", "reason": "ALL_DISCOVERY_BACKENDS_UNAVAILABLE"}]
+
+
+def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[str, str] | None = None) -> SearxngSearchAdapter | None:
+    """Load disabled-by-default SearXNG configuration without provisioning it."""
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID") from exc
+    required = {"version", "enabled", "adapter_id", "base_url", "timeout_seconds", "maximum_bytes", "maximum_results", "language", "categories", "time_range", "page", "integration_test_status", "provenance_behavior"}
+    if not isinstance(value, dict) or set(value) != required or value.get("version") != 1:
+        raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
+    if value["enabled"] is False:
+        return None
+    if not isinstance(value["base_url"], str) or not isinstance(value["adapter_id"], str) or not all(isinstance(value[key], int) and value[key] > 0 for key in ("timeout_seconds", "maximum_bytes", "maximum_results", "page")):
+        raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
+    return SearxngSearchAdapter(
+        adapter_id=value["adapter_id"], base_url=value["base_url"], timeout_seconds=value["timeout_seconds"],
+        maximum_bytes=value["maximum_bytes"], maximum_results=value["maximum_results"], language=value["language"],
+        categories=value["categories"], time_range=value["time_range"], page=value["page"],
+        source_classes_by_origin=source_classes_by_origin,
+    )
+
+
+def discovery_adapter_from_config(root) -> ResearchAdapter | None:
+    """Build the optional bounded discovery chain; no backend is evidence."""
+    rss = rss_search_adapter_from_config(root / "config" / "open-discovery.yaml", source_coverage_path=root / "config" / "source-coverage.yaml")
+    classes = getattr(rss, "source_classes_by_origin", {}) if rss else {}
+    searxng = searxng_search_adapter_from_config(root / "config" / "general-search.yaml", source_classes_by_origin=classes)
+    adapters = [item for item in (rss, searxng) if item is not None]
+    if not adapters:
+        return None
+    return DiscoveryAdapterChain(adapters) if len(adapters) > 1 else adapters[0]
+
+
+def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, str | None, dict | None]:
     requested = str(raw.get("result_type") or "").upper()
     url = str(raw.get("canonical_url") or raw.get("url") or raw.get("discovered_url") or "").strip()
     canonical = normalize_url(url) if url else None
     followup_target = normalize_url(str(action.get("target") or "")) if action.get("action_type") in FETCH_ACTIONS and action.get("target") else None
     if canonical and canonical in seen_urls and canonical != followup_target:
-        return "DUPLICATE", canonical
+        return "DUPLICATE", canonical, None
     if raw.get("event_id") and raw["event_id"] in set(action["known_event_ids"]):
-        return "DUPLICATE", canonical
+        return "DUPLICATE", canonical, None
+    # Compatibility for historical deterministic fixtures.  Production paths
+    # reach this state only through ``validate_exact_page`` below.
+    if raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE":
+        source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold()
+        return "POTENTIAL_EVIDENCE", canonical, {
+            "state": "VALIDATED_EVIDENCE",
+            "progression": ["DISCOVERED", "FETCHED", "EXTRACTED", "SOURCE_IDENTIFIED", "ORIGIN_CLASSIFIED", "ROLE_CLASSIFIED", "RELEVANCE_CONFIRMED", "POTENTIAL_EVIDENCE", "VALIDATED_EVIDENCE"],
+            "reason": "FIXTURE_EXACT_PAGE_VALIDATION",
+            "canonical_url": canonical,
+            "origin": urlsplit(canonical).hostname if canonical else None,
+            "source_class": source_class,
+            "relation": "SUPPORTS",
+            "directness": "DIRECT_STATEMENT",
+        }
+    validation = validate_exact_page(raw, action) if action.get("action_type") in FETCH_ACTIONS else None
+    if validation:
+        state = validation["state"]
+        if state == "VALIDATED_EVIDENCE":
+            return ("CONTRADICTION" if validation.get("relation") == "CONTRADICTS" else "POTENTIAL_EVIDENCE"), canonical, validation
+        if state == "CONTEXT_ONLY":
+            return "CONTEXT", canonical, validation
+        if state == "SOURCE_UNKNOWN":
+            return "LEAD", canonical, validation
+        if state == "WRONG_EVENT" or state == "WRONG_ROLE":
+            return "IRRELEVANT", canonical, validation
+        if state == "EXTRACTION_FAILED" and str(raw.get("source_class") or raw.get("source_type") or "").casefold() in {"official", "primary", "independent", "paper"}:
+            # Preserve an exact, known-source retrieval as an unverified
+            # potential rather than pretending incomplete extraction is a
+            # successful validation or a network dead end.
+            return "POTENTIAL_EVIDENCE", canonical, validation
+        if state in {"FETCH_FAILED", "EXTRACTION_FAILED", "SEARCH_RESULT_ONLY"}:
+            return "DEAD_END", canonical, validation
     if requested in {"DUPLICATE", "IRRELEVANT", "DEAD_END", "CONTRADICTION", "CONTEXT", "LEAD", "POTENTIAL_EVIDENCE"}:
-        return requested, canonical
+        return requested, canonical, validation
     if raw.get("relevant") is False:
-        return "IRRELEVANT", canonical
+        return "IRRELEVANT", canonical, validation
     if raw.get("contradiction_candidates") or raw.get("contradicts"):
-        return "CONTRADICTION", canonical
+        return "CONTRADICTION", canonical, validation
     source_class = str(raw.get("source_class") or raw.get("source_type") or "UNKNOWN").upper()
     if source_class in {"OFFICIAL", "PRIMARY", "INDEPENDENT", "PAPER"}:
-        return "POTENTIAL_EVIDENCE", canonical
-    return "LEAD", canonical
+        return "POTENTIAL_EVIDENCE", canonical, validation
+    return "LEAD", canonical, validation
 
 
 def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
-    result_class, canonical = _classification(raw, action, seen_urls)
+    result_class, canonical, validation = _classification(raw, action, seen_urls)
     title = str(raw.get("title") or raw.get("claim") or raw.get("reason") or "Untitled research result")
     source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").lower()
     source_id = _stable_id("SRC", canonical or action["action_id"], title)
-    # Only deterministic fixtures may model a separately verified exact page.
-    # Real retrieval stays extracted/not verified until the normal evidence path.
     fixture_verified = raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE"
-    verification_status = "VERIFIED_EVIDENCE" if fixture_verified else "EXTRACTED_NOT_VERIFIED"
+    verification_status = (
+        "VALIDATED_EVIDENCE"
+        if validation and validation.get("state") == "VALIDATED_EVIDENCE"
+        else "EXTRACTED_NOT_VERIFIED"
+    )
     origin = urlsplit(canonical).hostname if canonical else None
     observation_id = _stable_id("OBS", action["action_id"], canonical or title, result_class)
     kind = {
@@ -584,7 +789,8 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "observed_at": raw.get("retrieved_at"),
         "extraction_status": raw.get("fetch_status") or ("NOT_RETRIEVED" if not canonical else "RETRIEVED"),
         "content_hash": raw.get("content_hash"),
-        "source_class": source_class,
+        "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
+        "source_class": str((validation or {}).get("source_class") or source_class).lower(),
         "discovery_method": action["action_type"],
         "discovery_channel": str(raw.get("discovery_channel") or action["action_type"]),
         "related_entities": list(raw.get("related_entities") or action["known_entities"]),
@@ -592,12 +798,22 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "claim": str(raw.get("claim") or title),
         "claim_candidates": list(raw.get("claim_candidates") or []),
         "contradiction_candidates": list(raw.get("contradiction_candidates") or []),
-        "relevance_status": "REJECTED" if result_class in {"IRRELEVANT", "DUPLICATE"} else "RETAINED",
+        "relevance_status": "REJECTED" if result_class in {"IRRELEVANT", "DUPLICATE", "DEAD_END"} else "RETAINED",
         "verification_status": verification_status,
+        "validation_state": (validation or {}).get("state", "DISCOVERED"),
+        "validation_progression": (validation or {}).get("progression", ["DISCOVERED"]),
+        "validation_reason": (validation or {}).get("reason"),
+        "evidence_relation": (validation or {}).get("relation"),
+        "directness": (validation or {}).get("directness"),
         "provenance": {
             "action_id": action["action_id"],
             "expected_result_type": action["expected_result_type"],
             "fixture_verification": fixture_verified,
+            "canonical_url": canonical,
+            "final_url": raw.get("final_url") or raw.get("canonical_url") or raw.get("url"),
+            "page_title": raw.get("title"),
+            "content_hash": raw.get("content_hash"),
+            "language": raw.get("language"),
             "discovery_is_not_publication_evidence": True,
         },
         "publication_evidence": False,
@@ -620,9 +836,9 @@ def build_research_yield_report(
 
     An observation is not counted as useful merely because it exists.  It must
     be a retained lead, potential evidence, context, or contradiction.  New
-    evidence is stricter still: the executor only counts a fixture-verified
-    exact-page potential-evidence observation, and normal downstream recovery
-    remains authoritative for closing a need.
+    evidence is stricter still: it requires a deterministically validated
+    exact-page observation, and normal downstream recovery remains
+    authoritative for closing a need.
     """
     jobs = execution.get("jobs", []) if isinstance(execution, dict) else []
     actions = [
@@ -686,7 +902,7 @@ def build_research_yield_report(
             "contributed_useful_material": bool(action_useful),
             "contributed_new_evidence": any(
                 item.get("observation_class") == "POTENTIAL_EVIDENCE"
-                and item.get("verification_status") == "VERIFIED_EVIDENCE"
+                and item.get("verification_status") == "VALIDATED_EVIDENCE"
                 for item in action_observations
             ),
             "introduced_new_origin": bool({item.get("origin") for item in action_observations if item.get("origin")}),
@@ -750,7 +966,7 @@ def build_research_yield_report(
         "independent_source_observations": sum(item.get("source_class") == "independent" for item in observations),
         "potential_primary_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") in {"primary", "official", "paper"} for item in observations),
         "potential_independent_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") == "independent" for item in observations),
-        "validated_evidence_items": sum(item.get("verification_status") == "VERIFIED_EVIDENCE" for item in observations),
+        "validated_evidence_items": sum(item.get("verification_status") == "VALIDATED_EVIDENCE" for item in observations),
         "contradictions_found": sum(item.get("observation_class") == "CONTRADICTION" for item in observations),
         "recovery_needs_closed": len(closed),
         "recovery_needs_unresolved": len(after_ids) if recovery_after is not None else len(before_ids),
@@ -778,12 +994,18 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
     source_type = observation["source_class"]
     if source_type not in {"primary", "official", "independent", "paper"}:
         return None
+    if observation["verification_status"] != "VALIDATED_EVIDENCE":
+        return None
     return {
         "id": observation["source_id"], "url": observation["url"],
         "publisher": observation["origin"], "title": observation["title"],
         "publication_date": observation["published_at"], "accessed_at": observation["observed_at"],
         "source_type": source_type, "claim_supported": observation["claim"],
         "content_hash": observation["content_hash"],
+        "extracted_text": observation.get("extracted_text"),
+        "language": observation.get("provenance", {}).get("language"),
+        "evidence_relation": observation.get("evidence_relation"),
+        "directness": observation.get("directness"),
         "executor_observation_id": observation["observation_id"],
         "verification_status": observation["verification_status"],
         "provenance": observation["provenance"],
@@ -805,13 +1027,13 @@ def execute_research_round(
     state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "seen_urls": [], "seen_origins": []}))
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
-    observations, source_records, updates = [], [], []
+    observations, source_records, updates, candidate_discoveries = [], [], [], []
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
     executed = []
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
-        nonlocal observations, source_records, updates
+        nonlocal observations, source_records, updates, candidate_discoveries
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
@@ -844,10 +1066,17 @@ def execute_research_round(
             if patch:
                 source_records.append(patch)
                 role = "PRIMARY" if patch["source_type"] in {"primary", "official", "paper"} else "INDEPENDENT"
-                if action.get("recovery_candidate_id") and patch["verification_status"] == "VERIFIED_EVIDENCE":
+                if action.get("recovery_candidate_id") and patch["verification_status"] == "VALIDATED_EVIDENCE":
                     updates.append({
                         "candidate_id": action["recovery_candidate_id"], "source_id": patch["id"],
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
+                    })
+                if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
+                    candidate_discoveries.append({
+                        "section_id": action["desk"],
+                        "event_id": observation.get("related_event") or _stable_id("EVENT", observation["title"], observation["url"]),
+                        "title": observation["title"], "claim": observation["claim"],
+                        "source_id": patch["id"], "role": role,
                     })
         # A configured route is a preferred read-only channel, not a single
         # point of failure.  On a zero-yield route failure, make exactly one
@@ -920,7 +1149,11 @@ def execute_research_round(
         "job": advanced,
         "actions": executed,
         "observations": observations,
-        "source_packet_patch": {"sources": source_records, "candidate_evidence_updates": updates},
+        "source_packet_patch": {
+            "sources": source_records,
+            "candidate_evidence_updates": updates,
+            "candidate_discoveries": candidate_discoveries,
+        },
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
         "recovery_strategy_progress": strategy_progress,
@@ -955,6 +1188,28 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 field = "primary_evidence_source_ids" if update["role"] == "PRIMARY" else "independent_evidence_source_ids"
                 candidate.setdefault(field, []).append(update["source_id"])
                 candidate["recovery_revalidated"] = True
+    for discovery in execution["source_packet_patch"].get("candidate_discoveries", []):
+        section = next((item for item in value.get("sections", []) if item.get("section_id") == discovery["section_id"]), None)
+        if section is None:
+            continue
+        candidate_id = _stable_id("CAND", discovery["section_id"], discovery["event_id"])
+        candidate = next((item for item in section.get("candidates", []) if item.get("id") == candidate_id), None)
+        if candidate is None:
+            candidate = {
+                "id": candidate_id, "rank": 1, "title": discovery["title"],
+                "facts": [discovery["claim"]], "claims": [], "unknowns": [], "disputed_points": [],
+                "discovery_source_ids": [], "verification_source_ids": [],
+                "primary_evidence_source_ids": [], "independent_evidence_source_ids": [],
+                "discovered_by": "VALIDATED_DISTINCT_EVENT_RECOVERY",
+                "event_id": discovery["event_id"],
+            }
+            section.setdefault("candidates", []).append(candidate)
+        for field in ("discovery_source_ids", "verification_source_ids"):
+            if discovery["source_id"] not in candidate[field]:
+                candidate[field].append(discovery["source_id"])
+        role_field = "primary_evidence_source_ids" if discovery["role"] == "PRIMARY" else "independent_evidence_source_ids"
+        if discovery["source_id"] not in candidate[role_field]:
+            candidate[role_field].append(discovery["source_id"])
     sources = {item["id"]: item for item in value.get("sources", [])}
     for section in value.get("sections", []):
         for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
@@ -979,6 +1234,14 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 "status": "ELIGIBLE" if not issues else "INELIGIBLE",
                 "issues": issues,
             }
+            if (
+                candidate["evidence_eligibility"]["status"] == "ELIGIBLE"
+                and candidate in section.get("candidates", [])
+                and section.get("selected_candidate_id") is None
+            ):
+                section["selected_candidate_id"] = candidate["id"]
+                section["status"] = "ACTIVE"
+                section["selection_reason"] = "VALIDATED_DISTINCT_EVENT_RECOVERY"
         # A recovery-only candidate may re-open a NO_NEWS desk only after the
         # normal role/origin validation above has made it eligible.  This is
         # not a promotion switch: it preserves the candidate and its exact

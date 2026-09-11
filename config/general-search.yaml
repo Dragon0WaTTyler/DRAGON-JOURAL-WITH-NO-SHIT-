@@ -1,0 +1,15 @@
+# Optional provider-neutral web discovery. Disabled until an operator supplies
+# a controlled SearXNG HTTPS endpoint; no public instance is assumed.
+version: 1
+enabled: false
+adapter_id: searxng-general-search
+base_url: null
+timeout_seconds: 10
+maximum_bytes: 1000000
+maximum_results: 8
+language: fr
+categories: general
+time_range: null
+page: 1
+integration_test_status: NOT_RUN
+provenance_behavior: DISCOVERY_ONLY_EXACT_PAGE_REQUIRED

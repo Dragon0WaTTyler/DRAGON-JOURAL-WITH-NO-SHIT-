@@ -118,7 +118,14 @@ def build_source_intelligence(packet: dict) -> dict:
             "methods_read": bool(source.get("methods_read")),
             "limitations_read": bool(source.get("limitations_read")),
             "science_metadata": source.get("science_metadata"),
-            "uncertainty": ["FULL_TEXT_NOT_CAPTURED", "FETCH_NOT_INDEPENDENTLY_VERIFIED"],
+            "verification_status": source.get("verification_status", "PROVIDER_REPORTED"),
+            "evidence_relation": source.get("evidence_relation"),
+            "directness": source.get("directness"),
+            "provenance": source.get("provenance"),
+            "uncertainty": (
+                [] if source.get("verification_status") == "VALIDATED_EVIDENCE"
+                else ["FULL_TEXT_NOT_CAPTURED", "FETCH_NOT_INDEPENDENTLY_VERIFIED"]
+            ),
             "event_ids": [],
             "claims_supported": [source.get("claim_supported")],
             "duplicate_group_ids": [],
