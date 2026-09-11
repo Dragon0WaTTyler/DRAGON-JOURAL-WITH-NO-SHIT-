@@ -91,6 +91,15 @@ def build_recovery_plan(
                 ))),
                 "already_known_origins": _origins(candidate, source_by_id),
                 "topic_identifiers": [candidate.get("title", "")],
+                "query_context": {
+                    "entities": list(candidate.get("entities", [])),
+                    "geography": list(candidate.get("geography", [])),
+                    "event_terms": [
+                        candidate.get("title", ""), *candidate.get("facts", []),
+                        *candidate.get("claims", []),
+                    ],
+                    "research_date": packet.get("edition_date"),
+                },
                 "search_constraints": {
                     "must_use_exact_source_page": True,
                     "must_not_reuse_known_origin_for_both_roles": True,
@@ -116,6 +125,8 @@ def build_recovery_plan(
         for index in range(missing):
             need_id = f"BREADTH:{rule['id']}:{index + 1}"
             attempts = int(attempts_by_need.get(need_id, 0))
+            eligible_sections = list(rule["sections"])
+            route_context = desk_recovery_context(coverage, eligible_sections[index % len(eligible_sections)])
             needs.append({
                 "need_id": need_id,
                 "kind": f"NEED_{rule['id'].upper()}",
@@ -126,10 +137,12 @@ def build_recovery_plan(
                 "already_known_source_ids": [],
                 "already_known_origins": [],
                 "topic_identifiers": list(rule["sections"]),
+                "query_context": {"research_date": packet.get("edition_date"), "desk": eligible_sections},
                 "search_constraints": {
                     "must_be_distinct_event": True,
-                    "eligible_section_ids": list(rule["sections"]),
+                    "eligible_section_ids": eligible_sections,
                     "must_satisfy_primary_and_independent_evidence": True,
+                    "configured_source_routes": route_context["configured_source_routes"],
                 },
                 "attempt_count": attempts,
                 "max_attempts": maximum,
@@ -139,6 +152,8 @@ def build_recovery_plan(
     for index in range(missing_distinct):
         need_id = f"BREADTH:NEED_DISTINCT_EVENT:{index + 1}"
         attempts = int(attempts_by_need.get(need_id, 0))
+        eligible_sections = sorted(active_sections)
+        route_context = desk_recovery_context(coverage, eligible_sections[index % len(eligible_sections)]) if eligible_sections else {"configured_source_routes": []}
         needs.append({
             "need_id": need_id,
             "kind": "NEED_DISTINCT_EVENT",
@@ -149,7 +164,13 @@ def build_recovery_plan(
             "already_known_source_ids": [],
             "already_known_origins": [],
             "topic_identifiers": sorted(active_sections),
-            "search_constraints": {"must_be_distinct_event": True, "must_satisfy_primary_and_independent_evidence": True},
+            "query_context": {"research_date": packet.get("edition_date"), "desk": eligible_sections},
+            "search_constraints": {
+                "must_be_distinct_event": True,
+                "must_satisfy_primary_and_independent_evidence": True,
+                "eligible_section_ids": eligible_sections,
+                "configured_source_routes": route_context["configured_source_routes"],
+            },
             "attempt_count": attempts,
             "max_attempts": maximum,
             "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",

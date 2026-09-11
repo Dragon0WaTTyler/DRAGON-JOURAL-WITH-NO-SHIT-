@@ -42,6 +42,126 @@ OBSERVATION_CLASSES = {
     "IRRELEVANT", "DEAD_END",
 }
 
+# These priorities govern finite *research* work only.  They deliberately do
+# not alter the independent publication gate in research_recovery.
+PRIORITY_ORDER = {
+    "P0_BLOCKING_EVIDENCE": 0,
+    "P1_BREADTH": 1,
+    "P1_DISTINCT_EVENT": 1,
+    "P2_CONTRADICTION": 2,
+    "P3_CONTEXT": 3,
+}
+
+
+def recovery_priority(need: dict | None) -> str:
+    """Classify a need without confusing research priority with readiness."""
+    if not need:
+        return "P3_CONTEXT"
+    kind = str(need.get("kind") or "")
+    if kind in {"FIND_PRIMARY_ORIGINAL_EVIDENCE", "FIND_INDEPENDENT_CORROBORATION"}:
+        return "P0_BLOCKING_EVIDENCE"
+    if kind == "NEED_DISTINCT_EVENT":
+        return "P1_DISTINCT_EVENT"
+    if kind.startswith("NEED_"):
+        return "P1_BREADTH"
+    if kind in {"CONTRADICTION", "CHECK_CONTRADICTION"}:
+        return "P2_CONTRADICTION"
+    return "P3_CONTEXT"
+
+
+def _query_words(values: list[object]) -> list[str]:
+    """Return stable, meaningful query terms rather than provider prose."""
+    ignored = {"the", "and", "for", "with", "from", "this", "that", "في", "من", "على", "عن", "إلى", "الى", "مع", "بعد", "قبل", "حول", "تغطية", "أعلنت", "اعلنت"}
+    words: list[str] = []
+    for value in values:
+        for word in str(value or "").replace("/", " ").replace("|", " ").split():
+            cleaned = "".join(char for char in word if char.isalnum() or char in {"-", "_"})
+            if len(cleaned) > 1 and cleaned.casefold() not in ignored and cleaned not in words:
+                words.append(cleaned)
+    return words
+
+
+def _research_month(need: dict, job: dict) -> str:
+    value = str(need.get("query_context", {}).get("research_date") or job.get("lead", {}).get("observed_at") or "")
+    return value[:7] if len(value) >= 7 else ""
+
+
+def query_fingerprint(query: str, *, intent: str) -> str:
+    """Deduplicate word-order rewrites while preserving distinct strategies."""
+    normalized = sorted(set(word.casefold() for word in _query_words([query])))
+    return f"{intent}:{' '.join(normalized)}"
+
+
+def query_ladder(job: dict, need: dict | None) -> list[dict]:
+    """Build a bounded, date-aware strategy ladder from structured context."""
+    if not need:
+        return [{"intent": "CONTEXT", "variant": "CONTEXT", "query": str(job["lead"].get("topic") or "")}]
+    context = need.get("query_context", {})
+    event_words = _query_words([
+        *context.get("entities", []), *context.get("geography", []),
+        *context.get("event_terms", []), *need.get("topic_identifiers", []),
+    ])
+    # Keep a compact seed, with date context supplied by the immutable packet.
+    seed = " ".join(event_words[:12])
+    month = _research_month(need, job)
+    kind = str(need.get("kind") or "")
+    routes = need.get("search_constraints", {}).get("configured_source_routes", [])
+    if kind == "FIND_INDEPENDENT_CORROBORATION":
+        independent = [item for item in routes if item.get("role") == "INDEPENDENT" and item.get("url")]
+        route = independent[0] if independent else None
+        return [
+            {
+                "intent": "INDEPENDENT_CONFIGURED_ROUTE", "variant": "CONFIGURED_ROUTE",
+                "query": " ".join(item for item in (seed, month) if item),
+                "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
+                "channel": "CONFIGURED_INDEPENDENT_LISTING",
+                "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS"},
+            },
+            {"intent": "ENTITY_DATE_TERMS", "variant": "EXACT", "query": " ".join(item for item in (seed, month) if item), "channel": "GOOGLE_NEWS_RSS"},
+            {"intent": "ENTITY_ACTION_GEOGRAPHY", "variant": "RELAX_ENTITY_DATE", "query": seed},
+            {"intent": "INDEPENDENT_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", seed[:100], month) if item)},
+            {"intent": "INDEPENDENT_TOPIC", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6])},
+        ]
+    if kind == "FIND_PRIMARY_ORIGINAL_EVIDENCE":
+        official = [item for item in routes if item.get("role") == "PRIMARY" and item.get("url")]
+        route = official[0] if official else None
+        return [
+            {
+                "intent": "OFFICIAL_CONFIGURED_ROUTE", "variant": "CONFIGURED_ROUTE",
+                "query": " ".join(item for item in (seed, month, "official document") if item),
+                "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
+                "channel": "CONFIGURED_OFFICIAL_LISTING",
+                "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS"},
+            },
+            {"intent": "OFFICIAL_ENTITY_ACTION", "variant": "EXACT", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "GOOGLE_NEWS_RSS"},
+            {"intent": "OFFICIAL_INSTITUTION_DATE", "variant": "RELAX_ENTITY_DATE", "query": " ".join(item for item in (" ".join(event_words[:8]), month) if item)},
+            {"intent": "OFFICIAL_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", " ".join(event_words[:8])) if item)},
+            {"intent": "OFFICIAL_BROAD_DISCOVERY", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6])},
+        ]
+    sections = need.get("search_constraints", {}).get("eligible_section_ids", []) or need.get("topic_identifiers", [])
+    desk = " ".join(str(item) for item in sections[:3])
+    direct = [item for item in routes if item.get("url")]
+    route = direct[0] if direct else None
+    if kind == "NEED_DISTINCT_EVENT":
+        base = f"{desk} news {month}".strip()
+        return [
+            {"intent": "DISTINCT_EVENT_DESK_WINDOW", "variant": "EXACT", "query": base, "channel": "GOOGLE_NEWS_RSS"},
+            {"intent": "DISTINCT_EVENT_RELAXED", "variant": "RELAX_TOPIC", "query": f"{desk} news".strip()},
+        ]
+    # Breadth needs use desk/institutional vocabulary, not a copied headline.
+    institutional = "Cour des comptes public procurement TGR Morocco" if "accountability" in kind.casefold() else "world international news"
+    return [
+        {
+            "intent": "BREADTH_CONFIGURED_ROUTE", "variant": "CONFIGURED_ROUTE",
+            "query": f"{institutional} {desk} {month}".strip(),
+            "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
+            "channel": "CONFIGURED_LISTING",
+            "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS"},
+        },
+        {"intent": "BREADTH_DESK_WINDOW", "variant": "EXACT", "query": f"{institutional} {desk} {month}".strip(), "channel": "GOOGLE_NEWS_RSS"},
+        {"intent": "BREADTH_RELAXED", "variant": "RELAX_TOPIC", "query": f"{institutional} {desk}".strip()},
+    ]
+
 
 class ResearchExecutorError(RuntimeError):
     pass
@@ -86,21 +206,22 @@ def create_research_action(
     recovery_need: dict | None = None,
     target: str | None = None,
     known_event_ids: list[str] | None = None,
+    query_strategy: dict | None = None,
 ) -> dict:
     """Build one reproducible action without executing it."""
     question_id = branch["question_ids"][0]
     question = _question(job, question_id)
     action_type = action_type or _action_type(question, recovery_need)
+    if query_strategy and query_strategy.get("action_type"):
+        action_type = str(query_strategy["action_type"])
     if action_type not in ACTION_TYPES:
         raise ResearchExecutorError("RESEARCH_ACTION_TYPE_INVALID")
     seen_urls = list(job.get("executor_state", {}).get("seen_urls", []))
     seen_origins = list(job.get("executor_state", {}).get("seen_origins", []))
     known_events = sorted(set(known_event_ids or []) | ({job["lead"].get("related_event_cluster")} - {None}))
-    topic = str(job["lead"].get("topic") or "")
-    query_parts = [topic, str(question.get("text") or "")]
-    if recovery_need:
-        query_parts.extend(str(value) for value in recovery_need.get("topic_identifiers", []) if value)
-    query = " | ".join(dict.fromkeys(part.strip() for part in query_parts if part.strip()))
+    strategy = query_strategy or query_ladder(job, recovery_need)[0]
+    query = str(strategy.get("query") or job["lead"].get("topic") or "")
+    target = target or strategy.get("target")
     return {
         "schema_version": 1,
         "action_id": _stable_id(
@@ -115,6 +236,11 @@ def create_research_action(
         "research_regime": job["regime"],
         "action_type": action_type,
         "query": query,
+        "query_intent": str(strategy.get("intent") or "CONTEXT"),
+        "query_variant": str(strategy.get("variant") or "CONTEXT"),
+        "query_fingerprint": query_fingerprint(query, intent=str(strategy.get("intent") or "CONTEXT")),
+        "priority_class": recovery_priority(recovery_need),
+        "discovery_channel": str(strategy.get("channel") or "GOOGLE_NEWS_RSS"),
         "target": target,
         "known_entities": list(job["lead"].get("event_entities", [])),
         "known_event_ids": known_events,
@@ -137,36 +263,22 @@ def create_research_action(
         },
         "recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
         "recovery_candidate_id": recovery_need.get("candidate_id") if recovery_need else None,
+        "channel_fallback": deepcopy(strategy.get("fallback")) if strategy.get("fallback") else None,
     }
 
 
 def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str] | None = None) -> list[dict]:
-    """Plan bounded actions, always serving readiness-changing needs first."""
+    """Plan query ladders; the global scheduler chooses a fair bounded slice."""
     if job.get("status") == "STOPPED":
         return []
     branches = [item for item in job.get("branches", []) if item.get("status") == "PLANNED"]
-    priority = {
-        "FIND_PRIMARY_ORIGINAL_EVIDENCE": 0,
-        "FIND_INDEPENDENT_CORROBORATION": 1,
-        "NEED_DISTINCT_EVENT": 2,
-    }
     needs = sorted(
         (
             item for item in job.get("recovery_needs", [])
             if item.get("attempt_count", 0) < item.get("max_attempts", 1)
         ),
-        key=lambda item: (priority.get(str(item.get("kind")), 3), str(item.get("need_id"))),
+        key=lambda item: (PRIORITY_ORDER[recovery_priority(item)], str(item.get("need_id"))),
     )
-    role_needs = [
-        item for item in needs
-        if item.get("kind") in {
-            "FIND_PRIMARY_ORIGINAL_EVIDENCE",
-            "FIND_INDEPENDENT_CORROBORATION",
-        }
-    ]
-    # Never spend the remaining branch budget on breadth/context while an
-    # explicit evidence-role recovery is still open for this same job.
-    needs = role_needs or needs
     if needs and branches:
         pairs = [
             (branches[index % len(branches)], need)
@@ -177,14 +289,89 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
     actions = []
     seen_fingerprints: set[tuple[str, str]] = set()
     for branch, need in pairs:
-        action = create_research_action(job, branch, recovery_need=need, known_event_ids=known_event_ids)
-        fingerprint = (action["action_type"], " ".join(action["query"].casefold().split()))
-        if fingerprint in seen_fingerprints:
-            continue
-        seen_fingerprints.add(fingerprint)
-        action["timeout_seconds"] = config["executor"]["action_timeout_seconds"]
-        actions.append(action)
-    return actions[: min(int(config["executor"]["maximum_actions_per_round"]), job["budget"]["max_branches"])]
+        strategies = [
+            item for item in query_ladder(job, need)
+            if item.get("action_type") != "FETCH_CONFIGURED_SOURCE" or item.get("target")
+        ]
+        for strategy_index, strategy in enumerate(strategies):
+            action = create_research_action(
+                job, branch, recovery_need=need, known_event_ids=known_event_ids,
+                query_strategy=strategy,
+            )
+            action["strategy_index"] = strategy_index
+            action["strategy_count"] = len(strategies)
+            fingerprint = (action["action_type"], action["query_fingerprint"])
+            if fingerprint in seen_fingerprints:
+                continue
+            seen_fingerprints.add(fingerprint)
+            action["timeout_seconds"] = config["executor"]["action_timeout_seconds"]
+            actions.append(action)
+    # A duplicate strategy was intentionally not emitted; it cannot keep a
+    # recovery ladder permanently "in progress".
+    counts: dict[str, int] = {}
+    for action in actions:
+        if action.get("recovery_need_id"):
+            need_id = str(action["recovery_need_id"])
+            counts[need_id] = counts.get(need_id, 0) + 1
+    for action in actions:
+        if action.get("recovery_need_id"):
+            action["strategy_count"] = counts[str(action["recovery_need_id"])]
+    return actions
+
+
+def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids: list[str] | None = None) -> dict:
+    """Select a finite, fair cross-desk slice without starving P1 behind P0.
+
+    A wave contains the first untried strategy for each need.  Priority orders
+    the wave, while a round-robin pass ensures one dead-end cannot consume the
+    whole round.  Later ladder variants wait until every eligible need has had
+    an earlier strategy considered.
+    """
+    all_actions = [
+        action for job in jobs
+        for action in plan_research_actions(job, config, known_event_ids=known_event_ids)
+    ]
+    cap = int(config["executor"]["maximum_actions_per_round"])
+    # Context is deliberately not allowed to consume a scarce recovery round.
+    # P0/P1/P2 remain eligible together; only P3 is deferred under pressure.
+    if any(item["priority_class"] != "P3_CONTEXT" for item in all_actions):
+        eligible_actions = [item for item in all_actions if item["priority_class"] != "P3_CONTEXT"]
+    else:
+        eligible_actions = all_actions
+    selected: list[dict] = []
+    # Reserve one first-wave slot for each non-context edition-wide gap class.
+    # This is the anti-starvation rule: a large set of P0 candidate repairs
+    # still cannot leave World/breadth/distinct-event research at zero.
+    first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
+    for priority in ("P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION"):
+        candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
+        if candidate is not None and len(selected) < cap:
+            selected.append(candidate)
+    for strategy_index in sorted({int(item.get("strategy_index", 0)) for item in eligible_actions}):
+        for priority in sorted(PRIORITY_ORDER, key=PRIORITY_ORDER.get):
+            pool = [item for item in eligible_actions if item["priority_class"] == priority]
+            wave = sorted(
+                (item for item in pool if int(item.get("strategy_index", 0)) == strategy_index),
+                key=lambda item: (str(item.get("recovery_need_id") or item["job_id"]), item["action_id"]),
+            )
+            for action in wave:
+                if len(selected) >= cap:
+                    break
+                if action["action_id"] in {item["action_id"] for item in selected}:
+                    continue
+                selected.append(action)
+            if len(selected) >= cap:
+                break
+        if len(selected) >= cap:
+            break
+    selected_ids = {item["action_id"] for item in selected}
+    return {
+        "actions": selected,
+        "deferred_actions": [
+            {**item, "deferred_reason": "ROUND_BUDGET_PRIORITY_AND_FAIRNESS"}
+            for item in all_actions if item["action_id"] not in selected_ids
+        ],
+    }
 
 
 class FixtureResearchAdapter:
@@ -477,6 +664,9 @@ def build_research_yield_report(
             "action_type": action["action_type"],
             "question_id": action["question_id"],
             "question": action.get("query"),
+            "query_intent": action.get("query_intent"),
+            "query_variant": action.get("query_variant"),
+            "planned_channel": action.get("discovery_channel"),
             "desk": action["desk"],
             "recovery_need_id": action.get("recovery_need_id"),
             "source_discovery_channels": sorted({
@@ -486,6 +676,10 @@ def build_research_yield_report(
             "urls": sorted({item["url"] for item in action_observations if item.get("url")}),
             "source_ids": sorted({item["source_id"] for item in action_observations if item.get("source_id")}),
             "observation_types": sorted({item["observation_class"] for item in action_observations}),
+            "result_count": len(action_observations),
+            "useful_leads": sum(item.get("observation_class") == "LEAD" and item.get("relevance_status") == "RETAINED" for item in action_observations),
+            "fetched_pages": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in action_observations),
+            "accepted_observations": sum(item.get("relevance_status") == "RETAINED" for item in action_observations),
             "retrieval_succeeded": any(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in action_observations),
             "duplicate": any(item.get("observation_class") == "DUPLICATE" for item in action_observations),
             "irrelevant": any(item.get("observation_class") == "IRRELEVANT" for item in action_observations),
@@ -502,6 +696,7 @@ def build_research_yield_report(
             ),
             "recovery_need_closed": action.get("recovery_need_id") in closed,
             "readiness_changed": action.get("recovery_need_id") in closed,
+            "zero_yield": not action_useful,
         })
     useful_questions = {
         action["question_id"] for action in actions
@@ -511,10 +706,35 @@ def build_research_yield_report(
         action["branch_id"] for action in actions
         if any(item in useful for item in by_action.get(action["action_id"], []))
     }
+    strategy_channel_yield = []
+    for key in sorted({(
+        item.get("query_intent"), item.get("query_variant"), item.get("planned_channel")
+    ) for item in action_outcomes}):
+        matching = [
+            item for item in action_outcomes
+            if (item.get("query_intent"), item.get("query_variant"), item.get("planned_channel")) == key
+        ]
+        strategy_channel_yield.append({
+            "query_intent": key[0], "query_variant": key[1], "channel": key[2],
+            "actions": len(matching),
+            "result_count": sum(item["result_count"] for item in matching),
+            "useful_leads": sum(item["useful_leads"] for item in matching),
+            "fetched_pages": sum(item["fetched_pages"] for item in matching),
+            "accepted_observations": sum(item["accepted_observations"] for item in matching),
+            "recovery_need_closed": any(item["recovery_need_closed"] for item in matching),
+            "new_distinct_event": any(item["introduced_new_distinct_event"] for item in matching),
+            "zero_yield": all(item["zero_yield"] for item in matching),
+        })
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
+        "searches": sum(item["action_type"] in SEARCH_ACTIONS for item in actions),
+        "fetches": sum(item["action_type"] in FETCH_ACTIONS for item in actions),
         "successful_retrievals": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in observations),
+        "failed_retrievals": sum(
+            item.get("observation_class") == "DEAD_END" and item.get("provenance", {}).get("expected_result_type") == "EXTRACTED_SOURCE"
+            for item in observations
+        ),
         "unique_urls": len(urls),
         "unique_origins": len(origins),
         "duplicate_urls": sum(item.get("observation_class") == "DUPLICATE" for item in observations),
@@ -525,8 +745,12 @@ def build_research_yield_report(
         "irrelevant_results": sum(item.get("observation_class") == "IRRELEVANT" for item in observations),
         "dead_ends": sum(item.get("observation_class") == "DEAD_END" for item in observations),
         "new_leads": sum(item.get("observation_class") == "LEAD" and item.get("relevance_status") == "RETAINED" for item in observations),
+        "unknown_source_leads": sum(item.get("observation_class") == "LEAD" and item.get("source_class") == "unknown" for item in observations),
+        "official_source_observations": sum(item.get("source_class") in {"official", "primary", "paper"} for item in observations),
+        "independent_source_observations": sum(item.get("source_class") == "independent" for item in observations),
         "potential_primary_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") in {"primary", "official", "paper"} for item in observations),
         "potential_independent_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") == "independent" for item in observations),
+        "validated_evidence_items": sum(item.get("verification_status") == "VERIFIED_EVIDENCE" for item in observations),
         "contradictions_found": sum(item.get("observation_class") == "CONTRADICTION" for item in observations),
         "recovery_needs_closed": len(closed),
         "recovery_needs_unresolved": len(after_ids) if recovery_after is not None else len(before_ids),
@@ -544,6 +768,7 @@ def build_research_yield_report(
         "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
         "action_outcomes": action_outcomes,
+        "strategy_channel_yield": strategy_channel_yield,
     }
 
 
@@ -580,7 +805,9 @@ def execute_research_round(
     state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "seen_urls": [], "seen_origins": []}))
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
-    observations, source_records, updates, attempted_needs = [], [], [], []
+    observations, source_records, updates = [], [], []
+    attempted_strategies: dict[str, set[int]] = {}
+    strategy_counts: dict[str, int] = {}
     executed = []
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
@@ -594,7 +821,9 @@ def execute_research_round(
         state[counter] += 1
         executed.append(action)
         if action.get("recovery_need_id"):
-            attempted_needs.append(action["recovery_need_id"])
+            need_id = str(action["recovery_need_id"])
+            attempted_strategies.setdefault(need_id, set()).add(int(action.get("strategy_index", 0)))
+            strategy_counts[need_id] = max(strategy_counts.get(need_id, 0), int(action.get("strategy_count", 1)))
         try:
             raw_results = adapter.execute(action)
         except ResearchExecutorError as exc:
@@ -620,6 +849,26 @@ def execute_research_round(
                         "candidate_id": action["recovery_candidate_id"], "source_id": patch["id"],
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
                     })
+        # A configured route is a preferred read-only channel, not a single
+        # point of failure.  On a zero-yield route failure, make exactly one
+        # provider-neutral discovery fallback and retain its provenance.
+        fallback = action.get("channel_fallback")
+        yielded = any(str(item.get("result_type") or "").upper() not in {"DEAD_END", "IRRELEVANT", "DUPLICATE"} for item in raw_results)
+        if fallback and not yielded:
+            fallback_type = str(fallback.get("action_type") or "SEARCH_DISCOVERY")
+            if fallback_type in SEARCH_ACTIONS and state["search_actions"] < limits["search_actions"]:
+                fallback_action = {
+                    **action,
+                    "action_id": _stable_id("ACT", action["action_id"], "CHANNEL_FALLBACK", fallback_type),
+                    "action_type": fallback_type,
+                    "target": None,
+                    "expected_result_type": "DISCOVERY_RESULT",
+                    "discovery_channel": str(fallback.get("channel") or "GOOGLE_NEWS_RSS"),
+                    "query_variant": f"{action.get('query_variant', 'CONFIGURED_ROUTE')}_FALLBACK",
+                    "strategy_index": float(action.get("strategy_index", 0)) + 0.5,
+                    "channel_fallback": None,
+                }
+                run_action(fallback_action)
 
     for action in planned[: config["executor"]["maximum_actions_per_round"]]:
         run_action(action)
@@ -656,6 +905,15 @@ def execute_research_round(
     state["seen_origins"] = sorted(set(state["seen_origins"]))
     state["actions_executed"] = int(state.get("actions_executed", 0)) + len(executed)
     advanced["executor_state"] = state
+    strategy_progress = [
+        {
+            "need_id": need_id,
+            "executed_variants": sorted(indices),
+            "strategy_count": strategy_counts[need_id],
+            "attempt_exhausted": len(indices) >= strategy_counts[need_id],
+        }
+        for need_id, indices in sorted(attempted_strategies.items())
+    ]
     return {
         "schema_version": 1,
         "status": "EXECUTED",
@@ -663,7 +921,9 @@ def execute_research_round(
         "actions": executed,
         "observations": observations,
         "source_packet_patch": {"sources": source_records, "candidate_evidence_updates": updates},
-        "recovery_attempts": sorted(set(attempted_needs)),
+        # A recovery attempt is a whole bounded ladder, not a single RSS hit.
+        "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
+        "recovery_strategy_progress": strategy_progress,
         "budget_consumed": {"search_actions": state["search_actions"], "fetches": state["fetches"]},
         "remaining_gaps": list(advanced["context"]["SOURCE_GAPS"]),
         "stop_reason": advanced.get("stop_condition"),
@@ -694,6 +954,7 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 candidate.setdefault("verification_source_ids", []).append(update["source_id"])
                 field = "primary_evidence_source_ids" if update["role"] == "PRIMARY" else "independent_evidence_source_ids"
                 candidate.setdefault(field, []).append(update["source_id"])
+                candidate["recovery_revalidated"] = True
     sources = {item["id"]: item for item in value.get("sources", [])}
     for section in value.get("sections", []):
         for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
@@ -740,6 +1001,18 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                     "no_news_reason": None,
                     "fallback_action": None,
                 })
+        elif section.get("status") == "ACTIVE":
+            selected = next((item for item in section.get("candidates", []) if item.get("id") == section.get("selected_candidate_id")), None)
+            replacements = [
+                item for item in section.get("candidates", [])
+                if item.get("id") != section.get("selected_candidate_id")
+                and item.get("recovery_revalidated") is True
+                and item.get("evidence_eligibility", {}).get("status") == "ELIGIBLE"
+            ]
+            if selected and selected.get("evidence_eligibility", {}).get("status") != "ELIGIBLE" and replacements:
+                winner = sorted(replacements, key=lambda item: str(item.get("id")))[0]
+                section["selected_candidate_id"] = winner["id"]
+                section["selection_reason"] = "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
     return value
 
 

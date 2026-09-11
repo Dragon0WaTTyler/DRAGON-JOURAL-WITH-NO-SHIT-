@@ -154,13 +154,15 @@ def test_incomplete_seed_executes_deep_research_before_final_insufficiency() -> 
         assert state["stages"]["research"]["status"] == "COMPLETE"
         assert state["stages"]["deep_research"]["status"] == "COMPLETE"
         assert state["stages"]["deep_research_execution"]["status"] == "COMPLETE"
-        assert state["stages"]["research_recovery"]["error_code"] == "RESEARCH_INSUFFICIENT"
+        # A single global round no longer marks a recovery attempt exhausted
+        # after one query; the remaining ladder stays honestly open.
+        assert state["stages"]["research_recovery"]["error_code"] == "RESEARCH_RECOVERY_REQUIRED"
         assert sum(len(job["question_tree"]) for job in deep["jobs"]) > 0
         assert sum(len(job["branches"]) for job in deep["jobs"]) > 0
         assert sum(len(job["actions"]) for job in execution["jobs"]) > 0
         assert sum(len(job["observations"]) for job in execution["jobs"]) > 0
         assert recovery["distinct_event_count"] == 9
-        assert recovery["status"] == "RESEARCH_INSUFFICIENT"
+        assert recovery["status"] == "RECOVERY_REQUIRED"
         assert delegate.article_calls == 0
     finally:
         shutil.rmtree(raw_dir, ignore_errors=True)

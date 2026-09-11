@@ -26,7 +26,10 @@ from dragon.deep_research_executor import (
     create_research_action,
     execute_research_round,
     plan_research_actions,
+    query_fingerprint,
+    query_ladder,
     replay_recovery_after_execution,
+    schedule_research_actions,
     science_adapter_boundary,
 )
 from dragon.discovery import FetchResponse
@@ -231,7 +234,8 @@ def test_recovery_role_needs_execute_as_specific_actions() -> None:
     primary_need = {"need_id": "p", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
     independent_need = {"need_id": "i", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
     actions = plan_research_actions(_job(needs=[primary_need, independent_need]), CONFIG)
-    assert [item["action_type"] for item in actions[:2]] == ["RECOVER_PRIMARY_SOURCE", "RECOVER_INDEPENDENT_SOURCE"]
+    assert {item["action_type"] for item in actions} == {"RECOVER_PRIMARY_SOURCE", "RECOVER_INDEPENDENT_SOURCE"}
+    assert all(item["priority_class"] == "P0_BLOCKING_EVIDENCE" for item in actions)
 
 
 def test_recovery_need_execution_records_attempt_and_structured_output() -> None:
@@ -249,11 +253,89 @@ def test_primary_and_independent_only_gaps_get_opposite_recovery_searches() -> N
     assert plan_research_actions(_job(needs=[primary_need]), CONFIG)[0]["action_type"] == "RECOVER_PRIMARY_SOURCE"
 
 
-def test_role_recovery_defers_breadth_need_in_the_same_job() -> None:
+def test_role_recovery_does_not_remove_breadth_need_from_the_plan() -> None:
     role_need = {"need_id": "role", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
     breadth_need = {"need_id": "breadth", "candidate_id": None, "kind": "NEED_DISTINCT_EVENT", "max_attempts": 1}
     actions = plan_research_actions(_job(needs=[role_need, breadth_need]), CONFIG)
-    assert [item["recovery_need_id"] for item in actions] == ["role"]
+    assert {item["recovery_need_id"] for item in actions} == {"role", "breadth"}
+
+
+def test_global_scheduler_services_p0_then_allows_p1_breadth() -> None:
+    p0 = {"need_id": "p0", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
+    p1 = {"need_id": "p1", "candidate_id": None, "kind": "NEED_WORLD_BREADTH", "max_attempts": 1, "topic_identifiers": ["world"]}
+    schedule = schedule_research_actions([_job(needs=[p0]), _job(needs=[p1])], CONFIG)
+    assert {item["priority_class"] for item in schedule["actions"]} >= {"P0_BLOCKING_EVIDENCE", "P1_BREADTH"}
+    assert schedule["actions"][0]["priority_class"] == "P0_BLOCKING_EVIDENCE"
+
+
+def test_global_scheduler_is_fair_between_multiple_p0_needs() -> None:
+    needs = [
+        {"need_id": f"p{index}", "candidate_id": f"c{index}", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
+        for index in range(3)
+    ]
+    schedule = schedule_research_actions([_job(needs=[need]) for need in needs], CONFIG)
+    first_wave = [item for item in schedule["actions"] if item["strategy_index"] == 0]
+    assert {item["recovery_need_id"] for item in first_wave} == {"p0", "p1", "p2"}
+
+
+def test_large_p0_queue_still_reserves_a_p1_breadth_attempt() -> None:
+    p0_jobs = [
+        _job(needs=[{"need_id": f"p{index}", "candidate_id": f"c{index}", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}])
+        for index in range(12)
+    ]
+    breadth = _job(needs=[{"need_id": "world", "candidate_id": None, "kind": "NEED_WORLD_BREADTH", "max_attempts": 1, "topic_identifiers": ["world"]}])
+    schedule = schedule_research_actions([*p0_jobs, breadth], CONFIG)
+    assert any(item["recovery_need_id"] == "world" for item in schedule["actions"])
+
+
+def test_query_ladder_relaxes_zero_yield_exact_without_headline_only_dependency() -> None:
+    need = {
+        "need_id": "p", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1,
+        "topic_identifiers": ["Provider headline only"],
+        "query_context": {"entities": ["Meknes"], "event_terms": ["public procurement audit"], "research_date": "2026-09-11"},
+    }
+    ladder = query_ladder(_job(needs=[need]), need)
+    assert [item["variant"] for item in ladder] == ["CONFIGURED_ROUTE", "EXACT", "RELAX_ENTITY_DATE", "SOURCE_SPECIFIC", "RELAX_TOPIC"]
+    assert "Meknes" in ladder[1]["query"] and "2026-09" in ladder[1]["query"]
+    assert "procurement" in ladder[1]["query"]
+
+
+def test_query_fingerprint_deduplicates_word_order_but_not_strategy() -> None:
+    assert query_fingerprint("Morocco election nominations 2026", intent="A") == query_fingerprint("2026 Morocco election nominationS", intent="A")
+    assert query_fingerprint("Morocco election nominations 2026", intent="A") != query_fingerprint("Morocco election nominations 2026", intent="B")
+
+
+def test_one_attempt_contains_multiple_query_variants_before_exhaustion() -> None:
+    need = {"need_id": "p", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
+    job = _job(needs=[need])
+    execution = execute_research_round(job, FixtureResearchAdapter({"RECOVER_PRIMARY_SOURCE": []}), CONFIG)
+    progress = execution["recovery_strategy_progress"]
+    assert progress == [{"need_id": "p", "executed_variants": [0, 1, 2, 3], "strategy_count": 4, "attempt_exhausted": True}]
+    assert execution["recovery_attempts"] == ["p"]
+
+
+def test_configured_route_failure_uses_one_bounded_rss_fallback() -> None:
+    need = {
+        "need_id": "i", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1,
+        "search_constraints": {"configured_source_routes": [
+            {"role": "INDEPENDENT", "origin": "blocked.example", "url": "https://blocked.example/listing"},
+        ]},
+    }
+    execution = execute_research_round(_job(needs=[need]), FixtureResearchAdapter({
+        "FETCH_CONFIGURED_SOURCE": [{"result_type": "DEAD_END", "reason": "HTTP_401"}],
+        "RECOVER_INDEPENDENT_SOURCE": [_result("https://news.example/exact", "independent")],
+    }), CONFIG)
+    fallback = next(item for item in execution["actions"] if item["query_variant"].endswith("_FALLBACK"))
+    assert fallback["action_type"] == "RECOVER_INDEPENDENT_SOURCE"
+    assert fallback["discovery_channel"] == "GOOGLE_NEWS_RSS"
+
+
+def test_p3_context_defers_when_round_has_higher_priority_work() -> None:
+    p0 = {"need_id": "p0", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
+    jobs = [_job(desk=f"desk{index}", needs=[{**p0, "need_id": f"p{index}"}]) for index in range(4)]
+    jobs.extend(_job() for _ in range(8))
+    schedule = schedule_research_actions(jobs, CONFIG)
+    assert all(item["priority_class"] != "P3_CONTEXT" for item in schedule["actions"])
 
 
 @pytest.mark.parametrize("kind", ["NEED_WORLD_BREADTH", "NEED_ACCOUNTABILITY_AND_SERVICE"])
@@ -362,6 +444,25 @@ def test_unresolved_recovery_keeps_article_generation_blocked() -> None:
     assert replay["status"] == "RESEARCH_GAPS_REMAIN"
 
 
+def test_fixture_verified_stronger_same_desk_candidate_can_replace_weak_selection() -> None:
+    packet = _otherwise_sufficient_packet()
+    front = next(item for item in packet["sections"] if item["section_id"] == "front")
+    weak = front["candidates"][0]
+    weak["independent_evidence_source_ids"] = []
+    weak["evidence_eligibility"] = {"status": "INELIGIBLE", "issues": ["INDEPENDENT_EVIDENCE_MISSING"]}
+    packet["sources"].append(_source("alternate-primary", "primary", "alternate-official.example"))
+    alternate = _candidate("alternate", ["alternate-primary"], [])
+    front["candidates"].append(alternate)
+    execution = {"source_packet_patch": {
+        "sources": [{**_source("alternate-independent", "independent", "alternate-news.example"), "verification_status": "VERIFIED_EVIDENCE"}],
+        "candidate_evidence_updates": [{"candidate_id": "alternate", "source_id": "alternate-independent", "role": "INDEPENDENT"}],
+    }}
+    patched = apply_executor_results_to_packet(packet, execution)
+    patched_front = next(item for item in patched["sections"] if item["section_id"] == "front")
+    assert patched_front["selected_candidate_id"] == "alternate"
+    assert patched_front["selection_reason"] == "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
+
+
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
     job = _job()
     with pytest.raises(ResearchExecutorError, match="RESEARCH_ACTION_ADAPTER_UNAVAILABLE"):
@@ -380,6 +481,22 @@ def test_pipeline_execution_stage_writes_structured_adapter_report(tmp_path: Pat
     report = json.loads(result.outputs[0].read_text(encoding="utf-8"))
     assert report["status"] == "EXECUTED"
     assert report["jobs"][0]["observations"][0]["url"] == "https://pipeline.example/item"
+
+
+def test_pipeline_executes_breadth_while_p0_remains_open(tmp_path: Path) -> None:
+    p0 = {"need_id": "p0", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
+    p1 = {"need_id": "p1", "candidate_id": None, "kind": "NEED_WORLD_BREADTH", "max_attempts": 1, "topic_identifiers": ["world"]}
+    state_path = tmp_path / "deep-research" / "state.json"
+    state_path.parent.mkdir(parents=True)
+    state_path.write_text(json.dumps({"schema_version": 1, "status": "PLANNED", "jobs": [_job(needs=[p0]), _job(needs=[p1])]}), encoding="utf-8")
+    stage = next(item for item in build_stage_definitions(
+        SyntheticEditorialProvider(), research_adapter=FixtureResearchAdapter({"SEARCH_DISCOVERY": []}),
+    ) if item.name == "deep_research_execution")
+    result = stage.runner(StageContext(ROOT, "2099-01-02", tmp_path, tmp_path, 1))
+    report = json.loads(result.outputs[0].read_text(encoding="utf-8"))
+    attempted = {action["recovery_need_id"] for action in report["actions_planned"]}
+    assert attempted >= {"p0", "p1"}
+    assert all(action["publication_evidence"] is False for job in report["jobs"] for action in job["observations"])
 
 
 def test_pipeline_execution_stage_fails_closed_when_no_adapter_is_supplied(tmp_path: Path) -> None:

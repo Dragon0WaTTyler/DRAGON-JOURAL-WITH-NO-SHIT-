@@ -550,24 +550,20 @@ def build_deep_research_state(
             existing = plan_by_section.get(section["section_id"], {}).get("research_budget", {}) or {}
             budget_class = {"brief": "QUICK", "normal": "STANDARD", "major": "DEEP", "investigation": "INVESTIGATIVE_LEAD"}.get(existing.get("level"), "STANDARD")
             jobs.append(start_research_job(lead, config, budget_class=budget_class, recovery_needs=needs_by_candidate.get(candidate["id"], [])))
-    # Breadth needs have no existing candidate identity, so they cannot be
-    # attached by the candidate map above.  They must still reach the bounded
-    # executor; otherwise an incomplete edition can stop as a mere planning
-    # report without ever attempting its required distinct-event recovery.
-    if jobs:
-        for index, need in enumerate(breadth_needs):
-            jobs[index % len(jobs)]["recovery_needs"].append(deepcopy(need))
-    else:
-        for need in breadth_needs:
-            sections = need.get("search_constraints", {}).get("eligible_section_ids", [])
-            lead = create_lead(
-                desk=str(sections[0] if sections else "front"),
-                topic=" / ".join(str(item) for item in need.get("topic_identifiers", []) if item) or need["kind"],
-                discovery_source={"known_seed": False, "recovery_need_id": need["need_id"]},
-                observed_at=str(packet.get("edition_date")),
-                reason_interesting="RECOVERY_BREADTH_NEED",
-            )
-            jobs.append(start_research_job(lead, config, budget_class="QUICK", recovery_needs=[need]))
+    # Keep edition-wide breadth tracks independent.  Attaching them to an
+    # unresolved candidate made their execution contingent on that candidate's
+    # P0 evidence gap and encouraged headline-shaped queries.
+    for need in breadth_needs:
+        sections = need.get("search_constraints", {}).get("eligible_section_ids", [])
+        topic = " / ".join(str(item) for item in need.get("topic_identifiers", []) if item) or need["kind"]
+        lead = create_lead(
+            desk=str(sections[0] if sections else "front"),
+            topic=topic,
+            discovery_source={"known_seed": False, "recovery_need_id": need["need_id"]},
+            observed_at=str(packet.get("edition_date")),
+            reason_interesting="RECOVERY_BREADTH_NEED",
+        )
+        jobs.append(start_research_job(lead, config, budget_class="QUICK", recovery_needs=[deepcopy(need)]))
     for signal in discovery_signals or []:
         lead = create_lead(
             desk=str(signal.get("section_id") or "front"),

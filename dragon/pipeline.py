@@ -29,6 +29,7 @@ from dragon.deep_research_executor import (
     build_research_yield_report,
     execute_research_round,
     plan_research_actions,
+    schedule_research_actions,
 )
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
@@ -384,28 +385,13 @@ def build_stage_definitions(
                 context.root / "config" / "deep-research-schema.json",
             )
             all_jobs = list(state.get("jobs", []))
-            role_recovery_jobs = [
-                job for job in all_jobs
-                if any(
-                    item.get("kind") in {
-                        "FIND_PRIMARY_ORIGINAL_EVIDENCE",
-                        "FIND_INDEPENDENT_CORROBORATION",
-                    }
-                    and item.get("attempt_count", 0) < item.get("max_attempts", 1)
-                    for item in job.get("recovery_needs", [])
-                )
-            ]
-            mandatory_jobs = role_recovery_jobs or [
-                job for job in all_jobs
-                if any(
-                    item.get("attempt_count", 0) < item.get("max_attempts", 1)
-                    for item in job.get("recovery_needs", [])
-                )
-            ]
-            jobs_to_execute = mandatory_jobs or all_jobs
+            schedule = schedule_research_actions(all_jobs, config)
+            actions_by_job: dict[str, list[dict]] = {}
+            for action in schedule["actions"]:
+                actions_by_job.setdefault(action["job_id"], []).append(action)
             executions = [
-                execute_research_round(job, research_adapter, config)
-                for job in jobs_to_execute
+                execute_research_round(job, research_adapter, config, actions=actions_by_job[job["job_id"]])
+                for job in all_jobs if job["job_id"] in actions_by_job
             ]
             report = {
                 "schema_version": 1,
@@ -416,10 +402,11 @@ def build_stage_definitions(
                     {
                         "job_id": job["job_id"],
                         "desk": job["lead"]["desk"],
-                        "reason": "MANDATORY_RECOVERY_NEEDS_PRIORITIZED",
+                        "reason": "ROUND_BUDGET_PRIORITY_AND_FAIRNESS",
                     }
-                    for job in all_jobs if mandatory_jobs and job not in mandatory_jobs
+                    for job in all_jobs if job["job_id"] not in actions_by_job
                 ],
+                "deferred_actions": schedule["deferred_actions"],
             }
         report["yield"] = build_research_yield_report(report)
         atomic_write_json(path, report)
