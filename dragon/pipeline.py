@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from copy import deepcopy
 
 from jsonschema import Draft202012Validator
 
@@ -114,7 +115,24 @@ def synthetic_preflight_stage() -> StageDefinition:
     return StageDefinition("preflight", (), run)
 
 
-def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None, whatsapp_provider=None, research_adapter=None) -> list[StageDefinition]:
+def build_stage_definitions(
+    provider: EditorialProvider,
+    *,
+    synthetic: bool = False,
+    archive_provider=None,
+    whatsapp_provider=None,
+    research_adapter=None,
+    seed_research_packet: dict | None = None,
+    offline_replay: bool = False,
+) -> list[StageDefinition]:
+    """Build V5 stages.
+
+    ``seed_research_packet`` is a structurally validated provider research
+    checkpoint.  It is used only by provider-backed acceptance/replay runs so
+    the provider is called once for research, then its result enters the same
+    source-intelligence, deep-research, recovery, and final-sufficiency path
+    as every other V5 packet.  It never relaxes article-generation gates.
+    """
     archive_provider = archive_provider or DisabledGitArchiveProvider()
     whatsapp_provider = whatsapp_provider or DisabledWhatsAppProvider()
     def source_monitoring(context: StageContext) -> StageResult:
@@ -144,7 +162,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure(exc.code, exc.detail) from exc
         prior_path = find_previous_monitor_report(context.root, context.edition_date)
         prior = _load(prior_path) if prior_path else None
-        report = monitor_watchlist(watchlist, prior, execute=not synthetic)
+        report = monitor_watchlist(
+            watchlist, prior, execute=not synthetic and not offline_replay
+        )
         path = context.run_dir / "source-monitoring" / "report.json"
         atomic_write_json(path, report)
         inputs = (config_path, schema_path, *((prior_path,) if prior_path else ()))
@@ -160,6 +180,23 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         continuity = prior_context(context.root, context.edition_date)
         continuity_path = context.run_dir / "research" / "continuity-context.json"
         atomic_write_json(continuity_path, continuity)
+        seed_path = context.run_dir / "research" / "initial-research-packet.json"
+        if seed_research_packet is not None:
+            packet = deepcopy(seed_research_packet)
+            if packet.get("edition_date") != context.edition_date:
+                raise StageFailure(
+                    "PROVIDER_PACKET_INVALID",
+                    "normalized provider seed date does not match the V5 run date",
+                )
+            packet["provider_mode"] = provider.mode
+            packet["research_input"] = {
+                "kind": "PROVIDER_SEED_RESEARCH",
+                "sufficiency": "PENDING_DEEP_RESEARCH_AND_RECOVERY",
+            }
+            atomic_write_json(seed_path, packet)
+            path = context.run_dir / "research" / "research-packet.json"
+            atomic_write_json(path, packet)
+            return StageResult((continuity_path, seed_path, path))
         registry_path = context.root / "config" / "provider-registry.yaml"
         provider_input = dict(continuity)
         monitoring_path = context.run_dir / "source-monitoring" / "report.json"
@@ -414,8 +451,11 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             atomic_write_json(recovered_packet_path, packet)
             atomic_write_json(recovered_intelligence_path, intelligence)
             outputs = (path, recovered_packet_path, recovered_intelligence_path)
+        # Execution reports are grouped by deep-research job.  Use the
+        # flattened list assembled above, not a nonexistent top-level field,
+        # so completed bounded attempts are visible to final recovery.
         attempts = {
-            need_id: 1 for need_id in execution.get("recovery_attempts", [])
+            need_id: 1 for need_id in combined["recovery_attempts"]
         } if execution.get("status") == "EXECUTED" else None
         report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
         issues = validate_recovery_plan(report)

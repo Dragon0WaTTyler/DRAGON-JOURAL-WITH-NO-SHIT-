@@ -71,6 +71,14 @@ fresh recovery plan. The executor cannot directly mark a need successful.
 `NEED_DISTINCT_EVENT` excludes known event IDs and duplicate URLs; another
 article about the same event is rejected.
 
+Candidate-linked needs and breadth-only needs use the same route. Breadth
+needs are attached to bounded jobs (or create a bounded recovery job when the
+seed has no candidates), and the pipeline flattens recorded attempt IDs before
+the final recovery plan. This keeps `NEED_WORLD_BREADTH`,
+`NEED_ACCOUNTABILITY_AND_SERVICE`, and `NEED_DISTINCT_EVENT` visible through
+the final distinct-event decision instead of leaving them as unconsumed plan
+entries.
+
 Science adapters for Feynman, PaperQA, and ARS remain `ADAPTER_READY` and
 disabled. Science observations cannot become publication evidence merely by
 repetition. The hard Super Investigation boundary remains:

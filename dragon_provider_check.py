@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 
 from dragon.config import load_local_config
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, editorial_provider_from_config
+from dragon.provider_acceptance import build_provider_seed_orchestrator
 from dragon.redaction import redact_text
 from dragon.state import atomic_write_json, runtime_fingerprint, sha256_file, source_revision
 
@@ -39,6 +40,46 @@ def _trial_directory(root: Path, edition_date: str, *, full: bool) -> Path:
     if not full or not any((base / name).exists() for name in terminal_evidence):
         return base
     return base / "attempts" / f"attempt-{uuid4().hex}"
+
+
+def _failed_stage(state: dict) -> dict | None:
+    """Return the first V5 stage that truthfully stopped an acceptance run."""
+    for name, record in state.get("stages", {}).items():
+        if record.get("status") in {"FAILED", "BLOCKED"}:
+            return {"stage": name, **record}
+    return None
+
+
+def _research_counts(packet: dict, post_recovery_packet: dict | None = None) -> dict:
+    """Expose provider choice separately from locally derived eligibility."""
+    def candidates(value: dict) -> list[dict]:
+        return [
+            candidate
+            for section in value.get("sections", [])
+            if isinstance(section, dict)
+            for candidate in section.get("candidates", [])
+            if isinstance(candidate, dict)
+        ]
+
+    initial = candidates(packet)
+    final = candidates(post_recovery_packet or packet)
+    return {
+        "provider_selected_sections": sum(
+            1
+            for section in packet.get("sections", [])
+            if isinstance(section, dict) and section.get("selected_candidate_id")
+        ),
+        "pre_recovery_candidate_count": len(initial),
+        "pre_recovery_evidence_eligible_candidates": sum(
+            candidate.get("evidence_eligibility", {}).get("status") == "ELIGIBLE"
+            for candidate in initial
+        ),
+        "post_recovery_candidate_count": len(final),
+        "post_recovery_evidence_eligible_candidates": sum(
+            candidate.get("evidence_eligibility", {}).get("status") == "ELIGIBLE"
+            for candidate in final
+        ),
+    }
 
 
 def main() -> int:
@@ -73,7 +114,34 @@ def main() -> int:
             edition_date,
             {"edition_count": 0, "editions": [], "trial": True},
         )
-        articles = provider.articles(research)
+        initial_research_path = trial_dir / "initial-research-packet.json"
+        atomic_write_json(initial_research_path, research)
+        raw_research_path = trial_dir / "research.raw.json"
+        if not raw_research_path.is_file():
+            raise ProviderError(
+                "PROVIDER_RAW_EVIDENCE_MISSING",
+                "provider research returned without the required immutable raw capture",
+            )
+        orchestrator = build_provider_seed_orchestrator(
+            root=ROOT,
+            edition_date=edition_date,
+            provider=provider,
+            normalized_packet=research,
+            raw_packet_path=raw_research_path,
+            raw_packet_sha256=sha256_file(raw_research_path),
+            mode="PROVIDER_BACKED_ACCEPTANCE_TRIAL",
+        )
+        state = orchestrator.run()
+        stopped = _failed_stage(state)
+        if stopped:
+            raise ProviderError(
+                str(stopped.get("error_code") or "V5_PIPELINE_FAILED"),
+                str(stopped.get("error_detail") or "provider-seed V5 pipeline stopped"),
+                diagnostics={
+                    "stage": stopped["stage"],
+                    "run_state": str((orchestrator.store.path).relative_to(ROOT)).replace("\\", "/"),
+                },
+            )
     except ProviderError as exc:
         failure = {
             "schema_version": 5,
@@ -94,6 +162,18 @@ def main() -> int:
                 for path in raw_files
             }
         if args.full:
+            initial_path = trial_dir / "initial-research-packet.json"
+            state_path = ROOT / "daily-runs" / edition_date / "state.json"
+            pipeline_evidence = {}
+            if initial_path.is_file():
+                pipeline_evidence[str(initial_path.relative_to(ROOT)).replace("\\", "/")] = sha256_file(initial_path)
+            if state_path.is_file():
+                pipeline_evidence[str(state_path.relative_to(ROOT)).replace("\\", "/")] = sha256_file(state_path)
+            if pipeline_evidence:
+                failure["pipeline_evidence"] = pipeline_evidence
+            if exc.diagnostics:
+                failure["pipeline_diagnostics"] = exc.diagnostics
+        if args.full:
             trial_dir.mkdir(parents=True, exist_ok=True)
             failure_path = trial_dir / "failure.json"
             atomic_write_json(failure_path, failure)
@@ -105,8 +185,10 @@ def main() -> int:
     research_path = trial_dir / "research.json"
     articles_path = trial_dir / "articles.json"
     atomic_write_json(research_path, research)
-    atomic_write_json(articles_path, {"articles": articles})
-    active = [item for item in articles if item.get("status") == "ACTIVE"]
+    daily_articles = ROOT / "daily-runs" / edition_date / "articles" / "articles.json"
+    articles_value = json.loads(daily_articles.read_text(encoding="utf-8"))["articles"]
+    atomic_write_json(articles_path, {"articles": articles_value})
+    active = [item for item in articles_value if item.get("status") == "ACTIVE"]
     receipt = {
         "schema_version": 5,
         "status": "VALIDATED_AWAITING_HUMAN_REVIEW",
@@ -117,7 +199,7 @@ def main() -> int:
         "runtime_fingerprint": runtime_fingerprint(ROOT),
         "source_git_revision": source_revision(ROOT),
         "active_sections": len(active),
-        "skipped_sections": len(articles) - len(active),
+        "skipped_sections": len(articles_value) - len(active),
         "edition_words": sum(
             len(" ".join(item.get("body", [])).split()) for item in active
         ),
@@ -125,6 +207,7 @@ def main() -> int:
             str(research_path.relative_to(ROOT)).replace("\\", "/"): sha256_file(research_path),
             str(articles_path.relative_to(ROOT)).replace("\\", "/"): sha256_file(articles_path),
         },
+        "research_counts": _research_counts(research),
         "integration_test_status_changed": False,
         "next_action": "Human-review facts, sources, Arabic, depth, and skips before setting PASS.",
     }

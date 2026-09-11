@@ -652,6 +652,17 @@ class LocalCommandEditorialProvider:
                 "edition_readiness": self._edition_readiness_context(),
             },
         )
+        return self.normalize_research_packet(edition_date, raw_value)
+
+    def normalize_research_packet(self, edition_date: str, raw_value: object) -> dict:
+        """Validate and normalize a captured provider research seed.
+
+        This is deliberately separate from :meth:`articles`.  A research
+        packet can be safe and structurally usable while still needing the V5
+        research pipeline to recover evidence or breadth.  Callers that have
+        already preserved a raw packet (notably offline replay) may therefore
+        use this method without invoking the editorial provider again.
+        """
         value = _stamp_retrieval_times(raw_value) if isinstance(raw_value, dict) else raw_value
         if not isinstance(value, dict) or value.get("edition_date") != edition_date:
             raise ProviderError("RESEARCH_PACKET_INVALID", "date or root object is invalid")

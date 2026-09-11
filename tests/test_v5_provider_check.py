@@ -7,11 +7,17 @@ import sys
 import dragon_provider_check
 
 
+@dataclass(frozen=True)
 class TrialProvider:
+    capture_directory: object = None
+    mode: str = "production"
+
     def healthcheck(self):
         return {"status": "PASS", "unattended": True, "provider": "test"}
 
     def research(self, edition_date, continuity):
+        self.capture_directory.mkdir(parents=True, exist_ok=True)
+        (self.capture_directory / "research.raw.json").write_text("{}", encoding="utf-8")
         return {"edition_date": edition_date, "sources": [{"id": "s1"}], "sections": []}
 
     def articles(self, research):
@@ -78,6 +84,23 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
         "LocalCommandEditorialProvider",
         TrialProvider,
     )
+    class CompletedOrchestrator:
+        class store:
+            path = tmp_path / "daily-runs" / "2099-01-02" / "state.json"
+
+        def run(self):
+            articles = tmp_path / "daily-runs" / "2099-01-02" / "articles" / "articles.json"
+            articles.parent.mkdir(parents=True, exist_ok=True)
+            articles.write_text(json.dumps({"articles": TrialProvider().articles({})}), encoding="utf-8")
+            self.store.path.parent.mkdir(parents=True, exist_ok=True)
+            self.store.path.write_text("{}", encoding="utf-8")
+            return {"stages": {"article_generation": {"status": "COMPLETE"}}}
+
+    monkeypatch.setattr(
+        dragon_provider_check,
+        "build_provider_seed_orchestrator",
+        lambda **kwargs: CompletedOrchestrator(),
+    )
     monkeypatch.setattr(sys, "argv", ["dragon_provider_check.py", "--full", "--date", "2099-01-02"])
 
     assert dragon_provider_check.main() == 0
@@ -86,6 +109,7 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
     assert value["status"] == "VALIDATED_AWAITING_HUMAN_REVIEW"
     assert value["integration_test_status_changed"] is False
     assert value["editorial_generation_tested"] is True
+    assert value["research_counts"]["provider_selected_sections"] == 0
     assert len(value["runtime_fingerprint"]) == 64
     assert value["created_at"].endswith("+01:00")
     trial = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"

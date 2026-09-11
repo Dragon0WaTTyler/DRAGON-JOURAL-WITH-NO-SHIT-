@@ -26,22 +26,57 @@ as a paid API or silently assigned an API key. `DRAGON_CODEX_BINARY` and
 
 `python dragon_provider_check.py` is a no-generation CLI/auth probe. A deliberate
 `python dragon_provider_check.py --full --date YYYY-MM-DD` consumes the signed-in
-account's Codex usage, runs both live operations, validates them through the
-same production adapter, and writes hash-addressed review material beneath
-`acceptance/provider-trials/YYYY-MM-DD/`. Even a technically valid trial is
-labelled `VALIDATED_AWAITING_HUMAN_REVIEW` and never edits configuration or
-promotes itself to `PASS`.
+account's Codex usage for one live **research** operation, then uses that output
+as seed research for a new V5 acceptance run. It does not ask the provider to
+invent a complete final research packet or call article generation before the
+V5 source-intelligence, planning, deep-research, executor, recovery,
+re-normalization, event-clustering, and breadth gates have completed. It writes
+hash-addressed review material beneath `acceptance/provider-trials/YYYY-MM-DD/`.
+Even a technically valid trial is labelled
+`VALIDATED_AWAITING_HUMAN_REVIEW` and never edits configuration or promotes
+itself to `PASS`.
 
-During a full trial the adapter also atomically captures each structured model
-response as `research.raw.json` or `articles.raw.json` before the production
-validator runs. If validation fails, the command reports those paths so the
-failure can be diagnosed without another blind model call. Raw output never
-counts as accepted evidence; only normalized artifacts from a fully validated
-trial enter `receipt.json`. Inventory errors report the exact missing, unknown,
-duplicate, and structurally invalid section identifiers. The Structured Output
-schemas constrain both research and article arrays to exactly the 23 fixed
-section decisions, while the validator independently enforces identity and
-uniqueness.
+During a full trial the adapter atomically captures each structured model
+response as `research.raw.json` or `articles.raw.json` before its production
+validator runs. `research.raw.json` is immutable; the derived
+`initial-research-packet.json` is a separate normalized checkpoint. A malformed
+or unsafe provider packet fails immediately as `RESEARCH_PACKET_INVALID` (for
+example missing schema fields, impossible identities, unknown source links, or
+invalid types). A structurally valid but incomplete packet proceeds into V5
+research and can only stop later as `RESEARCH_INSUFFICIENT` after bounded
+recovery and distinct-event/breadth evaluation. Raw output never counts as
+accepted evidence; only normalized artifacts from a fully validated trial enter
+`receipt.json`. Inventory errors report the exact missing, unknown, duplicate,
+and structurally invalid section identifiers.
+
+## Provider seed research and final sufficiency
+
+Provider research is seed research, not necessarily final research. The
+canonical acceptance path is:
+
+```text
+provider raw response (immutable + SHA-256)
+  -> structural/safety validation
+  -> initial normalized research checkpoint
+  -> source intelligence -> research planning -> deep research
+  -> bounded executor -> recovery/re-normalization
+  -> event clustering and distinct-event/breadth decision
+  -> article generation only when research is ready
+```
+
+Acceptance reporting distinguishes the provider's selected sections from
+locally derived `pre_recovery_evidence_eligible_candidates` and
+`post_recovery_evidence_eligible_candidates`. A raw provider response normally
+does not contain the local eligibility annotation; an absent annotation is not
+evidence of ineligibility and is never confused with the provider's own section
+selection.
+
+An immutable historical packet may be replayed offline through the same stages.
+The replay adapter records explicit dead ends and never adds publication
+evidence, so an honest `RESEARCH_INSUFFICIENT` outcome remains a pass of control
+flow—not a green edition. The acceptance/replay preflight records the raw hash
+and is distinct from `dragon_daily.py` production preflight; it cannot replace
+production finality, human review, scheduler, archive, or delivery gates.
 
 Cutover does not trust the configuration flag alone. The trial receipt binds
 the current V5 runtime fingerprint, Git revision, creation time, and SHA-256 of
