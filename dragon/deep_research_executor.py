@@ -218,6 +218,7 @@ class RssSearchAdapter:
         timeout_seconds: int = 10,
         maximum_bytes: int = 1_000_000,
         maximum_results: int = 8,
+        source_classes_by_origin: dict[str, str] | None = None,
         transport=default_transport,
     ) -> None:
         if "{query}" not in endpoint_template or not endpoint_template.startswith("https://"):
@@ -227,9 +228,32 @@ class RssSearchAdapter:
         self.timeout_seconds = timeout_seconds
         self.maximum_bytes = maximum_bytes
         self.maximum_results = maximum_results
+        # A configured origin is only a routing hint.  It affects the
+        # provisional source class of an exact fetched page; it never turns a
+        # discovery result into verified publication evidence.
+        self.source_classes_by_origin = {
+            str(origin).casefold(): str(source_class).casefold()
+            for origin, source_class in (source_classes_by_origin or {}).items()
+            if str(source_class).casefold() in {"official", "primary", "independent", "paper"}
+        }
         self.transport = transport
+        self.follow_discovery_leads = True
 
     def execute(self, action: dict) -> list[dict]:
+        if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
+            try:
+                fetched = fetch_and_extract_source(
+                    str(action["target"]), timeout_seconds=action["timeout_seconds"]
+                )
+            except DiscoveryError as exc:
+                return [{
+                    "result_type": "DEAD_END", "reason": exc.code,
+                    "detail": exc.detail, "discovery_channel": f"{self.adapter_id}-followup",
+                }]
+            origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
+            fetched["source_class"] = self.source_classes_by_origin.get(origin.casefold(), "unknown")
+            fetched["discovery_channel"] = f"{self.adapter_id}-followup"
+            return [fetched]
         if action.get("action_type") not in SEARCH_ACTIONS:
             raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
         endpoint = self.endpoint_template.replace("{query}", quote_plus(str(action.get("query") or "")))
@@ -260,7 +284,7 @@ class RssSearchAdapter:
         ]
 
 
-def rss_search_adapter_from_config(path) -> RssSearchAdapter | None:
+def rss_search_adapter_from_config(path, *, source_coverage_path=None) -> RssSearchAdapter | None:
     """Load the optional built-in public RSS adapter without extra packages."""
     try:
         value = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -285,12 +309,30 @@ def rss_search_adapter_from_config(path) -> RssSearchAdapter | None:
         or value["provenance_behavior"] != "DISCOVERY_ONLY_UNKNOWN_DOMAINS_ALLOWED"
     ):
         raise ResearchExecutorError("RSS_SEARCH_CONFIG_INVALID")
+    source_classes_by_origin: dict[str, str] = {}
+    if source_coverage_path is not None:
+        try:
+            coverage = yaml.safe_load(source_coverage_path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, yaml.YAMLError) as exc:
+            raise ResearchExecutorError("RSS_SEARCH_SOURCE_COVERAGE_INVALID") from exc
+        if not isinstance(coverage, dict) or not isinstance(coverage.get("sources"), list):
+            raise ResearchExecutorError("RSS_SEARCH_SOURCE_COVERAGE_INVALID")
+        source_classes_by_origin = {
+            str(item["origin"]): str(item["role"]).casefold()
+            for item in coverage["sources"]
+            if isinstance(item, dict)
+            and item.get("enabled") is True
+            and item.get("discovery_only") is False
+            and isinstance(item.get("origin"), str)
+            and item.get("role") in {"PRIMARY", "INDEPENDENT"}
+        }
     return RssSearchAdapter(
         adapter_id=value["adapter_id"],
         endpoint_template=value["endpoint_template"],
         timeout_seconds=value["timeout_seconds"],
         maximum_bytes=value["maximum_bytes"],
         maximum_results=value["maximum_results"],
+        source_classes_by_origin=source_classes_by_origin,
     )
 
 
@@ -298,7 +340,8 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     requested = str(raw.get("result_type") or "").upper()
     url = str(raw.get("canonical_url") or raw.get("url") or raw.get("discovered_url") or "").strip()
     canonical = normalize_url(url) if url else None
-    if canonical and canonical in seen_urls:
+    followup_target = normalize_url(str(action.get("target") or "")) if action.get("action_type") in FETCH_ACTIONS and action.get("target") else None
+    if canonical and canonical in seen_urls and canonical != followup_target:
         return "DUPLICATE", canonical
     if raw.get("event_id") and raw["event_id"] in set(action["known_event_ids"]):
         return "DUPLICATE", canonical
@@ -529,13 +572,15 @@ def execute_research_round(
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
     observations, source_records, updates, attempted_needs = [], [], [], []
     executed = []
-    for action in planned[: config["executor"]["maximum_actions_per_round"]]:
+    def run_action(action: dict) -> None:
+        """Execute one bounded action and retain its structured observations."""
+        nonlocal observations, source_records, updates
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
         counter = "search_actions" if is_search else "fetches"
         if state[counter] >= limits[counter]:
-            continue
+            return
         state[counter] += 1
         executed.append(action)
         if action.get("recovery_need_id"):
@@ -565,6 +610,36 @@ def execute_research_round(
                         "candidate_id": action["recovery_candidate_id"], "source_id": patch["id"],
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
                     })
+
+    for action in planned[: config["executor"]["maximum_actions_per_round"]]:
+        run_action(action)
+
+    # Public RSS discovery is useful only if selected leads can be inspected.
+    # Follow at most the job's existing fetch budget, retain exact-page hashes,
+    # and keep every real result unverified.  Other adapters remain single-pass
+    # so fixtures and direct-only adapters keep their declared behaviour.
+    if getattr(adapter, "follow_discovery_leads", False):
+        initial_observations = list(observations)
+        for observation in initial_observations:
+            if observation.get("observation_class") not in {"LEAD", "POTENTIAL_EVIDENCE"} or not observation.get("url"):
+                continue
+            parent = next(
+                (item for item in executed if item["action_id"] == observation.get("provenance", {}).get("action_id")),
+                None,
+            )
+            if parent is None or parent["action_type"] not in SEARCH_ACTIONS:
+                continue
+            fetch_action = {
+                **parent,
+                "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", observation["url"]),
+                "action_type": "FETCH_URL",
+                "target": observation["url"],
+                "expected_result_type": "EXTRACTED_SOURCE",
+                "timeout_seconds": config["executor"]["action_timeout_seconds"],
+            }
+            run_action(fetch_action)
+            if state["fetches"] >= limits["fetches"]:
+                break
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
     advanced = advance_research_job(job, results, config)
     state["seen_urls"] = sorted(seen_urls)

@@ -63,7 +63,8 @@ def build_orchestrator(edition_date: str, *, synthetic: bool = False, root: Path
         whatsapp_provider=whatsapp_provider,
         research_adapter=(
             None if synthetic else rss_search_adapter_from_config(
-                root / "config" / "open-discovery.yaml"
+                root / "config" / "open-discovery.yaml",
+                source_coverage_path=root / "config" / "source-coverage.yaml",
             )
         ),
     )

@@ -142,7 +142,8 @@ def build_provider_seed_orchestrator(
         archive_provider=DisabledGitArchiveProvider(),
         whatsapp_provider=DisabledWhatsAppProvider(),
         research_adapter=research_adapter or rss_search_adapter_from_config(
-            root / "config" / "open-discovery.yaml"
+            root / "config" / "open-discovery.yaml",
+            source_coverage_path=root / "config" / "source-coverage.yaml",
         ),
         seed_research_packet=normalized_packet,
         offline_replay=offline_replay,

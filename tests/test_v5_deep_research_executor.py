@@ -117,6 +117,23 @@ def test_public_rss_search_discovers_unknown_domains_as_leads_only() -> None:
     assert observation["publication_evidence"] is False
 
 
+def test_followup_fetch_inspects_rss_leads_within_the_existing_fetch_budget() -> None:
+    adapter = FixtureResearchAdapter({
+        "SEARCH_DISCOVERY": [_result("https://unknown.example/lead", "unknown")],
+        "FETCH_URL": [_result("https://known.example/exact-page", "official", fetch_status="FETCHED")],
+    })
+    adapter.follow_discovery_leads = True
+    execution = execute_research_round(_job(), adapter, CONFIG)
+    assert "FETCH_URL" in [item["action_type"] for item in execution["actions"]]
+    fetched = next(item for item in execution["observations"] if item["provenance"]["action_id"] in {
+        action["action_id"] for action in execution["actions"] if action["action_type"] == "FETCH_URL"
+    })
+    assert fetched["observation_class"] == "POTENTIAL_EVIDENCE"
+    assert fetched["verification_status"] == "EXTRACTED_NOT_VERIFIED"
+    assert fetched["publication_evidence"] is False
+    assert execution["budget_consumed"]["fetches"] >= 1
+
+
 def test_yield_report_marks_dead_ends_as_non_useful_and_exposes_zero_yield_branches() -> None:
     execution = {
         "jobs": [execute_research_round(
