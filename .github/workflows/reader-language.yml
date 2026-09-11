@@ -1,4 +1,4 @@
-name: Validate reader language
+name: Validate legacy V4 reader language
 
 on:
   push:
@@ -24,13 +24,31 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Reject Arabic script in today's reader edition
+      - name: Reject Arabic script only in a declared V4 reader edition
         shell: bash
         run: |
           edition_date=$(TZ=Africa/Casablanca date +%F)
           file="editions/${edition_date:0:4}/${edition_date:5:2}/${edition_date}/edition.md"
+          manifest="editions/${edition_date:0:4}/${edition_date:5:2}/${edition_date}/manifest.json"
           if [ ! -f "$file" ]; then
             echo "No reader edition is present for ${edition_date}."
+            exit 0
+          fi
+          if [ ! -f "$manifest" ]; then
+            echo "No manifest is present; this workflow cannot classify the edition as V4."
+            exit 0
+          fi
+          language=$(MANIFEST="$manifest" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = json.loads(Path(os.environ["MANIFEST"]).read_text(encoding="utf-8"))
+          print(manifest.get("language", ""))
+          PY
+          )
+          if [ "$language" != "darija-latin" ]; then
+            echo "Edition language is ${language:-unknown}; V5 Arabic editions are outside this legacy V4 gate."
             exit 0
           fi
           FILE="$file" python - <<'PY'

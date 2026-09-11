@@ -1,3 +1,14 @@
 __pycache__/
 *.pyc
 tools/
+
+# Local, generated evidence. These artifacts are reproducible or machine-local
+# and must never be confused with source-controlled V4 historical editions.
+# Provider trial evidence remains local and hash-bound for human review; it is
+# deliberately not a substitute for an archived production edition.
+acceptance/
+daily-runs/2099-*/
+editions/2099/
+evolution/reports/2099-*.json
+investigations/CASE-*/
+tmp/

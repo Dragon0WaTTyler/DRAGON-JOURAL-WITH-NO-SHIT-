@@ -80,7 +80,7 @@ the editorial provider or substitutes for a real edition.
 | 58 | Dependency/license decisions are documented | VERIFIED | `docs/adr/ADR-007-open-source-component-matrix.md`; `docs/adr/ADR-008-openpaper-reference-architecture.md`; component-matrix test | None. |
 | 59 | Runbooks match code | VERIFIED | `tests/test_v5_runbooks.py::test_required_failure_runbooks_are_complete`; failure catalog/recovery policy | Keep synchronized as codes change. |
 | 60 | Full deterministic E2E fixture edition passes | MACHINE_PASS | accepted `2099-03-25` canonical synthetic run; `tests/test_v5_synthetic_pipeline.py` | Synthetic evidence does not satisfy item 62. |
-| 61 | Chaos/recovery suite passes | MACHINE_PASS | `acceptance/machine/failure-injection/receipt.json`: 31 scenarios, 127 tests, runtime-bound PASS | Human review file is still absent and must not be fabricated. |
+| 61 | Chaos/recovery suite passes | MACHINE_PASS | `acceptance/machine/failure-injection/receipt.json`: 34 scenarios, 152 tests, runtime fingerprint `4cd87aef4a65be1796182cb4fdfaa0cfab67bd198d54764a63f6bfb332f2a2cb` | Human review file is still absent and must not be fabricated. |
 | 62 | One real or production-equivalent Arabic smoke edition passes | PENDING_REAL_RUN | fail-closed `python dragon_acceptance.py` reports `manual_real_publication: false` and provider unproven | Run a real provider-backed manual edition, human review it, then complete three unattended production dates. |
 | 63 | Evolution metrics exist | VERIFIED | `tests/test_v5_evolution.py::test_daily_evolution_is_thresholded_and_never_self_mutates`; reporting metrics test | None. |
 | 64 | Candidate improvements cannot auto-promote without benchmark | VERIFIED | `tests/test_v5_evolution.py::test_candidate_requires_improvement_without_any_dimension_regression` | Human-controlled promotion remains required. |
@@ -90,22 +90,26 @@ the editorial provider or substitutes for a real edition.
 
 ## Current acceptance facts
 
-- The current regression baseline is 332 passed and 2 skipped.
-- The current machine chaos receipt records 31 named scenarios and 127 passing
-  targeted tests for runtime fingerprint
-  `c70d96501f5885a432c62e7d7ce2be39355ed43770ee9d5dcb60c2fae699fb67`.
+- The current complete safe regression baseline is **372 passed and 2 skipped**:
+  `python -m pytest -q -p no:cacheprovider`, run on 2026-09-11. See
+  `docs/V5-TEST-BASELINE.md` for scope and category mapping.
+- The current machine chaos receipt records **34 named scenarios and 152
+  passing targeted tests** for runtime fingerprint
+  `4cd87aef4a65be1796182cb4fdfaa0cfab67bd198d54764a63f6bfb332f2a2cb`.
 - Synthetic date `2099-03-25` completed local publication with final QA `PASS`
   and W3C EPUBCheck 5.3.0 reporting zero fatal errors and zero errors.
 - GitHub archive and WhatsApp delivery for that fixture are independently
   `DEGRADED`, as expected while both providers are disabled.
 - Editorial provider status is `NOT_RUN`. The latest explicitly authorized live
-  trial (`2026-09-10`, `attempt-150be12506fc4d1f8911d330b9b654cf`) preserved
+  trial (`2026-09-11`, `attempt-6d24f562361843da939d2116cb92680e`) preserved
   hash-bound raw research and both article attempts but failed
-  `ARTICLE_SCHEMA_INVALID`: 3,499 validated active-article words against the
-  required 4,000. It has no technically valid receipt and is not acceptance
-  evidence; no promotion or human-review attestation may be fabricated from it;
-  no further provider usage is authorized without a separate explicit
-  authorization.
+  `ARTICLE_SCHEMA_INVALID`: `pol_1` had 272 words against the 350-word hard
+  floor, leaving an edition total of 3,314 words. The repaired local path now
+  blocks the incomplete research packet before provider invocation and reports
+  all deficits together; this failed attempt has no technically valid receipt
+  and is not acceptance evidence. No promotion or human-review attestation may
+  be fabricated from it; no further provider usage is authorized without a
+  separate explicit authorization.
 - Human review evidence, the actual Codex automation, three consecutive
   unattended production runs, verified real-remote archive, activation flags,
   and cutover remain outstanding.

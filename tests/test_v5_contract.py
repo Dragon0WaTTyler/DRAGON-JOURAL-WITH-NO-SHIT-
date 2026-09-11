@@ -74,6 +74,14 @@ class V5ContractTests(unittest.TestCase):
             self.config["cutover"]["competing_github_production_disabled"]
         )
 
+    def test_legacy_reader_language_workflow_is_scoped_to_v4_manifests(self):
+        workflow = (ROOT / ".github" / "workflows" / "reader-language.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('manifest.get("language", "")', workflow)
+        self.assertIn('"darija-latin"', workflow)
+        self.assertIn("V5 Arabic editions are outside this legacy V4 gate", workflow)
+
     def test_unconfigured_providers_are_not_claimed_available(self):
         providers = self.config["providers"]
         self.assertEqual(providers["ai"]["type"], "local-command")
