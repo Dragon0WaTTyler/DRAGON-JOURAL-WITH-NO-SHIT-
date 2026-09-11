@@ -23,6 +23,11 @@ from dragon.deep_research import (
     load_deep_research_config,
     validate_deep_research_state,
 )
+from dragon.deep_research_executor import (
+    apply_executor_results_to_packet,
+    execute_research_round,
+    plan_research_actions,
+)
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
     build_cover_brief,
@@ -109,7 +114,7 @@ def synthetic_preflight_stage() -> StageDefinition:
     return StageDefinition("preflight", (), run)
 
 
-def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None, whatsapp_provider=None) -> list[StageDefinition]:
+def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = False, archive_provider=None, whatsapp_provider=None, research_adapter=None) -> list[StageDefinition]:
     archive_provider = archive_provider or DisabledGitArchiveProvider()
     whatsapp_provider = whatsapp_provider or DisabledWhatsAppProvider()
     def source_monitoring(context: StageContext) -> StageResult:
@@ -187,9 +192,14 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult((continuity_path, path), inputs=inputs)
 
     def articles(context: StageContext) -> StageResult:
-        packet = _load(context.run_dir / "research" / "research-packet.json")
+        recovered_packet_path = context.run_dir / "research" / "recovered-research-packet.json"
+        packet_path = recovered_packet_path if recovered_packet_path.exists() else context.run_dir / "research" / "research-packet.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "recovered-report.json"
+        if not intelligence_path.exists():
+            intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        packet = _load(packet_path)
         packet["source_intelligence"] = _load(
-            context.run_dir / "source-intelligence" / "report.json"
+            intelligence_path
         )
         packet["research_plan"] = _load(
             context.run_dir / "research-planning" / "plan.json"
@@ -209,8 +219,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         return StageResult(
             (path,),
             inputs=(
-                context.run_dir / "research" / "research-packet.json",
-                context.run_dir / "source-intelligence" / "report.json",
+                packet_path,
+                intelligence_path,
                 context.run_dir / "research-planning" / "plan.json",
                 context.run_dir / "deep-research" / "state.json",
                 context.run_dir / "research-recovery" / "plan.json",
@@ -303,9 +313,60 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             inputs=(packet_path, intelligence_path, research_plan_path, monitoring_path, coverage_path, config_path, schema_path),
         )
 
+    def deep_research_execution(context: StageContext) -> StageResult:
+        state_path = context.run_dir / "deep-research" / "state.json"
+        path = context.run_dir / "deep-research" / "execution-report.json"
+        state = _load(state_path)
+        if synthetic:
+            report = {
+                "schema_version": 1, "status": "NOT_APPLICABLE", "jobs": [],
+                "reason": "synthetic publication fixture does not invoke research adapters",
+            }
+            atomic_write_json(path, report)
+            return StageResult((path,), inputs=(state_path,))
+        elif research_adapter is None:
+            actions = [
+                action
+                for job in state.get("jobs", [])
+                for action in plan_research_actions(job, load_deep_research_config(
+                    context.root / "config" / "deep-research.yaml",
+                    context.root / "config" / "deep-research-schema.json",
+                ))
+            ]
+            report = {
+                "schema_version": 1,
+                "status": "ADAPTER_UNCONFIGURED",
+                "actions_planned": actions,
+                "jobs": [],
+                "reason": "No non-generative research adapter was supplied; recovery remains fail-closed.",
+            }
+        else:
+            config = load_deep_research_config(
+                context.root / "config" / "deep-research.yaml",
+                context.root / "config" / "deep-research-schema.json",
+            )
+            executions = [
+                execute_research_round(job, research_adapter, config)
+                for job in state.get("jobs", [])
+            ]
+            report = {
+                "schema_version": 1,
+                "status": "EXECUTED",
+                "jobs": executions,
+                "actions_planned": [action for item in executions for action in item["actions"]],
+            }
+        atomic_write_json(path, report)
+        return StageResult(
+            (path,), inputs=(
+                state_path, context.root / "config" / "deep-research.yaml",
+                context.root / "config" / "deep-research-schema.json",
+            ),
+        )
+
     def research_recovery(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
         intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        execution_path = context.run_dir / "deep-research" / "execution-report.json"
         path = context.run_dir / "research-recovery" / "plan.json"
         if synthetic:
             report = {
@@ -325,9 +386,38 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             readiness = load_local_config(context.root)["editorial_readiness"]
         except (SourceCoverageError, ValueError) as exc:
             raise StageFailure("SOURCE_COVERAGE_CONFIG_INVALID", str(exc)) from exc
-        report = build_recovery_plan(
-            _load(packet_path), _load(intelligence_path), coverage, readiness
-        )
+        packet = _load(packet_path)
+        intelligence = _load(intelligence_path)
+        execution = _load(execution_path)
+        outputs: tuple[Path, ...] = (path,)
+        if execution.get("status") == "EXECUTED":
+            combined = {
+                "source_packet_patch": {
+                    "sources": [
+                        source for item in execution.get("jobs", [])
+                        for source in item.get("source_packet_patch", {}).get("sources", [])
+                    ],
+                    "candidate_evidence_updates": [
+                        update for item in execution.get("jobs", [])
+                        for update in item.get("source_packet_patch", {}).get("candidate_evidence_updates", [])
+                    ],
+                },
+                "recovery_attempts": [
+                    need_id for item in execution.get("jobs", [])
+                    for need_id in item.get("recovery_attempts", [])
+                ],
+            }
+            packet = apply_executor_results_to_packet(packet, combined)
+            intelligence = build_source_intelligence(packet)
+            recovered_packet_path = context.run_dir / "research" / "recovered-research-packet.json"
+            recovered_intelligence_path = context.run_dir / "source-intelligence" / "recovered-report.json"
+            atomic_write_json(recovered_packet_path, packet)
+            atomic_write_json(recovered_intelligence_path, intelligence)
+            outputs = (path, recovered_packet_path, recovered_intelligence_path)
+        attempts = {
+            need_id: 1 for need_id in execution.get("recovery_attempts", [])
+        } if execution.get("status") == "EXECUTED" else None
+        report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
         issues = validate_recovery_plan(report)
         atomic_write_json(path, report)
         if issues:
@@ -339,7 +429,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 "targeted source recovery is required before article generation",
                 outputs=(path,),
             )
-        return StageResult((path,), inputs=(packet_path, intelligence_path, context.run_dir / "deep-research" / "state.json", coverage_path))
+        return StageResult(outputs, inputs=(packet_path, intelligence_path, context.run_dir / "deep-research" / "state.json", execution_path, coverage_path))
 
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
@@ -1059,7 +1149,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("source_intelligence", ("research",), source_intelligence),
         _json_stage("research_planning", ("source_intelligence",), research_planning),
         _json_stage("deep_research", ("research_planning",), deep_research),
-        _json_stage("research_recovery", ("deep_research",), research_recovery),
+        _json_stage("deep_research_execution", ("deep_research",), deep_research_execution),
+        _json_stage("research_recovery", ("deep_research_execution",), research_recovery),
         _json_stage("article_generation", ("research_recovery",), articles),
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
         _json_stage("media_critic", ("claim_evidence_graph",), media_critic),

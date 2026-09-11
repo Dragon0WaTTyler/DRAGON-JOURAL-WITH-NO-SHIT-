@@ -19,7 +19,11 @@ from dragon.investigation_scope import evaluate_super_investigation_scope
 
 
 LEAD_STATES = {"NEW", "RESEARCHING", "SUPPORTED", "DISPUTED", "UNRESOLVED", "REJECTED", "PROMOTED_TO_CANDIDATE"}
-OBSERVATION_KINDS = {"LEAD", "SUPPORTED", "DISPUTED", "UNKNOWN", "CONTRADICTION", "DEAD_END", "SOURCE_GAP"}
+OBSERVATION_KINDS = {
+    "LEAD", "POTENTIAL_EVIDENCE", "CONTEXT", "SUPPORTED", "DISPUTED",
+    "UNKNOWN", "CONTRADICTION", "DUPLICATE", "IRRELEVANT", "DEAD_END",
+    "SOURCE_GAP",
+}
 TERMINAL_REASONS = {"KEY_QUESTIONS_ANSWERED", "EVIDENCE_REPETITIVE", "BUDGET_EXHAUSTED", "NO_BETTER_SOURCES", "STORY_NO_LONGER_MEANINGFUL"}
 
 SECTION_PERSPECTIVES = {
@@ -68,6 +72,19 @@ def load_deep_research_config(path: Path, schema_path: Path | None = None) -> di
         "SOURCE_GAPS", "CONTRADICTIONS", "DEAD_ENDS",
     ]:
         raise DeepResearchError("DEEP_RESEARCH_CONTEXT_BUCKETS_INVALID")
+    limits = value["executor"].get("budget_action_limits", {})
+    if (
+        value["executor"].get("action_timeout_seconds") != 15
+        or value["executor"].get("maximum_actions_per_round") != 8
+        or set(limits) != set(value["budget_classes"])
+        or any(
+            set(limit) != {"search_actions", "fetches"}
+            or limit["search_actions"] > value["budget_classes"][name]["max_branches"]
+            or limit["fetches"] > value["budget_classes"][name]["max_branches"]
+            for name, limit in limits.items()
+        )
+    ):
+        raise DeepResearchError("DEEP_RESEARCH_EXECUTOR_POLICY_INVALID")
     science = value["science"]
     if (
         science.get("strict") is not True
@@ -341,8 +358,9 @@ def advance_research_job(job: dict, branch_results: list[dict], config: dict) ->
             record = {**deepcopy(observation), "fingerprint": fingerprint}
             record.setdefault("observation_id", _stable_id("OBS", value["job_id"], fingerprint))
             value["observations"].append(record)
-            new_material += 1
             kind = record["kind"]
+            if kind not in {"DUPLICATE", "IRRELEVANT", "DEAD_END"}:
+                new_material += 1
             question_id = record.get("question_id")
             verified = record.get("verification_status") == "VERIFIED_EVIDENCE"
             if kind == "SUPPORTED" and verified:
@@ -356,6 +374,8 @@ def advance_research_job(job: dict, branch_results: list[dict], config: dict) ->
                 value["context"]["UNKNOWN"].append(record["observation_id"])
             elif kind == "LEAD":
                 value["context"]["KNOWN"].append(record["observation_id"])
+            elif kind in {"POTENTIAL_EVIDENCE", "CONTEXT"}:
+                value["context"]["KNOWN"].append(record["observation_id"])
             elif kind == "DISPUTED":
                 value["context"]["DISPUTED"].append(record["observation_id"])
             elif kind == "UNKNOWN":
@@ -363,6 +383,8 @@ def advance_research_job(job: dict, branch_results: list[dict], config: dict) ->
             elif kind == "SOURCE_GAP":
                 value["context"]["SOURCE_GAPS"].append(record["observation_id"])
             elif kind == "DEAD_END":
+                value["context"]["DEAD_ENDS"].append(record["observation_id"])
+            elif kind in {"DUPLICATE", "IRRELEVANT"}:
                 value["context"]["DEAD_ENDS"].append(record["observation_id"])
             elif kind == "CONTRADICTION":
                 contradiction = {

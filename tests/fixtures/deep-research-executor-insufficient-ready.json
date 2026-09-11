@@ -1,0 +1,23 @@
+{
+  "scenario": "initial primary-only candidate receives a fixture-verified independent exact page through the executor",
+  "initial_gap": "INDEPENDENT_EVIDENCE_MISSING",
+  "executor_responses": {
+    "RECOVER_INDEPENDENT_SOURCE": [
+      {
+        "url": "https://independent-recovery.example/front",
+        "title": "Independent recovery fixture",
+        "source_class": "independent",
+        "claim": "Fixture claim from an independently reported exact page.",
+        "published_at": "2099-01-02",
+        "retrieved_at": "2099-01-02T07:01:00Z",
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "verification_provenance": "FIXTURE_VERIFIED_EXACT_PAGE"
+      }
+    ]
+  },
+  "expected": {
+    "source_intelligence": "PASS",
+    "recovery": "PASS",
+    "article_generation_allowed": true
+  }
+}

@@ -15,6 +15,14 @@ budget_classes:
   STANDARD: {max_branches: 4, max_depth: 2, max_followup_rounds: 2, max_observations: 50, repetitive_observation_limit: 3}
   DEEP: {max_branches: 6, max_depth: 3, max_followup_rounds: 3, max_observations: 100, repetitive_observation_limit: 3}
   INVESTIGATIVE_LEAD: {max_branches: 8, max_depth: 4, max_followup_rounds: 4, max_observations: 150, repetitive_observation_limit: 4}
+executor:
+  action_timeout_seconds: 15
+  maximum_actions_per_round: 8
+  budget_action_limits:
+    QUICK: {search_actions: 2, fetches: 2}
+    STANDARD: {search_actions: 4, fetches: 4}
+    DEEP: {search_actions: 6, fetches: 6}
+    INVESTIGATIVE_LEAD: {search_actions: 8, fetches: 8}
 context:
   maximum_items_per_bucket: 12
   buckets: [KNOWN, SUPPORTED, DISPUTED, UNKNOWN, NEXT_QUESTIONS, SOURCE_GAPS, CONTRADICTIONS, DEAD_ENDS]

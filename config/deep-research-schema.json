@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "philosophy", "open_discovery", "lead_states", "contradiction_states", "budget_classes", "context", "claim_policies", "science", "super_investigation"],
+  "required": ["version", "philosophy", "open_discovery", "lead_states", "contradiction_states", "budget_classes", "executor", "context", "claim_policies", "science", "super_investigation"],
   "properties": {
     "version": {"const": 1},
     "philosophy": {"type": "object", "required": ["upstream", "downstream"]},
@@ -15,6 +15,22 @@
       "properties": {
         "QUICK": {"$ref": "#/$defs/budget"}, "STANDARD": {"$ref": "#/$defs/budget"},
         "DEEP": {"$ref": "#/$defs/budget"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/budget"}
+      }
+    },
+    "executor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_timeout_seconds", "maximum_actions_per_round", "budget_action_limits"],
+      "properties": {
+        "action_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
+        "maximum_actions_per_round": {"type": "integer", "minimum": 1, "maximum": 20},
+        "budget_action_limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
+          "properties": {
+            "QUICK": {"$ref": "#/$defs/action_limit"}, "STANDARD": {"$ref": "#/$defs/action_limit"},
+            "DEEP": {"$ref": "#/$defs/action_limit"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/action_limit"}
+          }
+        }
       }
     },
     "context": {"type": "object", "required": ["maximum_items_per_bucket", "buckets"]},
@@ -32,6 +48,14 @@
         "max_followup_rounds": {"type": "integer", "minimum": 1, "maximum": 10},
         "max_observations": {"type": "integer", "minimum": 1, "maximum": 1000},
         "repetitive_observation_limit": {"type": "integer", "minimum": 1, "maximum": 20}
+      }
+    },
+    "action_limit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["search_actions", "fetches"],
+      "properties": {
+        "search_actions": {"type": "integer", "minimum": 1, "maximum": 20},
+        "fetches": {"type": "integer", "minimum": 1, "maximum": 20}
       }
     }
   }

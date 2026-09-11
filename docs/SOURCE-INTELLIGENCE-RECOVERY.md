@@ -1,14 +1,14 @@
 # Source Intelligence and Research Recovery
 
 The V5 source path is: discovery → normalized sources → role classification →
-event clustering → deep-research planning and bounded branches → targeted
+event clustering → deep-research planning → bounded executor actions → targeted
 recovery → distinct-event/breadth gate → article provider. Discovery never becomes
 publication evidence without an exact source page and separate primary and
 independent provenance.
 
 The complete iterative model is documented in
-`docs/DEEP-RESEARCH-ENGINE.md`. This document describes its source-intelligence
-and targeted-recovery subsystems.
+`docs/DEEP-RESEARCH-ENGINE.md` and `docs/DEEP-RESEARCH-EXECUTOR.md`. This
+document describes its source-intelligence and targeted-recovery subsystems.
 
 `config/source-coverage.yaml` is the machine-readable desk coverage inventory.
 It is explicitly a preferred seed map, not a whitelist, and intentionally a

@@ -22,7 +22,7 @@ GitHub archive, or WhatsApp delivery. Test-only fixtures may create ignored
 | Unit/contracts | `test_v5_contract.py`, `test_v5_state.py`, `test_v5_config*` coverage through contract tests |
 | Orchestration, locking, recovery | `test_v5_orchestrator.py`, `test_v5_lock_watchdog.py`, `test_v5_recovery.py`, `test_v5_chaos.py` |
 | Source intelligence | `test_v5_discovery.py`, `test_v5_source_intelligence.py`, `test_v5_structured_extraction.py`, `test_v5_change_monitoring.py` |
-| Research/editorial/evidence | `test_v5_deep_research.py`, `test_v5_research_planning.py`, `test_v5_research_recovery.py`, `test_v5_editorial_provider.py`, `test_v5_article_budgets.py`, `test_v5_evidence_graph.py`, `test_v5_editorial_gates.py` |
+| Research/editorial/evidence | `test_v5_deep_research.py`, `test_v5_deep_research_executor.py`, `test_v5_research_planning.py`, `test_v5_research_recovery.py`, `test_v5_editorial_provider.py`, `test_v5_article_budgets.py`, `test_v5_evidence_graph.py`, `test_v5_editorial_gates.py` |
 | Arabic, cover, layout | `test_arabic_language_qa_v5.py`, `test_v5_design*.py`, `test_v5_assets.py`, `test_v5_layout_doctor.py` |
 | PDF/EPUB/finality | `test_v5_publication.py`, `test_v5_epub.py`, `test_v5_epubcheck.py`, `test_v5_synthetic_pipeline.py`, `test_v5_acceptance.py` |
 | Archive/delivery mocks | `test_v5_archive.py`, `test_v5_whatsapp.py` |

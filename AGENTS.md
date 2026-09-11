@@ -28,7 +28,7 @@ edition.
 The orchestrator owns these ordered stages:
 
 `preflight -> source_monitoring -> research -> source_intelligence -> research_planning ->
-deep_research -> research_recovery -> article_generation -> claim_evidence_graph -> media_critic ->
+deep_research -> deep_research_execution -> research_recovery -> article_generation -> claim_evidence_graph -> media_critic ->
 science_integrity -> investigation_engine -> adversarial_review -> factcheck -> chief_editor ->
 arabic_language_qa -> cover_direction -> cover -> layout_direction -> publication_source -> pdf ->
 epub -> final_qa -> github_archive -> whatsapp_delivery`

@@ -80,6 +80,10 @@ embeds those needs into job state and may target them during replanning.
 Recovery is therefore a subsystem of research, not the entire research brain.
 Its fail-closed gate still runs before article generation.
 
+The executable adapter layer is documented in
+`docs/DEEP-RESEARCH-EXECUTOR.md`. It remains provider-neutral and disabled by
+default until a non-generative adapter is explicitly supplied.
+
 ## Claim-sensitive policy model
 
 The v1 configuration models, but does not activate as a replacement for,

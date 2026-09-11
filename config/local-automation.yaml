@@ -28,6 +28,7 @@ orchestrator:
     - source_intelligence
     - research_planning
     - deep_research
+    - deep_research_execution
     - research_recovery
     - article_generation
     - claim_evidence_graph
@@ -78,6 +79,7 @@ watchdog:
     source_intelligence: 600
     research_planning: 600
     deep_research: 600
+    deep_research_execution: 900
     research_recovery: 600
     article_generation: 7200
     claim_evidence_graph: 600
