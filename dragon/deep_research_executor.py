@@ -157,6 +157,16 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
         ),
         key=lambda item: (priority.get(str(item.get("kind")), 3), str(item.get("need_id"))),
     )
+    role_needs = [
+        item for item in needs
+        if item.get("kind") in {
+            "FIND_PRIMARY_ORIGINAL_EVIDENCE",
+            "FIND_INDEPENDENT_CORROBORATION",
+        }
+    ]
+    # Never spend the remaining branch budget on breadth/context while an
+    # explicit evidence-role recovery is still open for this same job.
+    needs = role_needs or needs
     if needs and branches:
         pairs = [
             (branches[index % len(branches)], need)

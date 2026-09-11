@@ -249,6 +249,13 @@ def test_primary_and_independent_only_gaps_get_opposite_recovery_searches() -> N
     assert plan_research_actions(_job(needs=[primary_need]), CONFIG)[0]["action_type"] == "RECOVER_PRIMARY_SOURCE"
 
 
+def test_role_recovery_defers_breadth_need_in_the_same_job() -> None:
+    role_need = {"need_id": "role", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
+    breadth_need = {"need_id": "breadth", "candidate_id": None, "kind": "NEED_DISTINCT_EVENT", "max_attempts": 1}
+    actions = plan_research_actions(_job(needs=[role_need, breadth_need]), CONFIG)
+    assert [item["recovery_need_id"] for item in actions] == ["role"]
+
+
 @pytest.mark.parametrize("kind", ["NEED_WORLD_BREADTH", "NEED_ACCOUNTABILITY_AND_SERVICE"])
 def test_breadth_needs_execute_targeted_discovery(kind: str) -> None:
     need = {"need_id": kind, "candidate_id": None, "kind": kind, "max_attempts": 1, "topic_identifiers": ["world"]}
