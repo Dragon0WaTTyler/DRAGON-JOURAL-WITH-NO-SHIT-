@@ -27,6 +27,7 @@ TEST_TARGETS = (
     "tests/test_v5_orchestrator.py",
     "tests/test_v5_lock_watchdog.py",
     "tests/test_v5_editorial_provider.py",
+    "tests/test_v5_article_budgets.py",
     "tests/test_v5_publication.py",
     "tests/test_v5_epub.py",
     "tests/test_v5_archive.py",
@@ -68,6 +69,7 @@ SCENARIO_MARKERS = {
     "whatsapp_failure": "[whatsapp_delivery]",
     "stale_lock": "test_live_stale_owner_is_never_duplicated",
     "invalid_article_output": "test_provider_retries_invalid_article_output_once_with_exact_feedback",
+    "article_length_budget": "test_validator_reports_every_underlength_article_and_aggregate_deficit",
     "casablanca_midnight": "test_casablanca_edition_date_changes_only_at_local_midnight",
     "duplicate_schedule_invocation": "test_lock_is_exclusive_and_owner_releases_it",
 }

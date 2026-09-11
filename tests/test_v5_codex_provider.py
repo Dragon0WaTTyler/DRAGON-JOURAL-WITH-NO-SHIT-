@@ -107,12 +107,17 @@ def test_article_prompt_explains_runtime_word_constraints() -> None:
             "quality_constraints": {
                 "minimum_active_article_words": 350,
                 "minimum_edition_words": 4000,
-            }
+            },
+            "article_budget_contract": {
+                "generation_target_words": 6000,
+                "articles": [{"section_id": "front", "minimum_words": 350, "target_words": 600, "evidence_ids": ["s1"]}],
+            },
         },
     )
     assert "minimum_active_article_words" in prompt
     assert "minimum_edition_words" in prompt
-    assert "Target at least 4500" in prompt
+    assert "generation_target_words" in prompt
+    assert "6000" in prompt
     assert "combined edition words" in prompt
     assert "zero ACTIVE articles" in prompt
     assert "تحرير: اسم القلم" in prompt

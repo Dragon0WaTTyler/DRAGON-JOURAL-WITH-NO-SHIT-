@@ -60,11 +60,21 @@ json.dump(value, sys.stdout, ensure_ascii=False)
 def test_local_command_provider_health_research_and_section_decisions(tmp_path: Path) -> None:
     script = tmp_path / "provider.py"
     _provider_script(script)
-    provider = LocalCommandEditorialProvider((sys.executable, str(script)), timeout_seconds=30)
+    provider = LocalCommandEditorialProvider(
+        (sys.executable, str(script)), timeout_seconds=30,
+        minimum_active_sections=1, minimum_edition_words=350,
+    )
     assert provider.healthcheck()["unattended"] is True
     research = provider.research("2099-01-02")
     assert research["sources"][0]["url"] == "https://example.org/exact-page"
     assert len(research["sections"]) == 23
+    for section in research["sections"][1:]:
+        section.update({
+            "status": "NO_NEWS", "candidates": [], "selected_candidate_id": None,
+            "selection_reason": None,
+            "no_news_reason": "لا توجد مادة موثقة كافية للنشر في هذا القسم التجريبي",
+            "fallback_action": "SKIP",
+        })
     decisions = provider.articles(research)
     assert len(decisions) == 23
     assert decisions[0]["status"] == "ACTIVE"
@@ -251,13 +261,7 @@ def test_provider_retries_invalid_article_output_once_with_exact_feedback(tmp_pa
             return [{"section_id": "front", "status": "ACTIVE"}]
 
     provider = InvalidArticleProvider(("unused",), capture_directory=tmp_path)
-    research = {
-        "sources": [{"id": "s1"}],
-        "sections": [
-            {"section_id": section_id, "selected_candidate_id": f"{section_id}-c1"}
-            for section_id, _ in SECTION_HEADINGS
-        ],
-    }
+    research = SyntheticEditorialProvider().research("2099-01-02")
 
     try:
         provider.articles(research)

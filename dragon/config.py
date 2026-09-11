@@ -63,6 +63,30 @@ def _editorial_readiness(root: Path) -> dict[str, Any]:
     }
 
 
+def _editorial_word_budget(root: Path) -> dict[str, Any]:
+    """Read the established generation range without duplicating it in prompts."""
+    path = root / "config" / "editorial-depth.yaml"
+    if not path.is_file():
+        return {}
+    depth = load_mapping(path)
+    edition = depth.get("edition")
+    if not isinstance(edition, dict):
+        raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+    try:
+        floor = int(edition["hard_min_words"])
+        low_text, high_text = str(edition["target_words"]).split("-", 1)
+        target, maximum = int(low_text.strip()), int(high_text.strip())
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID") from exc
+    if floor < 1 or target < floor or maximum < target:
+        raise ValueError("EDITORIAL_WORD_BUDGET_CONFIG_INVALID")
+    return {
+        "acceptance_floor_words": floor,
+        "generation_target_edition_words": target,
+        "generation_maximum_edition_words": maximum,
+    }
+
+
 def load_local_config(root: Path) -> dict[str, Any]:
     config = load_mapping(root / "config" / "local-automation.yaml")
     if config.get("version") != 5:
@@ -72,4 +96,5 @@ def load_local_config(root: Path) -> dict[str, Any]:
         raise ValueError("CONFIG_STAGES_INVALID: stages must be a non-empty unique list")
     configured_byline(config)
     config["editorial_readiness"] = _editorial_readiness(root)
+    config["editorial_word_budget"] = _editorial_word_budget(root)
     return config

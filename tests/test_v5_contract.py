@@ -82,6 +82,16 @@ class V5ContractTests(unittest.TestCase):
         self.assertEqual(providers["repair"]["type"], "unconfigured")
         self.assertEqual(providers["whatsapp"]["type"], "unconfigured")
 
+    def test_generation_budget_is_derived_from_editorial_depth_contract(self):
+        from dragon.config import load_local_config
+
+        value = load_local_config(ROOT)["editorial_word_budget"]
+        self.assertEqual(value, {
+            "acceptance_floor_words": 4000,
+            "generation_target_edition_words": 6000,
+            "generation_maximum_edition_words": 9000,
+        })
+
     def test_executable_stage_graph_matches_authoritative_config(self):
         from dragon.pipeline import build_stage_definitions
         from dragon.providers import SyntheticEditorialProvider

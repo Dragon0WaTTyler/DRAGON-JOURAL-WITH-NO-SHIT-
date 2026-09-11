@@ -408,24 +408,30 @@ PUBLIC_DATA_ANALYSIS, or SKIP. Never invent filler or weak candidates to satisfy
     expected_byline = payload.get("editorial_identity", {}).get("expected_byline")
     constraints = payload.get("quality_constraints", {})
     minimum_edition_words = int(constraints.get("minimum_edition_words", 4000))
-    # A small buffer makes the model re-count instead of returning a response
-    # that narrowly misses the deterministic whitespace-token validator.
-    edition_word_target = minimum_edition_words + max(500, (minimum_edition_words + 9) // 10)
+    budget_contract = payload.get("article_budget_contract", {})
+    article_budgets = budget_contract.get("articles", []) if isinstance(budget_contract, dict) else []
+    generation_target = int(budget_contract.get("generation_target_words", minimum_edition_words)) if isinstance(budget_contract, dict) else minimum_edition_words
     return f"""You are the article desk for a professional Arabic newspaper. {safety}
 Research packet: {source}
 Fixed sections: {sections}
+Authoritative article budget contract: {json.dumps(budget_contract, ensure_ascii=False)}
 Return one root object containing an articles array with exactly one decision per fixed section.
 The research packet includes quality_constraints. Every ACTIVE article must meet or exceed
 minimum_active_article_words, and the combined words of all ACTIVE article bodies must meet or
-exceed minimum_edition_words. Count whitespace-delimited words in body paragraphs only.
-Before returning, independently re-count every ACTIVE body. Target at least {edition_word_target}
-combined body words, rather than merely the configured minimum of {minimum_edition_words}; expand
-only with source-supported context, uncertainty, consequences, or next steps.
+exceed minimum_edition_words. Count whitespace-delimited words in body paragraphs only. The
+article_budget_contract is the sole authoritative target: each ACTIVE selected section must use its
+own minimum_words and target_words, and the combined body count must reach generation_target_words
+({generation_target}), not merely the acceptance floor ({minimum_edition_words}). Before returning,
+independently re-count every ACTIVE body against its budget. Expand only with source-supported
+context, uncertainty, consequences, chronology, competing perspectives, or next steps.
 If repair_context is present, this is the only allowed repair attempt. Obey its exact validation
-error, preserve each already-valid decision's identity, evidence linkage, and factual claims, and
-change only the fields needed to correct the invalidity. If the error names combined edition words,
-the aggregate is invalid even where individual articles meet their own minimum: append supported
-paragraphs to ACTIVE bodies and re-count before returning the complete 23-decision wrapper.
+error and validation_diagnostics. Repair every entry in failing_articles in one response, using its
+actual_words, minimum_words, target_words, deficits, and evidence_ids, while also satisfying the
+aggregate floor/target in aggregate. Preserve each already-valid decision's identity, evidence
+linkage, factual claims, and body length; change only fields needed to correct diagnosed failures.
+If the error names combined edition words, the aggregate is invalid even where individual articles
+meet their own minimum: append supported paragraphs to all deficient ACTIVE bodies and re-count
+before returning the complete 23-decision wrapper.
 If the error says there are zero ACTIVE articles while the research packet contains ACTIVE selected
 candidates, the skipped decisions for those candidates are invalid: write supported ACTIVE articles
 from those selected candidates. Never activate a NO_NEWS section or invent evidence.
