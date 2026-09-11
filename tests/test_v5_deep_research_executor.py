@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import json
 from pathlib import Path
 
@@ -162,6 +161,13 @@ def test_repetition_and_action_budgets_stop_unbounded_expansion() -> None:
     assert execution["job"]["status"] == "STOPPED"
 
 
+def test_repeated_executor_material_stops_the_next_branch_round() -> None:
+    first = execute_research_round(_job(), FixtureResearchAdapter({"SEARCH_DISCOVERY": [_result("https://repeat.example/item")]}), CONFIG)
+    second = execute_research_round(first["job"], FixtureResearchAdapter({"SEARCH_DISCOVERY": [_result("https://repeat.example/item")]}), CONFIG)
+    assert all(item["observation_class"] == "DUPLICATE" for item in second["observations"])
+    assert second["job"]["stop_condition"] == "NO_BETTER_SOURCES"
+
+
 def test_context_compression_keeps_open_questions_visible() -> None:
     job = _job()
     responses = [_result(f"https://source{index}.example/item", "unknown") for index in range(8)]
@@ -177,6 +183,14 @@ def test_recovery_role_needs_execute_as_specific_actions() -> None:
     assert [item["action_type"] for item in actions[:2]] == ["RECOVER_PRIMARY_SOURCE", "RECOVER_INDEPENDENT_SOURCE"]
 
 
+def test_recovery_need_execution_records_attempt_and_structured_output() -> None:
+    need = {"need_id": "p", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
+    execution = execute_research_round(_job(needs=[need]), FixtureResearchAdapter({"RECOVER_PRIMARY_SOURCE": [_result("https://official.example/original", "official")]}), CONFIG)
+    assert execution["actions"][0]["action_type"] == "RECOVER_PRIMARY_SOURCE"
+    assert execution["recovery_attempts"] == ["p"]
+    assert execution["observations"][0]["observation_class"] == "POTENTIAL_EVIDENCE"
+
+
 def test_primary_and_independent_only_gaps_get_opposite_recovery_searches() -> None:
     independent_need = {"need_id": "i", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1}
     primary_need = {"need_id": "p", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
@@ -187,9 +201,9 @@ def test_primary_and_independent_only_gaps_get_opposite_recovery_searches() -> N
 @pytest.mark.parametrize("kind", ["NEED_WORLD_BREADTH", "NEED_ACCOUNTABILITY_AND_SERVICE"])
 def test_breadth_needs_execute_targeted_discovery(kind: str) -> None:
     need = {"need_id": kind, "candidate_id": None, "kind": kind, "max_attempts": 1, "topic_identifiers": ["world"]}
-    action = plan_research_actions(_job(needs=[need]), CONFIG)[0]
-    assert action["action_type"] == "SEARCH_DISCOVERY"
-    assert action["recovery_need_id"] == kind
+    execution = execute_research_round(_job(needs=[need]), FixtureResearchAdapter({"SEARCH_DISCOVERY": [_result(f"https://{kind.lower()}.example/item", "unknown")]}), CONFIG)
+    assert execution["actions"][0]["action_type"] == "SEARCH_DISCOVERY"
+    assert execution["recovery_attempts"] == [kind]
 
 
 def test_no_news_requires_terminal_executor_effort() -> None:
