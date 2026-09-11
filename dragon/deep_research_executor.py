@@ -426,7 +426,10 @@ def build_research_yield_report(
             "question": action.get("query"),
             "desk": action["desk"],
             "recovery_need_id": action.get("recovery_need_id"),
-            "source_discovery_channels": sorted({item["discovery_channel"] for item in action_observations}),
+            "source_discovery_channels": sorted({
+                str(item.get("discovery_channel") or item.get("discovery_method") or "UNKNOWN")
+                for item in action_observations
+            }),
             "urls": sorted({item["url"] for item in action_observations if item.get("url")}),
             "source_ids": sorted({item["source_id"] for item in action_observations if item.get("source_id")}),
             "observation_types": sorted({item["observation_class"] for item in action_observations}),
