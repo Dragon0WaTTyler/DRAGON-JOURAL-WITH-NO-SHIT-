@@ -233,6 +233,10 @@ RUNNING stages, stale live heartbeats, and failed/blocked stages already marked
 `NO_ACTION` and never trigger a duplicate process.
 
 `python dragon_watchdog.py --check-only` remains the read-only machine probe.
+For a provider-free scheduling smoke test, use
+`python dragon_watchdog.py --synthetic --date YYYY-MM-DD`. The explicit date is
+mandatory and the watchdog launches only the deterministic fixture pipeline;
+the saved production automation never uses this flag.
 The Codex automation must remain inactive during build-behind. At cutover, its
 tool-returned automation ID, saved-project ID, active status, daily schedule, and
 prompt are recorded in reviewed scheduler evidence. The repository lock remains
