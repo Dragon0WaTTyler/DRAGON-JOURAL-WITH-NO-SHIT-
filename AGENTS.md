@@ -27,9 +27,11 @@ edition.
 
 The orchestrator owns these ordered stages:
 
-`preflight -> source_monitoring -> research -> article_generation -> chief_editor -> factcheck ->
-arabic_language_qa -> cover -> publication_source -> pdf -> epub -> final_qa
--> github_archive -> whatsapp_delivery`
+`preflight -> source_monitoring -> research -> source_intelligence -> research_planning ->
+deep_research -> research_recovery -> article_generation -> claim_evidence_graph -> media_critic ->
+science_integrity -> investigation_engine -> adversarial_review -> factcheck -> chief_editor ->
+arabic_language_qa -> cover_direction -> cover -> layout_direction -> publication_source -> pdf ->
+epub -> final_qa -> github_archive -> whatsapp_delivery`
 
 Successful stages are checkpoints. Resume and targeted retry must validate and
 reuse them rather than rerunning successful upstream work. Stage completion is

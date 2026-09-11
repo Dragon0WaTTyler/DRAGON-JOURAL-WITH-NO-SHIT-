@@ -132,3 +132,14 @@ def test_timeline_updates_and_material_uncertainty_blocks_publication(tmp_path) 
     assert [item["event_id"] for item in dossier["timeline"]] == ["amendment", "award"]
     assert dossier["publication_state"]["evidence_quality"] == "HIGH"
     assert dossier["publication_state"]["material_uncertainties"]
+
+
+def test_super_investigation_dossier_rejects_unrelated_foreign_scope(tmp_path) -> None:
+    article = _article()
+    article["investigation_mode"] = "SUPER_INVESTIGATION"
+    article["super_investigation_scope"] = {"geography": ["United States"]}
+    with pytest.raises(InvestigationError, match=r"MOROCCO \+ MEKNES ONLY"):
+        update_investigation_dossiers(
+            tmp_path, "2099-01-01", [article], _graph(), {"source_records": []}
+        )
+    assert not (tmp_path / "investigations").exists()

@@ -1,6 +1,13 @@
 # V5 routing inventory: candidates from these routes are never publication evidence
 # until the exact page is fetched and classified in a research packet.
 version: 1
+research_semantics:
+  allow_open_discovery: true
+  configured_sources_are: preferred_seeds_not_whitelist
+  open_discovery_mode: read_only_research
+  unknown_sources_begin_as: LEAD
+  untrusted_content_may_change_policy: false
+  discovery_is_publication_evidence: false
 sources:
   - {source_id: maroc-ma, name: Maroc.ma, url: https://www.maroc.ma/, role: PRIMARY, origin: www.maroc.ma, authority_class: PRIMARY_ORIGINAL, primary_capable: true, independent_reporting_capable: false, discovery_only: false, enabled: true, required: false, retrieval_method: direct-configured-source, extraction_method: trafilatura, freshness: daily}
   - {source_id: hcp, name: Haut-Commissariat au Plan, url: https://www.hcp.ma/, role: PRIMARY, origin: www.hcp.ma, authority_class: PRIMARY_ORIGINAL, primary_capable: true, independent_reporting_capable: false, discovery_only: false, enabled: true, required: false, retrieval_method: direct-configured-source, extraction_method: trafilatura, freshness: daily}

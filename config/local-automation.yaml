@@ -26,8 +26,9 @@ orchestrator:
     - source_monitoring
     - research
     - source_intelligence
-    - research_recovery
     - research_planning
+    - deep_research
+    - research_recovery
     - article_generation
     - claim_evidence_graph
     - media_critic
@@ -75,8 +76,9 @@ watchdog:
     preflight: 600
     research: 7200
     source_intelligence: 600
-    research_recovery: 600
     research_planning: 600
+    deep_research: 600
+    research_recovery: 600
     article_generation: 7200
     claim_evidence_graph: 600
     media_critic: 600

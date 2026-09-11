@@ -41,6 +41,16 @@ def load_source_coverage(path: Path, expected_sections: set[str]) -> dict:
         raise SourceCoverageError(str(exc)) from exc
     if not isinstance(value, dict) or value.get("version") != 1:
         raise SourceCoverageError("SOURCE_COVERAGE_ROOT_INVALID")
+    semantics = value.get("research_semantics")
+    if semantics != {
+        "allow_open_discovery": True,
+        "configured_sources_are": "preferred_seeds_not_whitelist",
+        "open_discovery_mode": "read_only_research",
+        "unknown_sources_begin_as": "LEAD",
+        "untrusted_content_may_change_policy": False,
+        "discovery_is_publication_evidence": False,
+    }:
+        raise SourceCoverageError("SOURCE_COVERAGE_RESEARCH_SEMANTICS_INVALID")
     sources = value.get("sources")
     desks = value.get("desks")
     if not isinstance(sources, list) or not isinstance(desks, list):
@@ -109,4 +119,5 @@ def desk_recovery_context(coverage: dict, section_id: str) -> dict:
         "configured_primary_source_ids": [item["source_id"] for item in routes if item["primary_capable"]],
         "configured_independent_source_ids": [item["source_id"] for item in routes if item["independent_reporting_capable"]],
         "configured_discovery_source_ids": [item["source_id"] for item in routes if item["discovery_only"]],
+        "allow_open_discovery": coverage["research_semantics"]["allow_open_discovery"],
     }

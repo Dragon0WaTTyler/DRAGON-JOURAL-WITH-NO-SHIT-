@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from dragon.investigation_scope import evaluate_super_investigation_scope
 from dragon.state import atomic_write_json, sha256_file
 
 
@@ -136,6 +137,14 @@ def update_investigation_dossiers(
     for article in articles:
         if article.get("status") != "ACTIVE" or article.get("section_id") != "investigations":
             continue
+        if article.get("investigation_mode") == "SUPER_INVESTIGATION":
+            scope = evaluate_super_investigation_scope(
+                article.get("super_investigation_scope") or {}
+            )
+            if scope["status"] != "ELIGIBLE":
+                raise InvestigationError(
+                    "SUPER_INVESTIGATION_SCOPE_REJECTED: MOROCCO + MEKNES ONLY"
+                )
         story_key = str(article.get("story_key") or "")
         if not story_key:
             raise InvestigationError("active investigation has no stable story_key")

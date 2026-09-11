@@ -1,18 +1,25 @@
 # Source Intelligence and Research Recovery
 
 The V5 source path is: discovery → normalized sources → role classification →
-event clustering → candidate evidence eligibility → bounded recovery planning
-→ distinct-event/breadth gate → article provider. Discovery never becomes
+event clustering → deep-research planning and bounded branches → targeted
+recovery → distinct-event/breadth gate → article provider. Discovery never becomes
 publication evidence without an exact source page and separate primary and
 independent provenance.
 
+The complete iterative model is documented in
+`docs/DEEP-RESEARCH-ENGINE.md`. This document describes its source-intelligence
+and targeted-recovery subsystems.
+
 `config/source-coverage.yaml` is the machine-readable desk coverage inventory.
-It is intentionally a route map rather than an assertion that any listed page
+It is explicitly a preferred seed map, not a whitelist, and intentionally a
+route map rather than an assertion that any listed page
 supports a story. `PARTIAL` and `GAP` mark configured limitations honestly; in
 particular Meknes, Africa/Sahel, literature, history, investigations and
 service lack a fully configured primary-plus-independent route.
 
-`dragon.research_recovery` emits finite needs. Role gaps become
+`dragon.research_recovery` is not the complete research brain. It emits finite
+needs when the deep-research state or publication-readiness gate identifies a
+targeted gap. Role gaps become
 `FIND_PRIMARY_ORIGINAL_EVIDENCE` or `FIND_INDEPENDENT_CORROBORATION`; breadth
 gaps become `NEED_*` needs. Every need records its prior source IDs/origins,
 target section/event, constraints, attempt limit and stop condition. A later

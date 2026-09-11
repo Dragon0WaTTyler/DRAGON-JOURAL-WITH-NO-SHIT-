@@ -17,6 +17,12 @@ from dragon.change_monitoring import (
     monitor_watchlist,
 )
 from dragon.config import load_local_config
+from dragon.deep_research import (
+    DeepResearchError,
+    build_deep_research_state,
+    load_deep_research_config,
+    validate_deep_research_state,
+)
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
     build_cover_brief,
@@ -160,7 +166,17 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             except DiscoveryError as exc:
                 raise StageFailure(exc.code, exc.detail) from exc
             provider_input["source_discovery"] = provider_prompt_context(registry)
-            inputs = (registry_path, registry_path.with_name("provider-registry-schema.json"))
+            inputs = (*inputs, registry_path, registry_path.with_name("provider-registry-schema.json"))
+        coverage_path = context.root / "config" / "source-coverage.yaml"
+        if coverage_path.exists():
+            try:
+                coverage = load_source_coverage(
+                    coverage_path, {section_id for section_id, _ in SECTION_HEADINGS}
+                )
+            except SourceCoverageError as exc:
+                raise StageFailure("SOURCE_COVERAGE_CONFIG_INVALID", str(exc)) from exc
+            provider_input["research_semantics"] = coverage["research_semantics"]
+            inputs = (*inputs, coverage_path)
         try:
             packet = provider.research(context.edition_date, provider_input)
         except ProviderError as exc:
@@ -178,6 +194,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         packet["research_plan"] = _load(
             context.run_dir / "research-planning" / "plan.json"
         )
+        packet["deep_research"] = _load(
+            context.run_dir / "deep-research" / "state.json"
+        )
         recovery = _load(context.run_dir / "research-recovery" / "plan.json")
         if recovery.get("status") != "NOT_APPLICABLE":
             packet["research_recovery"] = recovery
@@ -193,6 +212,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.run_dir / "research" / "research-packet.json",
                 context.run_dir / "source-intelligence" / "report.json",
                 context.run_dir / "research-planning" / "plan.json",
+                context.run_dir / "deep-research" / "state.json",
                 context.run_dir / "research-recovery" / "plan.json",
             ),
         )
@@ -242,6 +262,47 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             (path, registry_output), inputs=(packet_path, *registry_inputs)
         )
 
+    def deep_research(context: StageContext) -> StageResult:
+        packet_path = context.run_dir / "research" / "research-packet.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        research_plan_path = context.run_dir / "research-planning" / "plan.json"
+        monitoring_path = context.run_dir / "source-monitoring" / "report.json"
+        path = context.run_dir / "deep-research" / "state.json"
+        if synthetic:
+            report = {
+                "schema_version": 1, "status": "NOT_APPLICABLE", "jobs": [],
+                "reason": "synthetic publication fixture does not simulate open-ended research",
+            }
+            atomic_write_json(path, report)
+            return StageResult((path,), inputs=(packet_path, intelligence_path, research_plan_path))
+        coverage_path = context.root / "config" / "source-coverage.yaml"
+        config_path = context.root / "config" / "deep-research.yaml"
+        schema_path = context.root / "config" / "deep-research-schema.json"
+        try:
+            deep_config = load_deep_research_config(config_path, schema_path)
+            coverage = load_source_coverage(
+                coverage_path, {section_id for section_id, _ in SECTION_HEADINGS}
+            )
+            readiness = load_local_config(context.root)["editorial_readiness"]
+        except (DeepResearchError, SourceCoverageError, ValueError) as exc:
+            raise StageFailure("DEEP_RESEARCH_CONFIG_INVALID", str(exc)) from exc
+        packet = _load(packet_path)
+        intelligence = _load(intelligence_path)
+        recovery = build_recovery_plan(packet, intelligence, coverage, readiness)
+        monitoring = _load(monitoring_path)
+        report = build_deep_research_state(
+            packet, intelligence, _load(research_plan_path), recovery, deep_config,
+            discovery_signals=monitoring.get("discovery_candidates", []),
+        )
+        issues = validate_deep_research_state(report)
+        atomic_write_json(path, report)
+        if issues:
+            raise StageFailure("DEEP_RESEARCH_STATE_INVALID", "; ".join(issues), outputs=(path,))
+        return StageResult(
+            (path,),
+            inputs=(packet_path, intelligence_path, research_plan_path, monitoring_path, coverage_path, config_path, schema_path),
+        )
+
     def research_recovery(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
         intelligence_path = context.run_dir / "source-intelligence" / "report.json"
@@ -278,7 +339,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 "targeted source recovery is required before article generation",
                 outputs=(path,),
             )
-        return StageResult((path,), inputs=(packet_path, intelligence_path, coverage_path))
+        return StageResult((path,), inputs=(packet_path, intelligence_path, context.run_dir / "deep-research" / "state.json", coverage_path))
 
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
@@ -304,7 +365,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("RESEARCH_PLAN_INVALID", "; ".join(issues))
         path = context.run_dir / "research-planning" / "plan.json"
         atomic_write_json(path, plan)
-        return StageResult((path,), inputs=(packet_path, intelligence_path, context.run_dir / "research-recovery" / "plan.json", *budget_inputs))
+        return StageResult((path,), inputs=(packet_path, intelligence_path, *budget_inputs))
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
@@ -996,9 +1057,10 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("source_monitoring", ("preflight",), source_monitoring),
         _json_stage("research", ("source_monitoring",), research),
         _json_stage("source_intelligence", ("research",), source_intelligence),
-        _json_stage("research_recovery", ("source_intelligence",), research_recovery),
-        _json_stage("research_planning", ("research_recovery",), research_planning),
-        _json_stage("article_generation", ("research_planning",), articles),
+        _json_stage("research_planning", ("source_intelligence",), research_planning),
+        _json_stage("deep_research", ("research_planning",), deep_research),
+        _json_stage("research_recovery", ("deep_research",), research_recovery),
+        _json_stage("article_generation", ("research_recovery",), articles),
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
         _json_stage("media_critic", ("claim_evidence_graph",), media_critic),
         _json_stage("science_integrity", ("media_critic",), science_integrity),

@@ -17,27 +17,30 @@ changes the newspaper timezone.
 The authoritative stage order is:
 
 1. `preflight`
-2. `research`
-3. `source_intelligence`
-4. `research_planning`
-5. `article_generation`
-6. `claim_evidence_graph`
-7. `media_critic`
-8. `science_integrity`
-9. `investigation_engine`
-10. `adversarial_review`
-11. `factcheck`
-12. `chief_editor`
-13. `arabic_language_qa`
-14. `cover_direction`
-15. `cover`
-16. `layout_direction`
-17. `publication_source`
-18. `pdf`
-19. `epub`
-20. `final_qa`
-21. `github_archive`
-22. `whatsapp_delivery`
+2. `source_monitoring`
+3. `research`
+4. `source_intelligence`
+5. `research_planning`
+6. `deep_research`
+7. `research_recovery`
+8. `article_generation`
+9. `claim_evidence_graph`
+10. `media_critic`
+11. `science_integrity`
+12. `investigation_engine`
+13. `adversarial_review`
+14. `factcheck`
+15. `chief_editor`
+16. `arabic_language_qa`
+17. `cover_direction`
+18. `cover`
+19. `layout_direction`
+20. `publication_source`
+21. `pdf`
+22. `epub`
+23. `final_qa`
+24. `github_archive`
+25. `whatsapp_delivery`
 
 Every stage declares prerequisites, inputs, outputs, acceptance validation, and
 retry policy. A stage record contains status, start/end timestamps, attempt

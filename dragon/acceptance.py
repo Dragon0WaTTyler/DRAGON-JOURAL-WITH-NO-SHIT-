@@ -18,6 +18,8 @@ LOCAL_STAGES = (
     "research",
     "source_intelligence",
     "research_planning",
+    "deep_research",
+    "research_recovery",
     "article_generation",
     "claim_evidence_graph",
     "media_critic",
