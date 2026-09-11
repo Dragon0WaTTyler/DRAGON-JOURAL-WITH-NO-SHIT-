@@ -13,7 +13,15 @@ from dragon.recovery import RecoveryEngine
 from dragon.report import finalize_report
 from dragon.runlog import StageLogger
 from dragon.stages import StageContext, StageDefinition, StageFailure, StageResult
-from dragon.state import StateStore, now_iso, runtime_fingerprint, sha256_file, source_revision
+from dragon.state import (
+    EXECUTION_MODE_FRESH,
+    EXECUTION_MODE_RESUME,
+    StateStore,
+    now_iso,
+    runtime_fingerprint,
+    sha256_file,
+    source_revision,
+)
 
 
 class Orchestrator:
@@ -27,6 +35,9 @@ class Orchestrator:
         recovery_engine: RecoveryEngine | None = None,
         use_lock: bool = True,
         target_deadline: str | None = None,
+        execution_mode: str = EXECUTION_MODE_RESUME,
+        run_id: str | None = None,
+        source_attempt_id: str | None = None,
     ):
         self.root = root.resolve()
         self.edition_date = date.fromisoformat(edition_date).isoformat()
@@ -34,6 +45,7 @@ class Orchestrator:
         self.recovery_engine = recovery_engine
         self.use_lock = use_lock
         self.target_deadline = target_deadline
+        self.execution_mode = execution_mode
         self._last_traceback: str | None = None
         self.definitions = list(stages)
         self.stage_names = [stage.name for stage in self.definitions]
@@ -50,6 +62,9 @@ class Orchestrator:
             self.timezone,
             self.stage_names,
             {stage.name: list(stage.prerequisites) for stage in self.definitions},
+            execution_mode=execution_mode,
+            run_id=run_id,
+            source_attempt_id=source_attempt_id,
         )
 
     def status(self) -> dict:
@@ -124,6 +139,10 @@ class Orchestrator:
         retry_stage: str | None = None,
         from_stage: str | None = None,
     ) -> dict:
+        if self.execution_mode == EXECUTION_MODE_FRESH and (
+            resume or retry_stage or from_stage
+        ):
+            raise ValueError("FRESH_RUN_RESUME_OR_RETRY_UNSUPPORTED")
         if self.use_lock:
             with RunLock(self.store.run_dir / "run.lock", self.timezone) as lock:
                 state = self.store.initialize()

@@ -60,6 +60,27 @@ never mixed. Deployment-only cutover switches and `scheduler.enabled` are
 excluded from the fingerprint to avoid invalidating proven trials when the
 accepted scheduler is activated.
 
+### Run identity and provider evidence isolation
+
+`edition_date` identifies the newspaper date; it is not a run or provider
+attempt identity: `PROVIDER ATTEMPT != DAILY EDITION`. Normal V5 operations use
+`RESUME_EXISTING` against the legacy-compatible date state. A provider-backed acceptance trial or an offline
+replay instead uses `START_FRESH_RUN`: it receives a new `run_id`, binds the
+immutable provider `source_attempt_id`, and writes all checkpoints, logs,
+reports, research artifacts, and recovery evidence below its own run directory.
+It cannot resume, retry, or reuse a date-level state.
+
+Fresh state records the edition date, immutable run ID, creation time, runtime
+fingerprint, execution mode, source attempt ID, and `parent_run_id` (currently
+`null` because a resume retains the original run rather than deriving a child).
+
+The original `daily-runs/YYYY-MM-DD/state.json` remains readable as legacy
+state. It is never selected by a fresh provider attempt. Fresh run state records
+its `run_directory`, and acceptance helpers resolve reports and receipts from
+that declared directory rather than scanning a same-date state. The runtime
+fingerprint mismatch guard remains in force for ordinary resumes; isolation is
+not a rebase or a way to mix checkpoints from different runtimes.
+
 Clean-worktree preflight enumerates individual untracked files. State-backed
 V5 run/edition outputs and files beneath `acceptance/machine/`,
 `acceptance/provider-trials/`, and `acceptance/evidence/` are allowed only while
@@ -79,6 +100,10 @@ daily-runs/YYYY-MM-DD/
   factcheck/
   qa/
   recovery/
+  runs/
+    <run-id>/
+      state.json
+      logs/ research/ articles/ editorial/ factcheck/ qa/ recovery/
 
 editions/YYYY/MM/YYYY-MM-DD/
   edition.md

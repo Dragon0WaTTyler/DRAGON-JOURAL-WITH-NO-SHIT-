@@ -86,10 +86,11 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
     )
     class CompletedOrchestrator:
         class store:
-            path = tmp_path / "daily-runs" / "2099-01-02" / "state.json"
+            run_dir = tmp_path / "daily-runs" / "2099-01-02" / "runs" / "fresh-run"
+            path = run_dir / "state.json"
 
         def run(self):
-            articles = tmp_path / "daily-runs" / "2099-01-02" / "articles" / "articles.json"
+            articles = self.store.run_dir / "articles" / "articles.json"
             articles.parent.mkdir(parents=True, exist_ok=True)
             articles.write_text(json.dumps({"articles": TrialProvider().articles({})}), encoding="utf-8")
             self.store.path.parent.mkdir(parents=True, exist_ok=True)
@@ -116,6 +117,50 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
     assert (trial / "research.json").is_file()
     assert (trial / "articles.json").is_file()
     assert (trial / "receipt.json").is_file()
+
+
+def test_full_trial_binds_provider_attempt_to_fresh_run_identity(tmp_path, monkeypatch, capsys) -> None:
+    captured = {}
+    prior = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"
+    prior.mkdir(parents=True)
+    (prior / "failure.json").write_text('{"status":"FAIL"}', encoding="utf-8")
+    monkeypatch.setattr(dragon_provider_check, "ROOT", tmp_path)
+    monkeypatch.setattr(dragon_provider_check, "load_local_config", lambda root: {"timezone": "Africa/Casablanca"})
+    monkeypatch.setattr(
+        dragon_provider_check,
+        "editorial_provider_from_config",
+        lambda config, require_proven: TrialProvider(),
+    )
+    monkeypatch.setattr(dragon_provider_check, "LocalCommandEditorialProvider", TrialProvider)
+
+    class FailedFreshRun:
+        class store:
+            run_id = "fresh-run"
+            run_dir = tmp_path / "daily-runs" / "2099-01-02" / "runs" / run_id
+            path = run_dir / "state.json"
+
+        def run(self):
+            self.store.path.parent.mkdir(parents=True, exist_ok=True)
+            self.store.path.write_text("{}", encoding="utf-8")
+            return {
+                "run_id": self.store.run_id,
+                "run_result": "BLOCKED",
+                "error_code": "RUNTIME_FINGERPRINT_MISMATCH",
+                "stages": {},
+            }
+
+    def builder(**kwargs):
+        captured.update(kwargs)
+        return FailedFreshRun()
+
+    monkeypatch.setattr(dragon_provider_check, "build_provider_seed_orchestrator", builder)
+    monkeypatch.setattr(sys, "argv", ["dragon_provider_check.py", "--full", "--date", "2099-01-02"])
+
+    assert dragon_provider_check.main() == 1
+    output = json.loads(capsys.readouterr().out)
+    assert captured["source_attempt_id"].startswith("attempt-")
+    assert output["error_code"] == "RUNTIME_FINGERPRINT_MISMATCH"
+    assert output["pipeline_diagnostics"]["run_state"].endswith("runs/fresh-run/state.json")
 
 
 def test_failed_full_trial_reports_persisted_raw_evidence(

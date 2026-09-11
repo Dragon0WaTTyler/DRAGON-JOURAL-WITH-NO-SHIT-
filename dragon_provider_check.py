@@ -44,6 +44,12 @@ def _trial_directory(root: Path, edition_date: str, *, full: bool) -> Path:
 
 def _failed_stage(state: dict) -> dict | None:
     """Return the first V5 stage that truthfully stopped an acceptance run."""
+    if state.get("run_result") == "BLOCKED" and state.get("error_code"):
+        return {
+            "stage": None,
+            "error_code": state["error_code"],
+            "error_detail": state.get("error_detail") or "acceptance run blocked",
+        }
     for name, record in state.get("stages", {}).items():
         if record.get("status") in {"FAILED", "BLOCKED"}:
             return {"stage": name, **record}
@@ -105,6 +111,7 @@ def main() -> int:
     if args.full and is_dataclass(provider) and hasattr(provider, "capture_directory"):
         provider = replace(provider, capture_directory=trial_dir)
     health = None
+    orchestrator = None
     try:
         health = provider.healthcheck()
         if not args.full:
@@ -130,6 +137,7 @@ def main() -> int:
             raw_packet_path=raw_research_path,
             raw_packet_sha256=sha256_file(raw_research_path),
             mode="PROVIDER_BACKED_ACCEPTANCE_TRIAL",
+            source_attempt_id=trial_dir.name,
         )
         state = orchestrator.run()
         stopped = _failed_stage(state)
@@ -138,8 +146,9 @@ def main() -> int:
                 str(stopped.get("error_code") or "V5_PIPELINE_FAILED"),
                 str(stopped.get("error_detail") or "provider-seed V5 pipeline stopped"),
                 diagnostics={
-                    "stage": stopped["stage"],
+                    "stage": stopped.get("stage"),
                     "run_state": str((orchestrator.store.path).relative_to(ROOT)).replace("\\", "/"),
+                    "run_id": state.get("run_id"),
                 },
             )
     except ProviderError as exc:
@@ -163,11 +172,11 @@ def main() -> int:
             }
         if args.full:
             initial_path = trial_dir / "initial-research-packet.json"
-            state_path = ROOT / "daily-runs" / edition_date / "state.json"
+            state_path = orchestrator.store.path if orchestrator is not None else None
             pipeline_evidence = {}
             if initial_path.is_file():
                 pipeline_evidence[str(initial_path.relative_to(ROOT)).replace("\\", "/")] = sha256_file(initial_path)
-            if state_path.is_file():
+            if state_path is not None and state_path.is_file():
                 pipeline_evidence[str(state_path.relative_to(ROOT)).replace("\\", "/")] = sha256_file(state_path)
             if pipeline_evidence:
                 failure["pipeline_evidence"] = pipeline_evidence
@@ -185,7 +194,7 @@ def main() -> int:
     research_path = trial_dir / "research.json"
     articles_path = trial_dir / "articles.json"
     atomic_write_json(research_path, research)
-    daily_articles = ROOT / "daily-runs" / edition_date / "articles" / "articles.json"
+    daily_articles = orchestrator.store.run_dir / "articles" / "articles.json"
     articles_value = json.loads(daily_articles.read_text(encoding="utf-8"))["articles"]
     atomic_write_json(articles_path, {"articles": articles_value})
     active = [item for item in articles_value if item.get("status") == "ACTIVE"]

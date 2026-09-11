@@ -28,6 +28,9 @@ RUN_SUBDIRECTORIES = (
     "qa",
     "recovery",
 )
+EXECUTION_MODE_RESUME = "RESUME_EXISTING"
+EXECUTION_MODE_FRESH = "START_FRESH_RUN"
+EXECUTION_MODES = {EXECUTION_MODE_RESUME, EXECUTION_MODE_FRESH}
 RUNTIME_FIXED_PATHS = (
     "dragon_daily.py",
     "dragon_watchdog.py",
@@ -176,7 +179,12 @@ def new_state(
     stages: list[str],
     root: Path,
     prerequisites: dict[str, list[str]] | None = None,
+    run_id: str | None = None,
+    execution_mode: str = EXECUTION_MODE_RESUME,
+    source_attempt_id: str | None = None,
 ) -> dict[str, Any]:
+    if execution_mode not in EXECUTION_MODES:
+        raise ValueError(f"EXECUTION_MODE_INVALID:{execution_mode}")
     timestamp = now_iso(timezone)
     records: dict[str, Any] = {}
     for index, name in enumerate(stages):
@@ -186,10 +194,14 @@ def new_state(
         "schema_version": 5,
         "date": edition_date,
         "timezone": timezone,
-        "run_id": str(uuid4()),
+        "run_id": run_id or str(uuid4()),
+        "execution_mode": execution_mode,
+        "source_attempt_id": source_attempt_id,
+        "parent_run_id": None,
         "source_git_revision": source_revision(root),
         "runtime_fingerprint": runtime_fingerprint(root),
         "trigger": os.environ.get("DRAGON_TRIGGER", "manual"),
+        "created_at": timestamp,
         "started_at": timestamp,
         "updated_at": timestamp,
         "last_successful_checkpoint": None,
@@ -207,6 +219,21 @@ def validate_state(value: dict[str, Any], expected_stages: Iterable[str]) -> lis
     issues: list[str] = []
     if value.get("schema_version") != 5:
         issues.append("STATE_SCHEMA_INVALID")
+    if not isinstance(value.get("run_id"), str) or not value["run_id"].strip():
+        issues.append("STATE_RUN_ID_INVALID")
+    execution_mode = value.get("execution_mode", EXECUTION_MODE_RESUME)
+    if execution_mode not in EXECUTION_MODES:
+        issues.append("STATE_EXECUTION_MODE_INVALID")
+    run_directory = value.get("run_directory")
+    if run_directory is not None and (
+        not isinstance(run_directory, str)
+        or not (
+            run_directory == f"daily-runs/{value.get('date', '')}"
+            or run_directory.startswith(f"daily-runs/{value.get('date', '')}/")
+        )
+        or ".." in Path(run_directory).parts
+    ):
+        issues.append("STATE_RUN_DIRECTORY_INVALID")
     records = value.get("stages")
     if not isinstance(records, dict):
         return issues + ["STATE_STAGES_INVALID"]
@@ -229,15 +256,42 @@ def validate_state(value: dict[str, Any], expected_stages: Iterable[str]) -> lis
 
 
 class StateStore:
-    def __init__(self, root: Path, edition_date: str, timezone: str, stages: list[str], prerequisites: dict[str, list[str]] | None = None):
+    def __init__(
+        self,
+        root: Path,
+        edition_date: str,
+        timezone: str,
+        stages: list[str],
+        prerequisites: dict[str, list[str]] | None = None,
+        *,
+        execution_mode: str = EXECUTION_MODE_RESUME,
+        run_id: str | None = None,
+        source_attempt_id: str | None = None,
+    ):
+        if execution_mode not in EXECUTION_MODES:
+            raise ValueError(f"EXECUTION_MODE_INVALID:{execution_mode}")
+        if execution_mode == EXECUTION_MODE_RESUME and (run_id or source_attempt_id):
+            raise ValueError("RESUME_RUN_IDENTITY_UNSUPPORTED")
         self.root = root.resolve()
         self.edition_date = edition_date
         self.timezone = timezone
         self.stages = stages
         self.prerequisites = prerequisites
-        self.run_dir = self.root / "daily-runs" / edition_date
+        self.execution_mode = execution_mode
+        self.date_dir = self.root / "daily-runs" / edition_date
+        self.run_id = run_id or (str(uuid4()) if execution_mode == EXECUTION_MODE_FRESH else None)
+        self.source_attempt_id = source_attempt_id
+        self.run_dir = (
+            self.date_dir / "runs" / self.run_id
+            if execution_mode == EXECUTION_MODE_FRESH
+            else self.date_dir
+        )
+        self._fresh_target_preexisted = (
+            execution_mode == EXECUTION_MODE_FRESH and self.run_dir.exists()
+        )
         self.path = self.run_dir / "state.json"
         self.backup_path = self.run_dir / "state.json.bak"
+        self._initialized = False
 
     def ensure_directories(self) -> None:
         self.run_dir.mkdir(parents=True, exist_ok=True)
@@ -245,8 +299,17 @@ class StateStore:
             (self.run_dir / name).mkdir(exist_ok=True)
 
     def initialize(self) -> dict[str, Any]:
+        if (
+            self.execution_mode == EXECUTION_MODE_FRESH
+            and not self._initialized
+            and self._fresh_target_preexisted
+        ):
+            raise ValueError(f"FRESH_RUN_ID_ALREADY_EXISTS:{self.run_id}")
         self.ensure_directories()
         if self.path.exists():
+            if self.execution_mode == EXECUTION_MODE_FRESH and not self._initialized:
+                raise ValueError(f"FRESH_RUN_ID_ALREADY_EXISTS:{self.run_id}")
+            self._initialized = True
             return self.load()
         value = new_state(
             edition_date=self.edition_date,
@@ -254,8 +317,12 @@ class StateStore:
             stages=self.stages,
             root=self.root,
             prerequisites=self.prerequisites,
+            run_id=self.run_id,
+            execution_mode=self.execution_mode,
+            source_attempt_id=self.source_attempt_id,
         )
-        legacy = self.run_dir / "status.json"
+        value["run_directory"] = str(self.run_dir.relative_to(self.root)).replace("\\", "/")
+        legacy = self.date_dir / "status.json"
         if legacy.exists():
             value["legacy_status"] = {
                 "path": str(legacy.relative_to(self.root)).replace("\\", "/"),
@@ -263,6 +330,7 @@ class StateStore:
                 "imported_as_checkpoint": False,
             }
         self.save(value)
+        self._initialized = True
         return value
 
     def load(self) -> dict[str, Any]:

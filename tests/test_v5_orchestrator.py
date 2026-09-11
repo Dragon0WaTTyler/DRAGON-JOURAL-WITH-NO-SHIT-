@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from dragon.orchestrator import Orchestrator
+from dragon.state import EXECUTION_MODE_FRESH, sha256_file
 from dragon.stages import StageDefinition, StageFailure, StageResult
 
 
@@ -92,6 +93,41 @@ class V5OrchestratorTests(unittest.TestCase):
             rebased = orchestrator.run(from_stage="preflight")
             self.assertEqual(calls, ["preflight", "research", "pdf"])
             self.assertEqual(rebased["runtime_fingerprint"], blocked["runtime_fingerprint_current"])
+
+    def test_fresh_run_isolated_from_legacy_state_and_binds_source_attempt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            legacy_calls = []
+            legacy = self.make(root, legacy_calls)
+            legacy.run()
+            legacy_path = root / "daily-runs" / DATE / "state.json"
+            legacy_hash = sha256_file(legacy_path)
+            (root / "dragon").mkdir(exist_ok=True)
+            (root / "dragon" / "changed.py").write_text("VERSION = 2\n", encoding="utf-8")
+
+            blocked = legacy.run(resume=True)
+            self.assertEqual(blocked["error_code"], "RUNTIME_FINGERPRINT_MISMATCH")
+            blocked_hash = sha256_file(legacy_path)
+
+            fresh_calls = []
+            fresh = Orchestrator(
+                root=root,
+                edition_date=DATE,
+                timezone=TZ,
+                stages=definitions(fresh_calls),
+                execution_mode=EXECUTION_MODE_FRESH,
+                source_attempt_id="attempt-test-provider-seed",
+            )
+            state = fresh.run()
+
+            self.assertEqual(fresh_calls, ["preflight", "research", "pdf"])
+            self.assertEqual(state["execution_mode"], EXECUTION_MODE_FRESH)
+            self.assertEqual(state["source_attempt_id"], "attempt-test-provider-seed")
+            self.assertEqual(state["run_id"], fresh.store.run_id)
+            self.assertEqual(fresh.store.path.parent.parent.name, "runs")
+            self.assertNotEqual(fresh.store.path, legacy_path)
+            self.assertEqual(sha256_file(legacy_path), blocked_hash)
+            self.assertNotEqual(legacy_hash, blocked_hash)
 
     def test_changed_artifact_invalidates_checkpoint_and_downstream_runs(self):
         with tempfile.TemporaryDirectory() as directory:

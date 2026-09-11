@@ -48,10 +48,29 @@ def _load_object(path: Path) -> dict | None:
     return value if isinstance(value, dict) else None
 
 
+def _run_directory(root: Path, state: dict) -> Path:
+    """Resolve the run explicitly recorded by state, with legacy date fallback."""
+    relative = state.get("run_directory")
+    if isinstance(relative, str) and relative:
+        candidate = (root / relative).resolve()
+        try:
+            normalized = candidate.relative_to(root.resolve()).as_posix()
+        except ValueError:
+            normalized = ""
+        expected = f"daily-runs/{state.get('date', '')}"
+        if normalized == expected or normalized.startswith(expected + "/"):
+            return candidate
+    if relative is not None:
+        # Never fall back to a same-date legacy run after a state declared an
+        # invalid identity: that could authenticate stale evidence instead.
+        return root / "daily-runs" / "__invalid-run-identity__"
+    return root / "daily-runs" / str(state.get("date", ""))
+
+
 def _publication_evidence_issues(root: Path, state: dict) -> list[str]:
     edition_date = str(state.get("date", ""))
     edition = root / "editions" / edition_date[:4] / edition_date[5:7] / edition_date
-    run = root / "daily-runs" / edition_date
+    run = _run_directory(root, state)
     issues = []
     final = _load_object(edition / "final-qa.json")
     if final is None:
@@ -154,7 +173,14 @@ def _state_valid(
                 continue
             if not path.is_file() or sha256_file(path) != expected:
                 issues.append(f"ARTIFACT_HASH_INVALID:{name}:{relative}")
-    report_relative = f"daily-runs/{state.get('date', '')}/run-report.json"
+    report_relative = next(
+        (
+            item
+            for item in state.get("report_paths", [])
+            if isinstance(item, str) and item.endswith("/run-report.json")
+        ),
+        str((_run_directory(root, state) / "run-report.json").relative_to(root)).replace("\\", "/"),
+    )
     report_path = root / report_relative
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
@@ -176,7 +202,7 @@ def _state_valid(
 
 
 def _checkpointed_receipt(root: Path, state: dict, stage_name: str, filename: str) -> dict | None:
-    relative = f"daily-runs/{state.get('date', '')}/{filename}"
+    relative = str((_run_directory(root, state) / filename).relative_to(root)).replace("\\", "/")
     record = state.get("stages", {}).get(stage_name, {})
     expected = record.get("artifact_hashes", {}).get(relative)
     path = root / relative
@@ -483,7 +509,9 @@ def audit_cutover(root: Path) -> dict[str, Any]:
     expected_runtime_fingerprint = runtime_fingerprint(root)
     valid_runs = []
     rejected_runs = []
-    for path in sorted((root / "daily-runs").glob("????-??-??/state.json")):
+    state_paths = list((root / "daily-runs").glob("????-??-??/state.json"))
+    state_paths.extend((root / "daily-runs").glob("????-??-??/runs/*/state.json"))
+    for path in sorted(state_paths):
         try:
             state = json.loads(path.read_text(encoding="utf-8"))
             valid, issues = _state_valid(

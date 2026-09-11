@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from dragon.state import (
+    EXECUTION_MODE_FRESH,
     StateStore,
     atomic_write_json,
     new_state,
@@ -91,6 +92,29 @@ class V5StateTests(unittest.TestCase):
             self.assertFalse(value["legacy_status"]["imported_as_checkpoint"])
             self.assertEqual(value["stages"]["research"]["status"], "PENDING")
             self.assertEqual(legacy.read_text(), '{"editorial":"COMPLETE"}')
+
+    def test_fresh_run_id_cannot_reuse_an_existing_run_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = StateStore(
+                root,
+                "2026-09-08",
+                "Africa/Casablanca",
+                STAGES,
+                execution_mode=EXECUTION_MODE_FRESH,
+                run_id="fresh-identity",
+            )
+            first.initialize()
+            duplicate = StateStore(
+                root,
+                "2026-09-08",
+                "Africa/Casablanca",
+                STAGES,
+                execution_mode=EXECUTION_MODE_FRESH,
+                run_id="fresh-identity",
+            )
+            with self.assertRaisesRegex(ValueError, "FRESH_RUN_ID_ALREADY_EXISTS"):
+                duplicate.initialize()
 
 
 if __name__ == "__main__":

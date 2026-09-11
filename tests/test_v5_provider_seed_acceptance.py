@@ -126,10 +126,24 @@ def test_provider_selected_and_local_eligibility_are_reported_separately() -> No
     assert counts["pre_recovery_evidence_eligible_candidates"] == 0
 
 
+def test_provider_seed_run_requires_immutable_attempt_identity(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="PROVIDER_SOURCE_ATTEMPT_ID_REQUIRED"):
+        build_provider_seed_orchestrator(
+            root=tmp_path,
+            edition_date=DATE,
+            provider=NoArticleProvider(),
+            normalized_packet={},
+            raw_packet_path=tmp_path / "research.raw.json",
+            raw_packet_sha256="0" * 64,
+            mode="OFFLINE_REPLAY",
+            source_attempt_id=" ",
+        )
+
+
 def test_incomplete_seed_executes_deep_research_before_final_insufficiency() -> None:
     raw_dir = ROOT / "tmp" / "provider-seed-acceptance-test"
-    run_dir = ROOT / "daily-runs" / DATE
-    shutil.rmtree(run_dir, ignore_errors=True)
+    date_dir = ROOT / "daily-runs" / DATE
+    shutil.rmtree(date_dir, ignore_errors=True)
     raw_dir.mkdir(parents=True, exist_ok=True)
     raw_path = raw_dir / "research.raw.json"
     seed = _nine_section_seed()
@@ -144,10 +158,12 @@ def test_incomplete_seed_executes_deep_research_before_final_insufficiency() -> 
             raw_packet_path=raw_path,
             raw_packet_sha256=sha256_file(raw_path),
             mode="OFFLINE_REPLAY",
+            source_attempt_id="test-provider-seed",
             research_adapter=OfflineReplayResearchAdapter(),
             offline_replay=True,
         )
         state = orchestrator.run()
+        run_dir = orchestrator.store.run_dir
         deep = json.loads((run_dir / "deep-research" / "state.json").read_text(encoding="utf-8"))
         execution = json.loads((run_dir / "deep-research" / "execution-report.json").read_text(encoding="utf-8"))
         recovery = json.loads((run_dir / "research-recovery" / "plan.json").read_text(encoding="utf-8"))
@@ -163,10 +179,13 @@ def test_incomplete_seed_executes_deep_research_before_final_insufficiency() -> 
         assert sum(len(job["observations"]) for job in execution["jobs"]) > 0
         assert recovery["distinct_event_count"] == 9
         assert recovery["status"] == "RECOVERY_REQUIRED"
+        assert state["execution_mode"] == "START_FRESH_RUN"
+        assert state["run_id"] == orchestrator.store.run_id
+        assert run_dir.parent.name == "runs"
         assert delegate.article_calls == 0
     finally:
         shutil.rmtree(raw_dir, ignore_errors=True)
-        shutil.rmtree(run_dir, ignore_errors=True)
+        shutil.rmtree(date_dir, ignore_errors=True)
 
 
 def test_nine_section_seed_becomes_ready_only_through_fixture_retrieval_and_recovery(tmp_path: Path) -> None:

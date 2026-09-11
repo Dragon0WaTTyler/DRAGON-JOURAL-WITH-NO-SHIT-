@@ -84,6 +84,26 @@ def test_external_receipt_must_match_its_complete_checkpoint(tmp_path: Path) -> 
     ) is None
 
 
+def test_checkpointed_receipt_uses_declared_fresh_run_not_same_date_legacy_path(tmp_path: Path) -> None:
+    day = "2099-01-02"
+    legacy = tmp_path / "daily-runs" / day / "archive-receipt.json"
+    scoped = tmp_path / "daily-runs" / day / "runs" / "fresh-run" / "archive-receipt.json"
+    legacy.parent.mkdir(parents=True)
+    scoped.parent.mkdir(parents=True)
+    legacy.write_text(json.dumps({"status": "STALE"}), encoding="utf-8")
+    scoped.write_text(json.dumps({"status": "COMPLETE"}), encoding="utf-8")
+    relative = scoped.relative_to(tmp_path).as_posix()
+    state = {
+        "date": day,
+        "run_directory": scoped.parent.relative_to(tmp_path).as_posix(),
+        "stages": {"github_archive": {"status": "COMPLETE", "artifact_hashes": {relative: sha256_file(scoped)}}},
+    }
+
+    assert _checkpointed_receipt(
+        tmp_path, state, "github_archive", "archive-receipt.json"
+    ) == {"status": "COMPLETE"}
+
+
 def test_archive_receipt_binds_runtime_manifest_and_remote_artifacts(tmp_path: Path) -> None:
     day = "2099-01-02"
     edition = tmp_path / "editions" / "2099" / "01" / day

@@ -20,7 +20,7 @@ from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
 from dragon.stages import StageContext, StageDefinition, StageResult
-from dragon.state import atomic_write_json, sha256_file
+from dragon.state import EXECUTION_MODE_FRESH, atomic_write_json, sha256_file
 from dragon.whatsapp import DisabledWhatsAppProvider
 
 
@@ -131,10 +131,19 @@ def build_provider_seed_orchestrator(
     raw_packet_path: Path,
     raw_packet_sha256: str,
     mode: str,
+    source_attempt_id: str,
     research_adapter: ResearchAdapter | None = None,
     offline_replay: bool = False,
+    run_id: str | None = None,
 ) -> Orchestrator:
-    """Build a V5 run which consumes validated seed research exactly once."""
+    """Build one isolated V5 run which consumes validated seed research exactly once.
+
+    Provider trials and offline replays cannot resume a date-level production
+    state: the supplied seed is bound to a fresh run directory and, when
+    available, its immutable provider-attempt identity.
+    """
+    if not source_attempt_id.strip():
+        raise ValueError("PROVIDER_SOURCE_ATTEMPT_ID_REQUIRED")
     config = load_local_config(root)
     seed_provider = SeedResearchProvider(provider, normalized_packet)
     definitions = build_stage_definitions(
@@ -168,4 +177,7 @@ def build_provider_seed_orchestrator(
             RecoveryPolicy.load(root / "config" / "recovery-policy.yaml")
         ),
         target_deadline=str(config["scheduler"]["target_deadline"]),
+        execution_mode=EXECUTION_MODE_FRESH,
+        run_id=run_id,
+        source_attempt_id=source_attempt_id,
     )
