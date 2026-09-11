@@ -7,6 +7,7 @@ import yaml
 
 from dragon.deep_research import (
     advance_research_job,
+    build_deep_research_state,
     build_perspective_map,
     create_lead,
     derive_research_outcome,
@@ -130,6 +131,28 @@ def test_recovery_needs_are_embedded_as_targeted_research_gaps() -> None:
     job = start_research_job(_lead(), CONFIG, recovery_needs=[need])
     assert job["recovery_needs"] == [need]
     assert job["context"]["SOURCE_GAPS"] == [need["need_id"]]
+
+
+def test_nonselected_candidate_with_mandatory_recovery_need_gets_one_bounded_job() -> None:
+    selected = {"id": "selected", "title": "Selected event", "discovery_source_ids": []}
+    blocked = {"id": "blocked", "title": "Needs independent corroboration", "discovery_source_ids": []}
+    state = build_deep_research_state(
+        {"edition_date": "2099-01-02", "sections": [{
+            "section_id": "world", "status": "ACTIVE", "selected_candidate_id": "selected",
+            "candidates": [selected, blocked],
+        }]},
+        {"event_clusters": []},
+        {"plans": [{"section_id": "world", "research_budget": {"level": "brief"}}]},
+        {"needs": [{
+            "need_id": "CORROBORATE:world:blocked:INDEPENDENT", "candidate_id": "blocked",
+            "kind": "FIND_INDEPENDENT_CORROBORATION",
+        }]},
+        CONFIG,
+    )
+    recovery_jobs = [job for job in state["jobs"] if job["recovery_needs"]]
+    assert len(recovery_jobs) == 1
+    assert recovery_jobs[0]["lead"]["topic"] == blocked["title"]
+    assert recovery_jobs[0]["recovery_needs"][0]["need_id"] == "CORROBORATE:world:blocked:INDEPENDENT"
 
 
 def test_official_event_policy_differs_from_serious_allegation_policy() -> None:

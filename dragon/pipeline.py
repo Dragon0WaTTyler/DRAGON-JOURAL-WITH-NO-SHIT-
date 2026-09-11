@@ -384,7 +384,18 @@ def build_stage_definitions(
                 context.root / "config" / "deep-research-schema.json",
             )
             all_jobs = list(state.get("jobs", []))
-            mandatory_jobs = [
+            role_recovery_jobs = [
+                job for job in all_jobs
+                if any(
+                    item.get("kind") in {
+                        "FIND_PRIMARY_ORIGINAL_EVIDENCE",
+                        "FIND_INDEPENDENT_CORROBORATION",
+                    }
+                    and item.get("attempt_count", 0) < item.get("max_attempts", 1)
+                    for item in job.get("recovery_needs", [])
+                )
+            ]
+            mandatory_jobs = role_recovery_jobs or [
                 job for job in all_jobs
                 if any(
                     item.get("attempt_count", 0) < item.get("max_attempts", 1)

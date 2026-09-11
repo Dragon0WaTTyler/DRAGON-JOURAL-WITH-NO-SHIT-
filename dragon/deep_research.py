@@ -524,6 +524,16 @@ def build_deep_research_state(
                 item for item in section.get("candidates", [])
                 if item.get("id") == section.get("selected_candidate_id")
             ]
+            # A non-selected candidate normally stays deferred, but it cannot
+            # be dropped when the recovery plan names it explicitly.  Create
+            # one bounded, recovery-only job for that candidate so mandatory
+            # corroboration/original-evidence gaps are executable before any
+            # optional breadth work.
+            candidates.extend(
+                item for item in section.get("candidates", [])
+                if item.get("id") != section.get("selected_candidate_id")
+                and item.get("id") in needs_by_candidate
+            )
         else:
             candidates = list(section.get("recovery_candidates", []))
         for candidate in candidates:
