@@ -16,6 +16,7 @@ from dragon.change_monitoring import (
     load_change_watchlist,
     monitor_watchlist,
 )
+from dragon.config import load_local_config
 from dragon.continuity import build_snapshot, prior_context
 from dragon.design import (
     build_cover_brief,
@@ -46,6 +47,8 @@ from dragon.research_planning import (
     load_research_budget_config,
     validate_research_plan,
 )
+from dragon.research_recovery import build_recovery_plan, validate_recovery_plan
+from dragon.source_coverage import SourceCoverageError, load_source_coverage
 from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
 from dragon.publication import (
@@ -175,6 +178,9 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         packet["research_plan"] = _load(
             context.run_dir / "research-planning" / "plan.json"
         )
+        recovery = _load(context.run_dir / "research-recovery" / "plan.json")
+        if recovery.get("status") != "NOT_APPLICABLE":
+            packet["research_recovery"] = recovery
         try:
             values = provider.articles(packet)
         except ProviderError as exc:
@@ -187,6 +193,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
                 context.run_dir / "research" / "research-packet.json",
                 context.run_dir / "source-intelligence" / "report.json",
                 context.run_dir / "research-planning" / "plan.json",
+                context.run_dir / "research-recovery" / "plan.json",
             ),
         )
 
@@ -235,6 +242,44 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             (path, registry_output), inputs=(packet_path, *registry_inputs)
         )
 
+    def research_recovery(context: StageContext) -> StageResult:
+        packet_path = context.run_dir / "research" / "research-packet.json"
+        intelligence_path = context.run_dir / "source-intelligence" / "report.json"
+        path = context.run_dir / "research-recovery" / "plan.json"
+        if synthetic:
+            report = {
+                "schema_version": 1,
+                "status": "NOT_APPLICABLE",
+                "reason": "synthetic fixture bypasses production research recovery",
+                "needs": [],
+                "article_generation_allowed": True,
+            }
+            atomic_write_json(path, report)
+            return StageResult((path,), inputs=(packet_path, intelligence_path))
+        coverage_path = context.root / "config" / "source-coverage.yaml"
+        try:
+            coverage = load_source_coverage(
+                coverage_path, {section_id for section_id, _ in SECTION_HEADINGS}
+            )
+            readiness = load_local_config(context.root)["editorial_readiness"]
+        except (SourceCoverageError, ValueError) as exc:
+            raise StageFailure("SOURCE_COVERAGE_CONFIG_INVALID", str(exc)) from exc
+        report = build_recovery_plan(
+            _load(packet_path), _load(intelligence_path), coverage, readiness
+        )
+        issues = validate_recovery_plan(report)
+        atomic_write_json(path, report)
+        if issues:
+            raise StageFailure("RESEARCH_RECOVERY_PLAN_INVALID", "; ".join(issues), outputs=(path,))
+        if report["status"] != "PASS":
+            code = "RESEARCH_INSUFFICIENT" if report["status"] == "RESEARCH_INSUFFICIENT" else "RESEARCH_RECOVERY_REQUIRED"
+            raise StageFailure(
+                code,
+                "targeted source recovery is required before article generation",
+                outputs=(path,),
+            )
+        return StageResult((path,), inputs=(packet_path, intelligence_path, coverage_path))
+
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
         intelligence_path = context.run_dir / "source-intelligence" / "report.json"
@@ -259,7 +304,7 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
             raise StageFailure("RESEARCH_PLAN_INVALID", "; ".join(issues))
         path = context.run_dir / "research-planning" / "plan.json"
         atomic_write_json(path, plan)
-        return StageResult((path,), inputs=(packet_path, intelligence_path, *budget_inputs))
+        return StageResult((path,), inputs=(packet_path, intelligence_path, context.run_dir / "research-recovery" / "plan.json", *budget_inputs))
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")
@@ -951,7 +996,8 @@ def build_stage_definitions(provider: EditorialProvider, *, synthetic: bool = Fa
         _json_stage("source_monitoring", ("preflight",), source_monitoring),
         _json_stage("research", ("source_monitoring",), research),
         _json_stage("source_intelligence", ("research",), source_intelligence),
-        _json_stage("research_planning", ("source_intelligence",), research_planning),
+        _json_stage("research_recovery", ("source_intelligence",), research_recovery),
+        _json_stage("research_planning", ("research_recovery",), research_planning),
         _json_stage("article_generation", ("research_planning",), articles),
         _json_stage("claim_evidence_graph", ("article_generation",), claim_evidence_graph),
         _json_stage("media_critic", ("claim_evidence_graph",), media_critic),

@@ -9,6 +9,7 @@ from dragon.discovery import (
     discover_rss,
     fetch_and_extract_html,
     fetch_and_extract_source,
+    load_extraction_adapter_config,
     load_provider_registry,
     provider_prompt_context,
     registry_report,
@@ -30,6 +31,18 @@ def test_registry_is_strict_and_truthful_about_availability() -> None:
     assert "rsshub-optional" not in {item["provider_id"] for item in context["providers"]}
     assert "not verification" in context["warning"]
     assert context["material_routing"]["pdf_office_table_json"] == "structured-document"
+
+
+def test_crawl4ai_boundary_is_disabled_and_trafilatura_remains_default() -> None:
+    config = load_extraction_adapter_config(ROOT / "config" / "extraction-adapters.yaml")
+    assert config["default_adapter"] == "trafilatura"
+    assert config["fallbacks"] == [{
+        "adapter_id": "crawl4ai-optional", "enabled": False,
+        "trigger": "SOURCE_DYNAMIC_ROUTE_REQUIRED", "timeout_seconds": 30,
+        "cache_required": True, "integration_test_status": "NOT_RUN",
+        "classification": "extraction-only",
+        "provenance_behavior": "Browser extraction remains EXTRACTED_NOT_VERIFIED and needs exact-source verification.",
+    }]
 
 
 def test_rss_adapter_marks_every_candidate_discovery_only() -> None:
@@ -186,6 +199,19 @@ def test_js_heavy_static_shell_requests_exceptional_browser_route() -> None:
     with pytest.raises(DiscoveryError) as caught:
         fetch_and_extract_html("https://example.org/dynamic", transport=transport)
     assert caught.value.code == "SOURCE_DYNAMIC_ROUTE_REQUIRED"
+
+
+def test_injected_browser_fallback_is_exceptional_and_never_verification() -> None:
+    response = FetchResponse("https://example.org/dynamic", 200, "text/html", b"<html><script src='app.js'></script></html>")
+    calls = []
+
+    def fake_fallback(value: FetchResponse, reason: str) -> dict:
+        calls.append((value.url, reason))
+        return {"url": value.url, "title": "Dynamic report", "text": "verified extraction text " * 20, "extraction_method": "fake-browser-fallback"}
+
+    value = fetch_and_extract_html(response.url, transport=lambda *_: response, fallback_extractor=fake_fallback)
+    assert calls and value["extraction_method"] == "fake-browser-fallback"
+    assert value["verification_status"] == "EXTRACTED_NOT_VERIFIED"
 
 
 def test_broken_but_substantive_html_is_recovered_without_inventing_metadata() -> None:

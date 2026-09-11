@@ -40,6 +40,8 @@ RUNTIME_FIXED_PATHS = (
     "config/recovery-policy.yaml",
     "config/provider-registry.yaml",
     "config/provider-registry-schema.json",
+    "config/source-coverage.yaml",
+    "config/extraction-adapters.yaml",
     "config/change-watchlist.yaml",
     "config/change-watchlist-schema.json",
     "config/research-budget.yaml",

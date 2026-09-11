@@ -570,6 +570,10 @@ class LocalCommandEditorialProvider:
                 "outcome": "RESEARCH_INCOMPLETE",
                 "reason": "No candidate has distinct primary and independent evidence.",
             })
+            # Keep the provider's bounded, provenance-bearing leads available
+            # to the recovery planner, while keeping the editorial section
+            # honestly NO_NEWS.  These are never candidates for an article.
+            section["recovery_candidates"] = candidates
             section.update({
                 "status": "NO_NEWS",
                 "candidates": [],
@@ -837,6 +841,15 @@ class LocalCommandEditorialProvider:
                         "RESEARCH_PACKET_INVALID",
                         f"no-news section {section.get('section_id')} must have no fabricated candidates and a specific fallback",
                     )
+                recovery_candidates = section.get("recovery_candidates", [])
+                if not isinstance(recovery_candidates, list) or any(
+                    not isinstance(item, dict) or item.get("evidence_eligibility", {}).get("status") != "RESEARCH_INCOMPLETE"
+                    for item in recovery_candidates
+                ):
+                    raise ProviderError(
+                        "RESEARCH_PACKET_INVALID",
+                        f"no-news section {section.get('section_id')} has invalid recovery-only candidates",
+                    )
             elif (
                 selected not in candidate_ids
                 or not isinstance(section.get("selection_reason"), str)
@@ -1083,6 +1096,13 @@ class LocalCommandEditorialProvider:
         attempt and can never create a supported article: the validator and
         prompt both prohibit activating a no-news section.
         """
+        recovery = research.get("research_recovery") if isinstance(research, dict) else None
+        if isinstance(recovery, dict) and recovery.get("status") not in {"PASS", "NOT_APPLICABLE"}:
+            code = "RESEARCH_INSUFFICIENT" if recovery.get("status") == "RESEARCH_INSUFFICIENT" else "RESEARCH_RECOVERY_REQUIRED"
+            raise ProviderError(
+                code,
+                "targeted source recovery has unmet bounded needs; refusing an article-provider invocation",
+            )
         sources = research.get("sources") if isinstance(research, dict) else None
         sections = research.get("sections") if isinstance(research, dict) else None
         publishable_sections = {

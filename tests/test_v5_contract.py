@@ -10,6 +10,7 @@ STAGES = [
     "source_monitoring",
     "research",
     "source_intelligence",
+    "research_recovery",
     "research_planning",
     "article_generation",
     "claim_evidence_graph",

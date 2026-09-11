@@ -130,7 +130,10 @@ def build_source_intelligence(packet: dict) -> dict:
 
     candidates = []
     for section in packet.get("sections", []):
-        for candidate in section.get("candidates", []):
+        # Recovery candidates are preserved leads from a NO_NEWS decision.
+        # They inform bounded corroboration planning only and never count as
+        # selected editorial placements.
+        for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
             source_ids = sorted(set().union(*(
                 set(candidate.get(field, []))
                 for field in (

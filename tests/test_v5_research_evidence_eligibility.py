@@ -125,6 +125,9 @@ def test_one_role_only_is_held_before_article_generation(primary: list[str], ind
     research = provider.research("2026-09-11")
     front = next(section for section in research["sections"] if section["section_id"] == "front")
     assert front["status"] == "NO_NEWS"
+    assert front["candidates"] == []
+    assert len(front["recovery_candidates"]) == 2
+    assert {item["evidence_eligibility"]["status"] for item in front["recovery_candidates"]} == {"RESEARCH_INCOMPLETE"}
     with pytest.raises(ProviderError) as blocked:
         provider.articles(research)
     assert blocked.value.code == "RESEARCH_INSUFFICIENT"
@@ -171,6 +174,16 @@ def test_evidence_ineligible_front_rank_cannot_outrank_eligible_candidate() -> N
     assert front["status"] == "ACTIVE"
     assert front["selected_candidate_id"] == "front-two"
     assert research["evidence_normalization"]["demotions"][0]["outcome"] == "DEMOTED_TO_ELIGIBLE_CANDIDATE"
+
+
+def test_recovery_gate_blocks_article_provider_before_invocation() -> None:
+    provider = _provider(_packet(only_front=True))
+    research = provider.research("2026-09-11")
+    research["research_recovery"] = {"status": "RECOVERY_REQUIRED"}
+    with pytest.raises(ProviderError) as blocked:
+        provider.articles(research)
+    assert blocked.value.code == "RESEARCH_RECOVERY_REQUIRED"
+    assert provider.calls == ["research"]
 
 
 def test_preserved_2026_09_11_front_omission_reproduces_old_failure_then_repairs() -> None:

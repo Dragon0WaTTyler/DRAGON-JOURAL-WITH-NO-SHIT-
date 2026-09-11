@@ -20,7 +20,8 @@ from dragon.acceptance import _provider_trial_evidence
 from dragon.config import load_local_config, load_mapping
 from dragon.discovery import load_provider_registry, registry_report
 from dragon.epubcheck import epubcheck_version
-from dragon.providers import editorial_provider_from_config
+from dragon.providers import SECTION_HEADINGS, editorial_provider_from_config
+from dragon.source_coverage import load_source_coverage
 from dragon.state import runtime_fingerprint
 
 
@@ -166,6 +167,13 @@ def run_preflight(root: Path, edition_date: str) -> dict[str, Any]:
             lambda: _provider_registry(root),
         )
     )
+    checks.append(
+        _check(
+            "source_coverage",
+            bool(policy.get("require_source_coverage", False)),
+            lambda: _source_coverage(root),
+        )
+    )
     network = policy.get("network_probe", {})
     if network.get("enabled", True):
         checks.append(
@@ -287,6 +295,15 @@ def _provider_registry(root: Path) -> str:
         f"{report['summary']['available']} adapters proven; "
         f"{report['summary']['enabled']} enabled; optional outages do not block"
     )
+
+
+def _source_coverage(root: Path) -> str:
+    value = load_source_coverage(
+        root / "config" / "source-coverage.yaml",
+        {section_id for section_id, _ in SECTION_HEADINGS},
+    )
+    gaps = [item["section_id"] for item in value["desks"] if item["coverage_status"] == "GAP"]
+    return f"{len(value['desks'])} desk coverage entries; explicit gaps={','.join(gaps) or 'none'}"
 
 
 def _require_contains(value: str, expected: str) -> str:

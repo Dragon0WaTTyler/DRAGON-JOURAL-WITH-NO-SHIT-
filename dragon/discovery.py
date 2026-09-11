@@ -37,6 +37,9 @@ class FetchResponse:
 
 
 Transport = Callable[[str, int, int], FetchResponse]
+# A deferred browser extractor (for example Crawl4AI) is injected explicitly.
+# It is never imported, installed, or selected as the ordinary extraction path.
+ExtractionFallback = Callable[[FetchResponse, str], dict | None]
 
 
 def _validate_source_url(
@@ -137,6 +140,40 @@ def load_provider_registry(path: Path, schema_path: Path | None = None) -> dict:
     identifiers = [item["provider_id"] for item in value["providers"]]
     if len(identifiers) != len(set(identifiers)):
         raise DiscoveryError("PROVIDER_REGISTRY_INVALID", "provider_id values must be unique")
+    return value
+
+
+def load_extraction_adapter_config(path: Path) -> dict:
+    """Load the optional-extractor contract without loading an extractor.
+
+    This makes deferred browser tooling inspectable by preflight/tests while
+    keeping Trafilatura as the only normal runtime dependency.
+    """
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise DiscoveryError("EXTRACTION_ADAPTER_CONFIG_INVALID", str(exc)) from exc
+    if set(value or {}) != {"version", "default_adapter", "fallbacks"} or value.get("version") != 1:
+        raise DiscoveryError("EXTRACTION_ADAPTER_CONFIG_INVALID", "root fields or version are invalid")
+    if value["default_adapter"] != "trafilatura" or not isinstance(value["fallbacks"], list):
+        raise DiscoveryError("EXTRACTION_ADAPTER_CONFIG_INVALID", "Trafilatura must remain default")
+    identifiers = set()
+    required = {"adapter_id", "enabled", "trigger", "timeout_seconds", "cache_required", "integration_test_status", "classification", "provenance_behavior"}
+    for adapter in value["fallbacks"]:
+        if (
+            not isinstance(adapter, dict) or set(adapter) != required
+            or not isinstance(adapter["adapter_id"], str) or not adapter["adapter_id"]
+            or adapter["adapter_id"] in identifiers or not isinstance(adapter["enabled"], bool)
+            or adapter["trigger"] != "SOURCE_DYNAMIC_ROUTE_REQUIRED"
+            or not isinstance(adapter["timeout_seconds"], int) or adapter["timeout_seconds"] < 1
+            or not isinstance(adapter["cache_required"], bool)
+            or adapter["integration_test_status"] not in {"PASS", "NOT_RUN", "FAIL"}
+            or adapter["classification"] != "extraction-only"
+        ):
+            raise DiscoveryError("EXTRACTION_ADAPTER_CONFIG_INVALID", "fallback definition is invalid")
+        if adapter["enabled"] and adapter["integration_test_status"] != "PASS":
+            raise DiscoveryError("EXTRACTION_ADAPTER_CONFIG_INVALID", "enabled fallback is not proven")
+        identifiers.add(adapter["adapter_id"])
     return value
 
 
@@ -264,6 +301,7 @@ def fetch_and_extract_html(
     timeout_seconds: int = 15,
     maximum_bytes: int = 5_000_000,
     retrieved_at: str | None = None,
+    fallback_extractor: ExtractionFallback | None = None,
 ) -> dict:
     response = _fetch(url, transport, timeout_seconds, maximum_bytes)
     if response.content_type not in {"text/html", "application/xhtml+xml"}:
@@ -282,17 +320,13 @@ def fetch_and_extract_html(
     )
     if document is None:
         if b"<script" in response.body.lower():
-            raise DiscoveryError(
-                "SOURCE_DYNAMIC_ROUTE_REQUIRED", "static extraction returned no content for a script-driven page"
-            )
+            return _fallback_or_dynamic_route(response, url, retrieved_at, fallback_extractor, "static extraction returned no content")
         raise DiscoveryError("SOURCE_EXTRACTION_FAILED", response.url)
     extracted = document.as_dict()
     text = str(extracted.get("text") or "").strip()
     if len(text) < 200:
         if b"<script" in response.body.lower():
-            raise DiscoveryError(
-                "SOURCE_DYNAMIC_ROUTE_REQUIRED", "insufficient static text on a script-driven page"
-            )
+            return _fallback_or_dynamic_route(response, url, retrieved_at, fallback_extractor, "insufficient static text")
         raise DiscoveryError("SOURCE_EXTRACTION_LOW_QUALITY", f"only {len(text)} characters")
     quality = "HIGH" if len(text) >= 1_000 else "MEDIUM"
     timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
@@ -313,6 +347,61 @@ def fetch_and_extract_html(
         "content_type": response.content_type,
         "extraction_method": "trafilatura-bare-extraction",
         "extraction_quality": quality,
+        "quality_score": min(1.0, round(len(text) / 1_000, 3)),
+        "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "language": extracted.get("language"),
+        "text": text,
+        "links": extracted.get("links") or [],
+        "metadata_warnings": sorted(metadata_warnings),
+        "verification_status": "EXTRACTED_NOT_VERIFIED",
+    }
+
+
+def _fallback_or_dynamic_route(
+    response: FetchResponse,
+    discovered_url: str,
+    retrieved_at: str | None,
+    fallback_extractor: ExtractionFallback | None,
+    reason: str,
+) -> dict:
+    """Run an explicitly supplied exceptional extractor, or fail closed.
+
+    The returned material remains ``EXTRACTED_NOT_VERIFIED``.  A browser
+    fallback is therefore only an extraction aid; it cannot turn discovery
+    into evidence or bypass exact-page verification.
+    """
+    if fallback_extractor is None:
+        raise DiscoveryError("SOURCE_DYNAMIC_ROUTE_REQUIRED", f"{reason} on a script-driven page")
+    try:
+        extracted = fallback_extractor(response, reason)
+    except DiscoveryError:
+        raise
+    except Exception as exc:  # adapter errors must have a bounded diagnostic
+        raise DiscoveryError("SOURCE_EXTRACTION_FALLBACK_FAILED", str(exc)) from exc
+    if not isinstance(extracted, dict):
+        raise DiscoveryError("SOURCE_EXTRACTION_FALLBACK_INVALID", "fallback returned no structured extraction")
+    text = str(extracted.get("text") or "").strip()
+    method = str(extracted.get("extraction_method") or "").strip()
+    if len(text) < 200 or not method:
+        raise DiscoveryError("SOURCE_EXTRACTION_FALLBACK_INVALID", "fallback text or method is insufficient")
+    timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
+    published_at, metadata_warnings = _published_at(extracted.get("date"))
+    author = extracted.get("author")
+    if not author:
+        metadata_warnings.append("AUTHOR_MISSING")
+    return {
+        "canonical_url": str(extracted.get("url") or response.url),
+        "discovered_url": discovered_url,
+        "title": extracted.get("title"),
+        "author": author,
+        "publisher": extracted.get("publisher") or urlparse(response.url).hostname,
+        "published_at": published_at,
+        "retrieved_at": timestamp,
+        "fetch_status": "FETCHED",
+        "http_status": response.status,
+        "content_type": response.content_type,
+        "extraction_method": method,
+        "extraction_quality": "HIGH" if len(text) >= 1_000 else "MEDIUM",
         "quality_score": min(1.0, round(len(text) / 1_000, 3)),
         "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         "language": extracted.get("language"),

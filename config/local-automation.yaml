@@ -26,6 +26,7 @@ orchestrator:
     - source_monitoring
     - research
     - source_intelligence
+    - research_recovery
     - research_planning
     - article_generation
     - claim_evidence_graph
@@ -67,12 +68,14 @@ preflight:
     timeout_seconds: 5
   require_ai_provider: true
   require_source_provider_registry: true
+  require_source_coverage: true
 watchdog:
   default_stage_timeout_seconds: 7200
   stage_timeouts_seconds:
     preflight: 600
     research: 7200
     source_intelligence: 600
+    research_recovery: 600
     research_planning: 600
     article_generation: 7200
     claim_evidence_graph: 600
