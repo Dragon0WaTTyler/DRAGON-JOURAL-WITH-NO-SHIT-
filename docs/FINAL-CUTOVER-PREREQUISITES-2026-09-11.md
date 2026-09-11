@@ -128,10 +128,10 @@ invocation, and the explicit synthetic launch path.
 
 | Validation | Result |
 | --- | --- |
-| Focused archive, watchdog, scheduler, and acceptance suite | 37 passed |
-| Full repository suite | 345 passed, 2 expected skips |
-| Hash-bound chaos/finality suite | PASS; 139 observed tests, every scenario PASS |
-| Chaos JUnit SHA-256 | `9a1a064252b2bc36b3779de700b440269daf362c7e480c4087e01df71440d9b2` |
+| Focused archive, watchdog, scheduler, and acceptance suite | 38 passed |
+| Full repository suite | 346 passed, 2 expected skips |
+| Hash-bound chaos/finality suite | PASS; 140 observed tests, every scenario PASS |
+| Chaos JUnit SHA-256 | `980f4bce7dcb11c53973d53b780f30835ebcf32607a9d95c14adb4a985a84ada` |
 | Previous all-no-news and one-lead research protections | included and PASS |
 | 2026-09-10 / 2026-09-11 article-repair regressions | included and PASS |
 
@@ -144,7 +144,7 @@ Fixture evidence does not satisfy production evidence gates.
 | --- | --- | --- |
 | Local synthetic fixtures | PASS | watchdog smoke completed local publication; full fixture tests pass |
 | Arabic PDF / EPUB fixture QA | PASS | full suite and synthetic smoke pass; external effects remain disabled |
-| Chaos / finality / resume | PASS | 139-scenario receipt and JUnit above |
+| Chaos / finality / resume | PASS | 140-scenario receipt and JUnit above |
 | Research sufficiency / repair protection | PASS | prior regressions remain in the green full suite |
 | V5 scheduler configuration | PASS | one installed paused Codex automation, canonical watchdog contract verified |
 | V5 scheduler active-production evidence | BLOCKED | activation is prohibited until `READY_FOR_CUTOVER`; no fabricated scheduler review |
