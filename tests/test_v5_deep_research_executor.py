@@ -19,14 +19,17 @@ from dragon.deep_research_executor import (
     ACTION_TYPES,
     FixtureResearchAdapter,
     HttpResearchAdapter,
+    RssSearchAdapter,
     ResearchExecutorError,
     apply_executor_results_to_packet,
+    build_research_yield_report,
     create_research_action,
     execute_research_round,
     plan_research_actions,
     replay_recovery_after_execution,
     science_adapter_boundary,
 )
+from dragon.discovery import FetchResponse
 from dragon.investigation_scope import evaluate_super_investigation_scope
 from dragon.pipeline import build_stage_definitions
 from dragon.providers import SyntheticEditorialProvider
@@ -95,6 +98,37 @@ def test_discovery_result_becomes_structured_unknown_source_lead() -> None:
     assert observation["observation_class"] == "LEAD"
     assert observation["publication_evidence"] is False
     assert observation["provenance"]["discovery_is_not_publication_evidence"] is True
+
+
+def test_public_rss_search_discovers_unknown_domains_as_leads_only() -> None:
+    adapter = RssSearchAdapter(
+        adapter_id="public-rss-test",
+        endpoint_template="https://search.example/rss?q={query}",
+        transport=lambda url, timeout, maximum: FetchResponse(
+            url, 200, "application/rss+xml",
+            b"<rss><channel><item><title>Unknown source</title><link>https://outside.example/report</link></item></channel></rss>",
+        ),
+    )
+    execution = execute_research_round(_job(), adapter, CONFIG)
+    observation = execution["observations"][0]
+    assert observation["observation_class"] == "LEAD"
+    assert observation["url"] == "https://outside.example/report"
+    assert observation["discovery_channel"] == "public-rss-test"
+    assert observation["publication_evidence"] is False
+
+
+def test_yield_report_marks_dead_ends_as_non_useful_and_exposes_zero_yield_branches() -> None:
+    execution = {
+        "jobs": [execute_research_round(
+            _job(), FixtureResearchAdapter({"SEARCH_DISCOVERY": [{"result_type": "DEAD_END", "reason": "fixture"}]}), CONFIG
+        )]
+    }
+    report = build_research_yield_report(execution)
+    assert report["actions_executed"] > 0
+    assert report["dead_ends"] > 0
+    assert report["new_leads"] == 0
+    assert report["questions_with_zero_useful_results"] == report["actions_executed"]
+    assert all(item["contributed_useful_material"] is False for item in report["action_outcomes"])
 
 
 @pytest.mark.parametrize(("source_class", "expected"), [("official", "PRIMARY"), ("independent", "INDEPENDENT")])

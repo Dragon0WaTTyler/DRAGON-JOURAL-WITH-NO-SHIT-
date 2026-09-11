@@ -15,7 +15,7 @@ from typing import Protocol
 
 from dragon.archive import DisabledGitArchiveProvider
 from dragon.config import load_local_config
-from dragon.deep_research_executor import ResearchAdapter
+from dragon.deep_research_executor import ResearchAdapter, rss_search_adapter_from_config
 from dragon.orchestrator import Orchestrator
 from dragon.pipeline import build_stage_definitions
 from dragon.recovery import RecoveryEngine, RecoveryPolicy
@@ -141,7 +141,9 @@ def build_provider_seed_orchestrator(
         seed_provider,
         archive_provider=DisabledGitArchiveProvider(),
         whatsapp_provider=DisabledWhatsAppProvider(),
-        research_adapter=research_adapter,
+        research_adapter=research_adapter or rss_search_adapter_from_config(
+            root / "config" / "open-discovery.yaml"
+        ),
         seed_research_packet=normalized_packet,
         offline_replay=offline_replay,
     )
@@ -166,4 +168,3 @@ def build_provider_seed_orchestrator(
         ),
         target_deadline=str(config["scheduler"]["target_deadline"]),
     )
-

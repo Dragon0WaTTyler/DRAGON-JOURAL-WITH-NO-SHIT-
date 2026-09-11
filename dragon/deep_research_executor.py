@@ -10,13 +10,16 @@ existing safe fetch/extract path.
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timezone
 import hashlib
 import json
 from typing import Protocol
-from urllib.parse import urlsplit
+from urllib.parse import quote_plus, urlsplit
+
+import yaml
 
 from dragon.deep_research import advance_research_job
-from dragon.discovery import DiscoveryError, fetch_and_extract_source
+from dragon.discovery import DiscoveryError, default_transport, discover_rss, fetch_and_extract_source
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 
@@ -100,7 +103,11 @@ def create_research_action(
     query = " | ".join(dict.fromkeys(part.strip() for part in query_parts if part.strip()))
     return {
         "schema_version": 1,
-        "action_id": _stable_id("ACT", job["job_id"], job.get("round", 0), branch["branch_id"], action_type, target or query),
+        "action_id": _stable_id(
+            "ACT", job["job_id"], job.get("round", 0), branch["branch_id"],
+            action_type, recovery_need.get("need_id") if recovery_need else "",
+            target or query,
+        ),
         "job_id": job["job_id"],
         "branch_id": branch["branch_id"],
         "question_id": question_id,
@@ -134,15 +141,37 @@ def create_research_action(
 
 
 def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str] | None = None) -> list[dict]:
-    """Plan at most one action per currently runnable branch and recovery need."""
+    """Plan bounded actions, always serving readiness-changing needs first."""
     if job.get("status") == "STOPPED":
         return []
     branches = [item for item in job.get("branches", []) if item.get("status") == "PLANNED"]
-    needs = [item for item in job.get("recovery_needs", []) if item.get("attempt_count", 0) < item.get("max_attempts", 1)]
+    priority = {
+        "FIND_PRIMARY_ORIGINAL_EVIDENCE": 0,
+        "FIND_INDEPENDENT_CORROBORATION": 1,
+        "NEED_DISTINCT_EVENT": 2,
+    }
+    needs = sorted(
+        (
+            item for item in job.get("recovery_needs", [])
+            if item.get("attempt_count", 0) < item.get("max_attempts", 1)
+        ),
+        key=lambda item: (priority.get(str(item.get("kind")), 3), str(item.get("need_id"))),
+    )
+    if needs and branches:
+        pairs = [
+            (branches[index % len(branches)], need)
+            for index, need in enumerate(needs)
+        ]
+    else:
+        pairs = [(branch, None) for branch in branches]
     actions = []
-    for index, branch in enumerate(branches):
-        need = needs[index] if index < len(needs) else None
+    seen_fingerprints: set[tuple[str, str]] = set()
+    for branch, need in pairs:
         action = create_research_action(job, branch, recovery_need=need, known_event_ids=known_event_ids)
+        fingerprint = (action["action_type"], " ".join(action["query"].casefold().split()))
+        if fingerprint in seen_fingerprints:
+            continue
+        seen_fingerprints.add(fingerprint)
         action["timeout_seconds"] = config["executor"]["action_timeout_seconds"]
         actions.append(action)
     return actions[: min(int(config["executor"]["maximum_actions_per_round"]), job["budget"]["max_branches"])]
@@ -170,6 +199,99 @@ class HttpResearchAdapter:
             return [fetch_and_extract_source(action["target"], timeout_seconds=action["timeout_seconds"])]
         except DiscoveryError as exc:
             return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail}]
+
+
+class RssSearchAdapter:
+    """Concrete, read-only public RSS search/discovery adapter.
+
+    It intentionally returns discovery leads only.  Feed results may point to
+    domains outside every configured seed list; they are retained for normal
+    inspection/classification, never counted as verified evidence merely
+    because a public search feed returned them.
+    """
+
+    def __init__(
+        self,
+        *,
+        adapter_id: str,
+        endpoint_template: str,
+        timeout_seconds: int = 10,
+        maximum_bytes: int = 1_000_000,
+        maximum_results: int = 8,
+        transport=default_transport,
+    ) -> None:
+        if "{query}" not in endpoint_template or not endpoint_template.startswith("https://"):
+            raise ResearchExecutorError("RSS_SEARCH_CONFIG_INVALID")
+        self.adapter_id = adapter_id
+        self.endpoint_template = endpoint_template
+        self.timeout_seconds = timeout_seconds
+        self.maximum_bytes = maximum_bytes
+        self.maximum_results = maximum_results
+        self.transport = transport
+
+    def execute(self, action: dict) -> list[dict]:
+        if action.get("action_type") not in SEARCH_ACTIONS:
+            raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
+        endpoint = self.endpoint_template.replace("{query}", quote_plus(str(action.get("query") or "")))
+        try:
+            response = self.transport(endpoint, self.timeout_seconds, self.maximum_bytes)
+            if not 200 <= response.status < 300:
+                return [{"result_type": "DEAD_END", "reason": f"RSS_HTTP_{response.status}", "discovery_channel": self.adapter_id}]
+            candidates = discover_rss(
+                response.body, provider_id=self.adapter_id, endpoint=response.url
+            )[: self.maximum_results]
+        except (DiscoveryError, OSError, TimeoutError) as exc:
+            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", type(exc).__name__), "discovery_channel": self.adapter_id}]
+        timestamp = datetime.now(timezone.utc).isoformat()
+        if not candidates:
+            return [{"result_type": "DEAD_END", "reason": "RSS_NO_MATCHES", "discovery_channel": self.adapter_id}]
+        return [
+            {
+                "result_type": "LEAD",
+                "canonical_url": item["discovered_url"],
+                "title": item["title"],
+                "source_class": "unknown",
+                "retrieved_at": timestamp,
+                "discovery_channel": self.adapter_id,
+                "discovery_endpoint": response.url,
+                "verification_provenance": "DISCOVERY_ONLY_RSS",
+            }
+            for item in candidates
+        ]
+
+
+def rss_search_adapter_from_config(path) -> RssSearchAdapter | None:
+    """Load the optional built-in public RSS adapter without extra packages."""
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise ResearchExecutorError("RSS_SEARCH_CONFIG_INVALID") from exc
+    required = {
+        "version", "enabled", "adapter_id", "endpoint_template",
+        "timeout_seconds", "maximum_bytes", "maximum_results",
+        "integration_test_status", "provenance_behavior",
+    }
+    if not isinstance(value, dict) or set(value) != required or value.get("version") != 1:
+        raise ResearchExecutorError("RSS_SEARCH_CONFIG_INVALID")
+    if not value["enabled"]:
+        return None
+    if (
+        not isinstance(value["adapter_id"], str)
+        or not isinstance(value["endpoint_template"], str)
+        or not isinstance(value["timeout_seconds"], int)
+        or not isinstance(value["maximum_bytes"], int)
+        or not isinstance(value["maximum_results"], int)
+        or value["integration_test_status"] not in {"PASS", "NOT_RUN"}
+        or value["provenance_behavior"] != "DISCOVERY_ONLY_UNKNOWN_DOMAINS_ALLOWED"
+    ):
+        raise ResearchExecutorError("RSS_SEARCH_CONFIG_INVALID")
+    return RssSearchAdapter(
+        adapter_id=value["adapter_id"],
+        endpoint_template=value["endpoint_template"],
+        timeout_seconds=value["timeout_seconds"],
+        maximum_bytes=value["maximum_bytes"],
+        maximum_results=value["maximum_results"],
+    )
 
 
 def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, str | None]:
@@ -224,6 +346,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "content_hash": raw.get("content_hash"),
         "source_class": source_class,
         "discovery_method": action["action_type"],
+        "discovery_channel": str(raw.get("discovery_channel") or action["action_type"]),
         "related_entities": list(raw.get("related_entities") or action["known_entities"]),
         "related_event": raw.get("event_id"),
         "claim": str(raw.get("claim") or title),
@@ -242,6 +365,129 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "contradicting_evidence_ids": list(raw.get("contradicting_evidence_ids") or []),
         "follow_up_question": raw.get("follow_up_question"),
         "reason": raw.get("reason"),
+    }
+
+
+def build_research_yield_report(
+    execution: dict,
+    *,
+    recovery_before: dict | None = None,
+    recovery_after: dict | None = None,
+    intelligence_before: dict | None = None,
+    intelligence_after: dict | None = None,
+) -> dict:
+    """Return deterministic, explainable research-yield diagnostics.
+
+    An observation is not counted as useful merely because it exists.  It must
+    be a retained lead, potential evidence, context, or contradiction.  New
+    evidence is stricter still: the executor only counts a fixture-verified
+    exact-page potential-evidence observation, and normal downstream recovery
+    remains authoritative for closing a need.
+    """
+    jobs = execution.get("jobs", []) if isinstance(execution, dict) else []
+    actions = [
+        action for job in jobs if isinstance(job, dict)
+        for action in job.get("actions", []) if isinstance(action, dict)
+    ]
+    observations = [
+        observation for job in jobs if isinstance(job, dict)
+        for observation in job.get("observations", []) if isinstance(observation, dict)
+    ]
+    by_action: dict[str, list[dict]] = {}
+    for observation in observations:
+        action_id = observation.get("provenance", {}).get("action_id")
+        if isinstance(action_id, str):
+            by_action.setdefault(action_id, []).append(observation)
+    useful_classes = {"LEAD", "POTENTIAL_EVIDENCE", "CONTEXT", "CONTRADICTION"}
+    useful = [
+        item for item in observations
+        if item.get("observation_class") in useful_classes
+        and item.get("relevance_status") == "RETAINED"
+    ]
+    urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
+    origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
+    before_ids = {
+        item.get("need_id") for item in (recovery_before or {}).get("needs", [])
+        if isinstance(item, dict) and isinstance(item.get("need_id"), str)
+    }
+    after_ids = {
+        item.get("need_id") for item in (recovery_after or {}).get("needs", [])
+        if isinstance(item, dict) and isinstance(item.get("need_id"), str)
+    }
+    closed = sorted(before_ids - after_ids) if recovery_before is not None and recovery_after is not None else []
+    action_outcomes = []
+    for action in actions:
+        action_observations = by_action.get(action["action_id"], [])
+        action_useful = [item for item in action_observations if item in useful]
+        action_outcomes.append({
+            "action_id": action["action_id"],
+            "action_type": action["action_type"],
+            "question_id": action["question_id"],
+            "question": action.get("query"),
+            "desk": action["desk"],
+            "recovery_need_id": action.get("recovery_need_id"),
+            "source_discovery_channels": sorted({item["discovery_channel"] for item in action_observations}),
+            "urls": sorted({item["url"] for item in action_observations if item.get("url")}),
+            "source_ids": sorted({item["source_id"] for item in action_observations if item.get("source_id")}),
+            "observation_types": sorted({item["observation_class"] for item in action_observations}),
+            "retrieval_succeeded": any(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in action_observations),
+            "duplicate": any(item.get("observation_class") == "DUPLICATE" for item in action_observations),
+            "irrelevant": any(item.get("observation_class") == "IRRELEVANT" for item in action_observations),
+            "contributed_useful_material": bool(action_useful),
+            "contributed_new_evidence": any(
+                item.get("observation_class") == "POTENTIAL_EVIDENCE"
+                and item.get("verification_status") == "VERIFIED_EVIDENCE"
+                for item in action_observations
+            ),
+            "introduced_new_origin": bool({item.get("origin") for item in action_observations if item.get("origin")}),
+            "introduced_new_distinct_event": any(
+                item.get("related_event") and item.get("related_event") not in set(action.get("known_event_ids", []))
+                for item in action_observations
+            ),
+            "recovery_need_closed": action.get("recovery_need_id") in closed,
+            "readiness_changed": action.get("recovery_need_id") in closed,
+        })
+    useful_questions = {
+        action["question_id"] for action in actions
+        if any(item in useful for item in by_action.get(action["action_id"], []))
+    }
+    useful_branches = {
+        action["branch_id"] for action in actions
+        if any(item in useful for item in by_action.get(action["action_id"], []))
+    }
+    return {
+        "schema_version": 1,
+        "actions_executed": len(actions),
+        "successful_retrievals": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in observations),
+        "unique_urls": len(urls),
+        "unique_origins": len(origins),
+        "duplicate_urls": sum(item.get("observation_class") == "DUPLICATE" for item in observations),
+        "duplicate_events": sum(
+            item.get("observation_class") == "DUPLICATE" and bool(item.get("related_event"))
+            for item in observations
+        ),
+        "irrelevant_results": sum(item.get("observation_class") == "IRRELEVANT" for item in observations),
+        "dead_ends": sum(item.get("observation_class") == "DEAD_END" for item in observations),
+        "new_leads": sum(item.get("observation_class") == "LEAD" and item.get("relevance_status") == "RETAINED" for item in observations),
+        "potential_primary_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") in {"primary", "official", "paper"} for item in observations),
+        "potential_independent_evidence": sum(item.get("observation_class") == "POTENTIAL_EVIDENCE" and item.get("source_class") == "independent" for item in observations),
+        "contradictions_found": sum(item.get("observation_class") == "CONTRADICTION" for item in observations),
+        "recovery_needs_closed": len(closed),
+        "recovery_needs_unresolved": len(after_ids) if recovery_after is not None else len(before_ids),
+        "new_distinct_events": (
+            max(0, int(recovery_after.get("distinct_event_count", 0)) - int(recovery_before.get("distinct_event_count", 0)))
+            if recovery_before is not None and recovery_after is not None
+            else len({
+                item.get("related_event") for item in observations
+                if item.get("related_event") and item.get("related_event") not in {
+                    event for action in actions for event in action.get("known_event_ids", [])
+                }
+            })
+        ),
+        "breadth_gaps_closed": sum(item.startswith("BREADTH:") for item in closed),
+        "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
+        "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
+        "action_outcomes": action_outcomes,
     }
 
 
@@ -384,6 +630,28 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 "status": "ELIGIBLE" if not issues else "INELIGIBLE",
                 "issues": issues,
             }
+        # A recovery-only candidate may re-open a NO_NEWS desk only after the
+        # normal role/origin validation above has made it eligible.  This is
+        # not a promotion switch: it preserves the candidate and its exact
+        # retrieved source links, then lets source intelligence, event
+        # clustering, and recovery re-evaluate the newly selected event.
+        if section.get("status") == "NO_NEWS":
+            recovered = [
+                candidate for candidate in section.get("recovery_candidates", [])
+                if candidate.get("evidence_eligibility", {}).get("status") == "ELIGIBLE"
+            ]
+            if recovered:
+                recovered.sort(key=lambda candidate: (candidate.get("rank", 10**9), str(candidate.get("id") or "")))
+                selected = recovered[0]
+                section.update({
+                    "status": "ACTIVE",
+                    "candidates": list(section.get("recovery_candidates", [])),
+                    "recovery_candidates": [],
+                    "selected_candidate_id": selected["id"],
+                    "selection_reason": "تمت إعادة فتح القسم بعد تحقق أدلة أولية ومستقلة من مسار الاسترداد المحدود.",
+                    "no_news_reason": None,
+                    "fallback_action": None,
+                })
     return value
 
 

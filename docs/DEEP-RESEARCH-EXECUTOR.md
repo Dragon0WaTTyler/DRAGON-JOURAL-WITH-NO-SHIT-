@@ -36,6 +36,14 @@ has no search backend. A production stage without an explicitly injected
 non-generative adapter records `ADAPTER_UNCONFIGURED` and leaves recovery
 fail-closed; it never invents an execution result.
 
+`RssSearchAdapter` is the built-in, provider-neutral open-discovery route. It
+uses the bounded public endpoint declared in `config/open-discovery.yaml`, has
+no credentials or paid service, and returns only discovery leads. An unknown
+domain is allowed to enter as a `LEAD`; it is neither rejected for being absent
+from `source-coverage.yaml` nor promoted to verified evidence. Failed feeds,
+blocked pages, and dynamic pages remain explicit dead ends or extraction-route
+requirements.
+
 ## Open discovery and observations
 
 Configured sources are preferred seeds, not a whitelist. Open discovery is
@@ -59,6 +67,16 @@ also cap search and fetch actions. The executor records planned/executed
 actions, observations retained or rejected, duplicate URLs/events, recovery
 attempts, remaining gaps, consumed action budget, context compression, branch
 history, follow-ups, and stop reason in structured JSON.
+
+Each execution now includes a deterministic yield report: executed actions,
+successful retrievals, unique URLs/origins, duplicates, irrelevant results,
+dead ends, leads, potential evidence by role, contradictions, recovery needs
+closed/unresolved, distinct events, breadth gaps, and zero-yield
+questions/branches. It also includes a per-action outcome ledger. No arbitrary
+quality score is computed. Recovery-linked actions are prioritized ahead of
+generic context branches, and only selected active candidates receive an
+initial question tree; lower-ranked alternatives are deferred until real
+observations justify them.
 
 `NO_NEWS` remains unavailable until a terminal bounded outcome. Repeated,
 irrelevant, or duplicate material cannot expand a branch indefinitely.

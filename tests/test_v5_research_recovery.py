@@ -63,13 +63,16 @@ def test_primary_only_and_independent_only_create_targeted_role_needs() -> None:
     assert role_needs["primary-only"]["search_constraints"]["must_not_reuse_known_origin_for_both_roles"] is True
 
 
-def test_coverage_inventory_has_every_v5_desk_and_marks_real_gaps() -> None:
+def test_coverage_inventory_has_every_v5_desk_and_closes_prior_seed_gaps() -> None:
     coverage = load_source_coverage(ROOT / "config" / "source-coverage.yaml", EXPECTED)
     desks = {item["section_id"]: item for item in coverage["desks"]}
     assert set(desks) == EXPECTED
-    assert {name for name, item in desks.items() if item["coverage_status"] == "GAP"} >= {
+    for section_id in (
         "meknes_local", "africa_sahel", "adab", "history", "investigations", "service"
-    }
+    ):
+        assert desks[section_id]["coverage_status"] == "COVERED"
+        routes = {item["source_id"] for item in coverage["sources"]}
+        assert set(desks[section_id]["source_ids"]).issubset(routes)
 
 
 def test_complete_candidate_has_no_corroboration_need_and_no_news_is_not_promoted() -> None:

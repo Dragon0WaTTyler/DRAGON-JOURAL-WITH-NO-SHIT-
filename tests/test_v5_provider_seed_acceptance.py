@@ -13,6 +13,8 @@ from dragon.provider_acceptance import (
     OfflineReplayResearchAdapter,
     build_provider_seed_orchestrator,
 )
+from dragon.deep_research_executor import FixtureResearchAdapter
+from dragon.pipeline import build_stage_definitions
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.state import sha256_file
 
@@ -163,3 +165,56 @@ def test_incomplete_seed_executes_deep_research_before_final_insufficiency() -> 
     finally:
         shutil.rmtree(raw_dir, ignore_errors=True)
         shutil.rmtree(run_dir, ignore_errors=True)
+
+
+def test_nine_section_seed_becomes_ready_only_through_fixture_retrieval_and_recovery(tmp_path: Path) -> None:
+    seed = _nine_section_seed()
+    for section_id, primary, title in (
+        ("world", "world-primary", "Distinct world recovery event"),
+        ("africa_sahel", "africa-primary", "Distinct Sahel recovery event"),
+        ("filastin_middle_east", "middle-east-primary", "Distinct Middle East recovery event"),
+    ):
+        seed["sources"].append(_source(primary, "official", f"{section_id}.official.example"))
+        section = next(item for item in seed["sections"] if item["section_id"] == section_id)
+        candidate = _candidate(f"{section_id}-recovery", primary, "missing-independent", 1)
+        candidate["title"] = title
+        candidate["discovery_source_ids"] = [primary]
+        candidate["verification_source_ids"] = [primary]
+        candidate["independent_evidence_source_ids"] = []
+        candidate["evidence_eligibility"] = {"status": "INELIGIBLE", "issues": ["INDEPENDENT_EVIDENCE_MISSING"]}
+        section["recovery_candidates"] = [candidate]
+    class DistinctRecoveryAdapter:
+        def execute(self, action: dict) -> list[dict]:
+            candidate_id = action.get("recovery_candidate_id")
+            if not candidate_id:
+                return [{"result_type": "DEAD_END", "reason": "not-a-role-recovery"}]
+            return [{
+                "url": f"https://independent.example/{candidate_id}",
+                "title": f"Independent recovery report {candidate_id}",
+                "source_class": "independent",
+                "claim": "Independent exact-page recovery evidence.",
+                "published_at": DATE,
+                "retrieved_at": f"{DATE}T08:00:00+00:00",
+                "content_hash": ("b" if candidate_id.startswith("world") else "c") * 64,
+                "verification_provenance": "FIXTURE_VERIFIED_EXACT_PAGE",
+            }]
+    definitions = {item.name: item for item in build_stage_definitions(
+        NoArticleProvider(),
+        seed_research_packet=seed,
+        research_adapter=DistinctRecoveryAdapter(),
+        offline_replay=True,
+    )}
+    context = __import__("dragon.stages", fromlist=["StageContext"]).StageContext(ROOT, DATE, tmp_path, tmp_path, 1)
+    for name in (
+        "source_monitoring", "research", "source_intelligence", "research_planning",
+        "deep_research", "deep_research_execution", "research_recovery",
+    ):
+        definitions[name].runner(context)
+    recovery = json.loads((tmp_path / "research-recovery" / "plan.json").read_text(encoding="utf-8"))
+    yield_report = json.loads((tmp_path / "deep-research" / "yield-report.json").read_text(encoding="utf-8"))
+    recovered = json.loads((tmp_path / "research" / "recovered-research-packet.json").read_text(encoding="utf-8"))
+    assert recovery["status"] == "PASS"
+    assert recovery["article_generation_allowed"] is True
+    assert yield_report["recovery_needs_closed"] >= 3
+    assert yield_report["new_distinct_events"] >= 2
+    assert {item["section_id"] for item in recovered["sections"] if item["status"] == "ACTIVE"} >= {"world", "africa_sahel", "filastin_middle_east"}

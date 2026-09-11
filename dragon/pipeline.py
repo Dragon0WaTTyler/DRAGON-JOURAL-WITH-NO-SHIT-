@@ -26,6 +26,7 @@ from dragon.deep_research import (
 )
 from dragon.deep_research_executor import (
     apply_executor_results_to_packet,
+    build_research_yield_report,
     execute_research_round,
     plan_research_actions,
 )
@@ -382,16 +383,34 @@ def build_stage_definitions(
                 context.root / "config" / "deep-research.yaml",
                 context.root / "config" / "deep-research-schema.json",
             )
+            all_jobs = list(state.get("jobs", []))
+            mandatory_jobs = [
+                job for job in all_jobs
+                if any(
+                    item.get("attempt_count", 0) < item.get("max_attempts", 1)
+                    for item in job.get("recovery_needs", [])
+                )
+            ]
+            jobs_to_execute = mandatory_jobs or all_jobs
             executions = [
                 execute_research_round(job, research_adapter, config)
-                for job in state.get("jobs", [])
+                for job in jobs_to_execute
             ]
             report = {
                 "schema_version": 1,
                 "status": "EXECUTED",
                 "jobs": executions,
                 "actions_planned": [action for item in executions for action in item["actions"]],
+                "deferred_jobs": [
+                    {
+                        "job_id": job["job_id"],
+                        "desk": job["lead"]["desk"],
+                        "reason": "MANDATORY_RECOVERY_NEEDS_PRIORITIZED",
+                    }
+                    for job in all_jobs if mandatory_jobs and job not in mandatory_jobs
+                ],
             }
+        report["yield"] = build_research_yield_report(report)
         atomic_write_json(path, report)
         return StageResult(
             (path,), inputs=(
@@ -425,6 +444,11 @@ def build_stage_definitions(
             raise StageFailure("SOURCE_COVERAGE_CONFIG_INVALID", str(exc)) from exc
         packet = _load(packet_path)
         intelligence = _load(intelligence_path)
+        initial_packet = packet
+        initial_intelligence = intelligence
+        initial_recovery = build_recovery_plan(
+            initial_packet, initial_intelligence, coverage, readiness
+        )
         execution = _load(execution_path)
         outputs: tuple[Path, ...] = (path,)
         if execution.get("status") == "EXECUTED":
@@ -458,6 +482,16 @@ def build_stage_definitions(
             need_id: 1 for need_id in combined["recovery_attempts"]
         } if execution.get("status") == "EXECUTED" else None
         report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
+        yield_path = context.run_dir / "deep-research" / "yield-report.json"
+        yield_report = build_research_yield_report(
+            execution,
+            recovery_before=initial_recovery,
+            recovery_after=report,
+            intelligence_before=initial_intelligence,
+            intelligence_after=intelligence,
+        )
+        atomic_write_json(yield_path, yield_report)
+        outputs = (*outputs, yield_path)
         issues = validate_recovery_plan(report)
         atomic_write_json(path, report)
         if issues:

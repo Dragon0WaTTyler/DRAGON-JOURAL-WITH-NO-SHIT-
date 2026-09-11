@@ -513,7 +513,19 @@ def build_deep_research_state(
     ]
     jobs = []
     for section in packet.get("sections", []):
-        candidates = [*section.get("candidates", []), *section.get("recovery_candidates", [])]
+        # Only the selected publication candidate can change an active desk's
+        # readiness.  Running a full question tree for every lower-ranked
+        # alternative doubled the latest replay's work (18 jobs / 144
+        # questions) without creating a single useful result.  Preserve
+        # curiosity for recovery-only leads, but defer non-selected active
+        # alternatives until a real observation warrants promotion.
+        if section.get("status") == "ACTIVE":
+            candidates = [
+                item for item in section.get("candidates", [])
+                if item.get("id") == section.get("selected_candidate_id")
+            ]
+        else:
+            candidates = list(section.get("recovery_candidates", []))
         for candidate in candidates:
             source_ids = sorted(set(candidate.get("discovery_source_ids", [])))
             lead = create_lead(
