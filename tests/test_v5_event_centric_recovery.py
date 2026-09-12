@@ -109,6 +109,16 @@ def test_failed_family_leads_are_rejected_before_exact_page_followup() -> None:
     assert observation["publication_evidence"] is False
 
 
+def test_known_event_fingerprint_is_rejected_before_breadth_promotion() -> None:
+    job = _job()
+    action = plan_research_actions(job, CONFIG)[0]
+    action["provenance_requirements"]["must_be_distinct_event"] = True
+    action["known_event_fingerprints"] = [{"event_id": "known", "fingerprint": "Meknes stadium audit public procurement"}]
+    observation = _observation(action, {"result_type": "LEAD", "url": "https://new.example/repeat", "title": "Meknes stadium audit public procurement update"}, set())
+    assert observation["observation_class"] == "DUPLICATE"
+    assert observation["publication_evidence"] is False
+
+
 def test_replay_cli_accepts_relative_output_path_after_completed_rehearsal(monkeypatch, capsys) -> None:
     import dragon_recovery_replay
 

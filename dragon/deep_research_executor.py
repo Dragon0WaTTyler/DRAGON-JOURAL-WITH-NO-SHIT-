@@ -513,6 +513,7 @@ def create_research_action(
             "research_date": (recovery_need or {}).get("query_context", {}).get("research_date"),
         },
         "known_event_ids": known_events,
+        "known_event_fingerprints": list((recovery_need or {}).get("event_acquisition_plan", {}).get("excluded_event_fingerprints", [])),
         "event_fingerprint": event_fingerprint(job, recovery_need),
         "already_seen_urls": seen_urls,
         "already_seen_origins": seen_origins,
@@ -1164,6 +1165,14 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
         return "DUPLICATE", canonical, None
     if raw.get("event_id") and raw["event_id"] in set(action["known_event_ids"]):
         return "DUPLICATE", canonical, None
+    if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
+        title_words = set(_query_words([raw.get("title") or raw.get("claim") or ""]))
+        for known in action.get("known_event_fingerprints", []):
+            known_words = set(_query_words([known.get("fingerprint", "")])) if isinstance(known, dict) else set()
+            # A concise result title matching most of a known event label is a
+            # cheap triage rejection, not an assertion about its evidence.
+            if len(title_words) >= 3 and len(known_words) >= 3 and len(title_words & known_words) / min(len(title_words), len(known_words)) >= 0.7:
+                return "DUPLICATE", canonical, None
     # Compatibility for historical deterministic fixtures.  Production paths
     # reach this state only through ``validate_exact_page`` below.
     if raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE":
