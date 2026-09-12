@@ -87,6 +87,16 @@ def test_trafilatura_adapter_extracts_bounded_html_with_provenance() -> None:
     assert "AUTHOR_MISSING" in value["metadata_warnings"]
     assert "PUBLISHED_AT_MISSING" in value["metadata_warnings"]
     assert 0 < value["quality_score"] <= 1
+    assert value["transport"]["fetch_backend"] == "safe-http"
+
+
+def test_article_attribution_is_extracted_but_not_trusted() -> None:
+    html = ("<html><head><meta name='author' content='A Reporter'><title>Report</title></head><body>"
+            + "<article>" + "".join(f"<p>Substantive report detail number {i} for deterministic extraction.</p>" for i in range(20)) + "</article></body></html>").encode()
+    value = fetch_and_extract_html("https://example.org/report", transport=lambda *_: FetchResponse("https://example.org/report", 200, "text/html", html))
+    assert value["article_attribution"]["author_byline"] == "A Reporter"
+    assert value["article_attribution"]["article_origin_state"] == "ORIGINAL_UNKNOWN"
+    assert value["verification_status"] == "EXTRACTED_NOT_VERIFIED"
 
 
 def test_bad_source_date_is_quarantined_instead_of_entering_chronology(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -115,8 +125,8 @@ def test_bad_source_date_is_quarantined_instead_of_entering_chronology(monkeypat
 @pytest.mark.parametrize(
     ("response", "expected"),
     [
-        (FetchResponse("https://example.org/blocked", 403, "text/html", b"denied"), "SOURCE_BLOCKED"),
-        (FetchResponse("https://example.org/empty", 200, "text/html", b""), "SOURCE_CONTENT_EMPTY"),
+        (FetchResponse("https://example.org/blocked", 403, "text/html", b"denied"), "HTTP_403"),
+        (FetchResponse("https://example.org/empty", 200, "text/html", b""), "EMPTY_RESPONSE"),
     ],
 )
 def test_blocked_and_empty_sources_have_explicit_failure_codes(response: FetchResponse, expected: str) -> None:
@@ -131,7 +141,7 @@ def test_source_timeout_has_an_explicit_retryable_failure_code() -> None:
 
     with pytest.raises(DiscoveryError) as caught:
         fetch_and_extract_source("https://example.org/slow", transport=timeout)
-    assert caught.value.code == "SOURCE_TIMEOUT"
+    assert caught.value.code == "TIMEOUT"
 
 
 @pytest.mark.parametrize(

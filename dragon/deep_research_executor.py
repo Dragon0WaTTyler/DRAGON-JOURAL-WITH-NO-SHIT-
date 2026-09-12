@@ -25,6 +25,7 @@ from dragon.discovery import DiscoveryError, default_transport, discover_rss, fe
 from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
+from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 
 
 ACTION_TYPES = {
@@ -645,6 +646,7 @@ class RssSearchAdapter:
         }
         self.transport = transport
         self.follow_discovery_leads = True
+        self.publisher_profile_cache = PublisherProfileCache()
 
     def execute(self, action: dict) -> list[dict]:
         if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
@@ -659,6 +661,10 @@ class RssSearchAdapter:
                 }]
             origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
             fetched["source_class"] = self.source_classes_by_origin.get(origin.casefold(), "unknown")
+            profile = self.publisher_profile_cache.get(origin)
+            if profile is None:
+                profile = self.publisher_profile_cache.put(publisher_profile_from_pages(origin, [fetched]))
+            fetched["publisher_profile"] = profile
             fetched["discovery_channel"] = f"{self.adapter_id}-followup"
             return [fetched]
         if action.get("action_type") not in SEARCH_ACTIONS:
@@ -798,6 +804,7 @@ class SearxngSearchAdapter:
         }
         self.transport = _local_searxng_transport if endpoint_policy == "LOCAL_PRIVATE_ONLY" and transport is default_transport else transport
         self.follow_discovery_leads = True
+        self.publisher_profile_cache = PublisherProfileCache()
 
     def _search_url(self, action: dict) -> str:
         params = {
@@ -820,6 +827,13 @@ class SearxngSearchAdapter:
                 return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail, "discovery_channel": f"{self.adapter_id}-followup"}]
             origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
             fetched["source_class"] = self.source_classes_by_origin.get(origin.casefold(), "unknown")
+            # Publisher identity is cached separately from source/evidence
+            # role.  The exact article remains untrusted until normal
+            # attribution, event, and role validation passes.
+            profile = self.publisher_profile_cache.get(origin)
+            if profile is None:
+                profile = self.publisher_profile_cache.put(publisher_profile_from_pages(origin, [fetched]))
+            fetched["publisher_profile"] = profile
             fetched["discovery_channel"] = f"{self.adapter_id}-followup"
             return [fetched]
         if action.get("action_type") not in SEARCH_ACTIONS:
@@ -1081,6 +1095,8 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "search_result": deepcopy(raw.get("search_result")) if isinstance(raw.get("search_result"), dict) else None,
         "lead_attrition_state": _lead_attrition_state(action, raw, result_class, validation),
         "source_identity": source_profile,
+        "publisher_profile": deepcopy(raw.get("publisher_profile")) if isinstance(raw.get("publisher_profile"), dict) else None,
+        "article_attribution": deepcopy(raw.get("article_attribution")) if isinstance(raw.get("article_attribution"), dict) else None,
     }
 
 

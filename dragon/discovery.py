@@ -9,8 +9,11 @@ from ipaddress import ip_address
 import json
 from pathlib import Path
 import socket
+import time
+import re
 from typing import Callable
 from urllib.parse import urljoin, urlparse
+from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from xml.etree import ElementTree
 
@@ -34,6 +37,8 @@ class FetchResponse:
     status: int
     content_type: str
     body: bytes
+    redirect_count: int = 0
+    elapsed_ms: int | None = None
 
 
 Transport = Callable[[str, int, int], FetchResponse]
@@ -95,24 +100,55 @@ def _fetch(
     url: str, transport: Transport, timeout_seconds: int, maximum_bytes: int
 ) -> FetchResponse:
     _validate_source_url(url)
+    started = time.monotonic()
     try:
         response = transport(url, timeout_seconds, maximum_bytes)
     except DiscoveryError:
         raise
     except TimeoutError as exc:
-        raise DiscoveryError("SOURCE_TIMEOUT", str(exc) or url) from exc
+        raise DiscoveryError("TIMEOUT", str(exc) or url) from exc
     except OSError as exc:
-        raise DiscoveryError("SOURCE_FETCH_FAILED", str(exc) or url) from exc
+        detail = str(exc) or url
+        lowered = detail.casefold()
+        code = "TLS_FAILED" if "ssl" in lowered or "tls" in lowered or "certificate" in lowered else "DNS_FAILED" if "name or service" in lowered or "resolve" in lowered else "CONNECTION_FAILED"
+        raise DiscoveryError(code, detail) from exc
     _validate_source_url(response.url, error_code="SOURCE_REDIRECT_UNSAFE")
     if len(response.body) > maximum_bytes:
         raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")
-    if response.status in {401, 403}:
-        raise DiscoveryError("SOURCE_BLOCKED", f"HTTP {response.status}")
+    if response.status in {401, 403, 404, 429}:
+        raise DiscoveryError(f"HTTP_{response.status}", f"HTTP {response.status}")
+    if 500 <= response.status <= 599:
+        raise DiscoveryError("HTTP_5XX", f"HTTP {response.status}")
     if response.status < 200 or response.status >= 300:
         raise DiscoveryError("SOURCE_HTTP_FAILED", f"HTTP {response.status}")
     if not response.body.strip():
-        raise DiscoveryError("SOURCE_CONTENT_EMPTY", response.url)
-    return response
+        raise DiscoveryError("EMPTY_RESPONSE", response.url)
+    return FetchResponse(response.url, response.status, response.content_type, response.body, response.redirect_count, response.elapsed_ms or round((time.monotonic() - started) * 1000))
+
+
+def _article_attribution(html: bytes) -> dict:
+    """Extract deterministic article-lineage hints; none confer evidence trust."""
+    text = html.decode("utf-8", errors="replace")
+    def meta(*names: str) -> str | None:
+        for name in names:
+            match = re.search(rf"<meta[^>]+(?:name|property)=[\"']{re.escape(name)}[\"'][^>]+content=[\"']([^\"']+)", text, re.I)
+            if match:
+                return match.group(1).strip()
+        return None
+    author = meta("author", "article:author")
+    body = re.sub(r"<[^>]+>", " ", text)
+    lowered = body.casefold()
+    wire = next((name for marker, name in (("reuters", "REUTERS"), ("associated press", "AP"), ("agence france-presse", "AFP"), ("afp", "AFP")) if marker in lowered), None)
+    partner = next((marker for marker in ("in partnership with", "partner content", "republished from", "courtesy of") if marker in lowered), None)
+    if wire:
+        state = "WIRE_REPUBLICATION"
+    elif partner:
+        state = "PARTNER_REPUBLICATION"
+    elif author:
+        state = "ORIGINAL_UNKNOWN"
+    else:
+        state = "SYNDICATION_UNRESOLVED"
+    return {"author_byline": author, "wire_credit": wire, "partner_credit": partner, "article_origin_state": state}
 
 
 def _published_at(value: object) -> tuple[str | None, list[str]]:
@@ -285,20 +321,21 @@ def default_transport(url: str, timeout_seconds: int, maximum_bytes: int) -> Fet
     _validate_source_url(url, resolve_dns=True)
     request = Request(url, headers={"User-Agent": "DRAGON/5 source-research (+local newsroom)"})
     opener = build_opener(_SafeRedirectHandler())
-    with opener.open(request, timeout=timeout_seconds) as response:  # noqa: S310 - URL and DNS checked above
-        final_url = response.geturl()
-        _validate_source_url(
-            final_url, error_code="SOURCE_REDIRECT_UNSAFE", resolve_dns=True
-        )
-        body = response.read(maximum_bytes + 1)
+    try:
+        with opener.open(request, timeout=timeout_seconds) as response:  # noqa: S310 - URL and DNS checked above
+            final_url = response.geturl()
+            _validate_source_url(final_url, error_code="SOURCE_REDIRECT_UNSAFE", resolve_dns=True)
+            body = response.read(maximum_bytes + 1)
+            if len(body) > maximum_bytes:
+                raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")
+            return FetchResponse(final_url, int(response.status), response.headers.get_content_type(), body)
+    except HTTPError as exc:
+        final_url = exc.geturl()
+        _validate_source_url(final_url, error_code="SOURCE_REDIRECT_UNSAFE", resolve_dns=True)
+        body = exc.read(maximum_bytes + 1)
         if len(body) > maximum_bytes:
-            raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes")
-        return FetchResponse(
-            final_url,
-            int(response.status),
-            response.headers.get_content_type(),
-            body,
-        )
+            raise DiscoveryError("SOURCE_RESPONSE_TOO_LARGE", f"response exceeds {maximum_bytes} bytes") from exc
+        return FetchResponse(final_url, int(exc.code), exc.headers.get_content_type(), body)
 
 
 def fetch_and_extract_html(
@@ -325,6 +362,19 @@ def fetch_and_extract_html(
         include_tables=True,
         favor_precision=True,
     )
+    method = "trafilatura-bare-extraction"
+    text = "" if document is None else str(document.as_dict().get("text") or "").strip()
+    # A one-time, extraction-only retry is allowed after a successful HTML
+    # fetch. It does not refetch, relax source policy, or invoke a browser.
+    if document is None or len(text) < 200:
+        retry = bare_extraction(
+            response.body, url=response.url, include_comments=False,
+            include_links=True, include_tables=True, favor_precision=False,
+            favor_recall=True, fast=False,
+        )
+        retry_text = "" if retry is None else str(retry.as_dict().get("text") or "").strip()
+        if retry is not None and len(retry_text) >= 200:
+            document, text, method = retry, retry_text, "trafilatura-full-retry"
     if document is None:
         if b"<script" in response.body.lower():
             return _fallback_or_dynamic_route(response, url, retrieved_at, fallback_extractor, "static extraction returned no content")
@@ -352,7 +402,7 @@ def fetch_and_extract_html(
         "fetch_status": "FETCHED",
         "http_status": response.status,
         "content_type": response.content_type,
-        "extraction_method": "trafilatura-bare-extraction",
+        "extraction_method": method,
         "extraction_quality": quality,
         "quality_score": min(1.0, round(len(text) / 1_000, 3)),
         "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
@@ -360,6 +410,14 @@ def fetch_and_extract_html(
         "text": text,
         "links": extracted.get("links") or [],
         "metadata_warnings": sorted(metadata_warnings),
+        "transport": {
+            "requested_url": url, "final_url": response.url,
+            "redirect_count": response.redirect_count, "http_status": response.status,
+            "content_type": response.content_type, "response_bytes": len(response.body),
+            "elapsed_ms": response.elapsed_ms, "fetch_backend": "safe-http",
+            "extraction_backend": method,
+        },
+        "article_attribution": _article_attribution(response.body),
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }
 
