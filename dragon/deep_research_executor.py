@@ -163,7 +163,7 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
         seen_families, seen_titles = set(), set()
         for item in sorted(items, key=lambda value: value["_lead_sort_key"]):
             profile = item["source_identity"]
-            title_key = " ".join(re.findall(r"[\\w\\u0600-\\u06ff]+", str(item.get("title") or "").casefold())[:8])
+            title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
             if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
                 continue
             if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"} or profile.get("origin_family") in seen_families or (require_event_diversity and title_key in seen_titles):

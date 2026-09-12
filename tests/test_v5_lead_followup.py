@@ -71,6 +71,17 @@ def test_selection_prefers_high_relevance_and_publisher_diversity() -> None:
     assert [item["url"] for item in selected] == ["https://one.example/a", "https://two.example/a"]
 
 
+def test_distinct_event_selection_avoids_repeated_event_headlines() -> None:
+    action = {"action_id": "A", "action_type": "FIND_DISTINCT_EVENT", "question_id": "Q", "priority_class": "P1_DISTINCT_EVENT", "recovery_need_id": "N", "known_entities": ["Meknes"], "event_context": {"event_terms": ["audit"]}, "query": "Meknes audit"}
+    observations = [
+        {"url": "https://one.example/a", "title": "Meknes audit announced", "observation_class": "LEAD", "provenance": {"action_id": "A"}, "search_result": {"rank": 1, "snippet": "Meknes audit"}},
+        {"url": "https://two.example/b", "title": "Meknes audit announced", "observation_class": "LEAD", "provenance": {"action_id": "A"}, "search_result": {"rank": 2, "snippet": "Meknes audit"}},
+        {"url": "https://three.example/c", "title": "Meknes transport tender", "observation_class": "LEAD", "provenance": {"action_id": "A"}, "search_result": {"rank": 3, "snippet": "Meknes audit"}},
+    ]
+    selected = select_leads_for_followup(observations, {"A": action}, {"total": 3, "P0_BLOCKING_EVIDENCE": 0, "P1_BREADTH": 0, "P1_DISTINCT_EVENT": 3, "P2_CONTRADICTION": 0, "P3_CONTEXT": 0})
+    assert [item["url"] for item in selected] == ["https://one.example/a", "https://three.example/c"]
+
+
 def test_social_and_aggregator_leads_are_skipped_before_expensive_fetch() -> None:
     job = _job()
     action = _search_action(job)
