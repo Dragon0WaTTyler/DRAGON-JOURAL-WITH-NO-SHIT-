@@ -340,10 +340,19 @@ def build_stage_definitions(
         intelligence = _load(intelligence_path)
         recovery = build_recovery_plan(packet, intelligence, coverage, readiness)
         monitoring = _load(monitoring_path)
-        report = build_deep_research_state(
-            packet, intelligence, _load(research_plan_path), recovery, deep_config,
-            discovery_signals=monitoring.get("discovery_candidates", []),
-        )
+        try:
+            report = build_deep_research_state(
+                packet, intelligence, _load(research_plan_path), recovery, deep_config,
+                discovery_signals=monitoring.get("discovery_candidates", []),
+                run_scope_id=context.run_dir.name,
+            )
+        except DeepResearchError as exc:
+            code = (
+                "RECOVERY_JOB_MATERIALIZATION_FAILED"
+                if str(exc).startswith("RECOVERY_JOB_MATERIALIZATION_FAILED")
+                else "DEEP_RESEARCH_STATE_BUILD_FAILED"
+            )
+            raise StageFailure(code, str(exc)) from exc
         issues = validate_deep_research_state(report)
         atomic_write_json(path, report)
         if issues:
@@ -409,6 +418,27 @@ def build_stage_definitions(
                 ],
                 "deferred_actions": schedule["deferred_actions"],
             }
+        executions_by_job = {
+            item.get("job", {}).get("job_id"): item
+            for item in report.get("jobs", []) if isinstance(item, dict)
+        }
+        actions_by_need: dict[str, list[str]] = {}
+        for action in report.get("actions_planned", []):
+            need_id = action.get("recovery_need_id")
+            if isinstance(need_id, str):
+                actions_by_need.setdefault(need_id, []).append(action["action_id"])
+        report["recovery_job_mappings"] = [
+            {
+                **mapping,
+                "action_ids": actions_by_need.get(mapping["recovery_need_id"], []),
+                "execution_state": (
+                    "EXECUTED" if mapping["job_id"] in executions_by_job
+                    else "DEFERRED" if actions_by_need.get(mapping["recovery_need_id"])
+                    else "NOT_SCHEDULED"
+                ),
+            }
+            for mapping in state.get("recovery_job_mappings", [])
+        ]
         report["yield"] = build_research_yield_report(report)
         atomic_write_json(path, report)
         return StageResult(

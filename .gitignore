@@ -11,6 +11,7 @@ daily-runs/2099-*/
 # Hash-bound offline replay of an immutable provider trial; local review evidence,
 # never a production or historical edition to commit.
 daily-runs/2026-09-11/
+daily-runs/2026-09-12/
 editions/2099/
 evolution/reports/2099-*.json
 investigations/CASE-*/

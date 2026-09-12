@@ -194,7 +194,29 @@ def build_question_tree(lead: dict, perspectives: list[dict], *, max_questions: 
     return questions
 
 
-def start_research_job(lead: dict, config: dict, *, budget_class: str = "STANDARD", recovery_needs: list[dict] | None = None) -> dict:
+def _recovery_priority(need: dict) -> str:
+    """Keep recovery-job identity explicit without importing the executor."""
+    kind = str(need.get("kind") or "")
+    if kind in {"FIND_PRIMARY_ORIGINAL_EVIDENCE", "FIND_INDEPENDENT_CORROBORATION"}:
+        return "P0_BLOCKING_EVIDENCE"
+    if kind == "NEED_DISTINCT_EVENT":
+        return "P1_DISTINCT_EVENT"
+    if kind.startswith("NEED_"):
+        return "P1_BREADTH"
+    if kind in {"CONTRADICTION", "CHECK_CONTRADICTION"}:
+        return "P2_CONTRADICTION"
+    return "P3_CONTEXT"
+
+
+def start_research_job(
+    lead: dict,
+    config: dict,
+    *,
+    budget_class: str = "STANDARD",
+    recovery_needs: list[dict] | None = None,
+    run_scope_id: str | None = None,
+    recovery_identity: str | None = None,
+) -> dict:
     if lead.get("state") not in LEAD_STATES or budget_class not in config["budget_classes"]:
         raise DeepResearchError("RESEARCH_JOB_INPUT_INVALID")
     budget = deepcopy(config["budget_classes"][budget_class])
@@ -202,9 +224,28 @@ def start_research_job(lead: dict, config: dict, *, budget_class: str = "STANDAR
     questions = build_question_tree(lead, perspectives, max_questions=min(budget["max_branches"] * 2, 8))
     recovery_needs = deepcopy(recovery_needs or [])
     gaps = [need["need_id"] for need in recovery_needs]
+    recovery_identity = recovery_identity or "|".join(sorted(gaps)) or "GENERAL_RESEARCH"
+    recovery_job = None
+    if recovery_needs:
+        # A recovery job is intentionally one need per job today.  Keeping the
+        # list allows a future compatible grouping only when it remains
+        # observable and validated by the state invariant below.
+        recovery_job = {
+            "recovery_need_ids": list(gaps),
+            "priority_classes": sorted({_recovery_priority(item) for item in recovery_needs}),
+            "candidate_ids": sorted({str(item["candidate_id"]) for item in recovery_needs if item.get("candidate_id")}),
+            "event_ids": sorted({str(item["event_id"]) for item in recovery_needs if item.get("event_id")}),
+            "desk": lead["desk"],
+            "need_types": sorted({str(item.get("kind") or "") for item in recovery_needs}),
+            "missing_roles": sorted({str(item["missing_evidence_role"]) for item in recovery_needs if item.get("missing_evidence_role")}),
+            "source_attempt_ids": sorted({str(item["source_attempt_id"]) for item in recovery_needs if item.get("source_attempt_id")}),
+            "attempt_count": max((int(item.get("attempt_count", 0)) for item in recovery_needs), default=0),
+            "max_attempts": max((int(item.get("max_attempts", 1)) for item in recovery_needs), default=1),
+            "run_scope_id": run_scope_id,
+        }
     return {
         "schema_version": 1,
-        "job_id": _stable_id("JOB", lead["lead_id"], budget_class),
+        "job_id": _stable_id("JOB", run_scope_id or lead["observed_at"], lead["lead_id"], budget_class, recovery_identity),
         "lead": {**deepcopy(lead), "state": "RESEARCHING"},
         "regime": "SCIENCE" if lead["desk"] == "science" else "GENERAL_JOURNALISM",
         "budget_class": budget_class,
@@ -226,6 +267,7 @@ def start_research_job(lead: dict, config: dict, *, budget_class: str = "STANDAR
         "seen_fingerprints": [],
         "repetitive_observations": 0,
         "recovery_needs": recovery_needs,
+        "recovery_job": recovery_job,
         "status": "PLANNED",
         "stop_condition": None,
         "unresolved_questions": [item["question_id"] for item in questions],
@@ -505,6 +547,7 @@ def evaluate_claim_policy(claim_class: str, evidence: list[dict], config: dict, 
 def build_deep_research_state(
     packet: dict, intelligence: dict, research_plan: dict, recovery_plan: dict,
     config: dict, *, discovery_signals: list[dict] | None = None,
+    run_scope_id: str | None = None,
 ) -> dict:
     events = {key: event["event_id"] for event in intelligence.get("event_clusters", []) for key in event.get("candidate_keys", [])}
     plan_by_section = {item["section_id"]: item for item in research_plan.get("plans", [])}
@@ -512,9 +555,27 @@ def build_deep_research_state(
     for need in recovery_plan.get("needs", []):
         if need.get("candidate_id"):
             needs_by_candidate.setdefault(need["candidate_id"], []).append(need)
-    breadth_needs = [
-        need for need in recovery_plan.get("needs", []) if not need.get("candidate_id")
+    executable_needs = [
+        deepcopy(need) for need in recovery_plan.get("needs", [])
+        if int(need.get("attempt_count", 0)) < int(need.get("max_attempts", 1))
     ]
+    executable_need_ids = [str(need.get("need_id") or "") for need in executable_needs]
+    if not all(executable_need_ids) or len(set(executable_need_ids)) != len(executable_need_ids):
+        raise DeepResearchError("RECOVERY_JOB_MATERIALIZATION_FAILED: invalid recovery need identity")
+
+    candidate_records: dict[str, tuple[dict, dict]] = {}
+    for section in packet.get("sections", []):
+        for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
+            candidate_id = str(candidate.get("id") or "")
+            if not candidate_id:
+                continue
+            if candidate_id in candidate_records:
+                raise DeepResearchError(
+                    f"RECOVERY_JOB_MATERIALIZATION_FAILED: duplicate candidate identity {candidate_id}"
+                )
+            candidate_records[candidate_id] = (section, candidate)
+
+    source_by_id = {str(item.get("id")): item for item in packet.get("sources", []) if item.get("id")}
     jobs = []
     for section in packet.get("sections", []):
         # Only the selected publication candidate can change an active desk's
@@ -528,19 +589,14 @@ def build_deep_research_state(
                 item for item in section.get("candidates", [])
                 if item.get("id") == section.get("selected_candidate_id")
             ]
-            # A non-selected candidate normally stays deferred, but it cannot
-            # be dropped when the recovery plan names it explicitly.  Create
-            # one bounded, recovery-only job for that candidate so mandatory
-            # corroboration/original-evidence gaps are executable before any
-            # optional breadth work.
-            candidates.extend(
-                item for item in section.get("candidates", [])
-                if item.get("id") != section.get("selected_candidate_id")
-                and item.get("id") in needs_by_candidate
-            )
         else:
             candidates = list(section.get("recovery_candidates", []))
         for candidate in candidates:
+            # Candidate-specific recovery is materialized below, one job per
+            # executable need.  Do not create a second ambiguous action bucket
+            # for the same need through ordinary candidate research.
+            if candidate.get("id") in needs_by_candidate:
+                continue
             source_ids = sorted(set(candidate.get("discovery_source_ids", [])))
             lead = create_lead(
                 desk=section["section_id"], topic=str(candidate.get("title") or candidate["id"]),
@@ -553,21 +609,74 @@ def build_deep_research_state(
             )
             existing = plan_by_section.get(section["section_id"], {}).get("research_budget", {}) or {}
             budget_class = {"brief": "QUICK", "normal": "STANDARD", "major": "DEEP", "investigation": "INVESTIGATIVE_LEAD"}.get(existing.get("level"), "STANDARD")
-            jobs.append(start_research_job(lead, config, budget_class=budget_class, recovery_needs=needs_by_candidate.get(candidate["id"], [])))
-    # Keep edition-wide breadth tracks independent.  Attaching them to an
-    # unresolved candidate made their execution contingent on that candidate's
-    # P0 evidence gap and encouraged headline-shaped queries.
-    for need in breadth_needs:
-        sections = need.get("search_constraints", {}).get("eligible_section_ids", [])
-        topic = " / ".join(str(item) for item in need.get("topic_identifiers", []) if item) or need["kind"]
-        lead = create_lead(
-            desk=str(sections[0] if sections else "front"),
-            topic=topic,
-            discovery_source={"known_seed": False, "recovery_need_id": need["need_id"]},
-            observed_at=str(packet.get("edition_date")),
-            reason_interesting=f"RECOVERY_BREADTH_NEED:{need['need_id']}",
+            jobs.append(start_research_job(lead, config, budget_class=budget_class, run_scope_id=run_scope_id))
+
+    # Every executable recovery need gets exactly one visible recovery job.
+    # This is deliberately independent of a section's ACTIVE/NO_NEWS status:
+    # a prior recovery round may have discovered a weak candidate in a
+    # NO_NEWS desk, and its P0 evidence need must not vanish before execution.
+    recovery_job_mappings = []
+    for need in sorted(executable_needs, key=lambda item: str(item["need_id"])):
+        candidate_id = need.get("candidate_id")
+        if candidate_id:
+            record = candidate_records.get(str(candidate_id))
+            if record is None:
+                raise DeepResearchError(
+                    f"RECOVERY_JOB_MATERIALIZATION_FAILED: candidate {candidate_id} for {need['need_id']} is absent"
+                )
+            section, candidate = record
+            source_ids = sorted(set(candidate.get("discovery_source_ids", [])) | set(need.get("already_known_source_ids", [])))
+            known_urls = sorted({
+                str(source_by_id[source_id].get("url")) for source_id in source_ids
+                if source_id in source_by_id and source_by_id[source_id].get("url")
+            })
+            lead = create_lead(
+                desk=str(need.get("section_id") or section["section_id"]),
+                topic=str(candidate.get("title") or need["need_id"]),
+                discovery_source={
+                    "source_ids": source_ids,
+                    "known_urls": known_urls,
+                    "known_seed": bool(source_ids),
+                    "recovery_need_id": need["need_id"],
+                },
+                observed_at=str(packet.get("edition_date")),
+                reason_interesting=f"RECOVERY_EVIDENCE_NEED:{need['need_id']}",
+                event_entities=list(need.get("query_context", {}).get("entities", candidate.get("entities", []))),
+                geography=list(need.get("query_context", {}).get("geography", candidate.get("geography", []))),
+                scope_connections=list(candidate.get("scope_connections", [])),
+                related_event_cluster=need.get("event_id") or candidate.get("event_id") or events.get(f"{section['section_id']}:{candidate_id}"),
+            )
+        else:
+            # Edition-wide breadth tracks remain independent from unresolved
+            # candidates, which preserves the P0+P1 fairness contract.
+            sections = need.get("search_constraints", {}).get("eligible_section_ids", [])
+            topic = " / ".join(str(item) for item in need.get("topic_identifiers", []) if item) or need["kind"]
+            lead = create_lead(
+                desk=str(sections[0] if sections else "front"),
+                topic=topic,
+                discovery_source={"known_seed": False, "recovery_need_id": need["need_id"]},
+                observed_at=str(packet.get("edition_date")),
+                reason_interesting=f"RECOVERY_BREADTH_NEED:{need['need_id']}",
+            )
+        job = start_research_job(
+            lead, config, budget_class="QUICK", recovery_needs=[need],
+            run_scope_id=run_scope_id, recovery_identity=str(need["need_id"]),
         )
-        jobs.append(start_research_job(lead, config, budget_class="QUICK", recovery_needs=[deepcopy(need)]))
+        jobs.append(job)
+        recovery_job_mappings.append({
+            "recovery_need_id": need["need_id"],
+            "job_id": job["job_id"],
+            "priority": _recovery_priority(need),
+            "candidate_id": need.get("candidate_id"),
+            "event_id": need.get("event_id"),
+            "desk": job["lead"]["desk"],
+            "need_type": need.get("kind"),
+            "missing_role": need.get("missing_evidence_role"),
+            "source_attempt_id": need.get("source_attempt_id"),
+            "run_scope_id": run_scope_id,
+            "attempt_count": need.get("attempt_count", 0),
+            "max_attempts": need.get("max_attempts", 1),
+        })
     for signal in discovery_signals or []:
         lead = create_lead(
             desk=str(signal.get("section_id") or "front"),
@@ -579,7 +688,7 @@ def build_deep_research_state(
             observed_at=str(signal.get("observed_at") or packet.get("edition_date")),
             reason_interesting=str(signal.get("change_status") or "DISCOVERY_SIGNAL"),
         )
-        jobs.append(start_research_job(lead, config, budget_class="QUICK"))
+        jobs.append(start_research_job(lead, config, budget_class="QUICK", run_scope_id=run_scope_id))
     return {
         "schema_version": 1,
         "status": "PLANNED",
@@ -587,6 +696,8 @@ def build_deep_research_state(
         "philosophy": config["philosophy"],
         "open_discovery": config["open_discovery"],
         "jobs": jobs,
+        "executable_recovery_need_ids": sorted(executable_need_ids),
+        "recovery_job_mappings": recovery_job_mappings,
         "recovery_plan_status": recovery_plan.get("status"),
         "publication_gate_status": "NOT_EVALUATED",
     }
@@ -607,4 +718,17 @@ def validate_deep_research_state(value: dict) -> list[str]:
             or set(job.get("context", {})) != {"KNOWN", "SUPPORTED", "DISPUTED", "UNKNOWN", "NEXT_QUESTIONS", "SOURCE_GAPS", "CONTRADICTIONS", "DEAD_ENDS"}
         ):
             issues.append(f"DEEP_RESEARCH_JOB_INVALID:{job.get('job_id')}")
+    expected_need_ids = value.get("executable_recovery_need_ids")
+    mappings = value.get("recovery_job_mappings")
+    if expected_need_ids is not None or mappings is not None:
+        expected = set(expected_need_ids or [])
+        materialized = [
+            str(need.get("need_id"))
+            for job in value.get("jobs", [])
+            for need in job.get("recovery_needs", [])
+            if isinstance(need, dict) and need.get("need_id")
+        ]
+        mapped = [str(item.get("recovery_need_id")) for item in (mappings or []) if item.get("recovery_need_id")]
+        if expected != set(materialized) or len(materialized) != len(set(materialized) or ()) or expected != set(mapped) or len(mapped) != len(set(mapped) or ()):
+            issues.append("RECOVERY_JOB_MATERIALIZATION_FAILED")
     return issues
