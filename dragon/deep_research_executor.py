@@ -636,7 +636,11 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     direct_action = bool(action_value and action_terms & action_forms.get(action_value, {action_value}))
     if shared_aliases and document_type in {"PRESS_RELEASE", "OFFICIAL_STATEMENT", "SIGNED_DOCUMENT", "REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
         relation = "PUBLISHER_IS_EVENT_ACTOR" if direct_action else "PUBLISHER_IS_PARTY_TO_EVENT"
-        if document_type in {"REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
+        if document_type == "STATISTICAL_RELEASE":
+            relation = "PUBLISHER_IS_STATISTICAL_AUTHORITY"
+        elif document_type == "REGULATION":
+            relation = "PUBLISHER_IS_REGULATOR"
+        elif document_type in {"REPORT", "AUDIT_REPORT", "COURT_DECISION"}:
             relation = "PUBLISHER_IS_DOCUMENT_ISSUER"
         if direct_action or document_type in {"AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
             return {

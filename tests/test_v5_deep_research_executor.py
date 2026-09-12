@@ -734,6 +734,7 @@ def test_primary_status_does_not_convert_prediction_or_audit_finding_into_broade
     finding = resolve_exact_source_role(audit, action, {"state": "CONCRETE_EVENT", "actor": "Institution Alpha", "action": "report"})
     assert finding["source_class"] == "primary"
     assert finding["document_type"] == "AUDIT_REPORT"
+    assert finding["publisher_event_relation"] == "PUBLISHER_IS_DOCUMENT_ISSUER"
 
 
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
