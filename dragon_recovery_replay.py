@@ -18,9 +18,12 @@ from dragon.deep_research import (
     validate_deep_research_state,
 )
 from dragon.deep_research_executor import (
+    build_event_bundles,
+    build_observation_snapshot,
     build_research_yield_report,
     discovery_adapter_from_config,
     execute_research_round,
+    replay_event_bundles_from_snapshot,
     schedule_research_actions,
 )
 from dragon.provider_acceptance import OfflineReplayResearchAdapter, build_provider_seed_orchestrator
@@ -63,6 +66,62 @@ def _input_paths(run_dir: Path) -> dict[str, Path]:
         "final_recovery_plan": run_dir / "research-recovery" / "plan.json",
         "historical_state": run_dir / "state.json",
     }
+
+
+def replay_captured_event_observations(
+    *, root: Path, edition_date: str, captured_run_id: str, output_dir: Path,
+) -> dict:
+    """Create a hash-bound diagnostic replay from captured observations only.
+
+    It performs no requests and never writes to the historical run.  The
+    resulting snapshot is explicitly TEST_REPLAY_EVIDENCE and is not read by
+    the production pipeline as current-edition research.
+    """
+    run_dir = root / "daily-runs" / edition_date / "runs" / captured_run_id
+    execution_path = run_dir / "deep-research" / "execution-report.json"
+    packet_path = run_dir / "research" / "recovered-research-packet.json"
+    if not execution_path.is_file() or not packet_path.is_file():
+        raise ValueError("CAPTURED_EVENT_REPLAY_INPUT_MISSING")
+    if output_dir.exists():
+        raise ValueError("CAPTURED_EVENT_REPLAY_OUTPUT_ALREADY_EXISTS")
+    hashes_before = {"execution": sha256_file(execution_path), "packet": sha256_file(packet_path)}
+    execution, packet = _load(execution_path), _load(packet_path)
+    jobs = [item for item in execution.get("jobs", []) if isinstance(item, dict)]
+    observations = [item for job in jobs for item in job.get("observations", []) if isinstance(item, dict)]
+    actions = [item for job in jobs for item in job.get("actions", []) if isinstance(item, dict)]
+    sources = [item for job in jobs for item in job.get("source_packet_patch", {}).get("sources", []) if isinstance(item, dict)]
+    action_by_id = {item.get("action_id"): item for item in actions}
+    leads = []
+    for item in packet.get("discovery_event_leads", []):
+        if not isinstance(item, dict) or not isinstance(item.get("event_skeleton"), dict):
+            continue
+        observation = next((value for value in observations if value.get("observation_id") == item.get("observation_id")), {})
+        action = action_by_id.get((observation.get("provenance") or {}).get("action_id"), {})
+        leads.append({
+            **deepcopy(item),
+            "event_lead_id": f"CAPTURED-{item['event_skeleton'].get('event_fingerprint')}",
+            "desk": action.get("desk"),
+        })
+    bundles, discoveries = build_event_bundles(observations, leads, sources, actions)
+    snapshot = build_observation_snapshot(actions, observations, bundles)
+    replay = replay_event_bundles_from_snapshot(snapshot)
+    hashes_after = {"execution": sha256_file(execution_path), "packet": sha256_file(packet_path)}
+    if hashes_before != hashes_after:
+        raise RuntimeError("CAPTURED_EVENT_REPLAY_INPUT_MUTATED")
+    report = {
+        "schema_version": 1, "status": "CAPTURED_EVENT_REPLAY_COMPLETE",
+        "edition_date": edition_date, "captured_run_id": captured_run_id,
+        "network_called": False, "provider_called": False, "article_generation_called": False,
+        "historical_inputs_unchanged": True, "input_hashes": hashes_before,
+        "snapshot_hash": snapshot["snapshot_hash"], "starting_event_leads": len(leads),
+        "evidence_bundles": len(bundles), "validated_events": sum(item.get("state") == "EVENT_VALIDATED" for item in bundles),
+        "partial_bundles": sum(item.get("state") == "EVENT_EVIDENCE_PARTIAL" for item in bundles),
+        "candidate_discoveries": len(discoveries), "production_evidence_reuse": replay["production_evidence_reuse"],
+        "bundles": bundles,
+    }
+    atomic_write_json(output_dir / "observation-snapshot.json", snapshot)
+    atomic_write_json(output_dir / "captured-event-replay-report.json", report)
+    return report
 
 
 def replay_preserved_recovery(

@@ -10,7 +10,7 @@ existing safe fetch/extract path.
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import hashlib
 import json
 import re
@@ -340,13 +340,17 @@ _EDITORIAL_VALUE_MARKERS = (
 )
 
 _EVENT_ACTION_MARKERS = (
-    "sign", "ban", "announce", "launch", "approve", "adopt", "report", "sanction", "agree", "open", "close", "arrest", "appoint", "elect",
+    "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected",
     "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
 )
 _EVENT_GEOGRAPHIES = (
     "morocco", "meknes", "sudan", "gaza", "palestine", "israel", "west bank", "ceuta", "spain", "hong kong", "africa",
     "المغرب", "مكناس", "السودان", "غزة", "فلسطين",
 )
+_EVENT_IDENTITY_STOP_WORDS = {
+    "the", "and", "for", "with", "from", "this", "that", "of", "in", "to", "on", "at", "a", "an",
+    "news", "live", "briefing", "story", "report", "group", "bank", "daily", "update",
+}
 
 
 def _desk_terms(values: list[object]) -> str:
@@ -406,7 +410,10 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
         return {"state": "EVENT_OUTSIDE_WINDOW", "reason": "EVENT_OUTSIDE_WINDOW", "title": title, "published_at": published_at}
     subject = " ".join((title, text[:1600]))
     lowered = subject.casefold()
-    action_marker = next((marker for marker in _EVENT_ACTION_MARKERS if marker in lowered), None)
+    subject_words = set(_query_words([subject]))
+    # Never use substring matching here: ``ban`` inside ``bank`` created a
+    # false action, which then made unrelated pages look like one event.
+    action_marker = next((marker for marker in _EVENT_ACTION_MARKERS if marker.casefold() in subject_words), None)
     if not action_marker:
         return {"state": "EVENT_UNRESOLVED", "reason": "NO_CONCRETE_ACTION", "title": title, "published_at": published_at}
     words = _query_words([title])
@@ -428,6 +435,96 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
         "event_fingerprint": fingerprint,
         "lead_paragraphs": "\n".join(part for part in re.split(r"\n\s*\n", text)[:2] if part)[:1200],
     }
+
+
+def _event_date(value: object) -> str:
+    """Return the calendar portion of an article/event timestamp."""
+    match = re.match(r"(\d{4}-\d{2}-\d{2})", str(value or ""))
+    return match.group(1) if match else ""
+
+
+def _event_dates_within_window(left: str, right: str, *, days: int = 3) -> bool:
+    try:
+        return abs((date.fromisoformat(left) - date.fromisoformat(right)).days) <= days
+    except ValueError:
+        return False
+
+
+def _event_terms_from_skeleton(skeleton: dict) -> set[str]:
+    """Terms suitable for identity comparison, never for claim validation."""
+    return {
+        item.casefold() for item in _query_words([
+            skeleton.get("actor"), skeleton.get("object"), skeleton.get("topic"), *skeleton.get("geography", []),
+        ]) if item.casefold() not in _EVENT_IDENTITY_STOP_WORDS and not item.isdigit()
+    }
+
+
+def _meaningful_event_identifiers(values: object) -> set[str]:
+    result = set()
+    for value in values if isinstance(values, list) else []:
+        item = str(value).casefold()
+        if re.fullmatch(r"(?:19|20)\d{2}", item) or item in {"000", "100"}:
+            continue
+        if re.search(r"[a-z]|[\u0600-\u06ff]", item):
+            result.add(item)
+    return result
+
+
+def _canonical_event_action(value: object) -> str:
+    """Keep cross-language action comparison finite and deterministic."""
+    action = str(value or "").casefold().strip()
+    groups = {
+        "sign": {"sign", "signed", "signs", "يوقع", "توقع", "اتفاق"},
+        "ban": {"ban", "bans", "banned", "sanction", "sanctions", "يحظر", "يفرض"},
+        "announce": {"announce", "announced", "launch", "launched", "يعلن", "أعلن", "اعلنت"},
+        "approve": {"approve", "approved", "adopt", "adopted", "يعتمد"},
+        "report": {"report", "reported", "تقرير", "ينشر"},
+    }
+    return next((name for name, aliases in groups.items() if action in aliases), action)
+
+
+def match_event_skeletons(anchor: dict, candidate: dict) -> dict:
+    """Classify whether two pages describe the same event, not the same claims."""
+    if anchor.get("state") != "CONCRETE_EVENT" or candidate.get("state") != "CONCRETE_EVENT":
+        return {"state": "EVENT_MATCH_UNRESOLVED", "reasons": ["EVENT_SKELETON_UNAVAILABLE"]}
+    anchor_date, candidate_date = _event_date(anchor.get("published_at")), _event_date(candidate.get("published_at"))
+    anchor_action = _canonical_event_action(anchor.get("action"))
+    candidate_action = _canonical_event_action(candidate.get("action"))
+    anchor_geography = {str(item).casefold() for item in anchor.get("geography", [])}
+    candidate_geography = {str(item).casefold() for item in candidate.get("geography", [])}
+    anchor_identifiers = _meaningful_event_identifiers(anchor.get("identifiers", []))
+    candidate_identifiers = _meaningful_event_identifiers(candidate.get("identifiers", []))
+    shared_terms = _event_terms_from_skeleton(anchor) & _event_terms_from_skeleton(candidate)
+    shared_geography = anchor_geography & candidate_geography
+    shared_identifiers = anchor_identifiers & candidate_identifiers
+    reasons = []
+    dates_within_window = bool(anchor_date and candidate_date and _event_dates_within_window(anchor_date, candidate_date))
+    if dates_within_window:
+        reasons.append("DATE_MATCH" if anchor_date == candidate_date else "DATE_WINDOW_MATCH")
+    if anchor_action and anchor_action == candidate_action:
+        reasons.append("ACTION_MATCH")
+    if shared_geography:
+        reasons.append("GEOGRAPHY_MATCH")
+    if shared_identifiers:
+        reasons.append("IDENTIFIER_MATCH")
+    if len(shared_terms) >= 2:
+        reasons.append("ENTITY_TOPIC_MATCH")
+    if anchor_date and candidate_date and not dates_within_window and not shared_identifiers:
+        return {"state": "DIFFERENT_EVENT", "reasons": ["DATE_MISMATCH"], "shared_terms": sorted(shared_terms)}
+    if anchor_action and candidate_action and anchor_action != candidate_action and not shared_identifiers:
+        return {"state": "DIFFERENT_EVENT", "reasons": ["ACTION_MISMATCH"], "shared_terms": sorted(shared_terms)}
+    if (dates_within_window and anchor_action == candidate_action and (shared_geography or len(shared_terms) >= 2)) or (
+        shared_identifiers and dates_within_window
+    ):
+        return {"state": "SAME_EVENT_HIGH_CONFIDENCE", "reasons": reasons, "shared_terms": sorted(shared_terms)}
+    if anchor_action == candidate_action and (shared_geography or len(shared_terms) >= 2):
+        return {"state": "SAME_EVENT_PLAUSIBLE", "reasons": reasons, "shared_terms": sorted(shared_terms)}
+    return {"state": "EVENT_MATCH_UNRESOLVED", "reasons": reasons or ["INSUFFICIENT_SHARED_EVENT_CUES"], "shared_terms": sorted(shared_terms)}
+
+
+def _event_lead_id(job: dict, action: dict, skeleton: dict) -> str:
+    """Create a run-scoped identity for one provisional discovery event."""
+    return _stable_id("EVL", job.get("job_id"), action.get("recovery_need_id"), skeleton.get("event_fingerprint"), action.get("action_id"))
 
 
 def _breadth_target_section(need: dict) -> str:
@@ -1523,6 +1620,11 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "directness": (validation or {}).get("directness"),
         "provenance": {
             "action_id": action["action_id"],
+            "originating_event_lead_id": action.get("originating_event_lead_id"),
+            "originating_breadth_need_id": action.get("originating_breadth_need_id"),
+            "query_fingerprint": action.get("query_fingerprint"),
+            "excluded_origins": list(action.get("excluded_origins") or []),
+            "target_evidence_role": action.get("provenance_requirements", {}).get("required_role"),
             "expected_result_type": action["expected_result_type"],
             "fixture_verification": fixture_verified,
             "canonical_url": canonical,
@@ -1543,6 +1645,157 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "publisher_profile": deepcopy(raw.get("publisher_profile")) if isinstance(raw.get("publisher_profile"), dict) else None,
         "article_attribution": deepcopy(raw.get("article_attribution")) if isinstance(raw.get("article_attribution"), dict) else None,
     }
+
+
+def _publisher_family(observation: dict) -> str | None:
+    profile = observation.get("publisher_profile") if isinstance(observation.get("publisher_profile"), dict) else {}
+    return _registrable_domain(str(profile.get("canonical_domain") or observation.get("origin") or ""))
+
+
+def build_event_bundles(
+    observations: list[dict], event_leads: list[dict], source_records: list[dict], actions: list[dict],
+) -> tuple[list[dict], list[dict]]:
+    """Attach exact observations to run-scoped provisional events.
+
+    This is evidence bookkeeping, not a source-evidence shortcut: discovery
+    observations can start an event but only validated exact pages add roles.
+    """
+    bundles: list[dict] = []
+    aliases: dict[str, str] = {}
+    sources = {item.get("id"): item for item in source_records if isinstance(item, dict) and item.get("id")}
+    actions_by_need = {str(item.get("recovery_need_id") or ""): item for item in actions if isinstance(item, dict)}
+
+    def by_id(value: object) -> dict | None:
+        canonical = aliases.get(str(value or ""), str(value or ""))
+        return next((item for item in bundles if item["event_lead_id"] == canonical), None)
+
+    def add_lead(lead: dict) -> dict:
+        skeleton = lead.get("event_skeleton") if isinstance(lead.get("event_skeleton"), dict) else {}
+        lead_id = str(lead["event_lead_id"])
+        for bundle in bundles:
+            match = match_event_skeletons(bundle["event_skeleton"], skeleton)
+            if match["state"] == "SAME_EVENT_HIGH_CONFIDENCE":
+                aliases[lead_id] = bundle["event_lead_id"]
+                bundle["merged_event_lead_ids"].append(lead_id)
+                return bundle
+        bundle = {
+            "schema_version": 1, "event_lead_id": lead_id, "merged_event_lead_ids": [lead_id],
+            "state": "EVENT_LEAD_DISCOVERY_ONLY", "event_fingerprint": skeleton.get("event_fingerprint"),
+            "event_skeleton": deepcopy(skeleton), "recovery_need_id": lead.get("recovery_need_id"),
+            "desk": lead.get("desk"), "observations": [], "sources": [], "source_roles": [],
+            "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
+            "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
+        }
+        bundles.append(bundle)
+        return bundle
+
+    for lead in event_leads:
+        if isinstance(lead, dict) and lead.get("event_lead_id") and isinstance(lead.get("event_skeleton"), dict):
+            add_lead(lead)
+
+    for observation in observations:
+        skeleton = observation.get("event_skeleton") if isinstance(observation.get("event_skeleton"), dict) else {}
+        if skeleton.get("state") != "CONCRETE_EVENT":
+            continue
+        provenance = observation.get("provenance") if isinstance(observation.get("provenance"), dict) else {}
+        bundle = by_id(provenance.get("originating_event_lead_id") or observation.get("event_lead_id"))
+        match = None
+        if bundle is None:
+            high = next(((item, match_event_skeletons(item["event_skeleton"], skeleton)) for item in bundles
+                         if match_event_skeletons(item["event_skeleton"], skeleton)["state"] == "SAME_EVENT_HIGH_CONFIDENCE"), None)
+            if high:
+                bundle, match = high
+        else:
+            match = match_event_skeletons(bundle["event_skeleton"], skeleton)
+        if bundle is None:
+            continue
+        if match and match["state"] not in {"SAME_EVENT_HIGH_CONFIDENCE", "SAME_EVENT_PLAUSIBLE"}:
+            bundle["matches"].append({"observation_id": observation.get("observation_id"), **match})
+            continue
+        bundle["observations"].append(observation.get("observation_id"))
+        bundle["matches"].append({"observation_id": observation.get("observation_id"), **(match or {"state": "SAME_EVENT_HIGH_CONFIDENCE", "reasons": ["EVENT_LEAD_ANCHOR"]})})
+        if observation.get("source_id"):
+            bundle["sources"].append(observation["source_id"])
+        family = _publisher_family(observation)
+        if family:
+            bundle["publisher_families"].append(family)
+        if observation.get("verification_status") == "VALIDATED_EVIDENCE":
+            role = "PRIMARY" if observation.get("source_class") in {"primary", "official", "paper"} else "INDEPENDENT" if observation.get("source_class") == "independent" else "UNKNOWN"
+            bundle["evidence_ids"].append(observation.get("source_id"))
+            bundle["source_roles"].append({"source_id": observation.get("source_id"), "role": role, "publisher_family": family})
+            bundle["claims"].append({"source_id": observation.get("source_id"), "relation": observation.get("evidence_relation"), "directness": observation.get("directness")})
+            if observation.get("evidence_relation") == "CONTRADICTS":
+                bundle["contradictions"].append(observation.get("source_id"))
+        elif observation.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY":
+            bundle["unresolved_origin_issues"].append(observation.get("source_resolution_state") or "SOURCE_ORIGIN_UNRESOLVED")
+
+    discoveries = []
+    for bundle in bundles:
+        for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
+            bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
+        roles = {(item.get("source_id"), item.get("role"), item.get("publisher_family")) for item in bundle["source_roles"]}
+        bundle["source_roles"] = [{"source_id": item[0], "role": item[1], "publisher_family": item[2]} for item in sorted(roles)]
+        if bundle["contradictions"]:
+            bundle.update(state="EVENT_CONTRADICTED", failure_reason="CONTRADICTION_RETAINED")
+            continue
+        primary = [item["source_id"] for item in bundle["source_roles"] if item["role"] == "PRIMARY"]
+        independent = [item["source_id"] for item in bundle["source_roles"] if item["role"] == "INDEPENDENT"]
+        candidate = {"title": bundle["event_skeleton"].get("title"), "facts": [bundle["event_skeleton"].get("title")], "primary_evidence_source_ids": primary, "independent_evidence_source_ids": independent}
+        policy = candidate_evidence_policy(candidate, sources, section_id=bundle.get("desk"))
+        actual = {item["role"] for item in bundle["source_roles"]}
+        if not bundle["evidence_ids"]:
+            bundle.update(state="EVENT_LEAD_DISCOVERY_ONLY", failure_reason="MISSING_PRIMARY" if "PRIMARY" in policy["required_roles"] else "MISSING_INDEPENDENT", evidence_policy=policy)
+            continue
+        if not set(policy["required_roles"]) <= actual:
+            missing = "MISSING_PRIMARY" if "PRIMARY" in policy["required_roles"] and "PRIMARY" not in actual else "MISSING_INDEPENDENT"
+            bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason=missing, evidence_policy=policy)
+            continue
+        primary_families = {item["publisher_family"] for item in bundle["source_roles"] if item["role"] == "PRIMARY"}
+        independent_families = {item["publisher_family"] for item in bundle["source_roles"] if item["role"] == "INDEPENDENT"}
+        if primary_families & independent_families:
+            bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason="SOURCE_ORIGIN_UNRESOLVED", evidence_policy=policy)
+            continue
+        action = actions_by_need.get(str(bundle.get("recovery_need_id") or ""), {})
+        synthetic = {"title": candidate["title"], "claim": candidate["title"], "extracted_text": bundle["event_skeleton"].get("lead_paragraphs"), "published_at": bundle["event_skeleton"].get("published_at")}
+        value_reason, rejection = _editorial_value_reason(synthetic, action)
+        if not value_reason:
+            bundle.update(state="EVENT_REJECTED", failure_reason=rejection or "LOW_EDITORIAL_VALUE", evidence_policy=policy)
+            continue
+        bundle.update(state="EVENT_VALIDATED", evidence_policy=policy)
+        discovery = {
+            "section_id": bundle.get("desk") or action.get("desk"), "event_id": bundle["event_lead_id"], "event_lead_id": bundle["event_lead_id"],
+            "title": candidate["title"], "claim": candidate["title"], "source_ids": list(bundle["evidence_ids"]),
+            "source_roles": deepcopy(bundle["source_roles"]), "editorial_value_reason": value_reason,
+            "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
+        }
+        bundle["candidate_discovery"] = discovery
+        discoveries.append(deepcopy(discovery))
+    return bundles, discoveries
+
+
+def build_observation_snapshot(actions: list[dict], observations: list[dict], bundles: list[dict]) -> dict:
+    """Content-address a replay-only observation snapshot, never live evidence."""
+    items = [{
+        "observation_id": item.get("observation_id"), "url": item.get("url"), "source_id": item.get("source_id"),
+        "title": item.get("title"), "published_at": item.get("published_at"), "source_class": item.get("source_class"),
+        "verification_status": item.get("verification_status"), "evidence_relation": item.get("evidence_relation"),
+        "directness": item.get("directness"), "content_hash": item.get("content_hash"), "event_skeleton": item.get("event_skeleton"),
+        "event_state": item.get("event_state"), "provenance": item.get("provenance"),
+    } for item in observations]
+    payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return {**payload, "snapshot_hash": hashlib.sha256(canonical.encode("utf-8")).hexdigest()}
+
+
+def replay_event_bundles_from_snapshot(snapshot: dict) -> dict:
+    """Read a deterministic test/audit snapshot without reusing it in live work."""
+    if snapshot.get("mode") != "TEST_REPLAY_EVIDENCE":
+        raise ResearchExecutorError("OBSERVATION_SNAPSHOT_NOT_REPLAY_EVIDENCE")
+    payload = {key: snapshot.get(key) for key in ("mode", "actions", "observations", "event_bundles")}
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    if snapshot.get("snapshot_hash") != hashlib.sha256(canonical.encode("utf-8")).hexdigest():
+        raise ResearchExecutorError("OBSERVATION_SNAPSHOT_HASH_MISMATCH")
+    return {"mode": "TEST_REPLAY_EVIDENCE", "event_bundles": deepcopy(snapshot.get("event_bundles", [])), "production_evidence_reuse": False}
 
 
 def build_research_yield_report(
@@ -1569,6 +1822,10 @@ def build_research_yield_report(
     observations = [
         observation for job in jobs if isinstance(job, dict)
         for observation in job.get("observations", []) if isinstance(observation, dict)
+    ]
+    event_bundles = [
+        bundle for job in jobs if isinstance(job, dict)
+        for bundle in job.get("source_packet_patch", {}).get("event_bundles", []) if isinstance(bundle, dict)
     ]
     by_action: dict[str, list[dict]] = {}
     for observation in observations:
@@ -1751,6 +2008,27 @@ def build_research_yield_report(
         "concrete_events_extracted": sum((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT" for item in observations),
         "new_unverified_event_leads": sum(item.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY" for item in observations),
         "alternative_coverage_searches_triggered": sum(item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE" for item in actions),
+        "starting_event_leads": sum(len(job.get("source_packet_patch", {}).get("event_leads", [])) for job in jobs if isinstance(job, dict)),
+        "observations_attached_to_event_leads": sum(len(item.get("observations", [])) for item in event_bundles),
+        "unattached_event_observations": sum(
+            bool((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT")
+            and not any(item.get("observation_id") in bundle.get("observations", []) for bundle in event_bundles)
+            for item in observations
+        ),
+        "same_event_matches": sum(
+            match.get("state") in {"SAME_EVENT_HIGH_CONFIDENCE", "SAME_EVENT_PLAUSIBLE"}
+            for bundle in event_bundles for match in bundle.get("matches", []) if isinstance(match, dict)
+        ),
+        "unresolved_event_matches": sum(
+            match.get("state") == "EVENT_MATCH_UNRESOLVED"
+            for bundle in event_bundles for match in bundle.get("matches", []) if isinstance(match, dict)
+        ),
+        "evidence_bundles_created": len(event_bundles),
+        "partial_event_bundles": sum(item.get("state") == "EVENT_EVIDENCE_PARTIAL" for item in event_bundles),
+        "complete_event_bundles": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
+        "validated_events": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
+        "contradicted_events": sum(item.get("state") == "EVENT_CONTRADICTED" for item in event_bundles),
+        "promoted_event_candidates": sum(bool(item.get("candidate_discovery")) for item in event_bundles),
         "source_identities_resolved": sum(item.get("source_identity", {}).get("identity_state") in {"SOURCE_IDENTIFIED", "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING"} for item in observations),
         "unknown_sources_remaining": sum(
             item.get("source_class") == "unknown"
@@ -1851,9 +2129,11 @@ def execute_research_round(
                 skeleton = observation.get("event_skeleton") or {}
                 event_lead = {
                     "schema_version": 1,
+                    "event_lead_id": _event_lead_id(job, action, skeleton),
                     "state": "EVENT_LEAD_DISCOVERY_ONLY",
                     "observation_id": observation["observation_id"],
                     "recovery_need_id": action.get("recovery_need_id"),
+                    "desk": action.get("desk"),
                     "url": observation.get("url"),
                     "publisher_resolution": observation.get("source_resolution_state") or "PUBLISHER_UNRESOLVED",
                     "event_skeleton": deepcopy(skeleton),
@@ -1877,7 +2157,7 @@ def execute_research_round(
                         "candidate_id": action["recovery_candidate_id"], "source_id": patch["id"],
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
                     })
-                if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
+                if action.get("provenance_requirements", {}).get("must_be_distinct_event") and not action.get("originating_event_lead_id"):
                     value_reason, proposal_rejection = _editorial_value_reason(observation, action)
                     observation["editorial_value_reason"] = value_reason
                     observation["event_proposal_rejection"] = proposal_rejection
@@ -1915,6 +2195,8 @@ def execute_research_round(
                 "expected_result_type": "DISCOVERY_RESULT",
                 "channel_fallback": None,
                 "event_lead_feedback": True,
+                "originating_event_lead_id": event_lead["event_lead_id"],
+                "originating_breadth_need_id": event_lead.get("recovery_need_id"),
             }
             run_action(feedback_action)
         # A configured route is a preferred read-only channel, not a single
@@ -2006,6 +2288,12 @@ def execute_research_round(
                 run_action(fetch_action)
                 if state["lead_followups"] >= followup_limits["total"]:
                     break
+    # Event leads and their alternative exact pages are evaluated together.
+    # This happens before downstream recovery so a complete, claim-policy-safe
+    # bundle can become one normal candidate patch rather than disconnected
+    # article-level discoveries.
+    event_bundles, bundle_discoveries = build_event_bundles(observations, event_leads, source_records, executed)
+    candidate_discoveries.extend(bundle_discoveries)
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
     advanced = advance_research_job(job, results, config)
     state["seen_urls"] = sorted(seen_urls)
@@ -2032,7 +2320,9 @@ def execute_research_round(
             "candidate_evidence_updates": updates,
             "candidate_discoveries": candidate_discoveries,
             "event_leads": event_leads,
+            "event_bundles": event_bundles,
         },
+        "observation_snapshot": build_observation_snapshot(executed, observations, event_bundles),
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
         "recovery_strategy_progress": strategy_progress,
@@ -2065,6 +2355,10 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
         stored = value.setdefault("discovery_event_leads", [])
         if not any(item.get("url") == lead["url"] for item in stored if isinstance(item, dict)):
             stored.append(deepcopy(lead))
+    # Persist explicit run-scoped bundle diagnostics separately from sources.
+    # These entries are research provenance, never a production evidence cache.
+    if execution["source_packet_patch"].get("event_bundles"):
+        value["event_evidence_bundles"] = deepcopy(execution["source_packet_patch"]["event_bundles"])
     for update in execution["source_packet_patch"]["candidate_evidence_updates"]:
         for section in value.get("sections", []):
             for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
@@ -2102,12 +2396,19 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 "permitted_story_roles": list(discovery.get("acceptable_story_roles") or []),
             }
             section.setdefault("candidates", []).append(candidate)
-        for field in ("discovery_source_ids", "verification_source_ids"):
-            if discovery["source_id"] not in candidate[field]:
-                candidate[field].append(discovery["source_id"])
-        role_field = "primary_evidence_source_ids" if discovery["role"] == "PRIMARY" else "independent_evidence_source_ids"
-        if discovery["source_id"] not in candidate[role_field]:
-            candidate[role_field].append(discovery["source_id"])
+        role_entries = discovery.get("source_roles") if isinstance(discovery.get("source_roles"), list) else []
+        if not role_entries and discovery.get("source_id"):
+            role_entries = [{"source_id": discovery["source_id"], "role": discovery.get("role")}]
+        for entry in role_entries:
+            if not isinstance(entry, dict) or not entry.get("source_id"):
+                continue
+            source_id, role = entry["source_id"], str(entry.get("role") or "").upper()
+            for field in ("discovery_source_ids", "verification_source_ids"):
+                if source_id not in candidate[field]:
+                    candidate[field].append(source_id)
+            role_field = "primary_evidence_source_ids" if role == "PRIMARY" else "independent_evidence_source_ids" if role == "INDEPENDENT" else None
+            if role_field and source_id not in candidate[role_field]:
+                candidate[role_field].append(source_id)
     sources = {item["id"]: item for item in value.get("sources", [])}
     for section in value.get("sections", []):
         for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:

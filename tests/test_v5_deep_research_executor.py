@@ -22,13 +22,16 @@ from dragon.deep_research_executor import (
     RssSearchAdapter,
     ResearchExecutorError,
     apply_executor_results_to_packet,
+    build_observation_snapshot,
     build_research_yield_report,
     create_research_action,
     execute_research_round,
+    match_event_skeletons,
     plan_research_actions,
     query_fingerprint,
     query_ladder,
     replay_recovery_after_execution,
+    replay_event_bundles_from_snapshot,
     schedule_research_actions,
     science_adapter_boundary,
 )
@@ -590,11 +593,20 @@ def test_unknown_article_event_lead_triggers_alternative_coverage_before_promoti
     execution = execute_research_round(job, FlowAdapter(), CONFIG, actions=[initial])
     assert execution["source_packet_patch"]["event_leads"][0]["state"] == "EVENT_LEAD_DISCOVERY_ONLY"
     assert execution["source_packet_patch"]["event_leads"][0]["publication_evidence"] is False
-    assert any(item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE" for item in execution["actions"])
-    # The alternative pass is allowed to inspect distinct publishers covering
-    # the same newly discovered event; that is evidence diversity, not a
-    # duplicate-event breadth credit.
-    assert len(execution["source_packet_patch"]["candidate_discoveries"]) == 2
+    event_lead_id = execution["source_packet_patch"]["event_leads"][0]["event_lead_id"]
+    feedback = next(item for item in execution["actions"] if item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE")
+    assert feedback["originating_event_lead_id"] == event_lead_id
+    # The alternative pass attaches distinct publishers to one event bundle;
+    # it must create one candidate, not two headline-shaped events.
+    assert len(execution["source_packet_patch"]["candidate_discoveries"]) == 1
+    bundle = execution["source_packet_patch"]["event_bundles"][0]
+    assert bundle["state"] == "EVENT_VALIDATED"
+    assert {item["role"] for item in bundle["source_roles"]} == {"PRIMARY", "INDEPENDENT"}
+    attached = [item for item in execution["observations"] if item.get("provenance", {}).get("originating_event_lead_id") == event_lead_id]
+    assert len(attached) >= 2
+    replay = replay_event_bundles_from_snapshot(execution["observation_snapshot"])
+    assert replay["production_evidence_reuse"] is False
+    assert replay["event_bundles"][0]["event_lead_id"] == event_lead_id
     packet = {"edition_date": "2099-01-02", "sources": [], "sections": [{"section_id": "service", "status": "NO_NEWS", "selected_candidate_id": None, "candidates": [], "recovery_candidates": []}]}
     patched = apply_executor_results_to_packet(packet, execution)
     section = patched["sections"][0]
@@ -614,6 +626,31 @@ def test_unknown_article_event_lead_triggers_alternative_coverage_before_promoti
     replay = replay_recovery_after_execution(closure_packet, execution, coverage, readiness)
     assert replay["status"] == "READY"
     assert replay["article_generation_allowed"] is True
+
+
+def test_event_matcher_uses_structured_cues_across_headlines_and_languages() -> None:
+    english = {
+        "state": "CONCRETE_EVENT", "actor": "Morocco anti-corruption authority", "action": "sign",
+        "object": "Hong Kong ICAC memorandum", "topic": "Morocco signs anti-corruption memorandum",
+        "geography": ["morocco", "hong kong"], "published_at": "2099-01-02T09:00:00Z", "identifiers": ["MOU-77"],
+    }
+    arabic = {
+        "state": "CONCRETE_EVENT", "actor": "هيئة النزاهة المغربية", "action": "يوقع",
+        "object": "مذكرة تفاهم مع ICAC", "topic": "توقيع مذكرة تفاهم", "geography": ["morocco", "hong kong"],
+        "published_at": "2099-01-02T14:00:00Z", "identifiers": ["MOU-77"],
+    }
+    different = {**arabic, "action": "announce", "published_at": "2099-01-03T14:00:00Z", "identifiers": []}
+    assert match_event_skeletons(english, arabic)["state"] == "SAME_EVENT_HIGH_CONFIDENCE"
+    assert match_event_skeletons(english, different)["state"] == "DIFFERENT_EVENT"
+
+
+def test_observation_snapshot_is_hash_bound_and_cannot_be_live_evidence() -> None:
+    snapshot = build_observation_snapshot([], [], [])
+    replay = replay_event_bundles_from_snapshot(snapshot)
+    assert replay == {"mode": "TEST_REPLAY_EVIDENCE", "event_bundles": [], "production_evidence_reuse": False}
+    snapshot["observations"] = [{"url": "https://tampered.example"}]
+    with pytest.raises(ResearchExecutorError, match="OBSERVATION_SNAPSHOT_HASH_MISMATCH"):
+        replay_event_bundles_from_snapshot(snapshot)
 
 
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
