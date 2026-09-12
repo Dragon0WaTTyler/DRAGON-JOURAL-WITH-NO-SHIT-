@@ -161,9 +161,13 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
         items = groups[need]
         parent = actions_by_id[items[0]["provenance"]["action_id"]]
         allowance = int(limits.get(str(parent.get("priority_class") or "P3_CONTEXT"), 0))
-        require_event_diversity = str(parent.get("priority_class") or "") == "P1_DISTINCT_EVENT"
         seen_families, seen_titles = set(), set()
         for item in sorted(items, key=lambda value: value["_lead_sort_key"]):
+            item_parent = actions_by_id[item["provenance"]["action_id"]]
+            require_event_diversity = (
+                str(item_parent.get("priority_class") or "") == "P1_DISTINCT_EVENT"
+                and not item_parent.get("event_lead_feedback")
+            )
             profile = item["source_identity"]
             title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
             if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
@@ -335,11 +339,24 @@ _EDITORIAL_VALUE_MARKERS = (
     ("CULTURAL_OR_SCIENTIFIC_DEVELOPMENT", ("culture", "museum", "heritage", "research", "cultural", "ثقافة", "تراث", "بحث")),
 )
 
+_EVENT_ACTION_MARKERS = (
+    "sign", "ban", "announce", "launch", "approve", "adopt", "report", "sanction", "agree", "open", "close", "arrest", "appoint", "elect",
+    "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
+)
+_EVENT_GEOGRAPHIES = (
+    "morocco", "meknes", "sudan", "gaza", "palestine", "israel", "west bank", "ceuta", "spain", "hong kong", "africa",
+    "المغرب", "مكناس", "السودان", "غزة", "فلسطين",
+)
+
 
 def _desk_terms(values: list[object]) -> str:
     """Translate internal desk IDs to finite, reader-facing search vocabulary."""
     terms = [_DESK_SEARCH_TERMS.get(str(value), str(value).replace("_", " ")) for value in values]
     return " ".join(item for item in terms if item)[:180]
+
+
+def _first_present(*values: object) -> str | None:
+    return next((str(value).strip() for value in values if str(value or "").strip()), None)
 
 
 def _editorial_value_reason(observation: dict, action: dict) -> tuple[str | None, str | None]:
@@ -364,6 +381,53 @@ def _editorial_value_reason(observation: dict, action: dict) -> tuple[str | None
         if any(marker in text for marker in markers):
             return reason, None
     return None, "RESULTS_LOW_EDITORIAL_VALUE"
+
+
+def extract_event_skeleton(raw: dict, action: dict) -> dict:
+    """Build a modest, deterministic event description from an exact page.
+
+    It intentionally answers only whether a concrete event appears present.
+    It does not classify a publisher as independent or make evidence usable.
+    """
+    metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+    title = str(raw.get("title") or metadata.get("title") or "").strip()
+    title_state = str(raw.get("title_state") or metadata.get("title_state") or "TITLE_UNRESOLVED")
+    date_info = raw.get("publication_date") if isinstance(raw.get("publication_date"), dict) else metadata.get("publication_date", {})
+    published_at = str(raw.get("published_at") or date_info.get("normalized") or "").strip()
+    text = str(raw.get("text") or raw.get("extracted_text") or raw.get("content") or "").strip()
+    if title_state == "TITLE_UNRESOLVED" or not title:
+        return {"state": "EVENT_UNRESOLVED", "reason": "TITLE_UNRESOLVED"}
+    if len(text) < 200:
+        return {"state": "EVENT_UNRESOLVED", "reason": "ARTICLE_TEXT_UNUSABLE"}
+    if not published_at:
+        return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE"}
+    research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
+    if research_month and not published_at.startswith(research_month):
+        return {"state": "EVENT_OUTSIDE_WINDOW", "reason": "EVENT_OUTSIDE_WINDOW", "title": title, "published_at": published_at}
+    subject = " ".join((title, text[:1600]))
+    lowered = subject.casefold()
+    action_marker = next((marker for marker in _EVENT_ACTION_MARKERS if marker in lowered), None)
+    if not action_marker:
+        return {"state": "EVENT_UNRESOLVED", "reason": "NO_CONCRETE_ACTION", "title": title, "published_at": published_at}
+    words = _query_words([title])
+    marker_words = _query_words([action_marker])
+    action_index = next((index for index, word in enumerate(words) if word in marker_words), min(len(words), 6))
+    actor = " ".join(words[:action_index]).strip() or None
+    object_terms = " ".join(words[action_index + 1: action_index + 8]).strip() or None
+    geography = [place for place in _EVENT_GEOGRAPHIES if place in lowered]
+    geography.extend(str(item) for item in action.get("event_context", {}).get("geography", []) if str(item).casefold() in lowered)
+    geography = sorted(set(geography))
+    identifiers = re.findall(r"\b(?:[A-Z]{2,}[\-\d]{2,}|\d{3,})\b", subject)
+    fingerprint_parts = [actor or "", action_marker, object_terms or "", published_at[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
+    fingerprint = _stable_id("EVENT", *fingerprint_parts)
+    return {
+        "state": "CONCRETE_EVENT", "title": title, "published_at": published_at,
+        "actor": actor, "action": action_marker, "object": object_terms,
+        "geography": geography, "institution": (metadata.get("publisher") or {}).get("name") if isinstance(metadata.get("publisher"), dict) else raw.get("publisher"),
+        "identifiers": sorted(set(identifiers))[:5], "topic": title,
+        "event_fingerprint": fingerprint,
+        "lead_paragraphs": "\n".join(part for part in re.split(r"\n\s*\n", text)[:2] if part)[:1200],
+    }
 
 
 def _breadth_target_section(need: dict) -> str:
@@ -1292,12 +1356,18 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
         }
     validation = validate_exact_page(raw, action) if action.get("action_type") in FETCH_ACTIONS else None
     if validation:
+        if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
+            validation["event_skeleton"] = extract_event_skeleton(raw, action)
         state = validation["state"]
         if state == "VALIDATED_EVIDENCE":
             return ("CONTRADICTION" if validation.get("relation") == "CONTRADICTS" else "POTENTIAL_EVIDENCE"), canonical, validation
         if state == "CONTEXT_ONLY":
             return "CONTEXT", canonical, validation
         if state == "SOURCE_UNKNOWN":
+            skeleton = validation.get("event_skeleton", {})
+            if skeleton.get("state") == "CONCRETE_EVENT":
+                validation["event_state"] = "EVENT_LEAD_DISCOVERY_ONLY"
+                validation["reason"] = "NEW_EVENT_LEAD_SOURCE_ROLE_UNVERIFIED"
             return "LEAD", canonical, validation
         if state == "WRONG_EVENT" or state == "WRONG_ROLE":
             return "IRRELEVANT", canonical, validation
@@ -1335,7 +1405,18 @@ def _lead_attrition_state(action: dict, raw: dict, result_class: str, validation
     if state == "EXTRACTION_FAILED":
         return "EXTRACTION_FAILED"
     if state == "SOURCE_UNKNOWN":
-        return "SOURCE_UNRESOLVED"
+        metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+        publisher = (metadata.get("publisher") or {}) if isinstance(metadata.get("publisher"), dict) else {}
+        if str(raw.get("title_state") or metadata.get("title_state") or "") == "TITLE_UNRESOLVED":
+            return "TITLE_UNRESOLVED"
+        date_info = raw.get("publication_date") if isinstance(raw.get("publication_date"), dict) else metadata.get("publication_date") or {}
+        if not date_info.get("raw"):
+            return "NO_PUBLICATION_DATE"
+        if publisher.get("state") == "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING":
+            return "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING"
+        if metadata.get("metadata_extraction_status") == "ARTICLE_METADATA_INSUFFICIENT":
+            return "ARTICLE_METADATA_INSUFFICIENT"
+        return "PUBLISHER_UNRESOLVED"
     if state == "WRONG_EVENT":
         return "WRONG_EVENT"
     if state == "WRONG_ROLE":
@@ -1375,9 +1456,10 @@ def _remember_unusable_route(state: dict, action: dict, observation: dict) -> No
 
 def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     result_class, canonical, validation = _classification(raw, action, seen_urls)
-    title = str(raw.get("title") or raw.get("claim") or raw.get("reason") or "Untitled research result")
+    title = _first_present(raw.get("title"), raw.get("claim"), raw.get("reason"))
+    title_state = str(raw.get("title_state") or (raw.get("article_metadata") or {}).get("title_state") or ("TITLE_RESOLVED" if title else "TITLE_UNRESOLVED"))
     source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").lower()
-    source_id = _stable_id("SRC", canonical or action["action_id"], title)
+    source_id = _stable_id("SRC", canonical or action["action_id"], title or "TITLE_UNRESOLVED")
     fixture_verified = raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE"
     verification_status = (
         "VALIDATED_EVIDENCE"
@@ -1385,10 +1467,17 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         else "EXTRACTED_NOT_VERIFIED"
     )
     origin = urlsplit(canonical).hostname if canonical else None
-    source_profile = _lead_source_profile(canonical, title, str((raw.get("search_result") or {}).get("snippet") or ""))
+    source_profile = _lead_source_profile(canonical, str(title or ""), str((raw.get("search_result") or {}).get("snippet") or ""))
+    metadata_publisher = ((raw.get("article_metadata") or {}).get("publisher") or {}) if isinstance(raw.get("article_metadata"), dict) else {}
+    if metadata_publisher.get("state") == "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING":
+        source_profile.update({
+            "identity_state": "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING",
+            "publisher_name": metadata_publisher.get("name"),
+            "publisher_signal": metadata_publisher.get("source"),
+        })
     if action.get("action_type") in FETCH_ACTIONS and canonical and raw.get("publisher"):
         source_profile["identity_state"] = "SOURCE_IDENTIFIED"
-    observation_id = _stable_id("OBS", action["action_id"], canonical or title, result_class)
+    observation_id = _stable_id("OBS", action["action_id"], canonical or title or "TITLE_UNRESOLVED", result_class)
     kind = {
         "LEAD": "LEAD", "POTENTIAL_EVIDENCE": "POTENTIAL_EVIDENCE",
         "CONTEXT": "CONTEXT", "CONTRADICTION": "CONTRADICTION",
@@ -1404,6 +1493,8 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "url": canonical,
         "origin": origin,
         "title": title,
+        "title_state": title_state,
+        "title_source": raw.get("title_source") or (raw.get("article_metadata") or {}).get("title_source"),
         "published_at": raw.get("published_at") or raw.get("publication_date"),
         "observed_at": raw.get("retrieved_at") or raw.get("discovered_at"),
         # A search result has a URL but has not retrieved that URL.  This is
@@ -1412,11 +1503,12 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "content_hash": raw.get("content_hash"),
         "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
+        "source_resolution_state": ((raw.get("article_metadata") or {}).get("publisher") or {}).get("state") if isinstance((raw.get("article_metadata") or {}).get("publisher"), dict) else None,
         "discovery_method": action["action_type"],
         "discovery_channel": str(raw.get("discovery_channel") or action.get("discovery_channel") or action["action_type"]),
         "related_entities": list(raw.get("related_entities") or action["known_entities"]),
         "related_event": raw.get("event_id"),
-        "claim": str(raw.get("claim") or title),
+        "claim": str(raw.get("claim") or title or ""),
         "claim_candidates": list(raw.get("claim_candidates") or []),
         "contradiction_candidates": list(raw.get("contradiction_candidates") or []),
         "relevance_status": "REJECTED" if result_class in {"IRRELEVANT", "DUPLICATE", "DEAD_END"} else "RETAINED",
@@ -1424,6 +1516,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "validation_state": (validation or {}).get("state", "DISCOVERED"),
         "validation_progression": (validation or {}).get("progression", ["DISCOVERED"]),
         "validation_reason": (validation or {}).get("reason"),
+        "event_skeleton": deepcopy((validation or {}).get("event_skeleton")) if isinstance((validation or {}).get("event_skeleton"), dict) else None,
+        "event_state": (validation or {}).get("event_state") or ((validation or {}).get("event_skeleton") or {}).get("state"),
+        "article_metadata": deepcopy(raw.get("article_metadata")) if isinstance(raw.get("article_metadata"), dict) else None,
         "evidence_relation": (validation or {}).get("relation"),
         "directness": (validation or {}).get("directness"),
         "provenance": {
@@ -1648,7 +1743,15 @@ def build_research_yield_report(
         "extraction_failures": attrition_counts.get("EXTRACTION_FAILED", 0),
         "browser_fallback_candidates": attrition_counts.get("BROWSER_RENDER_REQUIRED", 0),
         "browser_fallback_executions": sum(item.get("extraction_method") == "crawl4ai" for item in observations),
-        "source_identities_resolved": sum(item.get("source_identity", {}).get("identity_state") == "SOURCE_IDENTIFIED" for item in observations),
+        "pages_with_title_resolved": sum(item.get("extraction_status") == "FETCHED" and item.get("title_state") == "TITLE_RESOLVED" for item in observations),
+        "pages_with_date_resolved": sum(item.get("extraction_status") == "FETCHED" and bool((item.get("article_metadata") or {}).get("publication_date", {}).get("normalized")) for item in observations),
+        "pages_with_publisher_resolved": sum(item.get("extraction_status") == "FETCHED" and item.get("source_resolution_state") == "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING" for item in observations),
+        "pages_with_byline_or_credit": sum(item.get("extraction_status") == "FETCHED" and bool((item.get("article_attribution") or {}).get("author_byline") or (item.get("article_attribution") or {}).get("wire_credit") or (item.get("article_attribution") or {}).get("partner_credit")) for item in observations),
+        "article_text_extracted": sum(item.get("extraction_status") == "FETCHED" and bool(item.get("extracted_text")) for item in observations),
+        "concrete_events_extracted": sum((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT" for item in observations),
+        "new_unverified_event_leads": sum(item.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY" for item in observations),
+        "alternative_coverage_searches_triggered": sum(item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE" for item in actions),
+        "source_identities_resolved": sum(item.get("source_identity", {}).get("identity_state") in {"SOURCE_IDENTIFIED", "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING"} for item in observations),
         "unknown_sources_remaining": sum(
             item.get("source_class") == "unknown"
             and item.get("observation_class") in {"LEAD", "POTENTIAL_EVIDENCE"}
@@ -1704,7 +1807,7 @@ def execute_research_round(
     state.setdefault("route_memory", [])
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
-    observations, source_records, updates, candidate_discoveries = [], [], [], []
+    observations, source_records, updates, candidate_discoveries, event_leads = [], [], [], [], []
     lead_followup_selection: list[dict] = []
     lead_followup_candidates: list[dict] = []
     attempted_strategies: dict[str, set[int]] = {}
@@ -1712,7 +1815,7 @@ def execute_research_round(
     executed = []
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
-        nonlocal observations, source_records, updates, candidate_discoveries
+        nonlocal observations, source_records, updates, candidate_discoveries, event_leads
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
@@ -1733,6 +1836,7 @@ def execute_research_round(
             raw_results = [{"result_type": "DEAD_END", "reason": str(exc)}]
         if not isinstance(raw_results, list):
             raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
+        feedback_leads: list[dict] = []
         for raw in raw_results:
             if not isinstance(raw, dict):
                 raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
@@ -1743,6 +1847,22 @@ def execute_research_round(
             observation = _observation(action, raw, seen_urls)
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
+            if observation.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY":
+                skeleton = observation.get("event_skeleton") or {}
+                event_lead = {
+                    "schema_version": 1,
+                    "state": "EVENT_LEAD_DISCOVERY_ONLY",
+                    "observation_id": observation["observation_id"],
+                    "recovery_need_id": action.get("recovery_need_id"),
+                    "url": observation.get("url"),
+                    "publisher_resolution": observation.get("source_resolution_state") or "PUBLISHER_UNRESOLVED",
+                    "event_skeleton": deepcopy(skeleton),
+                    "publication_evidence": False,
+                    "cannot_close_breadth": True,
+                }
+                event_leads.append(event_lead)
+                if not action.get("event_lead_feedback"):
+                    feedback_leads.append(event_lead)
             _remember_unusable_route(state, action, observation)
             if observation.get("url"):
                 seen_urls.add(observation["url"])
@@ -1770,6 +1890,33 @@ def execute_research_round(
                             "editorial_value_reason": value_reason,
                             "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
                         })
+        # A concrete event from an unknown-role source is useful discovery
+        # context, not evidence.  Spend at most one ordinary bounded search
+        # action on better coverage of its fingerprint.
+        for event_lead in feedback_leads:
+            skeleton = event_lead["event_skeleton"]
+            query = " ".join(item for item in (
+                skeleton.get("actor"), skeleton.get("action"), skeleton.get("object"),
+                " ".join(skeleton.get("geography") or []), skeleton.get("published_at", "")[:7],
+            ) if item).strip()
+            if not query:
+                continue
+            feedback_action = {
+                **action,
+                "action_id": _stable_id("ACT", action["action_id"], "EVENT_LEAD_ALTERNATIVE", skeleton.get("event_fingerprint")),
+                "action_type": "FIND_DISTINCT_EVENT",
+                "target": None,
+                "query": query,
+                "query_intent": "EVENT_LEAD_ALTERNATIVE_COVERAGE",
+                "query_variant": "EVENT_FINGERPRINT",
+                "query_fingerprint": query_fingerprint(query, intent="EVENT_LEAD_ALTERNATIVE_COVERAGE"),
+                "discovery_channel": "SEARXNG_GENERAL_SEARCH",
+                "discovery_backends": ["searxng-general-search"],
+                "expected_result_type": "DISCOVERY_RESULT",
+                "channel_fallback": None,
+                "event_lead_feedback": True,
+            }
+            run_action(feedback_action)
         # A configured route is a preferred read-only channel, not a single
         # point of failure.  On a zero-yield route failure, make exactly one
         # provider-neutral discovery fallback and retain its provenance.
@@ -1828,6 +1975,37 @@ def execute_research_round(
             run_action(fetch_action)
             if state["lead_followups"] >= followup_limits["total"]:
                 break
+        # An exact page can reveal a concrete but unknown-role event and
+        # trigger one alternative-coverage search.  Reconsider only its new
+        # discovery leads within the same reserved follow-up budget; never
+        # refetch the first-pass URLs or expand the cap.
+        followed_urls = {
+            item.get("url") for item in lead_followup_selection
+            if item.get("url")
+        }
+        if state["lead_followups"] < followup_limits["total"]:
+            parents = {item["action_id"]: item for item in executed}
+            additional = [
+                item for item in select_leads_for_followup(observations, parents, followup_limits)
+                if item.get("url") not in followed_urls
+            ]
+            for observation in additional:
+                parent = parents[observation["provenance"]["action_id"]]
+                fetch_action = {
+                    **parent,
+                    "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", observation["url"]),
+                    "action_type": "FETCH_URL", "target": observation["url"],
+                    "expected_result_type": "EXTRACTED_SOURCE",
+                    "timeout_seconds": config["executor"]["action_timeout_seconds"],
+                    "lead_followup": True, "channel_fallback": None,
+                }
+                lead_followup_selection.append({
+                    "url": observation.get("url"), "priority": observation.get("lead_priority"),
+                    "need_id": observation.get("_followup_need"), "source_identity": observation.get("source_identity"),
+                })
+                run_action(fetch_action)
+                if state["lead_followups"] >= followup_limits["total"]:
+                    break
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
     advanced = advance_research_job(job, results, config)
     state["seen_urls"] = sorted(seen_urls)
@@ -1853,6 +2031,7 @@ def execute_research_round(
             "sources": source_records,
             "candidate_evidence_updates": updates,
             "candidate_discoveries": candidate_discoveries,
+            "event_leads": event_leads,
         },
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
@@ -1880,6 +2059,12 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
             value.setdefault("sources", []).append(source)
             existing_ids.add(source["id"])
             existing_urls.add(normalize_url(source["url"]))
+    for lead in execution["source_packet_patch"].get("event_leads", []):
+        if lead.get("state") != "EVENT_LEAD_DISCOVERY_ONLY" or not lead.get("url"):
+            continue
+        stored = value.setdefault("discovery_event_leads", [])
+        if not any(item.get("url") == lead["url"] for item in stored if isinstance(item, dict)):
+            stored.append(deepcopy(lead))
     for update in execution["source_packet_patch"]["candidate_evidence_updates"]:
         for section in value.get("sections", []):
             for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:

@@ -545,6 +545,77 @@ def test_low_value_new_event_cannot_create_or_close_breadth_candidate() -> None:
     assert patched_front["selected_candidate_id"] == front["selected_candidate_id"]
 
 
+def test_unknown_article_event_lead_triggers_alternative_coverage_before_promotion() -> None:
+    """No candidate is injected: all states originate in fetched page records."""
+    need = {
+        "need_id": "BREADTH:NEED_DISTINCT_EVENT:1", "kind": "NEED_DISTINCT_EVENT", "max_attempts": 1,
+        "query_context": {"research_date": "2099-01-02"},
+        "search_constraints": {"must_be_distinct_event": True, "eligible_section_ids": ["service"]},
+        "event_acquisition_plan": {
+            "editorial_gap": "DISTINCT_EVENT_BREADTH", "candidate_event_themes": ["public service"],
+            "acceptable_story_roles": ["brief", "normal"],
+        },
+    }
+    job = _job(desk="service", needs=[need])
+    initial = plan_research_actions(job, CONFIG)[0]
+
+    def page(url: str, source_class: str, *, publisher: str | None) -> dict:
+        return {
+            "url": url, "canonical_url": url, "title": "Ministry signs public transport agreement",
+            "title_state": "TITLE_RESOLVED", "published_at": "2099-01-02T09:00:00+00:00",
+            "publication_date": {"raw": "2099-01-02T09:00:00+00:00", "normalized": "2099-01-02T09:00:00+00:00"},
+            "text": "The Ministry signs a public transport agreement for a new service route. " * 8,
+            "fetch_status": "FETCHED", "content_hash": ("a" if source_class == "unknown" else "b" if source_class == "official" else "c") * 64,
+            "source_class": source_class, "claim": "The Ministry signs a public transport agreement.", "event_id": "EVT-TRANSPORT-NEW",
+            "article_metadata": {"title_state": "TITLE_RESOLVED", "publisher": {"name": publisher, "state": "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING" if publisher else "PUBLISHER_UNRESOLVED"}},
+        }
+
+    class FlowAdapter:
+        follow_discovery_leads = True
+
+        def execute(self, action: dict) -> list[dict]:
+            if action.get("target") == "https://unknown.example/event":
+                return [page(action["target"], "unknown", publisher=None)]
+            if action.get("target") == "https://official.example/event":
+                return [page(action["target"], "official", publisher="Ministry")]
+            if action.get("target") == "https://independent.example/event":
+                return [page(action["target"], "independent", publisher="Independent News")]
+            if action.get("event_lead_feedback"):
+                return [
+                    {"result_type": "LEAD", "url": "https://official.example/event", "title": "Ministry signs public transport agreement", "source_class": "unknown"},
+                    {"result_type": "LEAD", "url": "https://independent.example/event", "title": "Ministry signs public transport agreement", "source_class": "unknown"},
+                ]
+            return [{"result_type": "LEAD", "url": "https://unknown.example/event", "title": "Ministry signs public transport agreement", "source_class": "unknown"}]
+
+    execution = execute_research_round(job, FlowAdapter(), CONFIG, actions=[initial])
+    assert execution["source_packet_patch"]["event_leads"][0]["state"] == "EVENT_LEAD_DISCOVERY_ONLY"
+    assert execution["source_packet_patch"]["event_leads"][0]["publication_evidence"] is False
+    assert any(item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE" for item in execution["actions"])
+    # The alternative pass is allowed to inspect distinct publishers covering
+    # the same newly discovered event; that is evidence diversity, not a
+    # duplicate-event breadth credit.
+    assert len(execution["source_packet_patch"]["candidate_discoveries"]) == 2
+    packet = {"edition_date": "2099-01-02", "sources": [], "sections": [{"section_id": "service", "status": "NO_NEWS", "selected_candidate_id": None, "candidates": [], "recovery_candidates": []}]}
+    patched = apply_executor_results_to_packet(packet, execution)
+    section = patched["sections"][0]
+    assert section["status"] == "ACTIVE"
+    assert section["selected_candidate_id"]
+    # The same executor-produced candidate closes genuine edition breadth in
+    # an otherwise sufficient nine-section packet; no normalized candidate is
+    # inserted by the test.
+    closure_packet = _otherwise_sufficient_packet()
+    keep = {"siyasa_dawla", "iqtisad_flous", "mojtama3", "africa_sahel", "world", "sport", "culture", "opinion", "technology"}
+    for item in closure_packet["sections"]:
+        if item["section_id"] not in keep:
+            item.update({"status": "NO_NEWS", "selected_candidate_id": None, "candidates": [], "recovery_candidates": []})
+    coverage, readiness = _coverage(), load_local_config(ROOT)["editorial_readiness"]
+    before = build_recovery_plan(closure_packet, build_source_intelligence(closure_packet), coverage, readiness)
+    assert any(item["need_id"].startswith("BREADTH:") for item in before["needs"])
+    replay = replay_recovery_after_execution(closure_packet, execution, coverage, readiness)
+    assert replay["status"] == "READY"
+    assert replay["article_generation_allowed"] is True
+
+
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
     job = _job()
     with pytest.raises(ResearchExecutorError, match="RESEARCH_ACTION_ADAPTER_UNAVAILABLE"):

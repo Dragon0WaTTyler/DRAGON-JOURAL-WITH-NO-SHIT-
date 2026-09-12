@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from html.parser import HTMLParser
 import hashlib
 from ipaddress import ip_address
 import json
@@ -149,6 +150,199 @@ def _article_attribution(html: bytes) -> dict:
     else:
         state = "SYNDICATION_UNRESOLVED"
     return {"author_byline": author, "wire_credit": wire, "partner_credit": partner, "article_origin_state": state}
+
+
+class _ArticleMetadataParser(HTMLParser):
+    """Small tolerant HTML collector for article metadata, not article text.
+
+    Trafilatura remains the body extractor.  This collector only preserves the
+    publisher-provided metadata that many news pages expose outside the body.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.meta: dict[str, str] = {}
+        self.title_parts: list[str] = []
+        self.h1_parts: list[str] = []
+        self.times: list[str] = []
+        self.jsonld: list[str] = []
+        self._capture: str | None = None
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = {str(key).casefold(): value for key, value in attrs}
+        if tag == "meta":
+            key = str(values.get("property") or values.get("name") or values.get("itemprop") or "").casefold()
+            value = values.get("content")
+            if key and value and key not in self.meta:
+                self.meta[key] = str(value).strip()
+        elif tag == "time":
+            value = values.get("datetime")
+            if value:
+                self.times.append(str(value).strip())
+        if tag == "title":
+            self._capture, self._parts = "title", []
+        elif tag == "h1" and not self.h1_parts:
+            self._capture, self._parts = "h1", []
+        elif tag == "script" and "ld+json" in str(values.get("type") or "").casefold():
+            self._capture, self._parts = "jsonld", []
+
+    def handle_data(self, data: str) -> None:
+        if self._capture:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        expected = {"title": "title", "h1": "h1", "script": "jsonld"}.get(tag)
+        if expected != self._capture:
+            return
+        value = " ".join("".join(self._parts).split()).strip()
+        if value:
+            if self._capture == "title":
+                self.title_parts.append(value)
+            elif self._capture == "h1":
+                self.h1_parts.append(value)
+            else:
+                self.jsonld.append(value)
+        self._capture, self._parts = None, []
+
+
+def _jsonld_nodes(value: object) -> list[dict]:
+    """Flatten JSON-LD objects, arrays and @graph containers safely."""
+    nodes: list[dict] = []
+    if isinstance(value, list):
+        for item in value:
+            nodes.extend(_jsonld_nodes(item))
+    elif isinstance(value, dict):
+        nodes.append(value)
+        graph = value.get("@graph")
+        if graph is not None:
+            nodes.extend(_jsonld_nodes(graph))
+    return nodes
+
+
+def _jsonld_article_nodes(payloads: list[str]) -> list[dict]:
+    nodes: list[dict] = []
+    for payload in payloads:
+        try:
+            parsed = json.loads(payload)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+        for item in _jsonld_nodes(parsed):
+            types = item.get("@type", [])
+            types = [types] if isinstance(types, str) else types if isinstance(types, list) else []
+            lowered = {str(value).casefold() for value in types}
+            if lowered & {"newsarticle", "article", "reportagenewsarticle", "analysisnewsarticle", "liveblogposting"}:
+                nodes.append(item)
+    return nodes
+
+
+def _first_nonempty(*values: object) -> str | None:
+    for value in values:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def _named_jsonld(value: object) -> str | None:
+    if isinstance(value, str):
+        return value.strip() or None
+    if isinstance(value, dict):
+        return _first_nonempty(value.get("name"), value.get("@id"), value.get("url"))
+    if isinstance(value, list):
+        names = [_named_jsonld(item) for item in value]
+        return "; ".join(item for item in names if item) or None
+    return None
+
+
+def _normalized_article_date(value: object) -> tuple[str | None, str | None, str | None]:
+    """Return raw, normalized value and precision without using crawl time."""
+    raw = str(value or "").strip()
+    if not raw:
+        return None, None, None
+    try:
+        if re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
+            datetime.fromisoformat(raw)
+            return raw, raw, "DATE"
+        normalized = datetime.fromisoformat(raw.replace("Z", "+00:00")).isoformat()
+        return raw, normalized, "TIMESTAMP"
+    except ValueError:
+        return raw, None, "UNPARSEABLE"
+
+
+def extract_article_metadata(
+    html: bytes,
+    *,
+    canonical_url: str,
+    trafilatura_title: object = None,
+    trafilatura_date: object = None,
+    trafilatura_author: object = None,
+) -> dict:
+    """Extract deterministic article metadata independently from body text.
+
+    Structured metadata identifies a publisher or an article but never assigns
+    an evidence role.  Missing values are explicit states rather than fake
+    titles or crawl-time publication dates.
+    """
+    parser = _ArticleMetadataParser()
+    parser.feed(html.decode("utf-8", errors="replace"))
+    articles = _jsonld_article_nodes(parser.jsonld)
+    article = next((item for item in articles if item.get("headline") or item.get("datePublished") or item.get("publisher")), {})
+    meta = parser.meta
+    title, title_source = None, "TITLE_UNRESOLVED"
+    title_candidates = (
+        (_first_nonempty(article.get("headline")), "JSON_LD_HEADLINE"),
+        (_first_nonempty(meta.get("og:title")), "OPEN_GRAPH_TITLE"),
+        (_first_nonempty(meta.get("article:title"), meta.get("twitter:title"), meta.get("title")), "META_TITLE"),
+        (_first_nonempty(parser.h1_parts[0] if parser.h1_parts else None), "HTML_H1"),
+        (_first_nonempty(parser.title_parts[0] if parser.title_parts else None), "DOCUMENT_TITLE"),
+        (_first_nonempty(trafilatura_title), "TRAFILATURA_TITLE"),
+    )
+    for candidate, source in title_candidates:
+        if candidate:
+            title, title_source = candidate, source
+            break
+    published_candidates = (
+        (_first_nonempty(article.get("datePublished")), "JSON_LD_DATE_PUBLISHED", "PUBLICATION"),
+        (_first_nonempty(meta.get("article:published_time"), meta.get("published-time"), meta.get("publishdate"), meta.get("publication_date"), meta.get("date"), meta.get("cxenseparse:publishtime")), "META_PUBLICATION_DATE", "PUBLICATION"),
+        (_first_nonempty(parser.times[0] if parser.times else None), "HTML_TIME", "PUBLICATION"),
+        (_first_nonempty(trafilatura_date), "TRAFILATURA_DATE", "PUBLICATION"),
+        (_first_nonempty(article.get("dateModified"), meta.get("article:modified_time"), meta.get("modified-time"), meta.get("og:updated_time")), "MODIFIED_DATE_ONLY", "MODIFIED"),
+    )
+    raw_date = normalized_date = precision = date_source = date_kind = None
+    for candidate, source, kind in published_candidates:
+        raw_date, normalized_date, precision = _normalized_article_date(candidate)
+        if raw_date:
+            date_source, date_kind = source, kind
+            break
+    publisher = _named_jsonld(article.get("publisher"))
+    publisher_source = "JSON_LD_PUBLISHER" if publisher else None
+    if not publisher:
+        publisher = _first_nonempty(meta.get("og:site_name"), meta.get("application-name"), meta.get("publisher"))
+        publisher_source = "OPEN_GRAPH_SITE_NAME" if publisher else None
+    author = _first_nonempty(_named_jsonld(article.get("author")), meta.get("author"), meta.get("article:author"), trafilatura_author)
+    author_source = "JSON_LD_AUTHOR" if _named_jsonld(article.get("author")) else "META_OR_TRAFILAURA_AUTHOR" if author else None
+    attribution = _article_attribution(html)
+    if author and not attribution.get("author_byline"):
+        attribution["author_byline"] = author
+    attribution["author_source"] = author_source
+    article_types = sorted({str(item) for node in articles for item in (node.get("@type") if isinstance(node.get("@type"), list) else [node.get("@type")]) if item})
+    publisher_state = "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING" if publisher else "PUBLISHER_UNRESOLVED"
+    return {
+        "metadata_extraction_status": "ARTICLE_METADATA_RESOLVED" if title or raw_date or publisher else "ARTICLE_METADATA_INSUFFICIENT",
+        "title": title,
+        "title_state": "TITLE_RESOLVED" if title else "TITLE_UNRESOLVED",
+        "title_source": title_source,
+        "publication_date": {"raw": raw_date, "normalized": normalized_date, "source": date_source, "kind": date_kind, "precision": precision},
+        "publisher": {"name": publisher, "source": publisher_source, "state": publisher_state, "canonical_domain": urlparse(canonical_url).hostname},
+        "attribution": attribution,
+        "jsonld_article_types": article_types,
+        "signals": {
+            "html_title": _first_nonempty(parser.title_parts[0] if parser.title_parts else None),
+            "h1": _first_nonempty(parser.h1_parts[0] if parser.h1_parts else None),
+            "open_graph_title": _first_nonempty(meta.get("og:title")),
+            "jsonld_headline": _first_nonempty(article.get("headline")),
+        },
+    }
 
 
 def _published_at(value: object) -> tuple[str | None, list[str]]:
@@ -387,17 +581,34 @@ def fetch_and_extract_html(
         raise DiscoveryError("SOURCE_EXTRACTION_LOW_QUALITY", f"only {len(text)} characters")
     quality = "HIGH" if len(text) >= 1_000 else "MEDIUM"
     timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
-    published_at, metadata_warnings = _published_at(extracted.get("date"))
-    author = extracted.get("author")
+    article_metadata = extract_article_metadata(
+        response.body, canonical_url=str(extracted.get("url") or response.url),
+        trafilatura_title=extracted.get("title"), trafilatura_date=extracted.get("date"),
+        trafilatura_author=extracted.get("author"),
+    )
+    date_info = article_metadata["publication_date"]
+    published_at = date_info["normalized"]
+    metadata_warnings = []
+    if article_metadata["title_state"] == "TITLE_UNRESOLVED":
+        metadata_warnings.append("TITLE_UNRESOLVED")
+    if not date_info["raw"]:
+        metadata_warnings.extend(["NO_PUBLICATION_DATE", "PUBLISHED_AT_MISSING"])
+    elif not date_info["normalized"]:
+        metadata_warnings.extend(["PUBLICATION_DATE_UNPARSEABLE", "PUBLISHED_AT_INVALID"])
+    author = article_metadata["attribution"].get("author_byline")
     if not author:
         metadata_warnings.append("AUTHOR_MISSING")
     return {
         "canonical_url": str(extracted.get("url") or response.url),
         "discovered_url": url,
-        "title": extracted.get("title"),
+        "title": article_metadata["title"],
+        "title_state": article_metadata["title_state"],
+        "title_source": article_metadata["title_source"],
         "author": author,
-        "publisher": extracted.get("sitename") or extracted.get("hostname") or urlparse(response.url).hostname,
+        "publisher": article_metadata["publisher"].get("name") or extracted.get("sitename") or extracted.get("hostname") or urlparse(response.url).hostname,
         "published_at": published_at,
+        "publication_date": date_info,
+        "article_metadata": article_metadata,
         "retrieved_at": timestamp,
         "fetch_status": "FETCHED",
         "http_status": response.status,
@@ -417,7 +628,7 @@ def fetch_and_extract_html(
             "elapsed_ms": response.elapsed_ms, "fetch_backend": "safe-http",
             "extraction_backend": method,
         },
-        "article_attribution": _article_attribution(response.body),
+        "article_attribution": article_metadata["attribution"],
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }
 
@@ -458,9 +669,13 @@ def _fallback_or_dynamic_route(
         "canonical_url": str(extracted.get("url") or response.url),
         "discovered_url": discovered_url,
         "title": extracted.get("title"),
+        "title_state": "TITLE_RESOLVED" if extracted.get("title") else "TITLE_UNRESOLVED",
+        "title_source": "FALLBACK_EXTRACTOR" if extracted.get("title") else "TITLE_UNRESOLVED",
         "author": author,
         "publisher": extracted.get("publisher") or urlparse(response.url).hostname,
         "published_at": published_at,
+        "publication_date": {"raw": extracted.get("date"), "normalized": published_at, "source": "FALLBACK_EXTRACTOR", "kind": "PUBLICATION", "precision": None},
+        "article_metadata": {"metadata_extraction_status": "ARTICLE_METADATA_UNAVAILABLE", "title_state": "TITLE_RESOLVED" if extracted.get("title") else "TITLE_UNRESOLVED"},
         "retrieved_at": timestamp,
         "fetch_status": "FETCHED",
         "http_status": response.status,

@@ -495,6 +495,10 @@ def build_stage_definitions(
                         discovery for item in execution.get("jobs", [])
                         for discovery in item.get("source_packet_patch", {}).get("candidate_discoveries", [])
                     ],
+                    "event_leads": [
+                        lead for item in execution.get("jobs", [])
+                        for lead in item.get("source_packet_patch", {}).get("event_leads", [])
+                    ],
                 },
                 "recovery_attempts": [
                     need_id for item in execution.get("jobs", [])
@@ -563,7 +567,7 @@ def build_stage_definitions(
                 second_combined = {
                     "source_packet_patch": {
                         key: [value for item in epoch1_execution["jobs"] for value in item.get("source_packet_patch", {}).get(key, [])]
-                        for key in ("sources", "candidate_evidence_updates", "candidate_discoveries")
+                        for key in ("sources", "candidate_evidence_updates", "candidate_discoveries", "event_leads")
                     }
                 }
                 packet = apply_executor_results_to_packet(packet, second_combined)
