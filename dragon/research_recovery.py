@@ -11,6 +11,37 @@ from dragon.evidence_policy import candidate_evidence_policy
 DEFAULT_RECOVERY_POLICY = {"max_attempts_per_need": 1}
 
 
+def _breadth_acquisition_plan(need: dict, packet: dict, intelligence: dict) -> dict:
+    """Make a breadth gap an event-first, bounded discovery objective."""
+    candidates = {
+        f"{section.get('section_id')}:{candidate.get('id')}": candidate
+        for section in packet.get("sections", [])
+        for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]
+    }
+    exclusions = []
+    for cluster in intelligence.get("event_clusters", []):
+        labels = [str(candidates[key].get("title") or "") for key in cluster.get("candidate_keys", []) if key in candidates]
+        exclusions.append({"event_id": cluster["event_id"], "candidate_keys": cluster.get("candidate_keys", []), "fingerprint": " | ".join(sorted(label for label in labels if label))})
+    kind = str(need.get("kind") or "")
+    is_morocco = "MOROCCO" in kind
+    themes = (
+        ["institutional action", "public service", "economy or infrastructure", "regional or local development"]
+        if is_morocco else ["international institutional action", "geographically distinct development", "service or cultural significance"]
+    )
+    languages = ["ar", "fr"] if is_morocco else ["en", "ar"]
+    return {
+        "editorial_gap": "MOROCCO_BREADTH" if is_morocco else "DISTINCT_EVENT_BREADTH",
+        "objective": "Discover a verified event in the edition window that is materially distinct from every excluded cluster.",
+        "candidate_event_themes": themes,
+        "query_families": ["institutional", "topical", "geographical", "consequence_oriented"],
+        "languages": languages,
+        "discovery_backends": ["searxng-general-search", "gdelt-doc", "public-rss-search"],
+        "excluded_event_fingerprints": exclusions,
+        "promotion_criteria": ["NEW_EVENT", "EXACT_PAGE", "SOURCE_IDENTIFIED", "DATE_RELEVANT", "CLAIM_POLICY_SATISFIED", "EDITORIAL_VALUE"],
+        "acceptable_story_roles": ["brief", "normal", "analysis"],
+    }
+
+
 def _origins(candidate: dict, sources: dict[str, dict]) -> list[str]:
     source_ids = set().union(*(
         set(candidate.get(field, []))
@@ -175,6 +206,7 @@ def build_recovery_plan(
                 "max_attempts": maximum,
                 "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",
             })
+            needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
     missing_distinct = max(0, int(readiness["minimum_active_sections"]) - len(distinct_events))
     for index in range(missing_distinct):
         need_id = f"BREADTH:NEED_DISTINCT_EVENT:{index + 1}"
@@ -202,6 +234,7 @@ def build_recovery_plan(
             "max_attempts": maximum,
             "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",
         })
+        needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
     exhausted = bool(needs) and all(item["attempt_count"] >= item["max_attempts"] for item in needs)
     return {
         "schema_version": 1,
