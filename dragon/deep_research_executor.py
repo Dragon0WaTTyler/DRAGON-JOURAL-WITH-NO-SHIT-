@@ -330,6 +330,66 @@ def _desk_terms(values: list[object]) -> str:
     return " ".join(item for item in terms if item)[:180]
 
 
+def _breadth_target_section(need: dict) -> str:
+    """Pick one eligible desk deterministically for an edition-wide event hunt.
+
+    A breadth need is not a request to repeat every active desk in one query.
+    Cycling the finite eligible list gives parallel needs different editorial
+    targets, while retaining a stable route for audit and replay.
+    """
+    sections = list(need.get("search_constraints", {}).get("eligible_section_ids", []))
+    if not sections:
+        sections = list(need.get("topic_identifiers", []))
+    if not sections:
+        return "front"
+    match = re.search(r":(\d+)$", str(need.get("need_id") or ""))
+    index = int(match.group(1)) - 1 if match else 0
+    return str(sections[index % len(sections)])
+
+
+def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_language: str, alternate_language: str | None, route: dict | None) -> list[dict]:
+    """Return an event-acquisition ladder without copying provider prose.
+
+    The plan is structured by the recovery planner: editorial gap, proposed
+    event themes, date and eligible desks.  Existing retrieval adapters remain
+    unchanged; this only gives them inspectable, distinct search intents.
+    """
+    plan = need.get("event_acquisition_plan", {})
+    target_section = _breadth_target_section(need)
+    themes = list(plan.get("candidate_event_themes", [])) or ["public institutional action"]
+    families = list(plan.get("query_families", [])) or ["institutional", "topical", "geographical"]
+    match = re.search(r":(\d+)$", str(need.get("need_id") or ""))
+    index = int(match.group(1)) - 1 if match else 0
+    theme = str(themes[index % len(themes)])
+    relaxed_theme = str(themes[(index + 1) % len(themes)])
+    is_morocco = str(plan.get("editorial_gap") or "") == "MOROCCO_BREADTH"
+    geography = "Morocco" if is_morocco else "international"
+    desk = _desk_terms([target_section])
+    base = " ".join((geography, theme, desk, month))
+    relaxed = " ".join((geography, relaxed_theme, desk))
+    prefix = "DISTINCT_EVENT" if str(need.get("kind") or "") == "NEED_DISTINCT_EVENT" else "BREADTH"
+    action_type = "FIND_DISTINCT_EVENT" if prefix == "DISTINCT_EVENT" else "SEARCH_DISCOVERY"
+    return [
+        {
+            "intent": f"{prefix}_{str(families[0]).upper()}_WINDOW", "variant": "EVENT_THEME_DATE",
+            "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
+            "language": primary_language, "target_desk": target_section, "candidate_event_theme": theme,
+            "fallback": {"action_type": action_type, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+        },
+        {
+            "intent": f"{prefix}_{str(families[1 % len(families)]).upper()}_RELAXED", "variant": "RELAX_THEME_DATE",
+            "query": relaxed, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"],
+            "language": alternate_language or primary_language, "target_desk": target_section,
+            "candidate_event_theme": relaxed_theme,
+        },
+        {
+            "intent": f"{prefix}_ALTERNATIVE_EVENT", "variant": "EVENT_ALTERNATIVE",
+            "query": base, "channel": "GDELT_DOC", "backends": ["gdelt-doc"], "language": primary_language,
+            "target_desk": target_section, "candidate_event_theme": theme,
+        },
+    ]
+
+
 def query_ladder(job: dict, need: dict | None) -> list[dict]:
     """Build a bounded, date-aware strategy ladder from structured context."""
     if not need:
@@ -395,6 +455,11 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
     desk = _desk_terms(list(sections[:3]))
     direct = [item for item in routes if item.get("url")]
     route = direct[0] if direct else None
+    if need.get("event_acquisition_plan"):
+        return _breadth_event_queries(
+            job, need, month=month, primary_language=primary_language,
+            alternate_language=alternate_language, route=route,
+        )
     if kind == "NEED_DISTINCT_EVENT":
         base = f"{desk} news {month}".strip()
         return [
@@ -488,7 +553,7 @@ def create_research_action(
         "job_id": job["job_id"],
         "branch_id": branch["branch_id"],
         "question_id": question_id,
-        "desk": job["lead"]["desk"],
+        "desk": str(strategy.get("target_desk") or job["lead"]["desk"]),
         "research_regime": job["regime"],
         "action_type": action_type,
         "query": query,
@@ -502,6 +567,7 @@ def create_research_action(
         "search_categories": strategy.get("categories"),
         "search_time_range": strategy.get("time_range"),
         "search_page": strategy.get("page"),
+        "candidate_event_theme": strategy.get("candidate_event_theme"),
         "target": target,
         "known_entities": list(job["lead"].get("event_entities", [])),
         "event_context": {

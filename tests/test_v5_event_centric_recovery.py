@@ -18,6 +18,7 @@ from dragon.deep_research_executor import (
     publisher_discovery_states_from_config,
     execute_research_round,
     plan_research_actions,
+    query_ladder,
 )
 from dragon.discovery import FetchResponse
 
@@ -117,6 +118,34 @@ def test_known_event_fingerprint_is_rejected_before_breadth_promotion() -> None:
     observation = _observation(action, {"result_type": "LEAD", "url": "https://new.example/repeat", "title": "Meknes stadium audit public procurement update"}, set())
     assert observation["observation_class"] == "DUPLICATE"
     assert observation["publication_evidence"] is False
+
+
+def test_breadth_event_plan_uses_theme_date_and_rotating_eligible_desk() -> None:
+    need = {
+        "need_id": "BREADTH:NEED_DISTINCT_EVENT:2", "kind": "NEED_DISTINCT_EVENT", "max_attempts": 1,
+        # This deliberately resembles a provider headline.  It must not be
+        # copied into the acquisition query.
+        "topic_identifiers": ["Provider phrasing that must not drive search"],
+        "query_context": {"research_date": "2026-09-11"},
+        "search_constraints": {"must_be_distinct_event": True, "eligible_section_ids": ["africa_sahel", "culture", "service"]},
+        "event_acquisition_plan": {
+            "editorial_gap": "DISTINCT_EVENT_BREADTH",
+            "candidate_event_themes": ["institutional action", "geographically distinct development"],
+            "query_families": ["institutional", "topical", "geographical"],
+            "excluded_event_fingerprints": [{"event_id": "known", "fingerprint": "old event"}],
+        },
+    }
+    ladder = query_ladder(_job(), need)
+    assert ladder[0]["variant"] == "EVENT_THEME_DATE"
+    assert ladder[0]["target_desk"] == "culture"
+    assert ladder[0]["candidate_event_theme"] == "geographically distinct development"
+    assert "2026-09" in ladder[0]["query"]
+    assert "Provider phrasing" not in ladder[0]["query"]
+    job = _job()
+    job["recovery_needs"] = [need]
+    action = plan_research_actions(job, CONFIG)[0]
+    assert action["desk"] == "culture"
+    assert action["known_event_fingerprints"][0]["event_id"] == "known"
 
 
 def test_replay_cli_accepts_relative_output_path_after_completed_rehearsal(monkeypatch, capsys) -> None:
