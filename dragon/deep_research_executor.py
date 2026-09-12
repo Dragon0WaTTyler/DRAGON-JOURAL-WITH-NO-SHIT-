@@ -361,7 +361,11 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "query": " ".join(item for item in (seed, month) if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
                 "channel": "CONFIGURED_INDEPENDENT_LISTING",
-                "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+                # A failed configured publisher route must pivot to a
+                # different origin for the same event, not retry that route
+                # through a search-result wrapper.  GDELT remains metadata
+                # discovery only and has its own bounded unavailable state.
+                "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GDELT_DOC", "backends": ["gdelt-doc"]},
             },
             {"intent": "ENTITY_DATE_TERMS", "variant": "EXACT", "query": " ".join(item for item in (seed, month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
             {"intent": "ENTITY_ACTION_GEOGRAPHY", "variant": "RELAX_ENTITY_DATE", "query": seed, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
@@ -378,7 +382,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "query": " ".join(item for item in (seed, month, "official document") if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
                 "channel": "CONFIGURED_OFFICIAL_LISTING",
-                "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+                "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GDELT_DOC", "backends": ["gdelt-doc"]},
             },
             {"intent": "OFFICIAL_ENTITY_ACTION", "variant": "EXACT", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
             {"intent": "OFFICIAL_INSTITUTION_DATE", "variant": "RELAX_ENTITY_DATE", "query": " ".join(item for item in (" ".join(event_words[:8]), month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language},
@@ -1077,6 +1081,33 @@ def gdelt_doc_adapter_from_config(path) -> GdeltDocSearchAdapter | None:
                                  maximum_results=value["maximum_results"])
 
 
+def publisher_discovery_states_from_config(path) -> dict[str, dict]:
+    """Load explicit non-evidence statuses for feeds, sitemaps and Media Cloud.
+
+    Declaring a capability ready is not permission to crawl a publisher.  The
+    only routable states are future explicitly configured endpoints; until
+    then these values make the absence visible in every rehearsal report.
+    """
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise ResearchExecutorError("PUBLISHER_DISCOVERY_CONFIG_INVALID") from exc
+    if not isinstance(value, dict) or set(value) != {"version", "publisher_owned_rss_atom", "publisher_owned_sitemaps", "media_cloud"} or value.get("version") != 1:
+        raise ResearchExecutorError("PUBLISHER_DISCOVERY_CONFIG_INVALID")
+    routes = {
+        "publisher_owned_rss_atom": "ADAPTER_READY_NO_CONFIGURED_FEEDS",
+        "publisher_owned_sitemaps": "ADAPTER_READY_NO_CONFIGURED_SITEMAPS",
+    }
+    for name, expected in routes.items():
+        item = value.get(name)
+        if not isinstance(item, dict) or item.get("status") != expected or item.get("discovery_only") is not True or item.get("exact_page_validation_required") is not True:
+            raise ResearchExecutorError("PUBLISHER_DISCOVERY_CONFIG_INVALID")
+    media = value.get("media_cloud")
+    if not isinstance(media, dict) or media != {"status": "ADAPTER_READY_AUTH_NOT_CONFIGURED", "enabled": False}:
+        raise ResearchExecutorError("PUBLISHER_DISCOVERY_CONFIG_INVALID")
+    return deepcopy({name: value[name] for name in (*routes, "media_cloud")})
+
+
 def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[str, str] | None = None) -> SearxngSearchAdapter | None:
     """Load disabled-by-default SearXNG configuration without provisioning it."""
     try:
@@ -1102,6 +1133,7 @@ def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[s
 
 def discovery_adapter_from_config(root) -> ResearchAdapter | None:
     """Build the optional bounded discovery chain; no backend is evidence."""
+    publisher_states = publisher_discovery_states_from_config(root / "config" / "publisher-discovery.yaml")
     rss = rss_search_adapter_from_config(root / "config" / "open-discovery.yaml", source_coverage_path=root / "config" / "source-coverage.yaml")
     classes = getattr(rss, "source_classes_by_origin", {}) if rss else {}
     searxng = searxng_search_adapter_from_config(root / "config" / "general-search.yaml", source_classes_by_origin=classes)
@@ -1109,7 +1141,11 @@ def discovery_adapter_from_config(root) -> ResearchAdapter | None:
     adapters = [item for item in (rss, searxng, gdelt) if item is not None]
     if not adapters:
         return None
-    return DiscoveryAdapterChain(adapters) if len(adapters) > 1 else adapters[0]
+    result = DiscoveryAdapterChain(adapters) if len(adapters) > 1 else adapters[0]
+    # Reporting only: these inactive capability states cannot issue a request
+    # and cannot alter source or evidence classification.
+    result.publisher_discovery_states = publisher_states
+    return result
 
 
 def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, str | None, dict | None]:

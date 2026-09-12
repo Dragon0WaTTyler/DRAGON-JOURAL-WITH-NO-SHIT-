@@ -1,0 +1,15 @@
+# Publisher-owned feed and sitemap routing is intentionally separate from
+# article evidence.  No publisher endpoint is enabled until its URL, owner,
+# and discovery semantics are explicitly configured and tested.
+version: 1
+publisher_owned_rss_atom:
+  status: ADAPTER_READY_NO_CONFIGURED_FEEDS
+  discovery_only: true
+  exact_page_validation_required: true
+publisher_owned_sitemaps:
+  status: ADAPTER_READY_NO_CONFIGURED_SITEMAPS
+  discovery_only: true
+  exact_page_validation_required: true
+media_cloud:
+  status: ADAPTER_READY_AUTH_NOT_CONFIGURED
+  enabled: false

@@ -15,6 +15,7 @@ from dragon.deep_research_executor import (
     _observation,
     event_fingerprint,
     gdelt_doc_adapter_from_config,
+    publisher_discovery_states_from_config,
     execute_research_round,
     plan_research_actions,
 )
@@ -86,6 +87,14 @@ def test_gdelt_config_is_optional_and_does_not_replace_other_channels(tmp_path: 
     assert gdelt is not None
     chain = DiscoveryAdapterChain([gdelt])
     assert chain.execute({"action_type": "SEARCH_DISCOVERY", "discovery_backends": ["other"], "discovery_channel": "OTHER"})[0]["reason"] == "SEARCH_BACKEND_UNAVAILABLE"
+
+
+def test_publisher_feed_sitemap_and_media_cloud_states_are_explicit_and_non_evidence() -> None:
+    states = publisher_discovery_states_from_config(ROOT / "config" / "publisher-discovery.yaml")
+    assert states["publisher_owned_rss_atom"]["status"] == "ADAPTER_READY_NO_CONFIGURED_FEEDS"
+    assert states["publisher_owned_sitemaps"]["status"] == "ADAPTER_READY_NO_CONFIGURED_SITEMAPS"
+    assert states["media_cloud"]["status"] == "ADAPTER_READY_AUTH_NOT_CONFIGURED"
+    assert all(item.get("discovery_only", True) for name, item in states.items() if name != "media_cloud")
 
 
 def test_failed_family_leads_are_rejected_before_exact_page_followup() -> None:

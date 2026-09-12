@@ -320,7 +320,7 @@ def test_one_attempt_contains_multiple_query_variants_before_exhaustion() -> Non
     assert len(execution["actions"]) >= 2
 
 
-def test_configured_route_failure_uses_one_bounded_rss_fallback() -> None:
+def test_configured_route_failure_uses_one_bounded_alternative_origin_fallback() -> None:
     need = {
         "need_id": "i", "candidate_id": "c", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1,
         "search_constraints": {"configured_source_routes": [
@@ -333,7 +333,7 @@ def test_configured_route_failure_uses_one_bounded_rss_fallback() -> None:
     }), CONFIG)
     fallback = next(item for item in execution["actions"] if item["query_variant"].endswith("_FALLBACK"))
     assert fallback["action_type"] == "RECOVER_INDEPENDENT_SOURCE"
-    assert fallback["discovery_channel"] == "GOOGLE_NEWS_RSS"
+    assert fallback["discovery_channel"] == "GDELT_DOC"
 
 
 def test_p3_context_defers_when_round_has_higher_priority_work() -> None:

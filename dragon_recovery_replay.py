@@ -259,6 +259,7 @@ def rehearse_preserved_run_with_discovery(
         "rehearsal_run_directory": str(run_dir.relative_to(root)).replace("\\", "/"),
         "provider_called": False,
         "network_called": True,
+        "publisher_discovery_states": deepcopy(getattr(adapter, "publisher_discovery_states", {})),
         "article_generation_called": False,
         "source_git_revision": source_revision(root),
         "input_hashes": input_hashes,
