@@ -19,10 +19,18 @@
     },
     "executor": {
       "type": "object", "additionalProperties": false,
-      "required": ["action_timeout_seconds", "maximum_actions_per_round", "budget_action_limits"],
+      "required": ["action_timeout_seconds", "maximum_actions_per_round", "lead_followup_limits", "budget_action_limits"],
       "properties": {
         "action_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
         "maximum_actions_per_round": {"type": "integer", "minimum": 1, "maximum": 20},
+        "lead_followup_limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
+          "properties": {
+            "QUICK": {"$ref": "#/$defs/followup_limit"}, "STANDARD": {"$ref": "#/$defs/followup_limit"},
+            "DEEP": {"$ref": "#/$defs/followup_limit"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/followup_limit"}
+          }
+        },
         "budget_action_limits": {
           "type": "object", "additionalProperties": false,
           "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
@@ -56,6 +64,18 @@
       "properties": {
         "search_actions": {"type": "integer", "minimum": 1, "maximum": 20},
         "fetches": {"type": "integer", "minimum": 1, "maximum": 20}
+      }
+    },
+    "followup_limit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total", "P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION", "P3_CONTEXT"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P0_BLOCKING_EVIDENCE": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P1_BREADTH": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P1_DISTINCT_EVENT": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P2_CONTRADICTION": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P3_CONTEXT": {"type": "integer", "minimum": 0, "maximum": 12}
       }
     }
   }

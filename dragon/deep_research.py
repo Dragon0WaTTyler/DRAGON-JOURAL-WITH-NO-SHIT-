@@ -73,15 +73,22 @@ def load_deep_research_config(path: Path, schema_path: Path | None = None) -> di
     ]:
         raise DeepResearchError("DEEP_RESEARCH_CONTEXT_BUCKETS_INVALID")
     limits = value["executor"].get("budget_action_limits", {})
+    followup_limits = value["executor"].get("lead_followup_limits", {})
     if (
         value["executor"].get("action_timeout_seconds") != 15
         or value["executor"].get("maximum_actions_per_round") != 8
         or set(limits) != set(value["budget_classes"])
+        or set(followup_limits) != set(value["budget_classes"])
         or any(
             set(limit) != {"search_actions", "fetches"}
             or limit["search_actions"] > value["budget_classes"][name]["max_branches"]
             or limit["fetches"] > value["budget_classes"][name]["max_branches"]
             for name, limit in limits.items()
+        )
+        or any(
+            set(limit) != {"total", "P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION", "P3_CONTEXT"}
+            or limit["total"] > value["budget_classes"][name]["max_branches"]
+            for name, limit in followup_limits.items()
         )
     ):
         raise DeepResearchError("DEEP_RESEARCH_EXECUTOR_POLICY_INVALID")

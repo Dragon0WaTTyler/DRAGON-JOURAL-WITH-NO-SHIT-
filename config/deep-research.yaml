@@ -18,6 +18,13 @@ budget_classes:
 executor:
   action_timeout_seconds: 15
   maximum_actions_per_round: 8
+  # Exact-page lead inspection is budgeted independently from configured
+  # source fetches, so the latter cannot starve discovery follow-up.
+  lead_followup_limits:
+    QUICK: {total: 2, P0_BLOCKING_EVIDENCE: 2, P1_BREADTH: 1, P1_DISTINCT_EVENT: 1, P2_CONTRADICTION: 1, P3_CONTEXT: 1}
+    STANDARD: {total: 4, P0_BLOCKING_EVIDENCE: 3, P1_BREADTH: 2, P1_DISTINCT_EVENT: 3, P2_CONTRADICTION: 1, P3_CONTEXT: 1}
+    DEEP: {total: 6, P0_BLOCKING_EVIDENCE: 4, P1_BREADTH: 3, P1_DISTINCT_EVENT: 4, P2_CONTRADICTION: 2, P3_CONTEXT: 1}
+    INVESTIGATIVE_LEAD: {total: 8, P0_BLOCKING_EVIDENCE: 5, P1_BREADTH: 4, P1_DISTINCT_EVENT: 5, P2_CONTRADICTION: 2, P3_CONTEXT: 1}
   budget_action_limits:
     QUICK: {search_actions: 2, fetches: 2}
     STANDARD: {search_actions: 4, fetches: 4}

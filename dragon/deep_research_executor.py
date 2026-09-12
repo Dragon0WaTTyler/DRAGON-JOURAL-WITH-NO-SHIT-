@@ -13,6 +13,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 from typing import Protocol
 from urllib.parse import quote_plus, urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -53,6 +54,128 @@ PRIORITY_ORDER = {
     "P2_CONTRADICTION": 2,
     "P3_CONTEXT": 3,
 }
+
+_SOCIAL_ORIGINS = {"facebook.com", "www.facebook.com", "x.com", "twitter.com", "www.twitter.com", "instagram.com", "www.instagram.com", "youtube.com", "www.youtube.com"}
+_AGGREGATOR_MARKERS = {"google", "news.google", "feed", "rss", "aggregator", "archive"}
+
+
+def _registrable_domain(origin: str | None) -> str | None:
+    """Return a conservative domain family without claiming publisher identity."""
+    if not origin:
+        return None
+    labels = origin.casefold().strip(".").split(".")
+    return ".".join(labels[-2:]) if len(labels) >= 2 else origin.casefold()
+
+
+def _lead_source_profile(url: str | None, title: str, snippet: str = "") -> dict:
+    """Classify cheap, deterministic routing signals before an expensive fetch.
+
+    This identifies obvious social and aggregation routes for *selection*.  It
+    deliberately never upgrades a page to an independent/primary source.
+    """
+    origin = (urlsplit(url or "").hostname or "").casefold()
+    family = _registrable_domain(origin)
+    haystack = f"{origin} {title} {snippet}".casefold()
+    if origin in _SOCIAL_ORIGINS or any(origin.endswith(f".{item}") for item in _SOCIAL_ORIGINS):
+        kind = "SOCIAL"
+    elif any(marker in haystack for marker in _AGGREGATOR_MARKERS):
+        kind = "AGGREGATOR"
+    elif origin:
+        kind = "PUBLISHER_UNRESOLVED"
+    else:
+        kind = "SOURCE_UNRESOLVED"
+    return {
+        "origin": origin or None,
+        "origin_family": family,
+        "routing_class": kind,
+        "identity_state": "SOURCE_UNRESOLVED" if kind == "SOURCE_UNRESOLVED" else "SOURCE_IDENTITY_PENDING",
+    }
+
+
+def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tuple]:
+    """Categorical fetch priority, not a journalism-confidence score."""
+    result = observation.get("search_result", {}) if isinstance(observation.get("search_result"), dict) else {}
+    title = str(observation.get("title") or "")
+    snippet = str(result.get("snippet") or observation.get("claim") or "")
+    profile = _lead_source_profile(observation.get("url"), title, snippet)
+    haystack = f"{title} {snippet}".casefold()
+    expected = {
+        item.casefold() for item in [
+            *action.get("known_entities", []),
+            *(action.get("event_context", {}).get("entities", []) if isinstance(action.get("event_context"), dict) else []),
+            *(action.get("event_context", {}).get("event_terms", []) if isinstance(action.get("event_context"), dict) else []),
+            *action.get("query", "").split(),
+        ] if len(str(item)) > 2
+    }
+    overlap = sum(term in haystack for term in expected)
+    reasons = []
+    if overlap:
+        reasons.append("ENTITY_OR_EVENT_OVERLAP")
+    if result.get("published_at") or observation.get("published_at"):
+        reasons.append("DATE_AVAILABLE")
+    if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}:
+        reasons.append(profile["routing_class"])
+        return "LOW", reasons, (2, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+    if overlap >= 2:
+        reasons.append("PUBLISHER_CANDIDATE")
+        return "HIGH", reasons, (0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+    reasons.append("LIMITED_CONTEXT_MATCH")
+    return "MEDIUM", reasons, (1, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+
+
+def rank_discovery_leads(observations: list[dict], actions_by_id: dict[str, dict]) -> list[dict]:
+    """Annotate discovery-only leads with deterministic, explainable priority."""
+    ranked = []
+    for observation in observations:
+        action = actions_by_id.get(str(observation.get("provenance", {}).get("action_id") or ""))
+        if not action or action.get("action_type") not in SEARCH_ACTIONS or observation.get("observation_class") != "LEAD" or not observation.get("url"):
+            continue
+        priority, reasons, key = _lead_priority(observation, action)
+        profile = _lead_source_profile(
+            observation.get("url"), str(observation.get("title") or ""),
+            str((observation.get("search_result") or {}).get("snippet") or ""),
+        )
+        observation["lead_priority"] = priority
+        observation["lead_priority_reasons"] = reasons
+        observation["source_identity"] = profile
+        observation["lead_attrition_state"] = "DISCOVERED_NOT_SELECTED"
+        observation["_lead_sort_key"] = key
+        ranked.append(observation)
+    return ranked
+
+
+def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str, dict], limits: dict) -> list[dict]:
+    """Choose a bounded, publisher/event-diverse subset of ranked leads."""
+    ranked = rank_discovery_leads(observations, actions_by_id)
+    groups: dict[str, list[dict]] = {}
+    for item in ranked:
+        parent = actions_by_id[item["provenance"]["action_id"]]
+        need = str(parent.get("recovery_need_id") or f"QUESTION:{parent['question_id']}")
+        groups.setdefault(need, []).append(item)
+    selected: list[dict] = []
+    for need in sorted(groups, key=lambda value: (
+        PRIORITY_ORDER.get(str(actions_by_id[groups[value][0]["provenance"]["action_id"]].get("priority_class") or "P3_CONTEXT"), 99), value
+    )):
+        items = groups[need]
+        parent = actions_by_id[items[0]["provenance"]["action_id"]]
+        allowance = int(limits.get(str(parent.get("priority_class") or "P3_CONTEXT"), 0))
+        require_event_diversity = str(parent.get("priority_class") or "") == "P1_DISTINCT_EVENT"
+        seen_families, seen_titles = set(), set()
+        for item in sorted(items, key=lambda value: value["_lead_sort_key"]):
+            profile = item["source_identity"]
+            title_key = " ".join(re.findall(r"[\\w\\u0600-\\u06ff]+", str(item.get("title") or "").casefold())[:8])
+            if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
+                continue
+            if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"} or profile.get("origin_family") in seen_families or (require_event_diversity and title_key in seen_titles):
+                continue
+            item["lead_attrition_state"] = "SELECTED_FOR_FETCH"
+            item["_followup_need"] = need
+            selected.append(item)
+            seen_families.add(profile.get("origin_family"))
+            seen_titles.add(title_key)
+            if len(selected) >= int(limits.get("total", 0)):
+                return selected
+    return selected
 
 
 class _RejectLocalSearchRedirect(HTTPRedirectHandler):
@@ -559,7 +682,7 @@ class RssSearchAdapter:
                 "canonical_url": item["discovered_url"],
                 "title": item["title"],
                 "source_class": "unknown",
-                "retrieved_at": timestamp,
+                "discovered_at": timestamp,
                 "discovery_channel": self.adapter_id,
                 "discovery_endpoint": response.url,
                 "verification_provenance": "DISCOVERY_ONLY_RSS",
@@ -727,7 +850,7 @@ class SearxngSearchAdapter:
                 "title": str(item.get("title") or "Untitled search result"),
                 "claim": str(item.get("content") or item.get("title") or ""),
                 "published_at": item.get("publishedDate") or item.get("published_at"),
-                "retrieved_at": timestamp, "source_class": "unknown",
+                "discovered_at": timestamp, "source_class": "unknown",
                 "discovery_channel": self.adapter_id,
                 "verification_provenance": "DISCOVERY_ONLY_SEARXNG",
                 "search_result": {
@@ -859,6 +982,33 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     return "LEAD", canonical, validation
 
 
+def _lead_attrition_state(action: dict, raw: dict, result_class: str, validation: dict | None) -> str | None:
+    """Preserve why a lead stopped without overstating it as generic failure."""
+    if action.get("action_type") in SEARCH_ACTIONS and result_class == "LEAD":
+        return "DISCOVERED_NOT_SELECTED"
+    if action.get("action_type") not in FETCH_ACTIONS:
+        return None
+    reason = str(raw.get("reason") or "")
+    if reason == "SOURCE_DYNAMIC_ROUTE_REQUIRED":
+        return "BROWSER_RENDER_REQUIRED"
+    state = str((validation or {}).get("state") or "")
+    if state == "FETCH_FAILED":
+        return "FETCH_FAILED"
+    if state == "EXTRACTION_FAILED":
+        return "EXTRACTION_FAILED"
+    if state == "SOURCE_UNKNOWN":
+        return "SOURCE_UNRESOLVED"
+    if state == "WRONG_EVENT":
+        return "WRONG_EVENT"
+    if state == "WRONG_ROLE":
+        return "WRONG_ROLE"
+    if state == "CONTEXT_ONLY":
+        return "CONTEXT_ONLY"
+    if state == "VALIDATED_EVIDENCE":
+        return "VALIDATED_EVIDENCE"
+    return None
+
+
 def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     result_class, canonical, validation = _classification(raw, action, seen_urls)
     title = str(raw.get("title") or raw.get("claim") or raw.get("reason") or "Untitled research result")
@@ -871,6 +1021,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         else "EXTRACTED_NOT_VERIFIED"
     )
     origin = urlsplit(canonical).hostname if canonical else None
+    source_profile = _lead_source_profile(canonical, title, str((raw.get("search_result") or {}).get("snippet") or ""))
+    if action.get("action_type") in FETCH_ACTIONS and canonical and raw.get("publisher"):
+        source_profile["identity_state"] = "SOURCE_IDENTIFIED"
     observation_id = _stable_id("OBS", action["action_id"], canonical or title, result_class)
     kind = {
         "LEAD": "LEAD", "POTENTIAL_EVIDENCE": "POTENTIAL_EVIDENCE",
@@ -888,8 +1041,10 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "origin": origin,
         "title": title,
         "published_at": raw.get("published_at") or raw.get("publication_date"),
-        "observed_at": raw.get("retrieved_at"),
-        "extraction_status": raw.get("fetch_status") or ("NOT_RETRIEVED" if not canonical else "RETRIEVED"),
+        "observed_at": raw.get("retrieved_at") or raw.get("discovered_at"),
+        # A search result has a URL but has not retrieved that URL.  This is
+        # intentionally distinct from a hash-bound exact-page fetch.
+        "extraction_status": raw.get("fetch_status") or "NOT_RETRIEVED",
         "content_hash": raw.get("content_hash"),
         "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
@@ -923,6 +1078,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "contradicting_evidence_ids": list(raw.get("contradicting_evidence_ids") or []),
         "follow_up_question": raw.get("follow_up_question"),
         "reason": raw.get("reason"),
+        "search_result": deepcopy(raw.get("search_result")) if isinstance(raw.get("search_result"), dict) else None,
+        "lead_attrition_state": _lead_attrition_state(action, raw, result_class, validation),
+        "source_identity": source_profile,
     }
 
 
@@ -962,6 +1120,11 @@ def build_research_yield_report(
         if item.get("observation_class") in useful_classes
         and item.get("relevance_status") == "RETAINED"
     ]
+    attrition_counts: dict[str, int] = {}
+    for item in observations:
+        state = item.get("lead_attrition_state")
+        if state:
+            attrition_counts[str(state)] = attrition_counts.get(str(state), 0) + 1
     urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
     origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
     before_ids = {
@@ -1113,6 +1276,15 @@ def build_research_yield_report(
             })
         ),
         "breadth_gaps_closed": sum(item.startswith("BREADTH:") for item in closed),
+        "leads_selected_for_followup": attrition_counts.get("SELECTED_FOR_FETCH", 0),
+        "leads_skipped": attrition_counts.get("DISCOVERED_NOT_SELECTED", 0),
+        "trafilatura_successes": sum(item.get("extraction_status") == "FETCHED" and item.get("provenance", {}).get("action_id") in by_action for item in observations),
+        "extraction_failures": attrition_counts.get("EXTRACTION_FAILED", 0),
+        "browser_fallback_candidates": attrition_counts.get("BROWSER_RENDER_REQUIRED", 0),
+        "browser_fallback_executions": sum(item.get("extraction_method") == "crawl4ai" for item in observations),
+        "source_identities_resolved": sum(item.get("source_identity", {}).get("identity_state") == "SOURCE_IDENTIFIED" for item in observations),
+        "unknown_sources_remaining": sum(item.get("source_identity", {}).get("identity_state") == "SOURCE_UNRESOLVED" for item in observations),
+        "lead_attrition": dict(sorted(attrition_counts.items())),
         "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
         "action_outcomes": action_outcomes,
@@ -1157,7 +1329,8 @@ def execute_research_round(
     """Execute one bounded round and feed observations to the state machine."""
     planned = actions if actions is not None else plan_research_actions(job, config, known_event_ids=known_event_ids)
     limits = config["executor"]["budget_action_limits"][job["budget_class"]]
-    state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "seen_urls": [], "seen_origins": []}))
+    state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "lead_followups": 0, "seen_urls": [], "seen_origins": []}))
+    state.setdefault("lead_followups", 0)
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
     observations, source_records, updates, candidate_discoveries = [], [], [], []
@@ -1170,8 +1343,10 @@ def execute_research_round(
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
-        counter = "search_actions" if is_search else "fetches"
-        if state[counter] >= limits[counter]:
+        is_lead_followup = bool(action.get("lead_followup"))
+        counter = "search_actions" if is_search else ("lead_followups" if is_lead_followup else "fetches")
+        ceiling = int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]) if is_lead_followup else limits[counter]
+        if state[counter] >= ceiling:
             return
         state[counter] += 1
         executed.append(action)
@@ -1188,6 +1363,10 @@ def execute_research_round(
         for raw in raw_results:
             if not isinstance(raw, dict):
                 raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
+            # Failed follow-up responses must retain the exact target so lead
+            # attrition can distinguish fetch/extraction/browser states.
+            if action.get("action_type") in FETCH_ACTIONS and action.get("target") and not (raw.get("canonical_url") or raw.get("url")):
+                raw = {**raw, "url": action["target"]}
             observation = _observation(action, raw, seen_urls)
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
@@ -1236,21 +1415,14 @@ def execute_research_round(
     for action in planned[: config["executor"]["maximum_actions_per_round"]]:
         run_action(action)
 
-    # Public RSS discovery is useful only if selected leads can be inspected.
-    # Follow at most the job's existing fetch budget, retain exact-page hashes,
-    # and keep every real result unverified.  Other adapters remain single-pass
-    # so fixtures and direct-only adapters keep their declared behaviour.
+    # Follow a bounded, rank- and diversity-selected set of discovery leads.
+    # This reserve is separate from configured-source fetches so pre-existing
+    # routes cannot starve exact-page inspection of newly discovered material.
     if getattr(adapter, "follow_discovery_leads", False):
-        initial_observations = list(observations)
-        for observation in initial_observations:
-            if observation.get("observation_class") not in {"LEAD", "POTENTIAL_EVIDENCE"} or not observation.get("url"):
-                continue
-            parent = next(
-                (item for item in executed if item["action_id"] == observation.get("provenance", {}).get("action_id")),
-                None,
-            )
-            if parent is None or parent["action_type"] not in SEARCH_ACTIONS:
-                continue
+        parents = {item["action_id"]: item for item in executed}
+        followup_limits = config["executor"]["lead_followup_limits"][job["budget_class"]]
+        for observation in select_leads_for_followup(observations, parents, followup_limits):
+            parent = parents[observation["provenance"]["action_id"]]
             fetch_action = {
                 **parent,
                 "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", observation["url"]),
@@ -1258,9 +1430,10 @@ def execute_research_round(
                 "target": observation["url"],
                 "expected_result_type": "EXTRACTED_SOURCE",
                 "timeout_seconds": config["executor"]["action_timeout_seconds"],
+                "lead_followup": True,
             }
             run_action(fetch_action)
-            if state["fetches"] >= limits["fetches"]:
+            if state["lead_followups"] >= followup_limits["total"]:
                 break
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
     advanced = advance_research_job(job, results, config)
@@ -1291,7 +1464,7 @@ def execute_research_round(
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
         "recovery_strategy_progress": strategy_progress,
-        "budget_consumed": {"search_actions": state["search_actions"], "fetches": state["fetches"]},
+        "budget_consumed": {"search_actions": state["search_actions"], "fetches": state["fetches"], "lead_followups": state["lead_followups"]},
         "remaining_gaps": list(advanced["context"]["SOURCE_GAPS"]),
         "stop_reason": advanced.get("stop_condition"),
     }
