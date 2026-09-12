@@ -1,0 +1,27 @@
+name: dragon-searxng
+
+services:
+  searxng:
+    image: docker.io/searxng/searxng@sha256:a93b665d10ce0675e8d2124187943111399ba69f384228c51b4cd21fdceda0bc
+    ports:
+      - "127.0.0.1:8088:8080"
+    environment:
+      SEARXNG_PORT: "8080"
+      SEARXNG_BIND_ADDRESS: "0.0.0.0"
+      SEARXNG_BASE_URL: "http://127.0.0.1:8088/"
+      SEARXNG_SECRET: "${SEARXNG_SECRET:?Run scripts/start_local_searxng.ps1}"
+    volumes:
+      - ./settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-cache:/var/cache/searxng
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/', timeout=3).read(1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+
+volumes:
+  searxng-cache:

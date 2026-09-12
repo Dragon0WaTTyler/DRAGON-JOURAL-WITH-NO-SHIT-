@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Replay one preserved recovery boundary without a provider, network, or articles."""
+"""Replay preserved research without an editorial-provider call or articles."""
 
 from __future__ import annotations
 
@@ -19,10 +19,11 @@ from dragon.deep_research import (
 )
 from dragon.deep_research_executor import (
     build_research_yield_report,
+    discovery_adapter_from_config,
     execute_research_round,
     schedule_research_actions,
 )
-from dragon.provider_acceptance import OfflineReplayResearchAdapter
+from dragon.provider_acceptance import OfflineReplayResearchAdapter, build_provider_seed_orchestrator
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_coverage import load_source_coverage
 from dragon.state import atomic_write_json, sha256_file, source_revision
@@ -30,6 +31,16 @@ from dragon.providers import SECTION_HEADINGS
 
 
 ROOT = Path(__file__).resolve().parent
+
+
+class _NoArticleProvider:
+    """A guard object proving an offline seed replay cannot generate prose."""
+
+    mode = "preserved-research-replay"
+    available = True
+
+    def articles(self, research: dict) -> list[dict]:
+        raise AssertionError("PRESERVED_RESEARCH_REPLAY_MUST_NOT_GENERATE_ARTICLES")
 
 
 def _load(path: Path) -> dict:
@@ -190,20 +201,102 @@ def replay_preserved_recovery(
     return report
 
 
+def rehearse_preserved_run_with_discovery(
+    *, root: Path, edition_date: str, source_run_id: str, output_dir: Path,
+) -> dict:
+    """Run both bounded recovery epochs from an immutable seed with real discovery.
+
+    The source provider packet is never invoked again.  The normal V5 pipeline
+    receives its normalized seed through ``SeedResearchProvider`` and the
+    configured non-generative discovery chain.  It may fetch public pages, but
+    cannot generate articles, publish, schedule work, or alter the source run.
+    """
+    source_run = root / "daily-runs" / edition_date / "runs" / source_run_id
+    paths = _input_paths(source_run)
+    missing = [name for name, path in paths.items() if not path.is_file()]
+    if missing:
+        raise ValueError(f"PRESERVED_RECOVERY_REPLAY_INPUT_MISSING:{','.join(missing)}")
+    if output_dir.exists():
+        raise ValueError("PRESERVED_RECOVERY_REPLAY_OUTPUT_ALREADY_EXISTS")
+    source_state = _load(paths["historical_state"])
+    source_attempt_id = str(source_state.get("source_attempt_id") or "")
+    raw_path = root / "acceptance" / "provider-trials" / edition_date / "attempts" / source_attempt_id / "research.raw.json"
+    if not raw_path.is_file():
+        raise ValueError("PRESERVED_PROVIDER_RAW_PACKET_MISSING")
+    input_paths = {**paths, "raw_provider_packet": raw_path}
+    input_hashes = {name: sha256_file(path) for name, path in input_paths.items()}
+    adapter = discovery_adapter_from_config(root)
+    if adapter is None:
+        raise ValueError("DISCOVERY_ADAPTER_UNCONFIGURED")
+    orchestrator = build_provider_seed_orchestrator(
+        root=root,
+        edition_date=edition_date,
+        provider=_NoArticleProvider(),
+        normalized_packet=_load(paths["epoch0_packet"]),
+        raw_packet_path=raw_path,
+        raw_packet_sha256=input_hashes["raw_provider_packet"],
+        mode="PRESERVED_REAL_DISCOVERY_REHEARSAL",
+        source_attempt_id=f"preserved-rehearsal:{source_attempt_id}",
+        research_adapter=adapter,
+        offline_replay=True,
+    )
+    state = orchestrator.run()
+    run_dir = orchestrator.store.run_dir
+    execution = _load(run_dir / "deep-research" / "execution-report.json")
+    recovery = _load(run_dir / "research-recovery" / "plan.json")
+    yield_report = _load(run_dir / "deep-research" / "yield-report.json")
+    epoch1_path = run_dir / "deep-research" / "epoch-1-execution-report.json"
+    epoch1 = _load(epoch1_path) if epoch1_path.is_file() else {"status": "NOT_CREATED", "jobs": []}
+    input_hashes_after = {name: sha256_file(path) for name, path in input_paths.items()}
+    if input_hashes != input_hashes_after:
+        raise RuntimeError("PRESERVED_RECOVERY_REPLAY_INPUT_MUTATED")
+    report = {
+        "schema_version": 1,
+        "status": "PRESERVED_REAL_DISCOVERY_REHEARSAL_COMPLETE",
+        "edition_date": edition_date,
+        "source_run_id": source_run_id,
+        "rehearsal_run_id": orchestrator.store.run_id,
+        "rehearsal_run_directory": str(run_dir.relative_to(root)).replace("\\", "/"),
+        "provider_called": False,
+        "network_called": True,
+        "article_generation_called": False,
+        "source_git_revision": source_revision(root),
+        "input_hashes": input_hashes,
+        "historical_inputs_unchanged": True,
+        "research_recovery_status": recovery["status"],
+        "article_generation_allowed": recovery["article_generation_allowed"],
+        "recovery_epochs": recovery.get("recovery_epochs", {}),
+        "epoch_0_actions": len(execution.get("actions_planned", [])),
+        "epoch_1_actions": len(epoch1.get("actions_planned", [])),
+        "yield": yield_report,
+        "remaining_recovery_needs": [item["need_id"] for item in recovery.get("needs", [])],
+        "stage_status": {
+            name: record.get("status") for name, record in state.get("stages", {}).items()
+        },
+    }
+    atomic_write_json(output_dir / "rehearsal-report.json", report)
+    return report
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", required=True, help="preserved edition date")
     parser.add_argument("--run-id", required=True, help="preserved source run ID")
     parser.add_argument("--output", help="new, separate directory for replay evidence")
+    parser.add_argument("--real-discovery", action="store_true", help="use configured read-only discovery; never calls the editorial provider")
     args = parser.parse_args()
     output = Path(args.output) if args.output else (
-        ROOT / "acceptance" / "offline-recovery-replays" / args.date
+        ROOT / "acceptance" / ("real-source-recovery-rehearsals" if args.real_discovery else "offline-recovery-replays") / args.date
         / args.run_id / f"replay-{uuid4().hex}"
     )
     try:
-        report = replay_preserved_recovery(
-            root=ROOT, edition_date=args.date, source_run_id=args.run_id,
-            output_dir=output,
+        report = (
+            rehearse_preserved_run_with_discovery(
+                root=ROOT, edition_date=args.date, source_run_id=args.run_id, output_dir=output,
+            )
+            if args.real_discovery else replay_preserved_recovery(
+                root=ROOT, edition_date=args.date, source_run_id=args.run_id, output_dir=output,
+            )
         )
     except (DeepResearchError, ValueError, RuntimeError) as exc:
         _emit({"status": "FAIL", "error_code": str(exc)})
@@ -211,10 +304,10 @@ def main() -> int:
     _emit({
         "status": report["status"],
         "output": str(output.relative_to(ROOT)).replace("\\", "/"),
-        "recovery_need_total": report["recovery_need_total"],
-        "p0_jobs_materialized": report["p0_jobs_materialized"],
-        "p1_jobs_materialized": report["p1_jobs_materialized"],
-        "actions_executed_by_priority": report["actions_executed_by_priority"],
+        "recovery_need_total": report.get("recovery_need_total", len(report.get("remaining_recovery_needs", []))),
+        "p0_jobs_materialized": report.get("p0_jobs_materialized"),
+        "p1_jobs_materialized": report.get("p1_jobs_materialized"),
+        "actions_executed_by_priority": report.get("actions_executed_by_priority"),
     })
     return 0
 

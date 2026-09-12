@@ -109,7 +109,7 @@ def test_searxng_normalizes_json_and_unavailable_endpoint_is_bounded() -> None:
         maximum_bytes=100_000, maximum_results=2,
         transport=lambda *_: (_ for _ in ()).throw(TimeoutError()),
     ).execute({"action_type": "SEARCH_DISCOVERY", "query": "x"})
-    assert unavailable[0]["reason"] == "SEARXNG_UNAVAILABLE"
+    assert unavailable[0]["reason"] == "SEARCH_BACKEND_UNAVAILABLE"
 
 
 def test_multiple_discovery_backends_deduplicate_before_exact_page_followup() -> None:

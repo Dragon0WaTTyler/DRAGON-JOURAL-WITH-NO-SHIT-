@@ -310,8 +310,12 @@ def test_one_attempt_contains_multiple_query_variants_before_exhaustion() -> Non
     job = _job(needs=[need])
     execution = execute_research_round(job, FixtureResearchAdapter({"RECOVER_PRIMARY_SOURCE": []}), CONFIG)
     progress = execution["recovery_strategy_progress"]
-    assert progress == [{"need_id": "p", "executed_variants": [0, 1, 2, 3], "strategy_count": 4, "attempt_exhausted": True}]
-    assert execution["recovery_attempts"] == ["p"]
+    assert progress == [{"need_id": "p", "executed_variants": [0, 1, 2], "strategy_count": 4, "attempt_exhausted": False}]
+    assert execution["recovery_attempts"] == []
+    # A bounded strategy executes several variants, but must not claim the
+    # whole recovery attempt is exhausted merely because this round hit its
+    # configured search budget.
+    assert len(execution["actions"]) >= 2
 
 
 def test_configured_route_failure_uses_one_bounded_rss_fallback() -> None:

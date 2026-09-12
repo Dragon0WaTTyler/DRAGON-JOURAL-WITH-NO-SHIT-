@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 tools/
+infra/searxng/.env
 
 # Local, generated evidence. These artifacts are reproducible or machine-local
 # and must never be confused with source-controlled V4 historical editions.

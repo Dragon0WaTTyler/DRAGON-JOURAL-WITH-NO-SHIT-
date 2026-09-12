@@ -15,6 +15,7 @@ import hashlib
 import json
 from typing import Protocol
 from urllib.parse import quote_plus, urlencode, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 import yaml
 
@@ -54,6 +55,35 @@ PRIORITY_ORDER = {
 }
 
 
+class _RejectLocalSearchRedirect(HTTPRedirectHandler):
+    """Do not let a private search endpoint bounce the client elsewhere."""
+
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        return None
+
+
+def _local_searxng_transport(url: str, timeout_seconds: int, maximum_bytes: int):
+    """Fetch only the explicitly configured loopback SearXNG JSON endpoint.
+
+    This is intentionally separate from ``default_transport``: that transport
+    must continue rejecting all private addresses for public source pages.
+    """
+    parsed = urlsplit(url)
+    if parsed.scheme != "http" or parsed.hostname != "127.0.0.1" or parsed.username or parsed.password:
+        raise DiscoveryError("SEARCH_BACKEND_UNAVAILABLE", "local SearXNG endpoint policy rejected URL")
+    request = Request(url, headers={"User-Agent": "DRAGON/5 private-search (+local newsroom)"})
+    opener = build_opener(_RejectLocalSearchRedirect())
+    with opener.open(request, timeout=timeout_seconds) as response:  # noqa: S310 - literal loopback host above
+        final_url = response.geturl()
+        if final_url != url:
+            raise DiscoveryError("SEARCH_BACKEND_UNAVAILABLE", "local SearXNG redirect rejected")
+        body = response.read(maximum_bytes + 1)
+        if len(body) > maximum_bytes:
+            raise DiscoveryError("SEARCH_BACKEND_UNAVAILABLE", "local SearXNG response exceeds bound")
+        from dragon.discovery import FetchResponse
+        return FetchResponse(final_url, int(response.status), response.headers.get_content_type(), body)
+
+
 def recovery_priority(need: dict | None) -> str:
     """Classify a need without confusing research priority with readiness."""
     if not need:
@@ -87,10 +117,50 @@ def _research_month(need: dict, job: dict) -> str:
     return value[:7] if len(value) >= 7 else ""
 
 
-def query_fingerprint(query: str, *, intent: str) -> str:
+def query_fingerprint(query: str, *, intent: str, language: str | None = None) -> str:
     """Deduplicate word-order rewrites while preserving distinct strategies."""
     normalized = sorted(set(word.casefold() for word in _query_words([query])))
-    return f"{intent}:{' '.join(normalized)}"
+    # Language is part of the search intent.  An Arabic and a French query for
+    # a Meknes event are not superficial rewrites, but their order still is.
+    return f"{intent}:{str(language or '').casefold()}:{' '.join(normalized)}"
+
+
+def _search_languages(job: dict, need: dict | None) -> list[str]:
+    """Choose a small desk-aware language set rather than translating blindly."""
+    context = (need or {}).get("query_context", {})
+    values = " ".join(str(item) for item in [
+        job.get("lead", {}).get("desk"),
+        job.get("lead", {}).get("topic"),
+        *context.get("entities", []), *context.get("geography", []),
+    ]).casefold()
+    desk = str(job.get("lead", {}).get("desk") or "")
+    if desk in {"meknes_local", "siyasa_dawla", "service", "investigations"} or any(
+        item in values for item in ("morocco", "maroc", "meknes", "المغرب", "مكناس")
+    ):
+        return ["ar", "fr"]
+    if desk == "filastin_middle_east":
+        return ["ar", "en"]
+    return ["en"]
+
+
+_DESK_SEARCH_TERMS = {
+    "africa_sahel": "Africa Sahel Sudan news",
+    "filastin_middle_east": "Palestine Gaza Middle East news",
+    "world": "world international news",
+    "meknes_local": "Meknes Morocco local news",
+    "siyasa_dawla": "Morocco politics public institutions",
+    "service": "Morocco Meknes public services",
+    "investigations": "Morocco audit procurement public accountability",
+    "technology": "technology business news",
+    "sport": "Morocco sport news",
+    "culture": "Morocco culture news",
+}
+
+
+def _desk_terms(values: list[object]) -> str:
+    """Translate internal desk IDs to finite, reader-facing search vocabulary."""
+    terms = [_DESK_SEARCH_TERMS.get(str(value), str(value).replace("_", " ")) for value in values]
+    return " ".join(item for item in terms if item)[:180]
 
 
 def query_ladder(job: dict, need: dict | None) -> list[dict]:
@@ -106,6 +176,9 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
     seed = " ".join(event_words[:12])
     month = _research_month(need, job)
     kind = str(need.get("kind") or "")
+    languages = _search_languages(job, need)
+    primary_language = languages[0]
+    alternate_language = languages[1] if len(languages) > 1 else None
     routes = need.get("search_constraints", {}).get("configured_source_routes", [])
     if kind == "FIND_INDEPENDENT_CORROBORATION":
         independent = [item for item in routes if item.get("role") == "INDEPENDENT" and item.get("url")]
@@ -116,12 +189,12 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "query": " ".join(item for item in (seed, month) if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
                 "channel": "CONFIGURED_INDEPENDENT_LISTING",
-                "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS"},
+                "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             },
-            {"intent": "ENTITY_DATE_TERMS", "variant": "EXACT", "query": " ".join(item for item in (seed, month) if item), "channel": "GOOGLE_NEWS_RSS"},
-            {"intent": "ENTITY_ACTION_GEOGRAPHY", "variant": "RELAX_ENTITY_DATE", "query": seed},
-            {"intent": "INDEPENDENT_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", seed[:100], month) if item)},
-            {"intent": "INDEPENDENT_TOPIC", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6])},
+            {"intent": "ENTITY_DATE_TERMS", "variant": "EXACT", "query": " ".join(item for item in (seed, month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+            {"intent": "ENTITY_ACTION_GEOGRAPHY", "variant": "RELAX_ENTITY_DATE", "query": seed, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+            {"intent": "INDEPENDENT_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", seed[:100], month) if item), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+            {"intent": "INDEPENDENT_TOPIC", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6]), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language},
         ]
     if kind == "FIND_PRIMARY_ORIGINAL_EVIDENCE":
         official = [item for item in routes if item.get("role") == "PRIMARY" and item.get("url")]
@@ -132,22 +205,22 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "query": " ".join(item for item in (seed, month, "official document") if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
                 "channel": "CONFIGURED_OFFICIAL_LISTING",
-                "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS"},
+                "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             },
-            {"intent": "OFFICIAL_ENTITY_ACTION", "variant": "EXACT", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "GOOGLE_NEWS_RSS"},
-            {"intent": "OFFICIAL_INSTITUTION_DATE", "variant": "RELAX_ENTITY_DATE", "query": " ".join(item for item in (" ".join(event_words[:8]), month) if item)},
-            {"intent": "OFFICIAL_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", " ".join(event_words[:8])) if item)},
-            {"intent": "OFFICIAL_BROAD_DISCOVERY", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6])},
+            {"intent": "OFFICIAL_ENTITY_ACTION", "variant": "EXACT", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+            {"intent": "OFFICIAL_INSTITUTION_DATE", "variant": "RELAX_ENTITY_DATE", "query": " ".join(item for item in (" ".join(event_words[:8]), month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language},
+            {"intent": "OFFICIAL_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", " ".join(event_words[:8])) if item), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+            {"intent": "OFFICIAL_BROAD_DISCOVERY", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6]), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language},
         ]
     sections = need.get("search_constraints", {}).get("eligible_section_ids", []) or need.get("topic_identifiers", [])
-    desk = " ".join(str(item) for item in sections[:3])
+    desk = _desk_terms(list(sections[:3]))
     direct = [item for item in routes if item.get("url")]
     route = direct[0] if direct else None
     if kind == "NEED_DISTINCT_EVENT":
         base = f"{desk} news {month}".strip()
         return [
-            {"intent": "DISTINCT_EVENT_DESK_WINDOW", "variant": "EXACT", "query": base, "channel": "GOOGLE_NEWS_RSS"},
-            {"intent": "DISTINCT_EVENT_RELAXED", "variant": "RELAX_TOPIC", "query": f"{desk} news".strip()},
+            {"intent": "DISTINCT_EVENT_DESK_WINDOW", "variant": "EXACT", "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "FIND_DISTINCT_EVENT", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+            {"intent": "DISTINCT_EVENT_RELAXED", "variant": "RELAX_TOPIC", "query": f"{desk} news".strip(), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
         ]
     # Breadth needs use desk/institutional vocabulary, not a copied headline.
     institutional = "Cour des comptes public procurement TGR Morocco" if "accountability" in kind.casefold() else "world international news"
@@ -157,10 +230,10 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
             "query": f"{institutional} {desk} {month}".strip(),
             "action_type": "FETCH_CONFIGURED_SOURCE", "target": route.get("url") if route else None,
             "channel": "CONFIGURED_LISTING",
-            "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS"},
+            "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
         },
-        {"intent": "BREADTH_DESK_WINDOW", "variant": "EXACT", "query": f"{institutional} {desk} {month}".strip(), "channel": "GOOGLE_NEWS_RSS"},
-        {"intent": "BREADTH_RELAXED", "variant": "RELAX_TOPIC", "query": f"{institutional} {desk}".strip()},
+        {"intent": "BREADTH_DESK_WINDOW", "variant": "EXACT", "query": f"{institutional} {desk} {month}".strip(), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+        {"intent": "BREADTH_RELAXED", "variant": "RELAX_TOPIC", "query": f"{institutional} {desk}".strip(), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
     ]
 
 
@@ -239,9 +312,14 @@ def create_research_action(
         "query": query,
         "query_intent": str(strategy.get("intent") or "CONTEXT"),
         "query_variant": str(strategy.get("variant") or "CONTEXT"),
-        "query_fingerprint": query_fingerprint(query, intent=str(strategy.get("intent") or "CONTEXT")),
+        "query_fingerprint": query_fingerprint(query, intent=str(strategy.get("intent") or "CONTEXT"), language=strategy.get("language")),
         "priority_class": recovery_priority(recovery_need),
         "discovery_channel": str(strategy.get("channel") or "GOOGLE_NEWS_RSS"),
+        "discovery_backends": list(strategy.get("backends") or []),
+        "search_language": strategy.get("language"),
+        "search_categories": strategy.get("categories"),
+        "search_time_range": strategy.get("time_range"),
+        "search_page": strategy.get("page"),
         "target": target,
         "known_entities": list(job["lead"].get("event_entities", [])),
         "event_context": {
@@ -568,10 +646,18 @@ class SearxngSearchAdapter:
         categories: str | None = None,
         time_range: str | None = None,
         page: int = 1,
+        endpoint_policy: str = "HTTPS_ONLY",
         source_classes_by_origin: dict[str, str] | None = None,
         transport=default_transport,
     ) -> None:
-        if not base_url.startswith("https://"):
+        split = urlsplit(base_url)
+        is_loopback = split.hostname == "127.0.0.1"
+        if (
+            split.query or split.fragment or split.username or split.password
+            or endpoint_policy not in {"HTTPS_ONLY", "LOCAL_PRIVATE_ONLY"}
+            or (endpoint_policy == "HTTPS_ONLY" and split.scheme != "https")
+            or (endpoint_policy == "LOCAL_PRIVATE_ONLY" and not (split.scheme == "http" and is_loopback))
+        ):
             raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
         self.adapter_id = adapter_id
         self.base_url = base_url.rstrip("/")
@@ -582,21 +668,25 @@ class SearxngSearchAdapter:
         self.categories = categories
         self.time_range = time_range
         self.page = page
+        self.endpoint_policy = endpoint_policy
         self.source_classes_by_origin = {
             str(origin).casefold(): str(source_class).casefold()
             for origin, source_class in (source_classes_by_origin or {}).items()
         }
-        self.transport = transport
+        self.transport = _local_searxng_transport if endpoint_policy == "LOCAL_PRIVATE_ONLY" and transport is default_transport else transport
         self.follow_discovery_leads = True
 
     def _search_url(self, action: dict) -> str:
-        params = {"q": str(action.get("query") or ""), "format": "json", "pageno": self.page}
-        if self.language:
-            params["language"] = self.language
-        if self.categories:
-            params["categories"] = self.categories
-        if self.time_range:
-            params["time_range"] = self.time_range
+        params = {
+            "q": str(action.get("query") or ""), "format": "json",
+            "pageno": action.get("search_page") or self.page,
+        }
+        if action.get("search_language") or self.language:
+            params["language"] = action.get("search_language") or self.language
+        if action.get("search_categories") or self.categories:
+            params["categories"] = action.get("search_categories") or self.categories
+        if action.get("search_time_range") or self.time_range:
+            params["time_range"] = action.get("search_time_range") or self.time_range
         return f"{self.base_url}/search?{urlencode(params)}"
 
     def execute(self, action: dict) -> list[dict]:
@@ -617,7 +707,10 @@ class SearxngSearchAdapter:
                 return [{"result_type": "DEAD_END", "reason": f"SEARXNG_HTTP_{response.status}", "discovery_channel": self.adapter_id}]
             payload = json.loads(response.body.decode("utf-8"))
         except (DiscoveryError, OSError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", "SEARXNG_UNAVAILABLE"), "discovery_channel": self.adapter_id}]
+            return [{
+                "result_type": "DEAD_END", "reason": "SEARCH_BACKEND_UNAVAILABLE",
+                "detail": getattr(exc, "code", type(exc).__name__), "discovery_channel": self.adapter_id,
+            }]
         results = payload.get("results") if isinstance(payload, dict) else None
         if not isinstance(results, list):
             return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "discovery_channel": self.adapter_id}]
@@ -642,7 +735,9 @@ class SearxngSearchAdapter:
                     "result_url": url, "title": str(item.get("title") or ""),
                     "snippet": str(item.get("content") or ""), "engine": item.get("engine"),
                     "rank": rank, "discovered_at": timestamp,
+                    "language": item.get("language") or action.get("search_language"),
                 },
+                "language": item.get("language") or action.get("search_language"),
             })
         return normalized or [{"result_type": "DEAD_END", "reason": "SEARXNG_NO_MATCHES", "discovery_channel": self.adapter_id}]
 
@@ -655,9 +750,16 @@ class DiscoveryAdapterChain:
         self.follow_discovery_leads = any(getattr(item, "follow_discovery_leads", False) for item in adapters)
 
     def execute(self, action: dict) -> list[dict]:
+        requested = {str(item) for item in action.get("discovery_backends", [])}
+        adapters = [item for item in self.adapters if not requested or getattr(item, "adapter_id", None) in requested]
+        if not adapters:
+            return [{"result_type": "DEAD_END", "reason": "SEARCH_BACKEND_UNAVAILABLE", "discovery_channel": str(action.get("discovery_channel") or "UNKNOWN")}]
+        # Lead follow-up keeps the parent backend identity.  The adapters use
+        # the same hardened exact-page fetcher, but SearXNG-led pages must not
+        # be misreported as RSS yield merely because RSS is first in the chain.
         if action.get("action_type") in FETCH_ACTIONS:
-            return self.adapters[0].execute(action) if self.adapters else [{"result_type": "DEAD_END", "reason": "DISCOVERY_ADAPTER_UNAVAILABLE"}]
-        results = [item for adapter in self.adapters for item in adapter.execute(action)]
+            return adapters[0].execute(action)
+        results = [item for adapter in adapters for item in adapter.execute(action)]
         seen, deduplicated = set(), []
         for item in results:
             url = str(item.get("canonical_url") or item.get("url") or "")
@@ -678,18 +780,18 @@ def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[s
         return None
     except (OSError, UnicodeError, yaml.YAMLError) as exc:
         raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID") from exc
-    required = {"version", "enabled", "adapter_id", "base_url", "timeout_seconds", "maximum_bytes", "maximum_results", "language", "categories", "time_range", "page", "integration_test_status", "provenance_behavior"}
-    if not isinstance(value, dict) or set(value) != required or value.get("version") != 1:
+    required = {"version", "enabled", "adapter_id", "base_url", "endpoint_policy", "timeout_seconds", "maximum_bytes", "maximum_results", "language", "categories", "time_range", "page", "integration_test_status", "provenance_behavior"}
+    if not isinstance(value, dict) or set(value) != required or value.get("version") != 2:
         raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
     if value["enabled"] is False:
         return None
-    if not isinstance(value["base_url"], str) or not isinstance(value["adapter_id"], str) or not all(isinstance(value[key], int) and value[key] > 0 for key in ("timeout_seconds", "maximum_bytes", "maximum_results", "page")):
+    if not isinstance(value["base_url"], str) or not isinstance(value["adapter_id"], str) or value.get("endpoint_policy") not in {"HTTPS_ONLY", "LOCAL_PRIVATE_ONLY"} or not all(isinstance(value[key], int) and value[key] > 0 for key in ("timeout_seconds", "maximum_bytes", "maximum_results", "page")):
         raise ResearchExecutorError("SEARXNG_SEARCH_CONFIG_INVALID")
     return SearxngSearchAdapter(
         adapter_id=value["adapter_id"], base_url=value["base_url"], timeout_seconds=value["timeout_seconds"],
         maximum_bytes=value["maximum_bytes"], maximum_results=value["maximum_results"], language=value["language"],
         categories=value["categories"], time_range=value["time_range"], page=value["page"],
-        source_classes_by_origin=source_classes_by_origin,
+        endpoint_policy=value["endpoint_policy"], source_classes_by_origin=source_classes_by_origin,
     )
 
 
@@ -792,7 +894,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
         "discovery_method": action["action_type"],
-        "discovery_channel": str(raw.get("discovery_channel") or action["action_type"]),
+        "discovery_channel": str(raw.get("discovery_channel") or action.get("discovery_channel") or action["action_type"]),
         "related_entities": list(raw.get("related_entities") or action["known_entities"]),
         "related_event": raw.get("event_id"),
         "claim": str(raw.get("claim") or title),
@@ -941,6 +1043,36 @@ def build_research_yield_report(
             "new_distinct_event": any(item["introduced_new_distinct_event"] for item in matching),
             "zero_yield": all(item["zero_yield"] for item in matching),
         })
+    backend_yield = []
+    backend_names = sorted({
+        str(item.get("discovery_channel") or "UNKNOWN") for item in observations
+    } | {
+        str(item.get("discovery_channel") or "UNKNOWN") for item in actions
+    })
+    for backend in backend_names:
+        backend_actions = [
+            item for item in action_outcomes
+            if item.get("planned_channel") == backend or backend in item.get("source_discovery_channels", [])
+        ]
+        backend_observations = [
+            item for item in observations
+            if str(item.get("discovery_channel") or "UNKNOWN") == backend
+        ]
+        backend_yield.append({
+            "backend": backend,
+            "queries": sum(item["action_type"] in SEARCH_ACTIONS for item in backend_actions),
+            "results_returned": len(backend_observations),
+            "unique_urls": len({item.get("url") for item in backend_observations if item.get("url")}),
+            "exact_pages_fetched": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in backend_observations),
+            "successful_extractions": sum(bool(item.get("extracted_text")) for item in backend_observations),
+            "unknown_sources": sum(item.get("source_class") == "unknown" for item in backend_observations),
+            "official_sources": sum(item.get("source_class") in {"official", "primary", "paper"} for item in backend_observations),
+            "independent_sources": sum(item.get("source_class") == "independent" for item in backend_observations),
+            "validated_evidence": sum(item.get("verification_status") == "VALIDATED_EVIDENCE" for item in backend_observations),
+            "recovery_needs_closed": sum(item.get("recovery_need_closed") for item in backend_actions),
+            "new_distinct_events": sum(item.get("introduced_new_distinct_event") for item in backend_actions),
+            "dead_ends": sum(item.get("observation_class") == "DEAD_END" for item in backend_observations),
+        })
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -985,6 +1117,7 @@ def build_research_yield_report(
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
         "action_outcomes": action_outcomes,
         "strategy_channel_yield": strategy_channel_yield,
+        "backend_yield": backend_yield,
     }
 
 
@@ -1093,6 +1226,7 @@ def execute_research_round(
                     "target": None,
                     "expected_result_type": "DISCOVERY_RESULT",
                     "discovery_channel": str(fallback.get("channel") or "GOOGLE_NEWS_RSS"),
+                    "discovery_backends": list(fallback.get("backends") or []),
                     "query_variant": f"{action.get('query_variant', 'CONFIGURED_ROUTE')}_FALLBACK",
                     "strategy_index": float(action.get("strategy_index", 0)) + 0.5,
                     "channel_fallback": None,
