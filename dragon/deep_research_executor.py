@@ -1441,6 +1441,10 @@ def execute_research_round(
                 "expected_result_type": "EXTRACTED_SOURCE",
                 "timeout_seconds": config["executor"]["action_timeout_seconds"],
                 "lead_followup": True,
+                # The discovery ladder already selected this exact page. A
+                # failed retrieval is attrition evidence, not permission to
+                # recursively spend search budget on its parent query.
+                "channel_fallback": None,
             }
             run_action(fetch_action)
             if state["lead_followups"] >= followup_limits["total"]:

@@ -96,6 +96,17 @@ def test_execution_follows_multiple_diverse_leads_within_one_need_budget() -> No
     assert sum(item["action_type"] == "FETCH_URL" for item in execution["actions"]) == 3
 
 
+def test_failed_exact_followup_does_not_recursively_restart_search() -> None:
+    job = _job(needs=[_need("NEED_DISTINCT_EVENT")])
+    action = _search_action(job)
+    action["channel_fallback"] = {"action_type": "FIND_DISTINCT_EVENT", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}
+    execution = execute_research_round(job, _adapter({
+        action["action_type"]: [_lead("https://one.example/a", "Meknes audit", rank=1)],
+        "FETCH_URL": [{"result_type": "DEAD_END", "reason": "SOURCE_FETCH_FAILED"}],
+    }), CONFIG, actions=[action])
+    assert [item["action_type"] for item in execution["actions"]].count("FIND_DISTINCT_EVENT") == 1
+
+
 def test_social_and_aggregator_leads_are_skipped_before_expensive_fetch() -> None:
     job = _job()
     action = _search_action(job)
