@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 from urllib.parse import parse_qs, urlsplit
 
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
@@ -97,3 +98,14 @@ def test_failed_family_leads_are_rejected_before_exact_page_followup() -> None:
     observation = _observation(action, {"result_type": "LEAD", "url": "https://news.blocked.example/a", "title": "Meknes audit"}, set())
     assert observation["observation_class"] == "DUPLICATE"
     assert observation["publication_evidence"] is False
+
+
+def test_replay_cli_accepts_relative_output_path_after_completed_rehearsal(monkeypatch, capsys) -> None:
+    import dragon_recovery_replay
+
+    monkeypatch.setattr(dragon_recovery_replay, "rehearse_preserved_run_with_discovery", lambda **_: {
+        "status": "PRESERVED_REAL_DISCOVERY_REHEARSAL_COMPLETE", "remaining_recovery_needs": [],
+    })
+    monkeypatch.setattr(sys, "argv", ["dragon_recovery_replay.py", "--date", "2026-09-12", "--run-id", "fixture", "--real-discovery", "--output", "acceptance/fixture-relative-output"])
+    assert dragon_recovery_replay.main() == 0
+    assert "acceptance/fixture-relative-output" in capsys.readouterr().out

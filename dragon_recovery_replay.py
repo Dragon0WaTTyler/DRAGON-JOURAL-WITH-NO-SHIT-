@@ -285,7 +285,7 @@ def main() -> int:
     parser.add_argument("--output", help="new, separate directory for replay evidence")
     parser.add_argument("--real-discovery", action="store_true", help="use configured read-only discovery; never calls the editorial provider")
     args = parser.parse_args()
-    output = Path(args.output) if args.output else (
+    output = Path(args.output).resolve() if args.output else (
         ROOT / "acceptance" / ("real-source-recovery-rehearsals" if args.real_discovery else "offline-recovery-replays") / args.date
         / args.run_id / f"replay-{uuid4().hex}"
     )
