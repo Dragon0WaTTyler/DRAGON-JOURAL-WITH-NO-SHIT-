@@ -174,6 +174,22 @@ def test_duplicate_front_placement_counts_as_one_distinct_event() -> None:
     assert plan["duplicate_placements"] == [{"event_id": plan["duplicate_placements"][0]["event_id"], "candidate_keys": ["front:lead", "ta3lim:lead"]}]
 
 
+def test_empty_weak_desk_is_not_itself_a_publication_blocker_when_product_breadth_is_met() -> None:
+    packet = {
+        "edition_date": "2099-01-02",
+        "sources": [_source("p", "primary", "official.example"), _source("i", "independent", "news.example")],
+        "sections": [
+            {"section_id": "front", "status": "ACTIVE", "selected_candidate_id": "lead", "candidates": [_candidate("lead", "Lead", ["p"], ["i"])]},
+            {"section_id": "culture", "status": "NO_NEWS", "selected_candidate_id": None, "candidates": [], "recovery_candidates": [_candidate("weak", "Untitled research result", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"])]},
+        ],
+    }
+    coverage = load_source_coverage(ROOT / "config" / "source-coverage.yaml", EXPECTED)
+    readiness = {"coverage_rules": [], "minimum_active_sections": 1}
+    plan = build_recovery_plan(packet, build_source_intelligence(packet), coverage, readiness)
+    assert plan["status"] == "PASS"
+    assert plan["article_generation_allowed"] is True
+
+
 def test_world_and_accountability_gaps_become_explicit_bounded_needs() -> None:
     packet = {
         "edition_date": "2099-01-02",
