@@ -498,6 +498,33 @@ def test_fixture_verified_stronger_same_desk_candidate_can_replace_weak_selectio
     assert patched_front["selection_reason"] == "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
 
 
+def test_validated_new_event_can_replace_an_ineligible_same_desk_selection() -> None:
+    packet = _otherwise_sufficient_packet()
+    front = next(item for item in packet["sections"] if item["section_id"] == "front")
+    weak = front["candidates"][0]
+    weak["independent_evidence_source_ids"] = []
+    weak["evidence_eligibility"] = {"status": "INELIGIBLE", "issues": ["INDEPENDENT_EVIDENCE_MISSING"]}
+    execution = {"source_packet_patch": {
+        "sources": [{
+            **_source("new-official", "official", "ministry.example"),
+            "title": "Ministry official service timetable", "claim_supported": "The Ministry official announces a service timetable.",
+            "verification_status": "VALIDATED_EVIDENCE",
+        }],
+        "candidate_evidence_updates": [],
+        "candidate_discoveries": [{
+            "section_id": "front", "event_id": "EVT-NEW", "title": "Ministry official service timetable",
+            "claim": "The Ministry official announces a service timetable.", "source_id": "new-official", "role": "PRIMARY",
+        }],
+    }}
+    patched = apply_executor_results_to_packet(packet, execution)
+    patched_front = next(item for item in patched["sections"] if item["section_id"] == "front")
+    assert patched_front["selected_candidate_id"] != weak["id"]
+    replacement = next(item for item in patched_front["candidates"] if item["id"] == patched_front["selected_candidate_id"])
+    assert replacement["discovered_by"] == "VALIDATED_DISTINCT_EVENT_RECOVERY"
+    assert replacement["evidence_eligibility"]["status"] == "ELIGIBLE"
+    assert patched_front["selection_reason"] == "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
+
+
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
     job = _job()
     with pytest.raises(ResearchExecutorError, match="RESEARCH_ACTION_ADAPTER_UNAVAILABLE"):

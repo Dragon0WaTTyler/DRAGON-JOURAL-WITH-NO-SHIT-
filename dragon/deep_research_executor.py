@@ -1860,6 +1860,11 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 "discovery_source_ids": [], "verification_source_ids": [],
                 "primary_evidence_source_ids": [], "independent_evidence_source_ids": [],
                 "discovered_by": "VALIDATED_DISTINCT_EVENT_RECOVERY",
+                # This marker is set only because the discovery entered this
+                # patch from a validated exact page.  It is still not enough
+                # to select the candidate: ordinary role, origin, date and
+                # claim-policy checks below remain decisive.
+                "recovery_revalidated": True,
                 "event_id": discovery["event_id"],
             }
             section.setdefault("candidates", []).append(candidate)
