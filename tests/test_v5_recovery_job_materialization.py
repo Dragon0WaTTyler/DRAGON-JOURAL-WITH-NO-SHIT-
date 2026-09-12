@@ -146,6 +146,7 @@ def test_no_news_candidate_p0_context_and_priority_reach_query_generation() -> N
     job = _job_for(_state([need]), need["need_id"])
     actions = plan_research_actions(job, CONFIG)
     assert job["recovery_job"]["candidate_ids"] == ["sport"]
+    assert job["budget_class"] == "STANDARD"
     assert job["recovery_job"]["event_ids"] == [need["event_id"]]
     assert actions[0]["priority_class"] == "P0_BLOCKING_EVIDENCE"
     assert actions[0]["recovery_candidate_id"] == "sport"
@@ -240,6 +241,7 @@ def test_epoch_one_materializes_only_new_candidate_p0_without_p1_duplication() -
     assert state["recovery_epoch"] == 1
     assert [item["recovery_need_id"] for item in state["recovery_job_mappings"]] == [p0["need_id"]]
     assert state["recovery_job_mappings"][0]["priority"] == "P0_BLOCKING_EVIDENCE"
+    assert state["jobs"][0]["budget_class"] == "STANDARD"
     assert all(p1["need_id"] not in job["context"]["SOURCE_GAPS"] for job in state["jobs"])
     assert plan_research_actions(state["jobs"][0], CONFIG)[0]["priority_class"] == "P0_BLOCKING_EVIDENCE"
 

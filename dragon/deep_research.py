@@ -667,8 +667,14 @@ def build_deep_research_state(
                 observed_at=str(packet.get("edition_date")),
                 reason_interesting=f"RECOVERY_BREADTH_NEED:{need['need_id']}",
             )
+        priority = _recovery_priority(need)
+        # Recovery needs are editorially material.  QUICK is adequate for
+        # optional/context probes, but it would limit a P0/P1 discovery result
+        # to one exact-page follow-up and reintroduce lead attrition by budget
+        # accident.  STANDARD remains finite while allowing diverse inspection.
+        budget_class = "STANDARD" if priority in {"P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT"} else "QUICK"
         job = start_research_job(
-            lead, config, budget_class="QUICK", recovery_needs=[need],
+            lead, config, budget_class=budget_class, recovery_needs=[need],
             run_scope_id=run_scope_id,
             recovery_identity=f"EPOCH:{recovery_epoch}:{need['need_id']}",
         )
@@ -676,7 +682,7 @@ def build_deep_research_state(
         recovery_job_mappings.append({
             "recovery_need_id": need["need_id"],
             "job_id": job["job_id"],
-            "priority": _recovery_priority(need),
+            "priority": priority,
             "candidate_id": need.get("candidate_id"),
             "event_id": need.get("event_id"),
             "desk": job["lead"]["desk"],
