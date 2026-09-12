@@ -28,6 +28,9 @@ def publisher_profile_from_pages(domain: str, pages: list[dict]) -> dict:
         "canonical_publisher_name": title,
         "canonical_domain": canonical_domain,
         "alternate_domains": [],
+        # Navigation/identity aliases only.  They never make a factual claim
+        # trustworthy and can be populated by a resolved source profile.
+        "known_aliases": [],
         "parent_company": parent,
         "newsroom_family_id": f"PARENT:{parent.casefold()}" if parent else f"DOMAIN:{canonical_domain}",
         "languages": sorted({str(page.get("language")) for page in usable if page.get("language")} ),

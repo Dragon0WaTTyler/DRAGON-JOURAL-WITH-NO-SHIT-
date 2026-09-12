@@ -527,6 +527,162 @@ def _event_lead_id(job: dict, action: dict, skeleton: dict) -> str:
     return _stable_id("EVL", job.get("job_id"), action.get("recovery_need_id"), skeleton.get("event_fingerprint"), action.get("action_id"))
 
 
+_ROLE_STOP_WORDS = _EVENT_IDENTITY_STOP_WORDS | {
+    "official", "institutional", "portal", "institution", "international", "national", "commission",
+}
+
+
+def _organization_aliases(*values: object) -> set[str]:
+    """Extract exact, auditable organization aliases rather than fuzzy names."""
+    aliases = set()
+    for value in values:
+        text = str(value or "")
+        host = urlsplit(text).hostname or ""
+        for label in host.casefold().split("."):
+            if len(label) >= 4 and label not in _ROLE_STOP_WORDS:
+                aliases.add(label)
+        for token in re.findall(r"\b[A-Z][A-Z0-9-]{2,}\b", text):
+            aliases.add(token.casefold())
+        normalized = " ".join(_query_words([text])).casefold()
+        if len(normalized) >= 6 and normalized not in _ROLE_STOP_WORDS:
+            aliases.add(normalized)
+        words = normalized.split()
+        # Exact adjacent aliases cover localized official names embedded in a
+        # longer actor phrase without relying on fuzzy similarity.
+        aliases.update(
+            " ".join(words[index:index + 2]) for index in range(max(0, len(words) - 1))
+            if len(" ".join(words[index:index + 2])) >= 6
+        )
+    return aliases
+
+
+def classify_document_type(raw: dict) -> str:
+    """Classify a fetched artifact without assigning it an evidence role."""
+    metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+    types = {str(item).casefold() for item in metadata.get("jsonld_article_types", [])}
+    attribution = raw.get("article_attribution") if isinstance(raw.get("article_attribution"), dict) else {}
+    signals = metadata.get("signals") if isinstance(metadata.get("signals"), dict) else {}
+    text = " ".join([
+        *(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "publisher")),
+        *(str(value or "") for value in signals.values()),
+    ]).casefold()
+    if "court" in text and any(marker in text for marker in ("judgment", "decision", "ruling", "حكم", "قرار قضائي")):
+        return "COURT_DECISION"
+    if any(marker in text for marker in ("audit report", "audit", "تقرير تدقيق", "تقرير الافتحاص")):
+        return "AUDIT_REPORT"
+    if any(marker in text for marker in ("statistical release", "dataset", "statistics", "إحصائيات", "بيانات إحصائية")):
+        return "STATISTICAL_RELEASE"
+    if any(marker in text for marker in ("regulation", "decree", "gazette", "مرسوم", "قانون تنظيمي")):
+        return "REGULATION"
+    if "report" in text and not types:
+        return "REPORT"
+    if types & {"newsarticle", "article", "reportagenewsarticle", "analysisnewsarticle", "liveblogposting"}:
+        return "NEWS_ARTICLE"
+    if any(marker in text for marker in ("memorandum", "memorandum of understanding", "signed document", "مذكرة تفاهم")) or (
+        any(marker in text for marker in ("signed", "signs", "وقع", "توقيع"))
+        and any(marker in text for marker in ("agreement", "accord", "contract", "اتفاق"))
+    ):
+        return "SIGNED_DOCUMENT"
+    if any(marker in text for marker in ("press release", "press-release", "بلاغ صحفي")):
+        return "PRESS_RELEASE"
+    if any(marker in text for marker in ("official statement", "institutional portal", "portail institutionnel", "بيان")):
+        return "OFFICIAL_STATEMENT"
+    if attribution.get("article_origin_state") in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}:
+        return "NEWS_ARTICLE"
+    return "OTHER"
+
+
+def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) -> dict:
+    """Resolve a narrow source role from exact-page and event relationship facts.
+
+    This deliberately answers only what this page can establish.  It does not
+    endorse an institution's interpretation or silently turn newsroom branding
+    into independent evidence.
+    """
+    metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+    publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
+    attribution = raw.get("article_attribution") if isinstance(raw.get("article_attribution"), dict) else {}
+    profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
+    url = str(raw.get("canonical_url") or raw.get("url") or "")
+    title = str(raw.get("title") or metadata.get("title") or "")
+    text = str(raw.get("text") or raw.get("extracted_text") or "")
+    document_type = classify_document_type(raw)
+    publisher_aliases = _organization_aliases(
+        publisher.get("name"), profile.get("canonical_publisher_name"), profile.get("canonical_domain"),
+        url, (metadata.get("signals") or {}).get("html_title"), raw.get("publisher"),
+        *(profile.get("known_aliases") or []),
+    )
+    event_aliases = _organization_aliases(
+        (skeleton or {}).get("actor"), (skeleton or {}).get("institution"),
+        *action.get("known_entities", []),
+    )
+    shared_aliases = sorted(alias for alias in publisher_aliases & event_aliases if len(alias) >= 4)
+    if (skeleton or {}).get("state") != "CONCRETE_EVENT":
+        return {
+            "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+            "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": "SYNDICATION_UNRESOLVED",
+            "independence_state": "INDEPENDENCE_UNRESOLVED", "shared_organization_aliases": shared_aliases,
+            "reason": "EVENT_MATCH_UNRESOLVED",
+        }
+    action_value = _canonical_event_action((skeleton or {}).get("action"))
+    action_terms = set(_query_words([title, text[:2000]]))
+    action_forms = {
+        "sign": {"sign", "signed", "signs", "signing"},
+        "ban": {"ban", "bans", "banned", "banning", "sanction", "sanctions"},
+        "announce": {"announce", "announces", "announced", "announcing", "launch", "launched"},
+        "approve": {"approve", "approves", "approved", "adopt", "adopts", "adopted"},
+        "report": {"report", "reports", "reported", "publish", "published"},
+    }
+    direct_action = bool(action_value and action_terms & action_forms.get(action_value, {action_value}))
+    if shared_aliases and document_type in {"PRESS_RELEASE", "OFFICIAL_STATEMENT", "SIGNED_DOCUMENT", "REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
+        relation = "PUBLISHER_IS_EVENT_ACTOR" if direct_action else "PUBLISHER_IS_PARTY_TO_EVENT"
+        if document_type in {"REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
+            relation = "PUBLISHER_IS_DOCUMENT_ISSUER"
+        if direct_action or document_type in {"AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
+            return {
+                "source_class": "primary", "evidence_role": "PRIMARY", "document_type": document_type,
+                "publisher_event_relation": relation, "article_origin_state": "FIRST_PARTY_ARTIFACT",
+                "independence_state": "NOT_APPLICABLE_PRIMARY", "shared_organization_aliases": shared_aliases,
+                "reason": "PRIMARY_PUBLISHER_EVENT_RELATION_AND_DIRECT_ARTIFACT",
+            }
+        return {
+            "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+            "publisher_event_relation": relation, "article_origin_state": "FIRST_PARTY_ARTIFACT",
+            "independence_state": "NOT_APPLICABLE_PRIMARY", "shared_organization_aliases": shared_aliases,
+            "reason": "FIRST_PARTY_ARTIFACT_DOES_NOT_DIRECTLY_ESTABLISH_LIMITED_CLAIM",
+        }
+    origin_state = str(attribution.get("article_origin_state") or "SYNDICATION_UNRESOLVED")
+    if document_type == "NEWS_ARTICLE":
+        if origin_state in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}:
+            return {
+                "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+                "publisher_event_relation": "PUBLISHER_REPORTS_OTHER_ACTOR", "article_origin_state": origin_state,
+                "independence_state": origin_state, "shared_organization_aliases": shared_aliases,
+                "reason": "ARTICLE_LINEAGE_IS_NOT_AN_INDEPENDENT_ORIGIN",
+            }
+        publisher_known = bool(publisher.get("name") or profile.get("canonical_domain"))
+        byline = attribution.get("author_byline")
+        if publisher_known and byline and origin_state == "ORIGINAL_UNKNOWN":
+            return {
+                "source_class": "independent", "evidence_role": "INDEPENDENT", "document_type": document_type,
+                "publisher_event_relation": "PUBLISHER_REPORTS_OTHER_ACTOR", "article_origin_state": "INDEPENDENT_ORIGINAL_REPORTING",
+                "independence_state": "INDEPENDENT_ORIGINAL_REPORTING", "shared_organization_aliases": shared_aliases,
+                "reason": "BYLINED_NEWS_ARTICLE_WITHOUT_WIRE_OR_PARTNER_CREDIT",
+            }
+        return {
+            "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+            "publisher_event_relation": "PUBLISHER_REPORTS_OTHER_ACTOR", "article_origin_state": origin_state,
+            "independence_state": "INDEPENDENT_REPORTING_ORIGIN_UNCERTAIN", "shared_organization_aliases": shared_aliases,
+            "reason": "NEWS_ARTICLE_LINEAGE_OR_PUBLISHER_IDENTITY_INSUFFICIENT",
+        }
+    return {
+        "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+        "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": origin_state,
+        "independence_state": "INDEPENDENCE_UNRESOLVED", "shared_organization_aliases": shared_aliases,
+        "reason": "PUBLISHER_EVENT_RELATION_NOT_ESTABLISHED",
+    }
+
+
 def _breadth_target_section(need: dict) -> str:
     """Pick one eligible desk deterministically for an edition-wide event hunt.
 
@@ -542,6 +698,29 @@ def _breadth_target_section(need: dict) -> str:
     match = re.search(r":(\d+)$", str(need.get("need_id") or ""))
     index = int(match.group(1)) - 1 if match else 0
     return str(sections[index % len(sections)])
+
+
+def _breadth_event_desk_preferences(bundle: dict, eligible_sections: list[str]) -> list[str]:
+    """Route a verified breadth event to a semantically fitting eligible desk.
+
+    The event still must pass evidence, distinctness, and normal candidate
+    eligibility.  This only avoids wasting a genuinely new Morocco/World
+    event in an already-covered desk when another eligible empty desk better
+    describes its documented subject.
+    """
+    skeleton = bundle.get("event_skeleton") if isinstance(bundle.get("event_skeleton"), dict) else {}
+    words = set(_query_words([skeleton.get("title"), skeleton.get("topic"), skeleton.get("object"), skeleton.get("lead_paragraphs")]))
+    affinities = (
+        ("3adl_7o9o9", {"corruption", "anti-corruption", "court", "justice", "rights", "probity", "integrity", "فساد", "نزاهة", "محكمة"}),
+        ("iqtisad_flous", {"economy", "economic", "finance", "investment", "trade", "procurement", "اقتصاد", "مالية", "استثمار"}),
+        ("mojtama3", {"youth", "society", "community", "social", "شباب", "مجتمع"}),
+        ("ta3lim", {"school", "university", "education", "student", "تعليم", "جامعة"}),
+        ("se77a", {"health", "hospital", "medical", "صحة", "مستشفى"}),
+        ("bi2a_manakh", {"climate", "environment", "water", "مناخ", "بيئة", "مياه"}),
+        ("bniya_transport", {"transport", "rail", "airport", "road", "infrastructure", "نقل", "مطار", "طريق"}),
+    )
+    preferred = [section for section, markers in affinities if section in eligible_sections and words & markers]
+    return preferred + [section for section in eligible_sections if section not in preferred]
 
 
 def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_language: str, alternate_language: str | None, route: dict | None) -> list[dict]:
@@ -1451,10 +1630,30 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
             "relation": "SUPPORTS",
             "directness": "DIRECT_STATEMENT",
         }
+    # Role cannot be truthfully assigned from a configured-origin label alone.
+    # For an exact page, first extract the bounded event description, then ask
+    # whether its resolved publisher is an actor or issuer for the *limited*
+    # claim.  The role resolver is deliberately before validation, since the
+    # latter correctly refuses unknown sources.
+    role_resolution = None
+    event_skeleton = None
+    if action.get("action_type") in FETCH_ACTIONS:
+        event_skeleton = extract_event_skeleton(raw, action)
+        role_resolution = resolve_exact_source_role(raw, action, event_skeleton)
+        if str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold() == "unknown":
+            resolved_class = str(role_resolution.get("source_class") or "unknown").casefold()
+            if resolved_class in {"primary", "independent"}:
+                raw["source_class"] = resolved_class
+        raw["source_role_resolution"] = role_resolution
     validation = validate_exact_page(raw, action) if action.get("action_type") in FETCH_ACTIONS else None
     if validation:
-        if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
-            validation["event_skeleton"] = extract_event_skeleton(raw, action)
+        if role_resolution:
+            validation["source_role_resolution"] = deepcopy(role_resolution)
+        # A concrete skeleton is needed to connect a recovered exact page back
+        # to an originating lead as well as for distinct-event work.  It is
+        # identity metadata, not an evidence upgrade.
+        if (event_skeleton or {}).get("state") == "CONCRETE_EVENT":
+            validation["event_skeleton"] = event_skeleton
         state = validation["state"]
         if state == "VALIDATED_EVIDENCE":
             return ("CONTRADICTION" if validation.get("relation") == "CONTRADICTS" else "POTENTIAL_EVIDENCE"), canonical, validation
@@ -1616,6 +1815,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "event_skeleton": deepcopy((validation or {}).get("event_skeleton")) if isinstance((validation or {}).get("event_skeleton"), dict) else None,
         "event_state": (validation or {}).get("event_state") or ((validation or {}).get("event_skeleton") or {}).get("state"),
         "article_metadata": deepcopy(raw.get("article_metadata")) if isinstance(raw.get("article_metadata"), dict) else None,
+        "source_role_resolution": deepcopy((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution")) if isinstance((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution"), dict) else None,
         "evidence_relation": (validation or {}).get("relation"),
         "directness": (validation or {}).get("directness"),
         "provenance": {
@@ -1721,8 +1921,21 @@ def build_event_bundles(
             bundle["publisher_families"].append(family)
         if observation.get("verification_status") == "VALIDATED_EVIDENCE":
             role = "PRIMARY" if observation.get("source_class") in {"primary", "official", "paper"} else "INDEPENDENT" if observation.get("source_class") == "independent" else "UNKNOWN"
+            role_detail = observation.get("source_role_resolution") if isinstance(observation.get("source_role_resolution"), dict) else {}
+            publisher = ((observation.get("article_metadata") or {}).get("publisher") or {}).get("name") if isinstance((observation.get("article_metadata") or {}).get("publisher"), dict) else None
             bundle["evidence_ids"].append(observation.get("source_id"))
-            bundle["source_roles"].append({"source_id": observation.get("source_id"), "role": role, "publisher_family": family})
+            bundle["source_roles"].append({
+                "source_id": observation.get("source_id"), "role": role,
+                "publisher": publisher or observation.get("origin"), "publisher_family": family,
+                "document_type": role_detail.get("document_type"),
+                "publisher_event_relation": role_detail.get("publisher_event_relation"),
+                "article_origin_state": role_detail.get("article_origin_state"),
+                "independence_state": role_detail.get("independence_state"),
+                "claim_relation": observation.get("evidence_relation"),
+                "directness": observation.get("directness"),
+                "event_match": (bundle["matches"][-1] if bundle["matches"] else {}).get("state"),
+                "role_reason": role_detail.get("reason"),
+            })
             bundle["claims"].append({"source_id": observation.get("source_id"), "relation": observation.get("evidence_relation"), "directness": observation.get("directness")})
             if observation.get("evidence_relation") == "CONTRADICTS":
                 bundle["contradictions"].append(observation.get("source_id"))
@@ -1733,8 +1946,8 @@ def build_event_bundles(
     for bundle in bundles:
         for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
             bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
-        roles = {(item.get("source_id"), item.get("role"), item.get("publisher_family")) for item in bundle["source_roles"]}
-        bundle["source_roles"] = [{"source_id": item[0], "role": item[1], "publisher_family": item[2]} for item in sorted(roles)]
+        role_items = {json.dumps(item, ensure_ascii=False, sort_keys=True): item for item in bundle["source_roles"]}
+        bundle["source_roles"] = [role_items[key] for key in sorted(role_items)]
         if bundle["contradictions"]:
             bundle.update(state="EVENT_CONTRADICTED", failure_reason="CONTRADICTION_RETAINED")
             continue
@@ -1762,11 +1975,18 @@ def build_event_bundles(
             bundle.update(state="EVENT_REJECTED", failure_reason=rejection or "LOW_EDITORIAL_VALUE", evidence_policy=policy)
             continue
         bundle.update(state="EVENT_VALIDATED", evidence_policy=policy)
+        eligible_sections = [
+            str(section) for section in action.get("event_context", {}).get("topic_terms", [])
+            if str(section) in {"siyasa_dawla", "iqtisad_flous", "mojtama3", "ta3lim", "se77a", "3adl_7o9o9", "bi2a_manakh", "bniya_transport", "filastin_middle_east", "africa_sahel", "world", "investigations", "opinion", "service", "sport", "culture", "science"}
+        ]
         discovery = {
             "section_id": bundle.get("desk") or action.get("desk"), "event_id": bundle["event_lead_id"], "event_lead_id": bundle["event_lead_id"],
             "title": candidate["title"], "claim": candidate["title"], "source_ids": list(bundle["evidence_ids"]),
             "source_roles": deepcopy(bundle["source_roles"]), "editorial_value_reason": value_reason,
             "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
+            "recovery_need_id": bundle.get("recovery_need_id"),
+            "eligible_section_ids": eligible_sections,
+            "preferred_section_ids": _breadth_event_desk_preferences(bundle, eligible_sections),
         }
         bundle["candidate_discovery"] = discovery
         discoveries.append(deepcopy(discovery))
@@ -1781,6 +2001,9 @@ def build_observation_snapshot(actions: list[dict], observations: list[dict], bu
         "verification_status": item.get("verification_status"), "evidence_relation": item.get("evidence_relation"),
         "directness": item.get("directness"), "content_hash": item.get("content_hash"), "event_skeleton": item.get("event_skeleton"),
         "event_state": item.get("event_state"), "provenance": item.get("provenance"),
+        "extraction_status": item.get("extraction_status"), "article_metadata": item.get("article_metadata"),
+        "article_attribution": item.get("article_attribution"), "publisher_profile": item.get("publisher_profile"),
+        "source_role_resolution": item.get("source_role_resolution"), "validation_state": item.get("validation_state"),
     } for item in observations]
     payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -2052,9 +2275,11 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         return None
     if observation["verification_status"] != "VALIDATED_EVIDENCE":
         return None
+    role_detail = observation.get("source_role_resolution") if isinstance(observation.get("source_role_resolution"), dict) else {}
+    metadata_publisher = ((observation.get("article_metadata") or {}).get("publisher") or {}) if isinstance(observation.get("article_metadata"), dict) else {}
     return {
         "id": observation["source_id"], "url": observation["url"],
-        "publisher": observation["origin"], "title": observation["title"],
+        "publisher": metadata_publisher.get("name") or observation["origin"], "title": observation["title"],
         "publication_date": observation["published_at"], "accessed_at": observation["observed_at"],
         "source_type": source_type, "claim_supported": observation["claim"],
         "content_hash": observation["content_hash"],
@@ -2064,9 +2289,69 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         "directness": observation.get("directness"),
         "executor_observation_id": observation["observation_id"],
         "verification_status": observation["verification_status"],
+        "document_type": role_detail.get("document_type"),
+        "publisher_event_relation": role_detail.get("publisher_event_relation"),
+        "article_origin_state": role_detail.get("article_origin_state"),
+        "independence_state": role_detail.get("independence_state"),
+        "role_reason": role_detail.get("reason"),
         "provenance": observation["provenance"],
         "recovery_need_id": action.get("recovery_need_id"),
     }
+
+
+def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Re-evaluate captured exact pages using current deterministic role rules.
+
+    This intentionally produces TEST_REPLAY_EVIDENCE diagnostics only.  It
+    does not fetch, mutate a captured run, or make an old page current-edition
+    production evidence.  The returned source patches are useful solely for
+    exercising the same packet/bundle transitions in a replay harness.
+    """
+    replayed = deepcopy(observations)
+    action_by_id = {item.get("action_id"): item for item in actions if isinstance(item, dict)}
+    sources = []
+    for observation in replayed:
+        provenance = observation.get("provenance") if isinstance(observation.get("provenance"), dict) else {}
+        action = action_by_id.get(provenance.get("action_id"))
+        if not action or action.get("action_type") not in FETCH_ACTIONS:
+            continue
+        if str(observation.get("extraction_status") or "").upper() not in {"FETCHED", "RETRIEVED"}:
+            continue
+        text = str(observation.get("extracted_text") or "")
+        if not observation.get("url") or len(text) < 40 or not observation.get("content_hash"):
+            continue
+        raw = {
+            "url": observation.get("url"), "canonical_url": observation.get("url"),
+            "title": observation.get("title"), "title_state": observation.get("title_state"),
+            "published_at": observation.get("published_at"), "text": text,
+            "content_hash": observation.get("content_hash"), "fetch_status": observation.get("extraction_status"),
+            "source_class": observation.get("source_class") or "unknown", "claim": observation.get("claim"),
+            "article_metadata": deepcopy(observation.get("article_metadata")) if isinstance(observation.get("article_metadata"), dict) else {},
+            "article_attribution": deepcopy(observation.get("article_attribution")) if isinstance(observation.get("article_attribution"), dict) else {},
+            "publisher_profile": deepcopy(observation.get("publisher_profile")) if isinstance(observation.get("publisher_profile"), dict) else {},
+            "publisher": ((observation.get("article_metadata") or {}).get("publisher") or {}).get("name") if isinstance(observation.get("article_metadata"), dict) else None,
+        }
+        skeleton = extract_event_skeleton(raw, action)
+        resolution = resolve_exact_source_role(raw, action, skeleton)
+        if str(raw["source_class"]).casefold() == "unknown" and resolution.get("source_class") in {"primary", "independent"}:
+            raw["source_class"] = resolution["source_class"]
+        validation = validate_exact_page(raw, action)
+        observation["event_skeleton"] = skeleton if skeleton.get("state") == "CONCRETE_EVENT" else observation.get("event_skeleton")
+        observation["source_role_resolution"] = resolution
+        observation["source_class"] = str(validation.get("source_class") or raw["source_class"] or "unknown").casefold()
+        observation["validation_state"] = validation.get("state", observation.get("validation_state"))
+        observation["validation_progression"] = validation.get("progression", observation.get("validation_progression"))
+        observation["validation_reason"] = validation.get("reason", observation.get("validation_reason"))
+        observation["evidence_relation"] = validation.get("relation", observation.get("evidence_relation"))
+        observation["directness"] = validation.get("directness", observation.get("directness"))
+        observation["verification_status"] = "VALIDATED_EVIDENCE" if validation.get("state") == "VALIDATED_EVIDENCE" else "EXTRACTED_NOT_VERIFIED"
+        if observation["verification_status"] == "VALIDATED_EVIDENCE":
+            observation["observation_class"] = "POTENTIAL_EVIDENCE"
+            observation["kind"] = "POTENTIAL_EVIDENCE"
+            patch = _source_patch(observation, action)
+            if patch:
+                sources.append(patch)
+    return replayed, sources
 
 
 def execute_research_round(
@@ -2374,10 +2659,23 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
         # breadth-value screen enforced by the executor.
         if not discovery.get("editorial_value_reason"):
             continue
-        section = next((item for item in value.get("sections", []) if item.get("section_id") == discovery["section_id"]), None)
+        section_id = discovery.get("section_id")
+        # For a breadth acquisition, the producing desk is a query route, not
+        # a command to place the candidate there.  Prefer a declared,
+        # semantically fitting eligible desk that is presently NO_NEWS.  This
+        # lets a validated new event close the gap it was asked to address,
+        # while ordinary (non-breadth) discoveries retain their exact desk.
+        if str(discovery.get("recovery_need_id") or "").startswith("BREADTH:"):
+            eligible = {str(item) for item in discovery.get("eligible_section_ids", [])}
+            for preferred in discovery.get("preferred_section_ids", []):
+                candidate_section = next((item for item in value.get("sections", []) if item.get("section_id") == preferred), None)
+                if candidate_section and preferred in eligible and candidate_section.get("status") == "NO_NEWS":
+                    section_id = preferred
+                    break
+        section = next((item for item in value.get("sections", []) if item.get("section_id") == section_id), None)
         if section is None:
             continue
-        candidate_id = _stable_id("CAND", discovery["section_id"], discovery["event_id"])
+        candidate_id = _stable_id("CAND", section_id, discovery["event_id"])
         candidate = next((item for item in section.get("candidates", []) if item.get("id") == candidate_id), None)
         if candidate is None:
             candidate = {

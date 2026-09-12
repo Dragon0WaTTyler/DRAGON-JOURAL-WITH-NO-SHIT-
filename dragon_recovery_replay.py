@@ -24,6 +24,8 @@ from dragon.deep_research_executor import (
     discovery_adapter_from_config,
     execute_research_round,
     replay_event_bundles_from_snapshot,
+    replay_exact_source_roles,
+    replay_recovery_after_execution,
     schedule_research_actions,
 )
 from dragon.provider_acceptance import OfflineReplayResearchAdapter, build_provider_seed_orchestrator
@@ -89,17 +91,31 @@ def replay_captured_event_observations(
     jobs = [item for item in execution.get("jobs", []) if isinstance(item, dict)]
     observations = [item for job in jobs for item in job.get("observations", []) if isinstance(item, dict)]
     actions = [item for job in jobs for item in job.get("actions", []) if isinstance(item, dict)]
-    sources = [item for job in jobs for item in job.get("source_packet_patch", {}).get("sources", []) if isinstance(item, dict)]
+    captured_sources = [item for job in jobs for item in job.get("source_packet_patch", {}).get("sources", []) if isinstance(item, dict)]
     action_by_id = {item.get("action_id"): item for item in actions}
+    role_unresolved_before = sum(
+        item.get("source_class") == "unknown" and str(item.get("extraction_status")).upper() == "FETCHED"
+        for item in observations
+    )
+    unknown_exact_ids_before = {
+        item.get("observation_id") for item in observations
+        if item.get("source_class") == "unknown" and str(item.get("extraction_status")).upper() == "FETCHED"
+    }
+    observations, resolved_sources = replay_exact_source_roles(observations, actions)
+    sources = [*captured_sources, *resolved_sources]
+    observations_by_id = {item.get("observation_id"): item for item in observations}
     leads = []
     for item in packet.get("discovery_event_leads", []):
         if not isinstance(item, dict) or not isinstance(item.get("event_skeleton"), dict):
             continue
-        observation = next((value for value in observations if value.get("observation_id") == item.get("observation_id")), {})
+        observation = observations_by_id.get(item.get("observation_id"), {})
         action = action_by_id.get((observation.get("provenance") or {}).get("action_id"), {})
         leads.append({
             **deepcopy(item),
             "event_lead_id": f"CAPTURED-{item['event_skeleton'].get('event_fingerprint')}",
+            # Keep the original lead identity but let the current extractor
+            # correct a captured skeleton before cross-source matching.
+            "event_skeleton": deepcopy(observation.get("event_skeleton") or item["event_skeleton"]),
             "desk": action.get("desk"),
         })
     bundles, discoveries = build_event_bundles(observations, leads, sources, actions)
@@ -108,6 +124,13 @@ def replay_captured_event_observations(
     hashes_after = {"execution": sha256_file(execution_path), "packet": sha256_file(packet_path)}
     if hashes_before != hashes_after:
         raise RuntimeError("CAPTURED_EVENT_REPLAY_INPUT_MUTATED")
+    replay_execution = {"source_packet_patch": {
+        "sources": resolved_sources, "candidate_evidence_updates": [],
+        "candidate_discoveries": discoveries, "event_leads": leads, "event_bundles": bundles,
+    }}
+    coverage = load_source_coverage(root / "config" / "source-coverage.yaml", {section_id for section_id, _ in SECTION_HEADINGS})
+    readiness = load_local_config(root)["editorial_readiness"]
+    replay_transition = replay_recovery_after_execution(packet, replay_execution, coverage, readiness)
     report = {
         "schema_version": 1, "status": "CAPTURED_EVENT_REPLAY_COMPLETE",
         "edition_date": edition_date, "captured_run_id": captured_run_id,
@@ -117,6 +140,18 @@ def replay_captured_event_observations(
         "evidence_bundles": len(bundles), "validated_events": sum(item.get("state") == "EVENT_VALIDATED" for item in bundles),
         "partial_bundles": sum(item.get("state") == "EVENT_EVIDENCE_PARTIAL" for item in bundles),
         "candidate_discoveries": len(discoveries), "production_evidence_reuse": replay["production_evidence_reuse"],
+        "role_unresolved_before": role_unresolved_before,
+        "newly_resolved_primary_roles": sum(bool(item.get("observation_id") in unknown_exact_ids_before and item.get("source_class") == "primary") for item in observations),
+        "newly_resolved_independent_roles": sum(bool(item.get("observation_id") in unknown_exact_ids_before and item.get("source_class") == "independent") for item in observations),
+        "promoted_candidates": len(discoveries),
+        "recovery_status_after_transition": replay_transition.get("status"),
+        "remaining_needs_after_transition": replay_transition.get("recovery", {}).get("needs", []),
+        "closed_need_ids": sorted({item.get("need_id") for item in build_recovery_plan(packet, _load(run_dir / "source-intelligence" / "recovered-report.json"), coverage, readiness).get("needs", [])} - {item.get("need_id") for item in replay_transition.get("recovery", {}).get("needs", [])}),
+        "promoted_candidate_placements": [
+            {"section_id": section.get("section_id"), "candidate_id": section.get("selected_candidate_id")}
+            for section in replay_transition.get("packet", {}).get("sections", [])
+            if any(candidate.get("discovered_by") == "VALIDATED_DISTINCT_EVENT_RECOVERY" and candidate.get("id") == section.get("selected_candidate_id") for candidate in section.get("candidates", []))
+        ],
         "bundles": bundles,
     }
     atomic_write_json(output_dir / "observation-snapshot.json", snapshot)

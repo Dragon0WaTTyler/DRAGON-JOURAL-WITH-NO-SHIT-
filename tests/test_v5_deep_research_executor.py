@@ -32,6 +32,7 @@ from dragon.deep_research_executor import (
     query_ladder,
     replay_recovery_after_execution,
     replay_event_bundles_from_snapshot,
+    resolve_exact_source_role,
     schedule_research_actions,
     science_adapter_boundary,
 )
@@ -529,6 +530,29 @@ def test_validated_new_event_can_replace_an_ineligible_same_desk_selection() -> 
     assert patched_front["selection_reason"] == "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
 
 
+def test_validated_breadth_event_routes_to_an_eligible_empty_affinity_desk() -> None:
+    packet = _otherwise_sufficient_packet()
+    justice = next(item for item in packet["sections"] if item["section_id"] == "3adl_7o9o9")
+    justice.update({"status": "NO_NEWS", "selected_candidate_id": None, "candidates": [], "recovery_candidates": []})
+    execution = {"source_packet_patch": {
+        "sources": [
+            {**_source("primary", "primary", "authority.example"), "verification_status": "VALIDATED_EVIDENCE"},
+            {**_source("independent", "independent", "news.example"), "verification_status": "VALIDATED_EVIDENCE"},
+        ], "candidate_evidence_updates": [],
+        "candidate_discoveries": [{
+            "section_id": "siyasa_dawla", "event_id": "EVT-INTEGRITY", "title": "Authorities sign anti-corruption memorandum",
+            "claim": "Authorities sign anti-corruption memorandum.", "editorial_value_reason": "INSTITUTIONAL_ACTION",
+            "recovery_need_id": "BREADTH:morocco_breadth:1", "eligible_section_ids": ["siyasa_dawla", "3adl_7o9o9"],
+            "preferred_section_ids": ["3adl_7o9o9", "siyasa_dawla"],
+            "source_roles": [{"source_id": "primary", "role": "PRIMARY"}, {"source_id": "independent", "role": "INDEPENDENT"}],
+        }],
+    }}
+    patched = apply_executor_results_to_packet(packet, execution)
+    justice = next(item for item in patched["sections"] if item["section_id"] == "3adl_7o9o9")
+    assert justice["status"] == "ACTIVE"
+    assert justice["selected_candidate_id"]
+
+
 def test_low_value_new_event_cannot_create_or_close_breadth_candidate() -> None:
     packet = _otherwise_sufficient_packet()
     front = next(item for item in packet["sections"] if item["section_id"] == "front")
@@ -651,6 +675,65 @@ def test_observation_snapshot_is_hash_bound_and_cannot_be_live_evidence() -> Non
     snapshot["observations"] = [{"url": "https://tampered.example"}]
     with pytest.raises(ResearchExecutorError, match="OBSERVATION_SNAPSHOT_HASH_MISMATCH"):
         replay_event_bundles_from_snapshot(snapshot)
+
+
+def test_first_party_document_is_primary_only_for_its_direct_signing_claim() -> None:
+    action = _job().get("branches")[0]
+    skeleton = {"state": "CONCRETE_EVENT", "actor": "Institution Alpha", "action": "sign", "institution": "Institution Alpha"}
+    raw = {
+        "url": "https://institution-alpha.example/releases/agreement", "title": "Institution Alpha signed agreement X",
+        "text": "Institution Alpha signed agreement X with its counterpart. " * 8,
+        "article_metadata": {"publisher": {"name": "Institution Alpha"}, "signals": {"html_title": "Institution Alpha institutional portal"}, "jsonld_article_types": []},
+        "publisher_profile": {"canonical_domain": "institution-alpha.example", "canonical_publisher_name": "Institution Alpha", "identity_state": "PUBLISHER_PROFILE_RESOLVED"},
+    }
+    resolved = resolve_exact_source_role(raw, action, skeleton)
+    assert resolved["source_class"] == "primary"
+    assert resolved["publisher_event_relation"] == "PUBLISHER_IS_EVENT_ACTOR"
+    assert resolved["document_type"] == "SIGNED_DOCUMENT"
+
+
+def test_newsroom_and_wire_lineage_do_not_become_primary_or_independent_automatically() -> None:
+    action = _job().get("branches")[0]
+    skeleton = {"state": "CONCRETE_EVENT", "actor": "Institution Alpha", "action": "sign"}
+    newsroom = {
+        "url": "https://news.example/a", "title": "Institution Alpha signed agreement X", "text": "Institution Alpha signed agreement X. " * 10,
+        "article_metadata": {"publisher": {"name": "Newsroom"}, "jsonld_article_types": ["NewsArticle"]},
+        "publisher_profile": {"canonical_domain": "news.example"},
+        "article_attribution": {"author_byline": "Reporter", "article_origin_state": "ORIGINAL_UNKNOWN"},
+    }
+    assert resolve_exact_source_role(newsroom, action, skeleton)["source_class"] == "independent"
+    wire = {**newsroom, "article_attribution": {"author_byline": "Reporter", "wire_credit": "AFP", "article_origin_state": "WIRE_REPUBLICATION"}}
+    resolved_wire = resolve_exact_source_role(wire, action, skeleton)
+    assert resolved_wire["source_class"] == "unknown"
+    assert resolved_wire["reason"] == "ARTICLE_LINEAGE_IS_NOT_AN_INDEPENDENT_ORIGIN"
+
+
+def test_profile_aliases_support_cross_language_organization_identity_without_fuzzy_matching() -> None:
+    action = _job().get("branches")[0]
+    raw = {
+        "url": "https://authority.example/a", "title": "Authority signs an agreement", "text": "Authority signs an agreement with a counterpart. " * 10,
+        "article_metadata": {"publisher": {"name": "National Integrity Authority"}, "signals": {"html_title": "Authority official portal"}, "jsonld_article_types": []},
+        "publisher_profile": {"canonical_domain": "authority.example", "known_aliases": ["هيئة النزاهة", "NIA"]},
+    }
+    matched = resolve_exact_source_role(raw, action, {"state": "CONCRETE_EVENT", "actor": "هيئة النزاهة توقع اتفاقا", "action": "sign"})
+    assert matched["source_class"] == "primary"
+    ambiguous = resolve_exact_source_role(raw, action, {"state": "CONCRETE_EVENT", "actor": "هيئة وطنية أخرى", "action": "sign"})
+    assert ambiguous["source_class"] == "unknown"
+
+
+def test_primary_status_does_not_convert_prediction_or_audit_finding_into_broader_claim_support() -> None:
+    action = _job().get("branches")[0]
+    raw = {
+        "url": "https://institution-alpha.example/a", "title": "Institution Alpha announces policy", "text": "Institution Alpha announces policy that may create economic benefit. " * 10,
+        "article_metadata": {"publisher": {"name": "Institution Alpha"}, "signals": {"html_title": "Institution Alpha official statement"}, "jsonld_article_types": []},
+        "publisher_profile": {"canonical_domain": "institution-alpha.example"},
+    }
+    policy = resolve_exact_source_role(raw, action, {"state": "CONCRETE_EVENT", "actor": "Institution Alpha", "action": "announce"})
+    assert policy["source_class"] == "primary"
+    audit = {**raw, "title": "Institution A audit report", "text": "Institution A audit report records an irregularity. " * 10}
+    finding = resolve_exact_source_role(audit, action, {"state": "CONCRETE_EVENT", "actor": "Institution Alpha", "action": "report"})
+    assert finding["source_class"] == "primary"
+    assert finding["document_type"] == "AUDIT_REPORT"
 
 
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
