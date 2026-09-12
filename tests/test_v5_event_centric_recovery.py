@@ -181,3 +181,10 @@ def test_replay_cli_accepts_relative_output_path_after_completed_rehearsal(monke
     monkeypatch.setattr(sys, "argv", ["dragon_recovery_replay.py", "--date", "2026-09-12", "--run-id", "fixture", "--real-discovery", "--output", "acceptance/fixture-relative-output"])
     assert dragon_recovery_replay.main() == 0
     assert "acceptance/fixture-relative-output" in capsys.readouterr().out
+
+
+def test_replay_resolves_preserved_rehearsal_attempt_to_immutable_packet_id() -> None:
+    from dragon_recovery_replay import provider_attempt_storage_id
+
+    assert provider_attempt_storage_id("preserved-rehearsal:attempt-cc590") == "attempt-cc590"
+    assert provider_attempt_storage_id("attempt-cc590") == "attempt-cc590"

@@ -56,6 +56,11 @@ def _emit(value: dict) -> None:
     print(json.dumps(value, ensure_ascii=True, indent=2))
 
 
+def provider_attempt_storage_id(value: object) -> str:
+    """Resolve a recorded rehearsal ancestry label to its immutable packet id."""
+    return str(value or "").removeprefix("preserved-rehearsal:")
+
+
 def _input_paths(run_dir: Path) -> dict[str, Path]:
     return {
         "epoch0_packet": run_dir / "research" / "research-packet.json",
@@ -314,7 +319,11 @@ def rehearse_preserved_run_with_discovery(
         raise ValueError("PRESERVED_RECOVERY_REPLAY_OUTPUT_ALREADY_EXISTS")
     source_state = _load(paths["historical_state"])
     source_attempt_id = str(source_state.get("source_attempt_id") or "")
-    raw_path = root / "acceptance" / "provider-trials" / edition_date / "attempts" / source_attempt_id / "research.raw.json"
+    # A rehearsal run records its ancestry as ``preserved-rehearsal:<id>``.
+    # The immutable provider packet itself remains stored under the real
+    # attempt id; do not treat the lineage prefix as a directory name.
+    raw_attempt_id = provider_attempt_storage_id(source_attempt_id)
+    raw_path = root / "acceptance" / "provider-trials" / edition_date / "attempts" / raw_attempt_id / "research.raw.json"
     if not raw_path.is_file():
         raise ValueError("PRESERVED_PROVIDER_RAW_PACKET_MISSING")
     input_paths = {**paths, "raw_provider_packet": raw_path}
