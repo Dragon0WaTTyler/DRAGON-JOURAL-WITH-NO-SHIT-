@@ -1338,6 +1338,7 @@ def execute_research_round(
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
     observations, source_records, updates, candidate_discoveries = [], [], [], []
+    lead_followup_selection: list[dict] = []
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
     executed = []
@@ -1425,7 +1426,12 @@ def execute_research_round(
     if getattr(adapter, "follow_discovery_leads", False):
         parents = {item["action_id"]: item for item in executed}
         followup_limits = config["executor"]["lead_followup_limits"][job["budget_class"]]
-        for observation in select_leads_for_followup(observations, parents, followup_limits):
+        selected_leads = select_leads_for_followup(observations, parents, followup_limits)
+        lead_followup_selection = [
+            {"url": item.get("url"), "priority": item.get("lead_priority"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity")}
+            for item in selected_leads
+        ]
+        for observation in selected_leads:
             parent = parents[observation["provenance"]["action_id"]]
             fetch_action = {
                 **parent,
@@ -1469,6 +1475,7 @@ def execute_research_round(
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
         "recovery_strategy_progress": strategy_progress,
         "budget_consumed": {"search_actions": state["search_actions"], "fetches": state["fetches"], "lead_followups": state["lead_followups"]},
+        "lead_followup_selection": lead_followup_selection,
         "remaining_gaps": list(advanced["context"]["SOURCE_GAPS"]),
         "stop_reason": advanced.get("stop_condition"),
     }

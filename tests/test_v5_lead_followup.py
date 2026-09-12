@@ -82,6 +82,20 @@ def test_distinct_event_selection_avoids_repeated_event_headlines() -> None:
     assert [item["url"] for item in selected] == ["https://one.example/a", "https://three.example/c"]
 
 
+def test_execution_follows_multiple_diverse_leads_within_one_need_budget() -> None:
+    job = _job(needs=[_need("NEED_DISTINCT_EVENT")])
+    action = _search_action(job)
+    execution = execute_research_round(job, _adapter({
+        action["action_type"]: [
+            _lead("https://one.example/a", "Meknes audit announced", rank=1),
+            _lead("https://two.example/b", "Meknes transport tender", rank=2),
+            _lead("https://three.example/c", "Meknes hospital work", rank=3),
+        ],
+        "FETCH_URL": [{"result_type": "DEAD_END", "reason": "SOURCE_FETCH_FAILED"}],
+    }), CONFIG, actions=[action])
+    assert sum(item["action_type"] == "FETCH_URL" for item in execution["actions"]) == 3
+
+
 def test_social_and_aggregator_leads_are_skipped_before_expensive_fetch() -> None:
     job = _job()
     action = _search_action(job)
