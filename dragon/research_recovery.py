@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from dragon.source_coverage import desk_recovery_context
+from dragon.evidence_policy import candidate_evidence_policy
 
 
 DEFAULT_RECOVERY_POLICY = {"max_attempts_per_need": 1}
@@ -62,14 +63,37 @@ def build_recovery_plan(
     events = _event_map(intelligence)
     needs: list[dict] = []
     for section in packet.get("sections", []):
-        for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:
+        # A captured or demoted candidate is a research lead, not an active
+        # publication commitment.  Creating P0 work for every NO_NEWS lead
+        # made one malformed recovery observation regenerate endless needs.
+        # Only the selected candidate of an ACTIVE section can block its
+        # current edition; alternatives remain available for replacement.
+        if section.get("status") == "ACTIVE":
+            candidates = [item for item in section.get("candidates", []) if item.get("id") == section.get("selected_candidate_id")]
+        elif section.get("status") == "NO_NEWS":
+            # A material recovery lead may still earn a bounded attempt and
+            # later reopen the desk.  A placeholder created from an empty
+            # extraction cannot: it has neither an editorial claim nor a
+            # stable event identity, and repeatedly generated P0 loops in all
+            # three preserved failures.
+            candidates = [
+                item for item in section.get("recovery_candidates", [])
+                if str(item.get("title") or "").strip().casefold() != "untitled research result"
+            ]
+        else:
+            candidates = []
+        for candidate in candidates:
             eligibility = candidate.get("evidence_eligibility", {})
             issues = set(eligibility.get("issues", []))
-            missing_role = "INDEPENDENT" if issues & {
+            evidence_policy = candidate.get("evidence_policy") or candidate_evidence_policy(
+                candidate, source_by_id, section_id=section.get("section_id"),
+            )
+            roles = set(evidence_policy.get("required_roles", []))
+            missing_role = "INDEPENDENT" if "INDEPENDENT" in roles and issues & {
                 "INDEPENDENT_EVIDENCE_MISSING", "INDEPENDENT_EVIDENCE_UNKNOWN",
                 "INDEPENDENT_EVIDENCE_TYPE_INVALID", "EVIDENCE_ROLE_SOURCE_OVERLAP",
                 "EVIDENCE_ROLE_ORIGIN_OVERLAP",
-            } else "PRIMARY" if issues & {
+            } else "PRIMARY" if "PRIMARY" in roles and issues & {
                 "PRIMARY_EVIDENCE_MISSING", "PRIMARY_EVIDENCE_UNKNOWN", "PRIMARY_EVIDENCE_TYPE_INVALID",
             } else None
             if missing_role is None:
@@ -84,6 +108,9 @@ def build_recovery_plan(
                 "event_id": events.get(f"{section['section_id']}:{candidate['id']}"),
                 "candidate_id": candidate["id"],
                 "missing_evidence_role": missing_role,
+                "priority": "P0_BLOCKING_EVIDENCE",
+                "claim_type": evidence_policy.get("claim_type"),
+                "publication_critical_claim": evidence_policy.get("blocking_claim"),
                 "already_known_source_ids": sorted(set().union(*(
                     set(candidate.get(field, [])) for field in (
                         "discovery_source_ids", "verification_source_ids", "primary_evidence_source_ids", "independent_evidence_source_ids"

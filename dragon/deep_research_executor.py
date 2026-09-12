@@ -26,6 +26,7 @@ from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
+from dragon.evidence_policy import candidate_evidence_policy
 
 
 ACTION_TYPES = {
@@ -1806,10 +1807,12 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
             ]
             primary_origins = {urlsplit(sources[item]["url"]).hostname for item in primary}
             independent_origins = {urlsplit(sources[item]["url"]).hostname for item in independent}
+            policy = candidate_evidence_policy(candidate, sources, section_id=section.get("section_id"))
+            candidate["evidence_policy"] = policy
             issues = []
-            if not primary:
+            if "PRIMARY" in policy["required_roles"] and not primary:
                 issues.append("PRIMARY_EVIDENCE_MISSING")
-            if not independent:
+            if "INDEPENDENT" in policy["required_roles"] and not independent:
                 issues.append("INDEPENDENT_EVIDENCE_MISSING")
             if primary_origins & independent_origins:
                 issues.append("EVIDENCE_ROLE_ORIGIN_OVERLAP")

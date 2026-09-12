@@ -17,6 +17,8 @@ import re
 from typing import Protocol
 from urllib.parse import urlparse
 
+from dragon.evidence_policy import candidate_evidence_policy
+
 
 class EditorialProvider(Protocol):
     mode: str
@@ -449,15 +451,17 @@ class LocalCommandEditorialProvider:
         return list(dict.fromkeys(item for item in items if isinstance(item, str)))
 
     def _candidate_evidence_issues(
-        self, candidate: dict, sources_by_id: dict[str, dict]
+        self, candidate: dict, sources_by_id: dict[str, dict], *, section_id: str | None = None,
     ) -> list[str]:
         """Check role identity, classification, and origin separation for one candidate."""
         primary_ids = self._deduplicate_ids(candidate.get("primary_evidence_source_ids"))
         independent_ids = self._deduplicate_ids(candidate.get("independent_evidence_source_ids"))
         issues: list[str] = []
-        if not primary_ids:
+        policy = candidate_evidence_policy(candidate, sources_by_id, section_id=section_id)
+        candidate["evidence_policy"] = policy
+        if "PRIMARY" in policy["required_roles"] and not primary_ids:
             issues.append("PRIMARY_EVIDENCE_MISSING")
-        if not independent_ids:
+        if "INDEPENDENT" in policy["required_roles"] and not independent_ids:
             issues.append("INDEPENDENT_EVIDENCE_MISSING")
         if set(primary_ids) & set(independent_ids):
             issues.append("EVIDENCE_ROLE_SOURCE_OVERLAP")
@@ -534,7 +538,7 @@ class LocalCommandEditorialProvider:
                         "linked_primary_evidence_source_ids": added_primary,
                         "linked_independent_evidence_source_ids": added_independent,
                     })
-                issues = self._candidate_evidence_issues(candidate, sources_by_id)
+                issues = self._candidate_evidence_issues(candidate, sources_by_id, section_id=section.get("section_id"))
                 candidate["evidence_eligibility"] = {
                     "status": "ELIGIBLE" if not issues else "RESEARCH_INCOMPLETE",
                     "issues": issues,
@@ -876,7 +880,7 @@ class LocalCommandEditorialProvider:
                 selected_candidate = next(
                     item for item in candidates if isinstance(item, dict) and item.get("id") == selected
                 )
-                issues = self._candidate_evidence_issues(selected_candidate, sources_by_id)
+                issues = self._candidate_evidence_issues(selected_candidate, sources_by_id, section_id=section.get("section_id"))
                 if value.get("mode") != "synthetic" and issues:
                     if (
                         not selected_candidate["primary_evidence_source_ids"]

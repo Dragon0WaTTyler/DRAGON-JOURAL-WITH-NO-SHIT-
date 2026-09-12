@@ -90,21 +90,60 @@ def test_complete_candidate_has_no_corroboration_need_and_no_news_is_not_promote
     assert plan["selected_active_sections"] == 1
 
 
-def test_no_news_recovery_candidate_stays_non_publishable_but_retains_a_follow_up() -> None:
+def test_unselected_weak_alternative_cannot_create_a_p0_loop_for_an_eligible_active_story() -> None:
+    packet = {
+        "edition_date": "2099-01-02",
+        "sources": [_source("p", "primary", "official.example"), _source("i", "independent", "news.example")],
+        "sections": [{
+            "section_id": "front", "status": "ACTIVE", "selected_candidate_id": "selected",
+            "candidates": [
+                _candidate("selected", "Selected", ["p"], ["i"]),
+                _candidate("weak", "Unselected alternative", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"]),
+            ],
+        }],
+    }
+    plan = _plan(packet)
+    assert not [item for item in plan["needs"] if item.get("candidate_id") == "weak"]
+
+
+def test_no_news_recovery_candidate_does_not_create_a_publication_blocking_loop() -> None:
     packet = {
         "edition_date": "2099-01-02",
         "sources": [_source("p", "primary", "official.example")],
         "sections": [{
             "section_id": "service", "status": "NO_NEWS", "selected_candidate_id": None,
             "candidates": [], "no_news_reason": "No publishable service item.", "fallback_action": "RADAR",
-            "recovery_candidates": [_candidate("lead", "Service lead", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"])],
+            "recovery_candidates": [_candidate("lead", "Untitled research result", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"])],
         }],
     }
     plan = _plan(packet)
-    need = next(item for item in plan["needs"] if item["candidate_id"] == "lead")
-    assert need["section_id"] == "service"
+    assert not [item for item in plan["needs"] if item.get("candidate_id") == "lead"]
     assert plan["selected_active_sections"] == 0
     assert plan["article_generation_allowed"] is False
+
+
+def test_direct_official_action_needs_primary_but_not_automatic_independent_corroboration() -> None:
+    candidate = _candidate("official", "ضوابط الحملة وفق البوابة الرسمية", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"])
+    candidate["facts"] = ["نشرت البوابة الرسمية ضوابط الحملة."]
+    packet = {
+        "edition_date": "2099-01-02", "sources": [_source("p", "official", "official.example")],
+        "sections": [{"section_id": "siyasa_dawla", "status": "ACTIVE", "selected_candidate_id": "official", "candidates": [candidate]}],
+    }
+    plan = _plan(packet)
+    assert not [item for item in plan["needs"] if item.get("candidate_id") == "official"]
+
+
+def test_risky_claim_keeps_independent_requirement_even_when_an_official_source_exists() -> None:
+    candidate = _candidate("risk", "اتهام بالفساد", ["p"], [], ["INDEPENDENT_EVIDENCE_MISSING"])
+    candidate["facts"] = ["تقول البوابة الرسمية إن الملف قيد المراجعة."]
+    packet = {
+        "edition_date": "2099-01-02", "sources": [_source("p", "official", "official.example")],
+        "sections": [{"section_id": "investigations", "status": "ACTIVE", "selected_candidate_id": "risk", "candidates": [candidate]}],
+    }
+    plan = _plan(packet)
+    need = next(item for item in plan["needs"] if item.get("candidate_id") == "risk")
+    assert need["missing_evidence_role"] == "INDEPENDENT"
+    assert need["publication_critical_claim"] == "تقول البوابة الرسمية إن الملف قيد المراجعة."
 
 
 def test_same_origin_roles_are_rejected_and_request_an_independent_replacement() -> None:
