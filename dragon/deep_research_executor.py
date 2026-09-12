@@ -56,7 +56,7 @@ PRIORITY_ORDER = {
 }
 
 _SOCIAL_ORIGINS = {"facebook.com", "www.facebook.com", "x.com", "twitter.com", "www.twitter.com", "instagram.com", "www.instagram.com", "youtube.com", "www.youtube.com"}
-_AGGREGATOR_MARKERS = {"google", "news.google", "feed", "rss", "aggregator", "archive"}
+_AGGREGATOR_MARKERS = {"google", "feed", "rss", "aggregator", "archive"}
 
 
 def _registrable_domain(origin: str | None) -> str | None:
@@ -1283,7 +1283,11 @@ def build_research_yield_report(
         "browser_fallback_candidates": attrition_counts.get("BROWSER_RENDER_REQUIRED", 0),
         "browser_fallback_executions": sum(item.get("extraction_method") == "crawl4ai" for item in observations),
         "source_identities_resolved": sum(item.get("source_identity", {}).get("identity_state") == "SOURCE_IDENTIFIED" for item in observations),
-        "unknown_sources_remaining": sum(item.get("source_identity", {}).get("identity_state") == "SOURCE_UNRESOLVED" for item in observations),
+        "unknown_sources_remaining": sum(
+            item.get("source_class") == "unknown"
+            and item.get("observation_class") in {"LEAD", "POTENTIAL_EVIDENCE"}
+            for item in observations
+        ),
         "lead_attrition": dict(sorted(attrition_counts.items())),
         "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),

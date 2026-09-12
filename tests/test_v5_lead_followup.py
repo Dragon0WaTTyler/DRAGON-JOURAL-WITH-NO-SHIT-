@@ -84,6 +84,15 @@ def test_social_and_aggregator_leads_are_skipped_before_expensive_fetch() -> Non
     assert any(item["action_type"] == "FETCH_URL" for item in execution["actions"])
 
 
+def test_newsroom_named_domains_are_not_misclassified_as_aggregators() -> None:
+    job = _job()
+    action = _search_action(job)
+    execution = execute_research_round(job, _adapter({action["action_type"]: [_lead("https://www.africanews.com/story/a", "Meknes audit")]}), CONFIG, actions=[action])
+    lead = execution["observations"][0]
+    assert lead["source_identity"]["routing_class"] == "PUBLISHER_UNRESOLVED"
+    assert lead["lead_attrition_state"] == "SELECTED_FOR_FETCH"
+
+
 def test_reserved_followup_budget_is_not_consumed_by_configured_fetches() -> None:
     job = _job()
     planned = [_search_action(job)]
