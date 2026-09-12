@@ -242,7 +242,9 @@ def test_recovery_need_execution_records_attempt_and_structured_output() -> None
     need = {"need_id": "p", "candidate_id": "c", "kind": "FIND_PRIMARY_ORIGINAL_EVIDENCE", "max_attempts": 1}
     execution = execute_research_round(_job(needs=[need]), FixtureResearchAdapter({"RECOVER_PRIMARY_SOURCE": [_result("https://official.example/original", "official")]}), CONFIG)
     assert execution["actions"][0]["action_type"] == "RECOVER_PRIMARY_SOURCE"
-    assert execution["recovery_attempts"] == ["p"]
+    # The ladder includes a bounded alternate-origin GDELT strategy, so the
+    # first standard round no longer exhausts every strategy at once.
+    assert execution["recovery_attempts"] == []
     assert execution["observations"][0]["observation_class"] == "POTENTIAL_EVIDENCE"
 
 
@@ -295,7 +297,7 @@ def test_query_ladder_relaxes_zero_yield_exact_without_headline_only_dependency(
         "query_context": {"entities": ["Meknes"], "event_terms": ["public procurement audit"], "research_date": "2026-09-11"},
     }
     ladder = query_ladder(_job(needs=[need]), need)
-    assert [item["variant"] for item in ladder] == ["CONFIGURED_ROUTE", "EXACT", "RELAX_ENTITY_DATE", "SOURCE_SPECIFIC", "RELAX_TOPIC"]
+    assert [item["variant"] for item in ladder] == ["CONFIGURED_ROUTE", "EXACT", "RELAX_ENTITY_DATE", "EVENT_ALTERNATIVE", "SOURCE_SPECIFIC", "RELAX_TOPIC"]
     assert "Meknes" in ladder[1]["query"] and "2026-09" in ladder[1]["query"]
     assert "procurement" in ladder[1]["query"]
 
@@ -310,7 +312,7 @@ def test_one_attempt_contains_multiple_query_variants_before_exhaustion() -> Non
     job = _job(needs=[need])
     execution = execute_research_round(job, FixtureResearchAdapter({"RECOVER_PRIMARY_SOURCE": []}), CONFIG)
     progress = execution["recovery_strategy_progress"]
-    assert progress == [{"need_id": "p", "executed_variants": [0, 1, 2], "strategy_count": 4, "attempt_exhausted": False}]
+    assert progress == [{"need_id": "p", "executed_variants": [0, 1, 2], "strategy_count": 5, "attempt_exhausted": False}]
     assert execution["recovery_attempts"] == []
     # A bounded strategy executes several variants, but must not claim the
     # whole recovery attempt is exhausted merely because this round hit its

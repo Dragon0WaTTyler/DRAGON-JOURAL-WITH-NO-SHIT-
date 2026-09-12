@@ -167,7 +167,13 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
             title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
             if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
                 continue
-            if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"} or profile.get("origin_family") in seen_families or (require_event_diversity and title_key in seen_titles):
+            if (
+                profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}
+                or profile.get("origin") in set(parent.get("excluded_origins", []))
+                or profile.get("origin_family") in set(parent.get("excluded_origin_families", []))
+                or profile.get("origin_family") in seen_families
+                or (require_event_diversity and title_key in seen_titles)
+            ):
                 continue
             item["lead_attrition_state"] = "SELECTED_FOR_FETCH"
             item["_followup_need"] = need
@@ -241,6 +247,42 @@ def _research_month(need: dict, job: dict) -> str:
     return value[:7] if len(value) >= 7 else ""
 
 
+def event_fingerprint(job: dict, need: dict | None) -> str:
+    """Identify the event/claim being recovered, not a publisher URL.
+
+    This is deliberately a routing identity only.  It is stable across query
+    variants and lets a failed publisher route be avoided for the same need
+    without treating that failure as a verdict on the event or the desk.
+    """
+    if not need:
+        return _stable_id("EVENT", job["lead"].get("related_event_cluster") or "", job["lead"].get("topic") or "")
+    context = need.get("query_context", {})
+    return _stable_id(
+        "EVENT",
+        need.get("event_id") or "",
+        need.get("candidate_id") or "",
+        need.get("missing_evidence_role") or "",
+        " ".join(_query_words([*context.get("entities", []), *context.get("event_terms", []), *context.get("geography", [])])),
+        context.get("research_date") or "",
+    )
+
+
+def _unusable_route_memory(job: dict, fingerprint: str) -> list[dict]:
+    return [
+        item for item in job.get("executor_state", {}).get("route_memory", [])
+        if isinstance(item, dict) and item.get("event_fingerprint") == fingerprint
+        and item.get("state") == "CURRENTLY_UNUSABLE"
+    ]
+
+
+def _route_exclusions(job: dict, need: dict | None) -> tuple[set[str], set[str]]:
+    memory = _unusable_route_memory(job, event_fingerprint(job, need))
+    return (
+        {str(item["origin"]).casefold() for item in memory if item.get("origin")},
+        {str(item["origin_family"]).casefold() for item in memory if item.get("origin_family")},
+    )
+
+
 def query_fingerprint(query: str, *, intent: str, language: str | None = None) -> str:
     """Deduplicate word-order rewrites while preserving distinct strategies."""
     normalized = sorted(set(word.casefold() for word in _query_words([query])))
@@ -304,6 +346,12 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
     primary_language = languages[0]
     alternate_language = languages[1] if len(languages) > 1 else None
     routes = need.get("search_constraints", {}).get("configured_source_routes", [])
+    excluded_origins, excluded_families = _route_exclusions(job, need)
+    routes = [
+        item for item in routes
+        if str(item.get("origin") or urlsplit(str(item.get("url") or "")).hostname or "").casefold() not in excluded_origins
+        and _registrable_domain(str(item.get("origin") or urlsplit(str(item.get("url") or "")).hostname or "")) not in excluded_families
+    ]
     if kind == "FIND_INDEPENDENT_CORROBORATION":
         independent = [item for item in routes if item.get("role") == "INDEPENDENT" and item.get("url")]
         route = independent[0] if independent else None
@@ -317,6 +365,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
             },
             {"intent": "ENTITY_DATE_TERMS", "variant": "EXACT", "query": " ".join(item for item in (seed, month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
             {"intent": "ENTITY_ACTION_GEOGRAPHY", "variant": "RELAX_ENTITY_DATE", "query": seed, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language, "fallback": {"action_type": "RECOVER_INDEPENDENT_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
+            {"intent": "FIND_ALTERNATIVE_COVERAGE", "variant": "EVENT_ALTERNATIVE", "query": " ".join(item for item in (seed, month) if item), "channel": "GDELT_DOC", "backends": ["gdelt-doc"], "language": primary_language},
             {"intent": "INDEPENDENT_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", seed[:100], month) if item), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             {"intent": "INDEPENDENT_TOPIC", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6]), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language},
         ]
@@ -333,6 +382,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
             },
             {"intent": "OFFICIAL_ENTITY_ACTION", "variant": "EXACT", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "RECOVER_PRIMARY_SOURCE", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
             {"intent": "OFFICIAL_INSTITUTION_DATE", "variant": "RELAX_ENTITY_DATE", "query": " ".join(item for item in (" ".join(event_words[:8]), month) if item), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": alternate_language or primary_language},
+            {"intent": "FIND_ALTERNATIVE_PRIMARY", "variant": "EVENT_ALTERNATIVE", "query": " ".join(item for item in (seed, month, "official document") if item), "channel": "GDELT_DOC", "backends": ["gdelt-doc"], "language": primary_language},
             {"intent": "OFFICIAL_SOURCE_ROUTE", "variant": "SOURCE_SPECIFIC", "query": " ".join(item for item in (f"site:{route.get('origin')}" if route else "", " ".join(event_words[:8])) if item), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             {"intent": "OFFICIAL_BROAD_DISCOVERY", "variant": "RELAX_TOPIC", "query": " ".join(event_words[:6]), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language},
         ]
@@ -345,6 +395,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
         return [
             {"intent": "DISTINCT_EVENT_DESK_WINDOW", "variant": "EXACT", "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "FIND_DISTINCT_EVENT", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
             {"intent": "DISTINCT_EVENT_RELAXED", "variant": "RELAX_TOPIC", "query": f"{desk} news".strip(), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+            {"intent": "DISTINCT_EVENT_ALTERNATIVE", "variant": "EVENT_ALTERNATIVE", "query": base, "channel": "GDELT_DOC", "backends": ["gdelt-doc"], "language": primary_language},
         ]
     # Breadth needs use desk/institutional vocabulary, not a copied headline.
     institutional = "Cour des comptes public procurement TGR Morocco" if "accountability" in kind.casefold() else "world international news"
@@ -358,6 +409,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
         },
         {"intent": "BREADTH_DESK_WINDOW", "variant": "EXACT", "query": f"{institutional} {desk} {month}".strip(), "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"], "language": primary_language, "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]}},
         {"intent": "BREADTH_RELAXED", "variant": "RELAX_TOPIC", "query": f"{institutional} {desk}".strip(), "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+        {"intent": "BREADTH_ALTERNATIVE", "variant": "EVENT_ALTERNATIVE", "query": f"{institutional} {desk} {month}".strip(), "channel": "GDELT_DOC", "backends": ["gdelt-doc"], "language": primary_language},
     ]
 
 
@@ -416,6 +468,7 @@ def create_research_action(
         raise ResearchExecutorError("RESEARCH_ACTION_TYPE_INVALID")
     seen_urls = list(job.get("executor_state", {}).get("seen_urls", []))
     seen_origins = list(job.get("executor_state", {}).get("seen_origins", []))
+    excluded_origins, excluded_families = _route_exclusions(job, recovery_need)
     known_events = sorted(set(known_event_ids or []) | ({job["lead"].get("related_event_cluster")} - {None}))
     strategy = query_strategy or query_ladder(job, recovery_need)[0]
     query = str(strategy.get("query") or job["lead"].get("topic") or "")
@@ -455,8 +508,14 @@ def create_research_action(
             "research_date": (recovery_need or {}).get("query_context", {}).get("research_date"),
         },
         "known_event_ids": known_events,
+        "event_fingerprint": event_fingerprint(job, recovery_need),
         "already_seen_urls": seen_urls,
         "already_seen_origins": seen_origins,
+        # A failed route is scoped to this event/claim and run.  It prevents
+        # repeat fetches and same-family substitutions, never marks the event
+        # itself false and never changes publication eligibility.
+        "excluded_origins": sorted(excluded_origins),
+        "excluded_origin_families": sorted(excluded_families),
         "budget": {
             "class": job["budget_class"],
             "round": job.get("round", 0),
@@ -909,6 +968,115 @@ class DiscoveryAdapterChain:
         return deduplicated or [{"result_type": "DEAD_END", "reason": "ALL_DISCOVERY_BACKENDS_UNAVAILABLE"}]
 
 
+class GdeltDocSearchAdapter:
+    """Bounded GDELT DOC ArticleList discovery; metadata is always a lead.
+
+    GDELT is an optional public index, not an evidence source and not a
+    substitute for a fetched original page.  The adapter accepts only the
+    documented public HTTPS endpoint and returns a clear unavailable state
+    when that endpoint cannot be used.
+    """
+
+    def __init__(self, *, adapter_id: str, base_url: str, timeout_seconds: int,
+                 maximum_bytes: int, maximum_results: int, transport=default_transport) -> None:
+        split = urlsplit(base_url)
+        if (split.scheme != "https" or split.hostname != "api.gdeltproject.org"
+                or split.query or split.fragment or split.username or split.password):
+            raise ResearchExecutorError("GDELT_DOC_CONFIG_INVALID")
+        self.adapter_id = adapter_id
+        self.base_url = base_url
+        self.timeout_seconds = timeout_seconds
+        self.maximum_bytes = maximum_bytes
+        self.maximum_results = maximum_results
+        self.transport = transport
+        self.follow_discovery_leads = True
+        self.publisher_profile_cache = PublisherProfileCache()
+
+    def _search_url(self, action: dict) -> str:
+        date = str(action.get("event_context", {}).get("research_date") or "")
+        # DOC expects YYYYMMDDHHMMSS.  A packet date is intentionally bounded
+        # to its calendar day instead of silently drifting to current news.
+        compact = re.sub(r"[^0-9]", "", date)[:8]
+        params = {
+            "query": str(action.get("query") or ""), "mode": "ArtList",
+            "format": "json", "maxrecords": min(self.maximum_results, 250),
+        }
+        if compact:
+            params["startdatetime"] = f"{compact}000000"
+            params["enddatetime"] = f"{compact}235959"
+        if action.get("search_language"):
+            params["sourcelang"] = str(action["search_language"])
+        return f"{self.base_url}?{urlencode(params)}"
+
+    def execute(self, action: dict) -> list[dict]:
+        if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
+            # Exact pages use DRAGON's one safe fetch path; GDELT never grants
+            # a privileged retrieval route.
+            try:
+                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"])
+            except DiscoveryError as exc:
+                return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail,
+                         "discovery_channel": f"{self.adapter_id}-followup"}]
+            origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
+            profile = self.publisher_profile_cache.get(origin)
+            fetched["publisher_profile"] = profile or self.publisher_profile_cache.put(publisher_profile_from_pages(origin, [fetched]))
+            fetched["source_class"] = "unknown"
+            fetched["discovery_channel"] = f"{self.adapter_id}-followup"
+            return [fetched]
+        if action.get("action_type") not in SEARCH_ACTIONS:
+            raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
+        endpoint = self._search_url(action)
+        try:
+            response = self.transport(endpoint, self.timeout_seconds, self.maximum_bytes)
+            if not 200 <= response.status < 300:
+                return [{"result_type": "DEAD_END", "reason": f"GDELT_HTTP_{response.status}", "discovery_channel": self.adapter_id}]
+            payload = json.loads(response.body.decode("utf-8"))
+        except (DiscoveryError, OSError, TimeoutError, UnicodeError, json.JSONDecodeError) as exc:
+            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", "GDELT_UNAVAILABLE"), "discovery_channel": self.adapter_id}]
+        articles = payload.get("articles", []) if isinstance(payload, dict) else []
+        if not isinstance(articles, list) or not articles:
+            return [{"result_type": "DEAD_END", "reason": "GDELT_NO_MATCHES", "discovery_channel": self.adapter_id}]
+        timestamp = datetime.now(timezone.utc).isoformat()
+        leads = []
+        for rank, article in enumerate(articles[:self.maximum_results], start=1):
+            if not isinstance(article, dict) or not isinstance(article.get("url"), str):
+                continue
+            leads.append({
+                "result_type": "LEAD", "canonical_url": article["url"],
+                "title": str(article.get("title") or "GDELT result"), "source_class": "unknown",
+                "discovered_at": timestamp, "discovery_channel": self.adapter_id,
+                "discovery_endpoint": response.url, "verification_provenance": "DISCOVERY_ONLY_GDELT",
+                "search_result": {"query": str(action.get("query") or ""), "backend": self.adapter_id,
+                                  "result_url": article["url"], "title": article.get("title"),
+                                  "snippet": article.get("socialimage") or article.get("seendate"),
+                                  "published_at": article.get("seendate"), "engine": "gdelt-doc",
+                                  "rank": rank, "discovered_at": timestamp},
+            })
+        return leads or [{"result_type": "DEAD_END", "reason": "GDELT_NO_USABLE_URLS", "discovery_channel": self.adapter_id}]
+
+
+def gdelt_doc_adapter_from_config(path) -> GdeltDocSearchAdapter | None:
+    try:
+        value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+    except (OSError, UnicodeError, yaml.YAMLError) as exc:
+        raise ResearchExecutorError("GDELT_DOC_CONFIG_INVALID") from exc
+    required = {"version", "enabled", "adapter_id", "base_url", "timeout_seconds", "maximum_bytes", "maximum_results", "integration_test_status", "provenance_behavior"}
+    if not isinstance(value, dict) or set(value) != required or value.get("version") != 1:
+        raise ResearchExecutorError("GDELT_DOC_CONFIG_INVALID")
+    if value.get("enabled") is False:
+        return None
+    if (not isinstance(value.get("adapter_id"), str) or not isinstance(value.get("base_url"), str)
+            or not all(isinstance(value.get(key), int) and value[key] > 0 for key in ("timeout_seconds", "maximum_bytes", "maximum_results"))
+            or value.get("integration_test_status") not in {"PASS", "NOT_RUN"}
+            or value.get("provenance_behavior") != "DISCOVERY_ONLY_EXACT_PAGE_REQUIRED"):
+        raise ResearchExecutorError("GDELT_DOC_CONFIG_INVALID")
+    return GdeltDocSearchAdapter(adapter_id=value["adapter_id"], base_url=value["base_url"],
+                                 timeout_seconds=value["timeout_seconds"], maximum_bytes=value["maximum_bytes"],
+                                 maximum_results=value["maximum_results"])
+
+
 def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[str, str] | None = None) -> SearxngSearchAdapter | None:
     """Load disabled-by-default SearXNG configuration without provisioning it."""
     try:
@@ -937,7 +1105,8 @@ def discovery_adapter_from_config(root) -> ResearchAdapter | None:
     rss = rss_search_adapter_from_config(root / "config" / "open-discovery.yaml", source_coverage_path=root / "config" / "source-coverage.yaml")
     classes = getattr(rss, "source_classes_by_origin", {}) if rss else {}
     searxng = searxng_search_adapter_from_config(root / "config" / "general-search.yaml", source_classes_by_origin=classes)
-    adapters = [item for item in (rss, searxng) if item is not None]
+    gdelt = gdelt_doc_adapter_from_config(root / "config" / "gdelt-discovery.yaml")
+    adapters = [item for item in (rss, searxng, gdelt) if item is not None]
     if not adapters:
         return None
     return DiscoveryAdapterChain(adapters) if len(adapters) > 1 else adapters[0]
@@ -949,6 +1118,12 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     canonical = normalize_url(url) if url else None
     followup_target = normalize_url(str(action.get("target") or "")) if action.get("action_type") in FETCH_ACTIONS and action.get("target") else None
     if canonical and canonical in seen_urls and canonical != followup_target:
+        return "DUPLICATE", canonical, None
+    origin = (urlsplit(canonical).hostname or "").casefold() if canonical else ""
+    if origin and (
+        origin in set(action.get("excluded_origins", []))
+        or _registrable_domain(origin) in set(action.get("excluded_origin_families", []))
+    ):
         return "DUPLICATE", canonical, None
     if raw.get("event_id") and raw["event_id"] in set(action["known_event_ids"]):
         return "DUPLICATE", canonical, None
@@ -1021,6 +1196,32 @@ def _lead_attrition_state(action: dict, raw: dict, result_class: str, validation
     if state == "VALIDATED_EVIDENCE":
         return "VALIDATED_EVIDENCE"
     return None
+
+
+def _remember_unusable_route(state: dict, action: dict, observation: dict) -> None:
+    """Remember a technical route failure for this run/event only.
+
+    This is a search-routing fact, not a source verdict.  It records just
+    enough information to prevent a bounded recovery ladder from spending its
+    next action on the identical route or publisher family.
+    """
+    if action.get("action_type") not in FETCH_ACTIONS or observation.get("observation_class") != "DEAD_END":
+        return
+    url = str(observation.get("url") or action.get("target") or "")
+    origin = (urlsplit(url).hostname or "").casefold()
+    if not origin:
+        return
+    entry = {
+        "event_fingerprint": action.get("event_fingerprint"), "recovery_need_id": action.get("recovery_need_id"),
+        "url": normalize_url(url), "origin": origin, "origin_family": _registrable_domain(origin),
+        "failure_code": observation.get("reason") or observation.get("validation_reason") or "FETCH_FAILED",
+        "publisher_family": _registrable_domain(origin), "query_fingerprint": action.get("query_fingerprint"),
+        "backend": action.get("discovery_channel"), "state": "CURRENTLY_UNUSABLE",
+    }
+    memory = state.setdefault("route_memory", [])
+    identity = (entry["event_fingerprint"], entry["url"], entry["failure_code"])
+    if not any((item.get("event_fingerprint"), item.get("url"), item.get("failure_code")) == identity for item in memory if isinstance(item, dict)):
+        memory.append(entry)
 
 
 def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
@@ -1349,8 +1550,9 @@ def execute_research_round(
     """Execute one bounded round and feed observations to the state machine."""
     planned = actions if actions is not None else plan_research_actions(job, config, known_event_ids=known_event_ids)
     limits = config["executor"]["budget_action_limits"][job["budget_class"]]
-    state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "lead_followups": 0, "seen_urls": [], "seen_origins": []}))
+    state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "lead_followups": 0, "seen_urls": [], "seen_origins": [], "route_memory": []}))
     state.setdefault("lead_followups", 0)
+    state.setdefault("route_memory", [])
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
     observations, source_records, updates, candidate_discoveries = [], [], [], []
@@ -1392,6 +1594,7 @@ def execute_research_round(
             observation = _observation(action, raw, seen_urls)
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
+            _remember_unusable_route(state, action, observation)
             if observation.get("url"):
                 seen_urls.add(observation["url"])
                 if observation.get("origin"):
