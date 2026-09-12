@@ -95,8 +95,8 @@ def _packet() -> dict:
             _source("audit-independent", "independent", "independent.example"),
         ],
         "sections": [
-            {"section_id": "sport", "status": "NO_NEWS", "candidates": [sport], "recovery_candidates": []},
-            {"section_id": "investigations", "status": "NO_NEWS", "candidates": [investigation], "recovery_candidates": []},
+            {"section_id": "sport", "status": "ACTIVE", "selected_candidate_id": "sport", "candidates": [sport], "recovery_candidates": []},
+            {"section_id": "investigations", "status": "ACTIVE", "selected_candidate_id": "investigation", "candidates": [investigation], "recovery_candidates": []},
         ],
     }
 
