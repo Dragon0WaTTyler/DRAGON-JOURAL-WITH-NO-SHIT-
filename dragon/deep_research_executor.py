@@ -323,11 +323,37 @@ _DESK_SEARCH_TERMS = {
     "culture": "Morocco culture news",
 }
 
+# Categorical, auditable reasons a new event can contribute editorial breadth.
+# This is a conservative screen, not an importance score or a replacement for
+# editor review.  Text with none of these concrete public-interest signals may
+# remain a lead/evidence observation, but cannot create a breadth candidate.
+_EDITORIAL_VALUE_MARKERS = (
+    ("INSTITUTIONAL_ACTION", ("ministry", "government", "official", "court", "parliament", "election", "policy", "institution", "وزارة", "حكومة", "برلمان", "انتخابات", "قرار")),
+    ("SERVICE_USEFULNESS", ("service", "timetable", "schedule", "warning", "transport", "health", "school", "خدمة", "موعد", "نقل", "صحة", "تعليم")),
+    ("ACCOUNTABILITY_VALUE", ("audit", "procurement", "oversight", "public record", "تدقيق", "افتحاص", "صفقة", "رقابة")),
+    ("PUBLIC_CONSEQUENCE", ("economy", "infrastructure", "development", "displacement", "sanctions", "اقتصاد", "بنية", "تنمية", "عقوبات")),
+    ("CULTURAL_OR_SCIENTIFIC_DEVELOPMENT", ("culture", "museum", "heritage", "research", "cultural", "ثقافة", "تراث", "بحث")),
+)
+
 
 def _desk_terms(values: list[object]) -> str:
     """Translate internal desk IDs to finite, reader-facing search vocabulary."""
     terms = [_DESK_SEARCH_TERMS.get(str(value), str(value).replace("_", " ")) for value in values]
     return " ".join(item for item in terms if item)[:180]
+
+
+def _editorial_value_reason(observation: dict) -> str | None:
+    """Return a categorical public-interest rationale for a new event.
+
+    A result which passes source verification but has no discernible public
+    consequence is retained as an observation, never promoted merely to fill
+    a desk.
+    """
+    text = " ".join(str(observation.get(key) or "") for key in ("title", "claim", "extracted_text")).casefold()
+    for reason, markers in _EDITORIAL_VALUE_MARKERS:
+        if any(marker in text for marker in markers):
+            return reason
+    return None
 
 
 def _breadth_target_section(need: dict) -> str:
@@ -568,6 +594,7 @@ def create_research_action(
         "search_time_range": strategy.get("time_range"),
         "search_page": strategy.get("page"),
         "candidate_event_theme": strategy.get("candidate_event_theme"),
+        "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
         "known_entities": list(job["lead"].get("event_entities", [])),
         "event_context": {
@@ -1721,12 +1748,17 @@ def execute_research_round(
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
                     })
                 if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
-                    candidate_discoveries.append({
-                        "section_id": action["desk"],
-                        "event_id": observation.get("related_event") or _stable_id("EVENT", observation["title"], observation["url"]),
-                        "title": observation["title"], "claim": observation["claim"],
-                        "source_id": patch["id"], "role": role,
-                    })
+                    value_reason = _editorial_value_reason(observation)
+                    observation["editorial_value_reason"] = value_reason
+                    if value_reason:
+                        candidate_discoveries.append({
+                            "section_id": action["desk"],
+                            "event_id": observation.get("related_event") or _stable_id("EVENT", observation["title"], observation["url"]),
+                            "title": observation["title"], "claim": observation["claim"],
+                            "source_id": patch["id"], "role": role,
+                            "editorial_value_reason": value_reason,
+                            "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
+                        })
         # A configured route is a preferred read-only channel, not a single
         # point of failure.  On a zero-yield route failure, make exactly one
         # provider-neutral discovery fallback and retain its provenance.
@@ -1848,6 +1880,10 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 candidate.setdefault(field, []).append(update["source_id"])
                 candidate["recovery_revalidated"] = True
     for discovery in execution["source_packet_patch"].get("candidate_discoveries", []):
+        # Do not trust a malformed/out-of-band patch to bypass the categorical
+        # breadth-value screen enforced by the executor.
+        if not discovery.get("editorial_value_reason"):
+            continue
         section = next((item for item in value.get("sections", []) if item.get("section_id") == discovery["section_id"]), None)
         if section is None:
             continue
@@ -1866,6 +1902,8 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 # claim-policy checks below remain decisive.
                 "recovery_revalidated": True,
                 "event_id": discovery["event_id"],
+                "editorial_value_reason": discovery.get("editorial_value_reason"),
+                "permitted_story_roles": list(discovery.get("acceptable_story_roles") or []),
             }
             section.setdefault("candidates", []).append(candidate)
         for field in ("discovery_source_ids", "verification_source_ids"):

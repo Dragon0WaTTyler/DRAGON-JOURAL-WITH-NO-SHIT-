@@ -514,6 +514,7 @@ def test_validated_new_event_can_replace_an_ineligible_same_desk_selection() -> 
         "candidate_discoveries": [{
             "section_id": "front", "event_id": "EVT-NEW", "title": "Ministry official service timetable",
             "claim": "The Ministry official announces a service timetable.", "source_id": "new-official", "role": "PRIMARY",
+            "editorial_value_reason": "SERVICE_USEFULNESS",
         }],
     }}
     patched = apply_executor_results_to_packet(packet, execution)
@@ -523,6 +524,25 @@ def test_validated_new_event_can_replace_an_ineligible_same_desk_selection() -> 
     assert replacement["discovered_by"] == "VALIDATED_DISTINCT_EVENT_RECOVERY"
     assert replacement["evidence_eligibility"]["status"] == "ELIGIBLE"
     assert patched_front["selection_reason"] == "RECOVERY_EXACT_EVIDENCE_REPLACEMENT"
+
+
+def test_low_value_new_event_cannot_create_or_close_breadth_candidate() -> None:
+    packet = _otherwise_sufficient_packet()
+    front = next(item for item in packet["sections"] if item["section_id"] == "front")
+    before_ids = {item["id"] for item in front["candidates"]}
+    execution = {"source_packet_patch": {
+        "sources": [{**_source("gallery", "independent", "local.example"), "verification_status": "VALIDATED_EVIDENCE"}],
+        "candidate_evidence_updates": [],
+        # A bare photo/gallery item has no categorical public-interest reason.
+        "candidate_discoveries": [{
+            "section_id": "front", "event_id": "EVT-FILLER", "title": "Local photo gallery",
+            "claim": "A local photo gallery was posted.", "source_id": "gallery", "role": "INDEPENDENT",
+        }],
+    }}
+    patched = apply_executor_results_to_packet(packet, execution)
+    patched_front = next(item for item in patched["sections"] if item["section_id"] == "front")
+    assert {item["id"] for item in patched_front["candidates"]} == before_ids
+    assert patched_front["selected_candidate_id"] == front["selected_candidate_id"]
 
 
 def test_http_adapter_only_executes_direct_fetch_actions() -> None:
