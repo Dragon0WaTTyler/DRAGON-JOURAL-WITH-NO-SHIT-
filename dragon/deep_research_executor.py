@@ -342,18 +342,28 @@ def _desk_terms(values: list[object]) -> str:
     return " ".join(item for item in terms if item)[:180]
 
 
-def _editorial_value_reason(observation: dict) -> str | None:
+def _editorial_value_reason(observation: dict, action: dict) -> tuple[str | None, str | None]:
     """Return a categorical public-interest rationale for a new event.
 
     A result which passes source verification but has no discernible public
     consequence is retained as an observation, never promoted merely to fill
     a desk.
     """
+    title = str(observation.get("title") or "").strip()
+    if not title or title.casefold() == "untitled research result":
+        return None, "NO_DISCERNIBLE_EVENT"
+    research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
+    published_month = str(observation.get("published_at") or "")[:7]
+    if research_month and published_month != research_month:
+        # A missing publication date is not permission to place an otherwise
+        # unbounded page in today's edition; broader historical research has
+        # its own non-breadth routes.
+        return None, "EVENT_OUTSIDE_WINDOW" if published_month else "DATE_UNVERIFIED"
     text = " ".join(str(observation.get(key) or "") for key in ("title", "claim", "extracted_text")).casefold()
     for reason, markers in _EDITORIAL_VALUE_MARKERS:
         if any(marker in text for marker in markers):
-            return reason
-    return None
+            return reason, None
+    return None, "RESULTS_LOW_EDITORIAL_VALUE"
 
 
 def _breadth_target_section(need: dict) -> str:
@@ -1748,8 +1758,9 @@ def execute_research_round(
                         "role": role, "recovery_need_id": action.get("recovery_need_id"),
                     })
                 if action.get("provenance_requirements", {}).get("must_be_distinct_event"):
-                    value_reason = _editorial_value_reason(observation)
+                    value_reason, proposal_rejection = _editorial_value_reason(observation, action)
                     observation["editorial_value_reason"] = value_reason
+                    observation["event_proposal_rejection"] = proposal_rejection
                     if value_reason:
                         candidate_discoveries.append({
                             "section_id": action["desk"],

@@ -148,6 +148,30 @@ def test_breadth_event_plan_uses_theme_date_and_rotating_eligible_desk() -> None
     assert action["known_event_fingerprints"][0]["event_id"] == "known"
 
 
+def test_validated_page_without_discernible_event_cannot_propose_breadth_candidate() -> None:
+    need = {
+        "need_id": "BREADTH:NEED_DISTINCT_EVENT:1", "kind": "NEED_DISTINCT_EVENT", "max_attempts": 1,
+        "query_context": {"research_date": "2026-09-11"},
+        "search_constraints": {"must_be_distinct_event": True, "eligible_section_ids": ["front"]},
+        "event_acquisition_plan": {"editorial_gap": "DISTINCT_EVENT_BREADTH", "candidate_event_themes": ["institutional action"]},
+    }
+    job = _job()
+    job["recovery_needs"] = [need]
+    action = plan_research_actions(job, CONFIG)[0]
+    action.update({"action_type": "FETCH_URL", "target": "https://official.example/page", "expected_result_type": "EXTRACTED_SOURCE"})
+    raw = {
+        "url": action["target"], "canonical_url": action["target"], "title": "", "claim": "",
+        "text": "The official institution published a detailed public service notice with enough extracted text for validation.",
+        "fetch_status": "FETCHED", "content_hash": "a" * 64, "source_class": "official",
+        "published_at": "2026-09-11", "retrieved_at": "2026-09-11T08:00:00Z",
+    }
+    execution = execute_research_round(job, FixtureResearchAdapter({action["action_id"]: [raw]}), CONFIG, actions=[action])
+    observation = execution["observations"][0]
+    assert observation["verification_status"] == "VALIDATED_EVIDENCE"
+    assert observation["event_proposal_rejection"] == "NO_DISCERNIBLE_EVENT"
+    assert execution["source_packet_patch"]["candidate_discoveries"] == []
+
+
 def test_replay_cli_accepts_relative_output_path_after_completed_rehearsal(monkeypatch, capsys) -> None:
     import dragon_recovery_replay
 
