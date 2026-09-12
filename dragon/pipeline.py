@@ -515,6 +515,72 @@ def build_stage_definitions(
             need_id: 1 for need_id in combined["recovery_attempts"]
         } if execution.get("status") == "EXECUTED" else None
         report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
+        # Recovery is state-dependent: Epoch 0 observations can create new
+        # candidate-specific P0 needs.  Execute exactly one delta epoch before
+        # deciding readiness; never restart the full deep-research tree.
+        epoch0_signatures = {
+            item["need_id"]: json.dumps(item, sort_keys=True, ensure_ascii=False)
+            for item in initial_recovery.get("needs", [])
+        }
+        delta_needs = [
+            item for item in report.get("needs", [])
+            if epoch0_signatures.get(item["need_id"]) != json.dumps(item, sort_keys=True, ensure_ascii=False)
+        ]
+        epoch1_execution = {"schema_version": 1, "status": "NOT_REQUIRED", "jobs": [], "actions_planned": []}
+        epoch1_state = None
+        if delta_needs:
+            config = load_deep_research_config(
+                context.root / "config" / "deep-research.yaml",
+                context.root / "config" / "deep-research-schema.json",
+            )
+            epoch1_state = build_deep_research_state(
+                packet, intelligence, _load(context.run_dir / "research-planning" / "plan.json"),
+                {"needs": delta_needs, "status": report["status"]}, config,
+                run_scope_id=context.run_dir.name, recovery_epoch=1, recovery_only=True,
+            )
+            materialization_issues = validate_deep_research_state(epoch1_state)
+            if materialization_issues:
+                raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", "; ".join(materialization_issues))
+            epoch1_state_path = context.run_dir / "deep-research" / "epoch-1-state.json"
+            atomic_write_json(epoch1_state_path, epoch1_state)
+            outputs = (*outputs, epoch1_state_path)
+            if research_adapter is not None:
+                schedule = schedule_research_actions(epoch1_state["jobs"], config)
+                by_job: dict[str, list[dict]] = {}
+                for action in schedule["actions"]:
+                    by_job.setdefault(action["job_id"], []).append(action)
+                epoch1_execution = {
+                    "schema_version": 1, "status": "EXECUTED", "recovery_epoch": 1,
+                    "jobs": [
+                        execute_research_round(job, research_adapter, config, actions=by_job[job["job_id"]])
+                        for job in epoch1_state["jobs"] if job["job_id"] in by_job
+                    ],
+                    "deferred_actions": schedule["deferred_actions"],
+                }
+                epoch1_execution["actions_planned"] = [
+                    action for item in epoch1_execution["jobs"] for action in item["actions"]
+                ]
+                second_combined = {
+                    "source_packet_patch": {
+                        key: [value for item in epoch1_execution["jobs"] for value in item.get("source_packet_patch", {}).get(key, [])]
+                        for key in ("sources", "candidate_evidence_updates", "candidate_discoveries")
+                    }
+                }
+                packet = apply_executor_results_to_packet(packet, second_combined)
+                intelligence = build_source_intelligence(packet)
+                report = build_recovery_plan(packet, intelligence, coverage, readiness)
+            epoch1_execution_path = context.run_dir / "deep-research" / "epoch-1-execution-report.json"
+            atomic_write_json(epoch1_execution_path, epoch1_execution)
+            outputs = (*outputs, epoch1_execution_path)
+        report["recovery_epochs"] = {
+            "epoch_0": {"need_count": len(initial_recovery.get("needs", [])), "execution": execution.get("status")},
+            "epoch_1": {"delta_need_count": len(delta_needs), "execution": epoch1_execution.get("status"), "jobs": len((epoch1_state or {}).get("recovery_job_mappings", []))},
+        }
+        final_unmapped = set(item["need_id"] for item in report.get("needs", [])) - {
+            item["recovery_need_id"] for item in (epoch1_state or {}).get("recovery_job_mappings", [])
+        } - set(epoch0_signatures)
+        if final_unmapped:
+            raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", ", ".join(sorted(final_unmapped)))
         yield_path = context.run_dir / "deep-research" / "yield-report.json"
         yield_report = build_research_yield_report(
             execution,

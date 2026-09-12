@@ -227,3 +227,25 @@ def test_unmapped_executable_need_fails_explicitly() -> None:
     missing = _need("missing", "does-not-exist", "FIND_INDEPENDENT_CORROBORATION", role="INDEPENDENT")
     with pytest.raises(DeepResearchError, match="RECOVERY_JOB_MATERIALIZATION_FAILED"):
         _state([missing])
+
+
+def test_epoch_one_materializes_only_new_candidate_p0_without_p1_duplication() -> None:
+    """A candidate created by Epoch 0 can enter the one permitted delta epoch."""
+    p0 = _need("epoch1-independent", "sport", "FIND_INDEPENDENT_CORROBORATION", role="INDEPENDENT")
+    p1 = _need("world", None, "NEED_WORLD_BREADTH")
+    state = build_deep_research_state(
+        _packet(), {"event_clusters": []}, {"plans": []}, {"needs": [p0]}, CONFIG,
+        run_scope_id="epoch-replay", recovery_epoch=1, recovery_only=True,
+    )
+    assert state["recovery_epoch"] == 1
+    assert [item["recovery_need_id"] for item in state["recovery_job_mappings"]] == [p0["need_id"]]
+    assert state["recovery_job_mappings"][0]["priority"] == "P0_BLOCKING_EVIDENCE"
+    assert all(p1["need_id"] not in job["context"]["SOURCE_GAPS"] for job in state["jobs"])
+    assert plan_research_actions(state["jobs"][0], CONFIG)[0]["priority_class"] == "P0_BLOCKING_EVIDENCE"
+
+
+def test_epoch_one_is_idempotent_for_the_same_delta_need() -> None:
+    need = _need("epoch1-independent", "sport", "FIND_INDEPENDENT_CORROBORATION", role="INDEPENDENT")
+    first = build_deep_research_state(_packet(), {"event_clusters": []}, {"plans": []}, {"needs": [need]}, CONFIG, run_scope_id="epoch-replay", recovery_epoch=1, recovery_only=True)
+    second = build_deep_research_state(_packet(), {"event_clusters": []}, {"plans": []}, {"needs": [need]}, CONFIG, run_scope_id="epoch-replay", recovery_epoch=1, recovery_only=True)
+    assert first["recovery_job_mappings"] == second["recovery_job_mappings"]

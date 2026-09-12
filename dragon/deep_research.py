@@ -548,6 +548,8 @@ def build_deep_research_state(
     packet: dict, intelligence: dict, research_plan: dict, recovery_plan: dict,
     config: dict, *, discovery_signals: list[dict] | None = None,
     run_scope_id: str | None = None,
+    recovery_epoch: int = 0,
+    recovery_only: bool = False,
 ) -> dict:
     events = {key: event["event_id"] for event in intelligence.get("event_clusters", []) for key in event.get("candidate_keys", [])}
     plan_by_section = {item["section_id"]: item for item in research_plan.get("plans", [])}
@@ -577,7 +579,7 @@ def build_deep_research_state(
 
     source_by_id = {str(item.get("id")): item for item in packet.get("sources", []) if item.get("id")}
     jobs = []
-    for section in packet.get("sections", []):
+    for section in ([] if recovery_only else packet.get("sections", [])):
         # Only the selected publication candidate can change an active desk's
         # readiness.  Running a full question tree for every lower-ranked
         # alternative doubled the latest replay's work (18 jobs / 144
@@ -660,7 +662,8 @@ def build_deep_research_state(
             )
         job = start_research_job(
             lead, config, budget_class="QUICK", recovery_needs=[need],
-            run_scope_id=run_scope_id, recovery_identity=str(need["need_id"]),
+            run_scope_id=run_scope_id,
+            recovery_identity=f"EPOCH:{recovery_epoch}:{need['need_id']}",
         )
         jobs.append(job)
         recovery_job_mappings.append({
@@ -674,10 +677,12 @@ def build_deep_research_state(
             "missing_role": need.get("missing_evidence_role"),
             "source_attempt_id": need.get("source_attempt_id"),
             "run_scope_id": run_scope_id,
+            "recovery_epoch": recovery_epoch,
+            "created_from_stage": "research_recovery" if recovery_epoch else "deep_research",
             "attempt_count": need.get("attempt_count", 0),
             "max_attempts": need.get("max_attempts", 1),
         })
-    for signal in discovery_signals or []:
+    for signal in ([] if recovery_only else discovery_signals or []):
         lead = create_lead(
             desk=str(signal.get("section_id") or "front"),
             topic=str(signal.get("label") or signal.get("title") or signal.get("target_id") or "Discovery signal"),
@@ -699,6 +704,7 @@ def build_deep_research_state(
         "executable_recovery_need_ids": sorted(executable_need_ids),
         "recovery_job_mappings": recovery_job_mappings,
         "recovery_plan_status": recovery_plan.get("status"),
+        "recovery_epoch": recovery_epoch,
         "publication_gate_status": "NOT_EVALUATED",
     }
 

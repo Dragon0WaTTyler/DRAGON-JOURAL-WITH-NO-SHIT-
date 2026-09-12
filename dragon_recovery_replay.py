@@ -42,10 +42,14 @@ def _emit(value: dict) -> None:
 
 def _input_paths(run_dir: Path) -> dict[str, Path]:
     return {
-        "recovered_packet": run_dir / "research" / "recovered-research-packet.json",
-        "recovered_intelligence": run_dir / "source-intelligence" / "recovered-report.json",
+        "epoch0_packet": run_dir / "research" / "research-packet.json",
+        "epoch0_intelligence": run_dir / "source-intelligence" / "report.json",
         "research_plan": run_dir / "research-planning" / "plan.json",
-        "recovery_plan": run_dir / "research-recovery" / "plan.json",
+        "epoch0_state": run_dir / "deep-research" / "state.json",
+        "epoch0_execution": run_dir / "deep-research" / "execution-report.json",
+        "post_epoch0_packet": run_dir / "research" / "recovered-research-packet.json",
+        "post_epoch0_intelligence": run_dir / "source-intelligence" / "recovered-report.json",
+        "final_recovery_plan": run_dir / "research-recovery" / "plan.json",
         "historical_state": run_dir / "state.json",
     }
 
@@ -69,27 +73,43 @@ def replay_preserved_recovery(
         raise ValueError("PRESERVED_RECOVERY_REPLAY_OUTPUT_ALREADY_EXISTS")
 
     input_hashes_before = {name: sha256_file(path) for name, path in paths.items()}
-    packet = _load(paths["recovered_packet"])
-    intelligence = _load(paths["recovered_intelligence"])
+    packet = _load(paths["post_epoch0_packet"])
+    intelligence = _load(paths["post_epoch0_intelligence"])
     research_plan = _load(paths["research_plan"])
-    recovery_plan = _load(paths["recovery_plan"])
+    epoch0_state = _load(paths["epoch0_state"])
+    epoch0_execution = _load(paths["epoch0_execution"])
     config = load_deep_research_config(root / "config" / "deep-research.yaml")
-    state = build_deep_research_state(
-        packet, intelligence, research_plan, recovery_plan, config,
-        run_scope_id=f"offline-replay:{source_run_id}",
-    )
-    issues = validate_deep_research_state(state)
+    # Reuse the historical Epoch 0 result as input, then reconstruct only the
+    # post-execution delta.  The local adapter makes Epoch 1 routing observable
+    # without repeating network work or changing historical evidence.
+    issues = validate_deep_research_state(epoch0_state)
     if issues:
         raise DeepResearchError(
             f"RECOVERY_JOB_MATERIALIZATION_FAILED:{';'.join(issues)}"
         )
+    adapter = OfflineReplayResearchAdapter(
+        reason="OFFLINE_PRESERVED_RUN_ROUTING_REPLAY_NO_NETWORK_OR_PROVIDER"
+    )
+    coverage = load_source_coverage(
+        root / "config" / "source-coverage.yaml",
+        {section_id for section_id, _ in SECTION_HEADINGS},
+    )
+    post_epoch0 = build_recovery_plan(
+        packet, intelligence, coverage, load_local_config(root)["editorial_readiness"],
+    )
+    prior_need_ids = set(epoch0_state.get("executable_recovery_need_ids", []))
+    delta_needs = [need for need in post_epoch0["needs"] if need["need_id"] not in prior_need_ids]
+    state = build_deep_research_state(
+        packet, intelligence, research_plan, {"needs": delta_needs, "status": post_epoch0["status"]}, config,
+        run_scope_id=f"offline-replay:{source_run_id}", recovery_epoch=1, recovery_only=True,
+    )
+    issues = validate_deep_research_state(state)
+    if issues:
+        raise DeepResearchError(f"RECOVERY_JOB_MATERIALIZATION_FAILED:{';'.join(issues)}")
     schedule = schedule_research_actions(state["jobs"], config)
     actions_by_job: dict[str, list[dict]] = {}
     for action in schedule["actions"]:
         actions_by_job.setdefault(action["job_id"], []).append(action)
-    adapter = OfflineReplayResearchAdapter(
-        reason="OFFLINE_PRESERVED_RUN_ROUTING_REPLAY_NO_NETWORK_OR_PROVIDER"
-    )
     executions = [
         execute_research_round(job, adapter, config, actions=actions_by_job[job["job_id"]])
         for job in state["jobs"] if job["job_id"] in actions_by_job
@@ -101,15 +121,11 @@ def replay_preserved_recovery(
         "actions_planned": [action for item in executions for action in item["actions"]],
         "deferred_actions": schedule["deferred_actions"],
     }
-    coverage = load_source_coverage(
-        root / "config" / "source-coverage.yaml",
-        {section_id for section_id, _ in SECTION_HEADINGS},
-    )
     final_recovery = build_recovery_plan(
         packet, intelligence, coverage, load_local_config(root)["editorial_readiness"],
     )
     execution["yield"] = build_research_yield_report(
-        execution, recovery_before=recovery_plan, recovery_after=final_recovery,
+        execution, recovery_before=post_epoch0, recovery_after=final_recovery,
     )
     executed_by_need: dict[str, list[str]] = {}
     for action in execution["actions_planned"]:
@@ -148,6 +164,8 @@ def replay_preserved_recovery(
         "source_git_revision": source_revision(root),
         "input_hashes": input_hashes_before,
         "historical_inputs_unchanged": True,
+        "epoch_0": {"need_count": len(prior_need_ids), "jobs": len(epoch0_state.get("recovery_job_mappings", [])), "actions": len(epoch0_execution.get("actions_planned", []))},
+        "epoch_1": {"delta_need_count": len(delta_needs), "jobs": len(state["recovery_job_mappings"]), "actions": len(execution["actions_planned"])},
         "recovery_need_total": len(state["executable_recovery_need_ids"]),
         "recovery_needs_by_priority": dict(sorted(Counter(
             item["priority"] for item in state["recovery_job_mappings"]
