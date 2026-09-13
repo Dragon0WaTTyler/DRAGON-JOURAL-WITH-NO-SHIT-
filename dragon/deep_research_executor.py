@@ -3087,7 +3087,7 @@ def execute_research_round(
                             "action_type": "SEARCH_OFFICIAL_SOURCE", "target": None, "query": query,
                             "query_intent": "ACTOR_FIRST_CANONICAL_ARTIFACT", "query_variant": "ACTOR_ACTION_OBJECT_DATE",
                             "query_fingerprint": query_fingerprint(query, intent="ACTOR_FIRST_CANONICAL_ARTIFACT"),
-                            "actor_first_search": True, "originating_observation_id": observation.get("observation_id"),
+                            "actor_first_search": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"),
                             "discovery_channel": "SEARXNG_GENERAL_SEARCH", "discovery_backends": ["searxng-general-search"],
                             "expected_result_type": "DISCOVERY_RESULT", "channel_fallback": None,
                         }
@@ -3098,7 +3098,7 @@ def execute_research_round(
                         exact = next((item for item in new_items if (item.get("source_class") or "").lower() in {"official", "primary"} or str(item.get("url", "")).lower().find(".gov") >= 0), None)
                         if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
                             actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED"})
-                            run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
+                            run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
             if observation.get("page_type") == "LISTING_PAGE":
                 child = select_listing_child_link(
                     raw,
