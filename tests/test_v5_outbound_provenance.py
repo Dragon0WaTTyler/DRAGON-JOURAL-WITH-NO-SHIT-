@@ -248,6 +248,8 @@ def test_navigation_link_failure_opens_bounded_actor_first_discovery() -> None:
     result = execute_research_round(job, adapter, CONFIG, actions=[action])
     actor_searches = [item for item in result["actor_first_telemetry"] if item.get("status") == "SEARCH_DISPATCHED"]
     assert actor_searches and actor_searches[0].get("after_official_link") == "https://prosecution.gov.ma/notices"
+    actor_actions = [item for item in adapter.actions if item.get("query_intent") == "ACTOR_FIRST_CANONICAL_ARTIFACT"]
+    assert actor_actions and actor_actions[0].get("search_language") == "auto"
     assert any(item.get("target") == "https://prosecution.gov.ma/directive-2026" for item in adapter.actions)
     exact = [item for item in result["observations"] if item.get("url") == "https://prosecution.gov.ma/directive-2026" and item.get("extraction_status") == "FETCHED"]
     assert exact and exact[0]["source_class"] == "primary", exact
