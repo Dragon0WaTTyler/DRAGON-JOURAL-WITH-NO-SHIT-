@@ -13,7 +13,7 @@ import socket
 import time
 import re
 from typing import Callable
-from urllib.parse import urljoin, urlparse, urlunsplit
+from urllib.parse import quote, urljoin, urlparse, urlsplit, urlunsplit
 from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from xml.etree import ElementTree
@@ -121,6 +121,28 @@ class _SafeRedirectHandler(HTTPRedirectHandler):
         return super().redirect_request(
             request, file_pointer, code, message, headers, new_url
         )
+
+
+def _encode_request_url(url: str) -> str:
+    """Encode Unicode path/query components without changing safety semantics.
+
+    URL validation deliberately runs on the caller-provided URL first.  This
+    helper only makes a syntactically valid public URL acceptable to urllib's
+    ASCII request-target encoder; it does not permit new schemes, hosts, ports,
+    credentials, or redirects.
+    """
+    parts = urlsplit(url)
+    hostname = parts.hostname or ""
+    try:
+        hostname = hostname.encode("idna").decode("ascii")
+    except UnicodeError:
+        hostname = parts.hostname or ""
+    netloc = hostname
+    if parts.port is not None:
+        netloc = f"{netloc}:{parts.port}"
+    path = quote(parts.path or "/", safe="/%:@!$&'()*+,;=-._~")
+    query = quote(parts.query, safe="/%?:@!$&'()*+,;=-._~")
+    return urlunsplit((parts.scheme, netloc, path, query, ""))
 
 
 def _fetch(
@@ -565,7 +587,7 @@ def discover_rss(xml: bytes, *, provider_id: str, endpoint: str) -> list[dict]:
 
 def default_transport(url: str, timeout_seconds: int, maximum_bytes: int) -> FetchResponse:
     _validate_source_url(url, resolve_dns=True)
-    request = Request(url, headers={"User-Agent": "DRAGON/5 source-research (+local newsroom)"})
+    request = Request(_encode_request_url(url), headers={"User-Agent": "DRAGON/5 source-research (+local newsroom)"})
     opener = build_opener(_SafeRedirectHandler())
     try:
         with opener.open(request, timeout=timeout_seconds) as response:  # noqa: S310 - URL and DNS checked above

@@ -4,6 +4,7 @@ import pytest
 
 from dragon.discovery import (
     _validate_source_url,
+    _encode_request_url,
     DiscoveryError,
     FetchResponse,
     discover_rss,
@@ -17,6 +18,11 @@ from dragon.discovery import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_unicode_request_target_is_percent_encoded_after_safety_validation() -> None:
+    value = _encode_request_url("https://www.maroc.ma/ar/الأخبار/انتخابات-2026?بحث=نزاهة#قسم")
+    assert value == "https://www.maroc.ma/ar/%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/%D8%A7%D9%86%D8%AA%D8%AE%D8%A7%D8%A8%D8%A7%D8%AA-2026?%D8%A8%D8%AD%D8%AB=%D9%86%D8%B2%D8%A7%D9%87%D8%A9"
 
 
 def test_registry_is_strict_and_truthful_about_availability() -> None:
