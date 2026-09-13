@@ -199,7 +199,6 @@ def detect_official_portal_republication(raw: dict) -> dict:
         or host in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
         or canonical_profile_domain in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
         or "official-national-portal" in route_provenance
-        or "official portal" in text.casefold() or "portail officiel" in text.casefold()
     )
     publisher_name = publisher.get("name") or raw.get("publisher") or host
     wire_credit = bool(re.search(r"(?:\(\s*ومع\s*:|\bMAP\b|Maghreb\s+Arabe\s+Presse)", text, flags=re.I))

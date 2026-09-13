@@ -60,6 +60,19 @@ def test_official_portal_republication_keeps_publisher_and_issuer_distinct() -> 
     assert detail["issuing_institution"] == "Ministry of Interior"
 
 
+def test_third_party_page_cannot_claim_portal_identity_from_text_alone() -> None:
+    detail = detect_official_portal_republication({
+        "url": "https://news.example/story",
+        "publisher": "News Example",
+        "title": "Official portal announcement",
+        "text": "The official portal published a notice according to the ministry.",
+        "stated_issuing_institution": "Ministry of Interior",
+    })
+    assert detail["portal_identity_state"] == "PORTAL_IDENTITY_UNRESOLVED"
+    assert detail["article_origin_state"] == "ORIGIN_UNRESOLVED"
+    assert detail["provenance_edges"] == []
+
+
 def test_maroc_portal_preserves_map_origin_and_observed_issuer() -> None:
     raw = {
         "url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive",
