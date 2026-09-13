@@ -1003,7 +1003,11 @@ _PIVOT_SOURCE_CLASS_BRANCHES = {
 }
 
 
-def _pivot_source_class_branches(target_function: str, attempted: list[str] | None = None) -> list[dict]:
+def _pivot_source_class_branches(
+    target_function: str,
+    attempted: list[str] | None = None,
+    current_process_context: str | None = None,
+) -> list[dict]:
     """Return a bounded, function-first branch set for a semantic pivot.
 
     Branches are retrieval context only.  The exact page still determines
@@ -1014,7 +1018,27 @@ def _pivot_source_class_branches(target_function: str, attempted: list[str] | No
     attempted_set = {str(item).upper() for item in (attempted or [])}
     branches = [deepcopy(item) for item in _PIVOT_SOURCE_CLASS_BRANCHES.get(str(target_function).upper(), [])]
     fresh = [item for item in branches if item["class"] not in attempted_set]
-    return fresh or branches
+    selected = fresh or branches
+    context = str(current_process_context or "").casefold()
+    if context:
+        target = str(target_function).upper()
+        marker_orders = {
+            "ACCOUNTABILITY": [
+                (("election", "electoral", "scrutin", "vote", "انتخاب", "اقتراع"), "ELECTION_INTEGRITY"),
+                (("procurement", "tender", "marché", "صفقة"), "AUDIT_BODY"),
+                (("corruption", "رشوة", "فساد"), "ANTI_CORRUPTION"),
+            ],
+            "SERVICE": [
+                (("election", "electoral", "poll", "vote", "انتخاب", "اقتراع"), "ELECTION_ADMINISTRATION"),
+                (("transport", "نقل"), "TRANSPORT_AUTHORITY"),
+                (("education", "school", "تعليم"), "OTHER_SERVICE_AUTHORITY"),
+                (("health", "hospital", "صحة"), "OTHER_SERVICE_AUTHORITY"),
+            ],
+        }
+        preferred = next((order for markers, order in marker_orders.get(target, []) if any(marker in context for marker in markers)), None)
+        if preferred:
+            selected = sorted(selected, key=lambda item: (0 if item["class"] == preferred else 1, item["class"]))
+    return selected
 
 
 def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_language: str, alternate_language: str | None, route: dict | None) -> list[dict]:
@@ -1055,7 +1079,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             or str(need.get("kind") or "").startswith("NEED_ACCOUNTABILITY_AND_SERVICE")
         )
         branch_mode = "PIVOT" if pivot_mode else "INITIAL_SEMANTIC" if semantic_discovery_mode else None
-        pivot_branches = _pivot_source_class_branches(target_function, attempted_source_classes) if branch_mode else []
+        pivot_branches = _pivot_source_class_branches(target_function, attempted_source_classes, current_process) if branch_mode else []
         if pivot_mode:
             pivot_terms = (
                 ("قرار هيئة تنظيمية رقابة امتثال إنفاذ تتبع" if primary_language == "ar" else
@@ -1174,6 +1198,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 strategy["first_party_discovery_objective"] = "FIRST_PARTY_SELF_ACTION"
                 strategy["institution_discovery_mode"] = "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
                 strategy["source_class_branch_mode"] = branch_mode
+                strategy["source_class_selection_reason"] = "CURRENT_PROCESS_CONTEXT" if current_process else "FUNCTION_DEFAULT_ORDER"
                 strategy["source_class_memory_before"] = sorted(set(attempted_source_classes) | {
                     str(previous.get("target_source_class"))
                     for previous in strategies[:strategy_index]
@@ -1413,6 +1438,7 @@ def create_research_action(
         "first_party_discovery_objective": strategy.get("first_party_discovery_objective"),
         "institution_discovery_mode": strategy.get("institution_discovery_mode"),
         "source_class_branch_mode": strategy.get("source_class_branch_mode"),
+        "source_class_selection_reason": strategy.get("source_class_selection_reason"),
         "source_class_memory_before": list(strategy.get("source_class_memory_before") or []),
         "current_process_context": strategy.get("current_process_context"),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
@@ -2800,6 +2826,8 @@ def build_research_yield_report(
             "target_source_class": action.get("target_source_class"),
             "first_party_discovery_objective": action.get("first_party_discovery_objective"),
             "institution_discovery_mode": action.get("institution_discovery_mode"),
+            "source_class_selection_reason": action.get("source_class_selection_reason"),
+            "current_process_context": action.get("current_process_context"),
             "source_class_memory_before": list(action.get("source_class_memory_before") or []),
             "route_scoped": bool(action.get("route_scoped")),
             "route_search_objective": action.get("route_search_objective"),

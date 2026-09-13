@@ -385,7 +385,22 @@ def test_current_process_context_guides_diversified_queries_without_becoming_eve
     assert all("event_actor" not in item and "actor" not in item for item in strategies)
     action = create_research_action(job, job["branches"][0], recovery_need=need, query_strategy=strategies[0])
     assert action["current_process_context"] == "active national election process"
+    assert action["source_class_selection_reason"] == "CURRENT_PROCESS_CONTEXT"
     assert action["event_context"]["current_process_context"] == "active national election process"
+
+
+def test_current_process_context_prioritizes_matching_source_class_without_changing_budget():
+    for target, expected in (("ACCOUNTABILITY", "ELECTION_INTEGRITY"), ("SERVICE", "ELECTION_ADMINISTRATION")):
+        need = {
+            "need_id": f"BREADTH:accountability_and_service:{target}",
+            "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+            "target_editorial_function": target,
+            "query_context": {"research_date": "2026-09-13", "current_process_context": "active national election process"},
+            "event_acquisition_plan": {"target_editorial_function": target},
+        }
+        strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+        assert strategies[0]["target_source_class"] == expected
+        assert strategies[0]["source_class_selection_reason"] == "CURRENT_PROCESS_CONTEXT"
 
 
 def test_pivot_source_class_memory_persists_in_packet_merge():
