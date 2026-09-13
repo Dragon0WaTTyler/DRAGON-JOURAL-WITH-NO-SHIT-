@@ -254,6 +254,65 @@ class _ArticleMetadataParser(HTMLParser):
         self._capture, self._parts = None, []
 
 
+class _AnchorLinkParser(HTMLParser):
+    """Collect bounded public anchor links independently of body extraction.
+
+    Trafilatura can omit navigation/detail anchors on script-heavy listing
+    pages. These links are discovery metadata only; downstream URL safety,
+    ownership, event, and evidence checks remain mandatory.
+    """
+
+    def __init__(self, *, base_url: str, maximum: int = 200) -> None:
+        super().__init__(convert_charrefs=True)
+        self.base_url = base_url
+        self.maximum = maximum
+        self.links: list[dict[str, str]] = []
+        self._href: str | None = None
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.casefold() != "a" or self._href is not None:
+            return
+        values = {str(key).casefold(): value for key, value in attrs}
+        href = str(values.get("href") or "").strip()
+        if not href:
+            return
+        absolute = urljoin(self.base_url, href)
+        parsed = urlsplit(absolute)
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return
+        self._href = absolute
+        self._parts = []
+
+    def handle_data(self, data: str) -> None:
+        if self._href is not None:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.casefold() != "a" or self._href is None:
+            return
+        if len(self.links) < self.maximum:
+            self.links.append({
+                "url": self._href,
+                "text": " ".join("".join(self._parts).split()),
+            })
+        self._href = None
+        self._parts = []
+
+
+def _extract_html_anchor_links(html: bytes, *, base_url: str, maximum: int = 200) -> list[dict[str, str]]:
+    parser = _AnchorLinkParser(base_url=base_url, maximum=maximum)
+    parser.feed(html.decode("utf-8", errors="replace"))
+    seen: set[str] = set()
+    links: list[dict[str, str]] = []
+    for item in parser.links:
+        url = item["url"]
+        if url in seen:
+            continue
+        seen.add(url)
+        links.append(item)
+    return links
+
 def _jsonld_nodes(value: object) -> list[dict]:
     """Flatten JSON-LD objects, arrays and @graph containers safely."""
     nodes: list[dict] = []
@@ -672,6 +731,14 @@ def fetch_and_extract_html(
     author = article_metadata["attribution"].get("author_byline")
     if not author:
         metadata_warnings.append("AUTHOR_MISSING")
+    extracted_links = extracted.get("links") or []
+    anchor_links = _extract_html_anchor_links(response.body, base_url=response.url)
+    links = [*extracted_links]
+    seen_links = {
+        (str(item.get("url") or item.get("href") or "").strip() if isinstance(item, dict) else str(item).strip())
+        for item in links
+    }
+    links.extend(item for item in anchor_links if item["url"] not in seen_links)
     return {
         "canonical_url": str(extracted.get("url") or response.url),
         "discovered_url": url,
@@ -693,7 +760,7 @@ def fetch_and_extract_html(
         "content_hash": hashlib.sha256(text.encode("utf-8")).hexdigest(),
         "language": extracted.get("language"),
         "text": text,
-        "links": extracted.get("links") or [],
+        "links": links,
         "metadata_warnings": sorted(metadata_warnings),
         "transport": {
             "requested_url": url, "final_url": response.url,

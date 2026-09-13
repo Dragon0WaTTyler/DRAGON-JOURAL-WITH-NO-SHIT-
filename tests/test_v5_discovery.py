@@ -117,6 +117,27 @@ def test_trafilatura_adapter_extracts_bounded_html_with_provenance() -> None:
     assert value["transport"]["fetch_backend"] == "safe-http"
 
 
+def test_html_anchor_fallback_preserves_listing_links_when_trafilatura_omits_them() -> None:
+    html = (
+        "<html><head><title>Current notices</title></head><body>"
+        "<nav><a href='/notices/2026'>Registration deadline</a></nav>"
+        "<article>" + "".join(
+            f"<p>Substantive notice detail {number} for deterministic extraction and provenance checks.</p>"
+            for number in range(12)
+        )
+        + "</article></body></html>"
+    ).encode()
+
+    value = fetch_and_extract_html(
+        "https://agency.example/news",
+        transport=lambda *_: FetchResponse("https://agency.example/news", 200, "text/html", html),
+    )
+
+    assert {item["url"] for item in value["links"] if isinstance(item, dict)} >= {
+        "https://agency.example/notices/2026",
+    }
+
+
 def test_article_attribution_is_extracted_but_not_trusted() -> None:
     html = ("<html><head><meta name='author' content='A Reporter'><title>Report</title></head><body>"
             + "<article>" + "".join(f"<p>Substantive report detail number {i} for deterministic extraction.</p>" for i in range(20)) + "</article></body></html>").encode()
