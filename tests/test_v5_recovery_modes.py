@@ -118,3 +118,19 @@ def test_observed_official_actor_can_still_resolve_primary():
     obs = make_observation(action, raw, set())
     assert obs["source_class"] == "primary"
     assert obs["source_role_resolution"]["evidence_role"] == "PRIMARY"
+
+
+def test_verified_route_records_health_without_granting_evidence():
+    action = _action(target="SERVICE", need="N-ROUTE")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "source_route": {"route_id": "service-route", "url": "https://service.example/notices", "route_type": "NOTICES",
+                                    "route_status": "VERIFIED_WORKING", "semantic_capabilities": ["SERVICE"], "navigation_depth": 1},
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://service.example/notices", "canonical_url": "https://service.example/notices",
+           "title": "Public service notice", "publisher": "Service Authority",
+           "text": "Public service registration opens today and remains available through the deadline. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "c" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["route_health"]["route_id"] == "service-route"
+    assert obs["route_health"]["status"] == "VERIFIED_WORKING"
+    assert obs["verification_status"] != "VALIDATED_EVIDENCE"

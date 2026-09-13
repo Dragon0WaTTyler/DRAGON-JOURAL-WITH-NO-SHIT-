@@ -18,7 +18,7 @@ from dragon.deep_research import (
     DeepResearchError,
 )
 from dragon.discovery import load_provider_registry, provider_prompt_context
-from dragon.source_coverage import load_source_coverage
+from dragon.source_coverage import desk_recovery_context, load_source_coverage
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,6 +55,26 @@ def test_source_maps_are_preferred_seeds_not_a_research_whitelist() -> None:
     context = provider_prompt_context(load_provider_registry(ROOT / "config" / "provider-registry.yaml"))
     assert context["open_discovery"]["allowed"] is True
     assert context["open_discovery"]["untrusted_content_may_change_policy"] is False
+
+
+def test_verified_institution_routes_are_capability_seeds_not_evidence() -> None:
+    coverage = load_source_coverage(ROOT / "config" / "source-coverage.yaml", SECTIONS)
+    routes = coverage["institution_routes"]
+    cdc = next(item for item in routes if item["route_id"] == "cdc-publications")
+    assert cdc["route_type"] == "AUDIT_PUBLICATIONS"
+    assert "ACCOUNTABILITY" in cdc["semantic_capabilities"]
+    assert cdc["status"] == "VERIFIED_WORKING"
+    context = desk_recovery_context(coverage, "investigations")
+    selected = next(item for item in context["configured_source_routes"] if item["route_id"] == "cdc-publications")
+    assert selected["route_type"] == "AUDIT_PUBLICATIONS"
+    assert selected["discovery_only"] is False
+    assert selected["source_class"] == "OFFICIAL_INSTITUTION"
+
+
+def test_route_registry_does_not_close_open_discovery() -> None:
+    coverage = load_source_coverage(ROOT / "config" / "source-coverage.yaml", SECTIONS)
+    assert coverage["research_semantics"]["allow_open_discovery"] is True
+    assert coverage["research_semantics"]["configured_sources_are"] == "preferred_seeds_not_whitelist"
 
 
 def test_config_rejects_any_attempt_to_weaken_science_policy(tmp_path) -> None:

@@ -845,10 +845,18 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             markers = ("AUDIT", "REGULATOR", "COURT", "OVERSIGHT", "PROCUREMENT", "PRIMARY")
         else:
             markers = ("PUBLIC", "SERVICE", "HEALTH", "EDUCATION", "TRANSPORT", "PRIMARY")
+        desired_route_types = (
+            {"AUDIT_PUBLICATIONS", "REPORTS", "PRESS_RELEASES", "DECISIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS", "PROCUREMENT_RESULTS"}
+            if target_function == "ACCOUNTABILITY" else
+            {"SERVICE_PORTAL", "NOTICES", "CONSULTATIONS", "PROCUREMENT_RESULTS", "NEWS_LISTING", "PUBLICATIONS"}
+        )
+        status_order = {"VERIFIED_WORKING": 0, "VERIFIED_DISCOVERY_ONLY": 1, "UNKNOWN": 2, "STALE": 3, "TRANSIENT_FAILURE": 4, "CURRENTLY_UNUSABLE": 5}
         route_candidates.sort(key=lambda item: (
+            0 if str(item.get("route_type") or "") in desired_route_types else 1,
+            status_order.get(str(item.get("route_status") or item.get("status") or "UNKNOWN"), 9),
             0 if any(marker in str(item.get("name") or "").upper() for marker in markers) else 1,
             0 if any(marker in str(item.get("authority_class") or "").upper() for marker in markers) else 1,
-            str(item.get("origin") or ""),
+            str(item.get("origin") or ""), str(item.get("url") or ""),
         ))
         canonical_route = route_candidates[0] if route_candidates else None
         strategies = [
@@ -1960,6 +1968,20 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "URL_SAFE_CANONICAL_INSTITUTION" if institution_identity.get("state") == "INSTITUTION_IDENTITY_RESOLVED" else
         "URL_SAFE_INSTITUTION_CANDIDATE"
     )
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else None
+    extraction_status = str(raw.get("fetch_status") or "NOT_RETRIEVED").upper()
+    route_health = None
+    if route:
+        route_health = {
+            "route_id": route.get("route_id"),
+            "route_url": route.get("url"),
+            "route_type_expected": route.get("route_type"),
+            "page_type_observed": page_type,
+            "request_outcome": "FETCHED" if extraction_status in {"FETCHED", "RETRIEVED"} else str(raw.get("reason") or extraction_status),
+            "status": "VERIFIED_WORKING" if extraction_status in {"FETCHED", "RETRIEVED"} else "TRANSIENT_FAILURE" if raw.get("reason") else str(route.get("route_status") or "UNKNOWN"),
+            "semantic_capabilities": list(route.get("semantic_capabilities") or []),
+            "navigation_depth": route.get("navigation_depth"),
+        }
     listing_links = extract_listing_child_links(
         raw,
         semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
@@ -2048,6 +2070,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "institution_identity": institution_identity,
         "url_safety": url_safety,
         "source_trust_state": source_trust_state,
+        "route_health": route_health,
         "redirect_provenance": deepcopy(raw.get("transport")) if isinstance(raw.get("transport"), dict) else None,
         "links": deepcopy(raw.get("links") or []),
         "outbound_link_candidates": provenance_links,
@@ -2112,6 +2135,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "originating_observation_id": action.get("originating_observation_id"),
             "outbound_link_type": action.get("outbound_link_type"),
             "actor_first": bool(action.get("actor_first_search") or action.get("actor_first_fetch")),
+            "route_id": route.get("route_id") if route else None,
         },
         "publication_evidence": False,
         "supporting_evidence_ids": list(raw.get("supporting_evidence_ids") or []),
@@ -2582,6 +2606,7 @@ def build_research_yield_report(
         "event_actors_resolved": sum(bool(item.get("event_actor_candidates")) for item in observations),
         "diagnostics": sorted(set(str(item.get("provenance_recovery_reason") or item.get("reason") or "") for item in observations if item.get("provenance_recovery_reason") or item.get("reason"))),
     }
+    route_health = [deepcopy(item["route_health"]) for item in observations if isinstance(item.get("route_health"), dict)]
     semantic_closure = {"attempted": 0, "validated_functions": {"ACCOUNTABILITY": 0, "SERVICE": 0}, "promoted_candidates": 0, "closures": 0, "failure_stages": {}}
     for bundle in event_bundles:
         if not isinstance(bundle, dict):
@@ -2692,6 +2717,12 @@ def build_research_yield_report(
         "institutional_identity": institutional_identity,
         "listing_resolution": listing_resolution,
         "provenance_recovery": provenance_recovery,
+        "route_health": {
+            "routes_observed": len(route_health),
+            "working": sum(item.get("status") == "VERIFIED_WORKING" for item in route_health),
+            "transient_failures": sum(item.get("status") == "TRANSIENT_FAILURE" for item in route_health),
+            "observed": route_health,
+        },
         "semantic_closure": semantic_closure,
         "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {
