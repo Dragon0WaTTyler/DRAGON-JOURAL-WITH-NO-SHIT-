@@ -1,4 +1,4 @@
-from dragon.deep_research_executor import build_event_bundles
+from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton
 from dragon.research_recovery import _breadth_acquisition_plan
 from dragon.investigation_scope import evaluate_super_investigation_scope
 
@@ -87,3 +87,34 @@ def test_super_investigation_scope_remains_isolated():
     result = evaluate_super_investigation_scope({"geography": ["India"]})
     assert result["status"] == "NOT_ELIGIBLE"
     assert result["scope_rule"] == "MOROCCO + MEKNES ONLY"
+
+
+def test_query_target_cannot_turn_third_party_tax_page_into_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-TAX")
+    action.update({"known_entities": ["Supreme Audit Council"], "query": "Supreme Audit Council audit September 2026",
+                   "action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://cagurujitax.com/tax-audit-due-date-extension", "canonical_url": "https://cagurujitax.com/tax-audit-due-date-extension",
+           "title": "Tax Audit Due Date Extension: Will Tax Audit Date Be Extended?", "publisher": "cagurujitax.com",
+           "text": "Tax audit guidance explains the filing deadline and advises readers to verify against official government sources. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "a" * 64, "source_class": "primary"}
+    obs = make_observation(action, raw, set())
+    assert obs["source_class"] == "unknown"
+    assert obs["source_role_resolution"]["evidence_role"] == "UNRESOLVED"
+    assert obs["source_role_resolution"]["publisher_event_relation"] != "PUBLISHER_IS_DOCUMENT_ISSUER"
+    assert "Supreme Audit Council" not in str(obs["event_skeleton"])
+    assert "Morocco" not in (obs["event_skeleton"] or {}).get("geography", [])
+    assert classify_document_type(raw) == "NEWS_ARTICLE"
+
+
+def test_observed_official_actor_can_still_resolve_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-OFFICIAL")
+    action.update({"known_entities": ["Prosecution Authority"], "action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://prosecution.gov.ma/directive", "canonical_url": "https://prosecution.gov.ma/directive",
+           "title": "Prosecution Authority directive orders monitoring", "publisher": "Prosecution Authority",
+           "text": "Prosecution Authority orders monitoring and rapid complaint processing during the election period. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "b" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["source_class"] == "primary"
+    assert obs["source_role_resolution"]["evidence_role"] == "PRIMARY"

@@ -365,7 +365,7 @@ _EDITORIAL_VALUE_MARKERS = (
 
 _EVENT_ACTION_MARKERS = (
     "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected", "register", "registers", "registered", "registration", "inspect", "inspects", "inspected", "monitor", "monitors", "monitored", "enforce", "enforces", "enforced", "deadline", "expires", "expire", "change", "changes", "changed", "suspend", "suspends", "suspended",
-    "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
+    "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "orders", "order", "directive", "circular", "monitoring", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
     "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
 )
 _EVENT_GEOGRAPHIES = (
@@ -421,7 +421,7 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     """
     metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
     title = str(raw.get("title") or metadata.get("title") or "").strip()
-    title_state = str(raw.get("title_state") or metadata.get("title_state") or "TITLE_UNRESOLVED")
+    title_state = str(raw.get("title_state") or metadata.get("title_state") or ("TITLE_RESOLVED" if title else "TITLE_UNRESOLVED"))
     date_info = raw.get("publication_date") if isinstance(raw.get("publication_date"), dict) else metadata.get("publication_date", {})
     published_at = str(raw.get("published_at") or date_info.get("normalized") or "").strip()
     text = str(raw.get("text") or raw.get("extracted_text") or raw.get("content") or "").strip()
@@ -458,8 +458,9 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     action_index = next((index for index, word in enumerate(words) if word in marker_words), min(len(words), 6))
     actor = " ".join(words[:action_index]).strip() or None
     object_terms = " ".join(words[action_index + 1: action_index + 8]).strip() or None
+    # Geography is an observed page fact.  Target geography in the query or
+    # recovery need is never copied into the event skeleton.
     geography = [place for place in _EVENT_GEOGRAPHIES if place in lowered]
-    geography.extend(str(item) for item in action.get("event_context", {}).get("geography", []) if str(item).casefold() in lowered)
     geography = sorted(set(geography))
     identifiers = re.findall(r"\b(?:[A-Z]{2,}[\-\d]{2,}|\d{3,})\b", subject)
     fingerprint_parts = [actor or "", action_marker, object_terms or "", (published_at or temporal.get("event_time") or temporal.get("deadline") or temporal.get("effective_start") or "")[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
@@ -471,6 +472,14 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
         "actor": actor, "action": action_marker, "object": object_terms,
         "geography": geography, "institution": (metadata.get("publisher") or {}).get("name") if isinstance(metadata.get("publisher"), dict) else raw.get("publisher"),
         "identifiers": sorted(set(identifiers))[:5], "topic": title,
+        "field_provenance": {
+            "actor": "PAGE_TEXT_INFERRED" if actor else "OTHER_DERIVED",
+            "action": "PAGE_TEXT_INFERRED" if action_marker else "OTHER_DERIVED",
+            "object": "PAGE_TEXT_INFERRED" if object_terms else "OTHER_DERIVED",
+            "geography": "PAGE_TEXT_INFERRED" if geography else "GEOGRAPHY_UNRESOLVED",
+            "event_date": "PAGE_STRUCTURED_METADATA" if published_at else "OTHER_DERIVED",
+            "institution": "PAGE_STRUCTURED_METADATA" if (metadata.get("publisher") or raw.get("publisher")) else "OTHER_DERIVED",
+        },
         "event_fingerprint": fingerprint,
         "lead_paragraphs": "\n".join(part for part in re.split(r"\n\s*\n", text)[:2] if part)[:1200],
     }
@@ -598,9 +607,11 @@ def _organization_aliases(*values: object) -> set[str]:
         words = normalized.split()
         # Exact adjacent aliases cover localized official names embedded in a
         # longer actor phrase without relying on fuzzy similarity.
+        generic = {"tax", "audit", "date", "due", "extension", "will", "be", "extended", "report", "notice", "article", "fy", "ay", "what", "the", "latest", "update", "october"}
         aliases.update(
             " ".join(words[index:index + 2]) for index in range(max(0, len(words) - 1))
             if len(" ".join(words[index:index + 2])) >= 6
+            and not set(words[index:index + 2]) <= generic
         )
     return aliases
 
@@ -617,8 +628,18 @@ def classify_document_type(raw: dict) -> str:
     ]).casefold()
     if "court" in text and any(marker in text for marker in ("judgment", "decision", "ruling", "حكم", "قرار قضائي")):
         return "COURT_DECISION"
-    if any(marker in text for marker in ("audit report", "audit", "تقرير تدقيق", "تقرير الافتحاص")):
+    title_text = " ".join(str(raw.get(key) or "") for key in ("title", "h1")).casefold()
+    # A generic tax-audit explainer is a news/information article, not an
+    # institutional audit artifact.  Require an observed report/inspection
+    # phrase (or an explicit structured type) before using AUDIT_REPORT.
+    if ("audit report" in text or "inspection report" in text or "rapport d'audit" in text or "تقرير تدقيق" in text or "تقرير الافتحاص" in text) and not (
+        any(marker in title_text for marker in ("due date", "deadline", "date limite", "آخر أجل"))
+    ):
         return "AUDIT_REPORT"
+    if any(marker in title_text for marker in ("due date", "deadline", "date limite", "آخر أجل")) and not types:
+        return "NEWS_ARTICLE"
+    if any(marker in text for marker in ("directive", "circular", "enforcement instruction", "توجيه", "دورية", "تعليمة")):
+        return "OFFICIAL_STATEMENT"
     if any(marker in text for marker in ("statistical release", "dataset", "statistics", "إحصائيات", "بيانات إحصائية")):
         return "STATISTICAL_RELEASE"
     if any(marker in text for marker in ("regulation", "decree", "gazette", "مرسوم", "قانون تنظيمي")):
@@ -662,10 +683,9 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
         url, (metadata.get("signals") or {}).get("html_title"), raw.get("publisher"),
         *(profile.get("known_aliases") or []),
     )
-    event_aliases = _organization_aliases(
-        (skeleton or {}).get("actor"), (skeleton or {}).get("institution"),
-        *action.get("known_entities", []),
-    )
+    # Query entities/targets are retrieval context only.  They must never
+    # manufacture a publisher/event relationship on the fetched page.
+    event_aliases = _organization_aliases((skeleton or {}).get("actor"))
     shared_aliases = sorted(alias for alias in publisher_aliases & event_aliases if len(alias) >= 4)
     if (skeleton or {}).get("state") != "CONCRETE_EVENT":
         return {
@@ -1797,10 +1817,25 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     if action.get("action_type") in FETCH_ACTIONS:
         event_skeleton = extract_event_skeleton(raw, action)
         role_resolution = resolve_exact_source_role(raw, action, event_skeleton)
-        if str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold() == "unknown":
-            resolved_class = str(role_resolution.get("source_class") or "unknown").casefold()
-            if resolved_class in {"primary", "independent"}:
-                raw["source_class"] = resolved_class
+        role_resolution["field_provenance"] = {
+            "publisher": "PAGE_STRUCTURED_METADATA" if (isinstance(raw.get("article_metadata"), dict) and ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")) else ("PAGE_TEXT_INFERRED" if raw.get("publisher") else "OTHER_DERIVED"),
+            "event_actor": ((event_skeleton.get("field_provenance") or {}).get("actor") if isinstance(event_skeleton, dict) else None) or "OTHER_DERIVED",
+            "document_type": "PAGE_TEXT_INFERRED",
+            "publisher_event_relation": "OBSERVED_PAGE_FACTS_ONLY",
+            "evidence_role": "OBSERVED_PAGE_FACTS_ONLY",
+        }
+        resolved_class = str(role_resolution.get("source_class") or "unknown").casefold()
+        supplied_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold()
+        actor_first_context = bool(
+            action.get("actor_first_search") or action.get("actor_first_fetch")
+            or "ACTOR_FIRST" in str(action.get("query_intent") or "")
+        )
+        if resolved_class in {"primary", "independent"}:
+            raw["source_class"] = resolved_class
+        elif supplied_class in {"primary", "paper"} or (actor_first_context and supplied_class in {"official", "independent"}):
+            # A configured/search-labelled source class cannot override an
+            # unresolved observed publisher/event relationship.
+            raw["source_class"] = "unknown"
         raw["source_role_resolution"] = role_resolution
     validation = validate_exact_page(raw, action) if action.get("action_type") in FETCH_ACTIONS else None
     if validation:
@@ -2033,7 +2068,10 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "navigation_depth": int(action.get("navigation_depth", 0) or 0),
         "navigation_parent_url": action.get("navigation_parent_url"),
         "navigation_failure_reason": "DETAIL_FETCH_FAILED" if int(action.get("navigation_depth", 0) or 0) == 2 and result_class == "DEAD_END" else None,
-        "related_entities": list(raw.get("related_entities") or action["known_entities"]),
+        # Related entities are observed-page facts only.  Search targets and
+        # recovery entities remain in provenance/search context and must never
+        # leak into the canonical observation.
+        "related_entities": list(raw.get("related_entities") or []),
         "related_event": raw.get("event_id"),
         "claim": str(raw.get("claim") or title or ""),
         "claim_candidates": list(raw.get("claim_candidates") or []),
@@ -2733,8 +2771,26 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         }
         skeleton = extract_event_skeleton(raw, action)
         resolution = resolve_exact_source_role(raw, action, skeleton)
-        if str(raw["source_class"]).casefold() == "unknown" and resolution.get("source_class") in {"primary", "independent"}:
-            raw["source_class"] = resolution["source_class"]
+        resolution["field_provenance"] = {
+            "publisher": "PAGE_STRUCTURED_METADATA" if (isinstance(raw.get("article_metadata"), dict) and ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")) else ("PAGE_TEXT_INFERRED" if raw.get("publisher") else "OTHER_DERIVED"),
+            "event_actor": ((skeleton.get("field_provenance") or {}).get("actor") if isinstance(skeleton, dict) else None) or "OTHER_DERIVED",
+            "document_type": "PAGE_TEXT_INFERRED",
+            "publisher_event_relation": "OBSERVED_PAGE_FACTS_ONLY",
+            "evidence_role": "OBSERVED_PAGE_FACTS_ONLY",
+        }
+        resolved_class = str(resolution.get("source_class") or "unknown").casefold()
+        supplied_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold()
+        actor_first_context = bool(
+            action.get("actor_first_search") or action.get("actor_first_fetch")
+            or "ACTOR_FIRST" in str(action.get("query_intent") or "")
+        )
+        if resolved_class in {"primary", "independent"}:
+            raw["source_class"] = resolved_class
+        elif supplied_class in {"primary", "paper"} or (actor_first_context and supplied_class in {"official", "independent"}):
+            # Replays must apply the same fail-closed rule as live execution:
+            # a captured/configured label cannot override observed-page role
+            # resolution.
+            raw["source_class"] = "unknown"
         validation = validate_exact_page(raw, action)
         observation["event_skeleton"] = skeleton if skeleton.get("state") == "CONCRETE_EVENT" else observation.get("event_skeleton")
         observation["source_role_resolution"] = resolution

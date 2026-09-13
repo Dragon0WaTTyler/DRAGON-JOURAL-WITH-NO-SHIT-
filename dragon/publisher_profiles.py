@@ -44,6 +44,9 @@ def publisher_profile_from_pages(domain: str, pages: list[dict]) -> dict:
         "discovered_at": datetime.now(timezone.utc).isoformat(),
         "evidence_urls": evidence_urls,
         "article_evidence_role": "UNRESOLVED",
+        "identity_provenance": "PAGE_METADATA_ONLY",
+        "query_context_used": False,
+        "recovery_target_used": False,
     }
     profile["profile_hash"] = hashlib.sha256(repr(sorted(profile.items())).encode("utf-8")).hexdigest()
     return profile
