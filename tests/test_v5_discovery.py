@@ -57,6 +57,20 @@ def test_rss_adapter_marks_every_candidate_discovery_only() -> None:
     ]
 
 
+def test_rss_preserves_explicit_publisher_hint_as_discovery_metadata_only() -> None:
+    xml = b"""<rss><channel><item><title>Official notice</title><link>https://news.google.com/rss/articles/wrapper</link><source url=\"https://portal.example/news\">Portal Example</source><description>Operational notice detail.</description></item></channel></rss>"""
+    value = discover_rss(xml, provider_id="feed", endpoint="https://news.google.com/rss")
+    assert value == [{
+        "provider_id": "feed",
+        "title": "Official notice",
+        "discovered_url": "https://news.google.com/rss/articles/wrapper",
+        "verification_status": "DISCOVERY_ONLY",
+        "publisher_hint_url": "https://portal.example/news",
+        "publisher_hint_name": "Portal Example",
+        "discovery_description": "Operational notice detail.",
+    }]
+
+
 def test_trafilatura_adapter_extracts_bounded_html_with_provenance() -> None:
     html = (
         "<html><head><title>Exact report</title></head><body><article><h1>Exact report</h1>"

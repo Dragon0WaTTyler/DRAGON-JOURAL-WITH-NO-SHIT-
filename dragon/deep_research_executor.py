@@ -256,7 +256,16 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
                 or profile.get("origin_family") in seen_families
                 or (require_event_diversity and title_key in seen_titles)
             ):
-                item["lead_attrition_reason"] = "LOW_SOURCE_ROUTING_PRIORITY"
+                if profile["routing_class"] == "AGGREGATOR":
+                    item["lead_attrition_reason"] = (
+                        "AGGREGATOR_WRAPPER_WITH_PUBLISHER_HINT"
+                        if item.get("publisher_hint_url") else
+                        "AGGREGATOR_WRAPPER_DISCOVERY_ONLY"
+                    )
+                elif profile["routing_class"] == "SOCIAL":
+                    item["lead_attrition_reason"] = "SOCIAL_DISCOVERY_ONLY"
+                else:
+                    item["lead_attrition_reason"] = "LOW_SOURCE_ROUTING_PRIORITY"
                 continue
             item["lead_attrition_state"] = "SELECTED_FOR_FETCH"
             item["lead_attrition_reason"] = "RESERVED_SEMANTIC_BRANCH_CAPACITY"
@@ -1762,9 +1771,14 @@ class RssSearchAdapter:
                 "search_result": {
                     "query": str(action.get("query") or ""), "backend": self.adapter_id,
                     "result_url": item["discovered_url"], "title": item["title"],
-                    "snippet": None, "published_at": None, "engine": "rss",
+                    "snippet": item.get("discovery_description"), "published_at": None, "engine": "rss",
                     "rank": index, "discovered_at": timestamp,
                 },
+                # Feed publisher hints are explicitly discovery-only.  The
+                # wrapper URL remains the observed lead and must still pass
+                # the normal exact-page/evidence pipeline.
+                **({"publisher_hint_url": item["publisher_hint_url"]} if item.get("publisher_hint_url") else {}),
+                **({"publisher_hint_name": item["publisher_hint_name"]} if item.get("publisher_hint_name") else {}),
             }
             for index, item in enumerate(candidates, start=1)
         ]
@@ -2480,6 +2494,11 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "structured_fields": deepcopy(raw.get("structured_fields")) if isinstance(raw.get("structured_fields"), dict) else None,
         "discovery_method": action["action_type"],
         "discovery_channel": str(raw.get("discovery_channel") or action.get("discovery_channel") or action["action_type"]),
+        # RSS publisher hints describe the feed's stated outlet, not the
+        # wrapper page that was observed.  Keep them namespaced as discovery
+        # metadata so they cannot satisfy source identity or evidence gates.
+        "publisher_hint_url": raw.get("publisher_hint_url"),
+        "publisher_hint_name": raw.get("publisher_hint_name"),
         "navigation_depth": int(action.get("navigation_depth", 0) or 0),
         "navigation_parent_url": action.get("navigation_parent_url"),
         "navigation_failure_reason": "DETAIL_FETCH_FAILED" if int(action.get("navigation_depth", 0) or 0) == 2 and result_class == "DEAD_END" else None,

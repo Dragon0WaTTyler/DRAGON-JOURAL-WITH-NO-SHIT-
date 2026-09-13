@@ -210,6 +210,39 @@ def test_public_rss_search_discovers_unknown_domains_as_leads_only() -> None:
     assert observation["publication_evidence"] is False
 
 
+def test_public_rss_search_keeps_publisher_hint_non_evidentiary() -> None:
+    adapter = RssSearchAdapter(
+        adapter_id="public-rss-hint-test",
+        endpoint_template="https://search.example/rss?q={query}",
+        transport=lambda url, timeout, maximum: FetchResponse(
+            url, 200, "application/rss+xml",
+            b"<rss><channel><item><title>Notice</title><link>https://news.google.com/rss/articles/wrapper</link><source url=\"https://portal.example/news\">Portal Example</source></item></channel></rss>",
+        ),
+    )
+    execution = execute_research_round(_job(), adapter, CONFIG)
+    observation = execution["observations"][0]
+    assert observation["publisher_hint_url"] == "https://portal.example/news"
+    assert observation["publisher_hint_name"] == "Portal Example"
+    assert observation["observation_class"] == "LEAD"
+    assert observation["publication_evidence"] is False
+    assert observation["verification_status"] == "EXTRACTED_NOT_VERIFIED"
+
+
+def test_aggregator_wrapper_with_publisher_hint_is_not_fetch_selected() -> None:
+    adapter = RssSearchAdapter(
+        adapter_id="public-rss-hint-selection-test",
+        endpoint_template="https://search.example/rss?q={query}",
+        transport=lambda url, timeout, maximum: FetchResponse(
+            url, 200, "application/rss+xml",
+            b"<rss><channel><item><title>Notice</title><link>https://news.google.com/rss/articles/wrapper</link><source url=\"https://portal.example/news\">Portal Example</source></item></channel></rss>",
+        ),
+    )
+    execution = execute_research_round(_job(), adapter, CONFIG)
+    observation = execution["observations"][0]
+    assert observation["lead_attrition_reason"] == "AGGREGATOR_WRAPPER_WITH_PUBLISHER_HINT"
+    assert observation["lead_attrition_state"] == "DISCOVERED_NOT_SELECTED"
+
+
 def test_followup_fetch_inspects_rss_leads_within_the_reserved_lead_budget() -> None:
     adapter = FixtureResearchAdapter({
         "SEARCH_DISCOVERY": [_result("https://unknown.example/lead", "unknown")],

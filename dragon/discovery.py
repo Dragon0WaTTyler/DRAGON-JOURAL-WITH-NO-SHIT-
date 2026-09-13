@@ -13,7 +13,7 @@ import socket
 import time
 import re
 from typing import Callable
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunsplit
 from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 from xml.etree import ElementTree
@@ -526,14 +526,38 @@ def discover_rss(xml: bytes, *, provider_id: str, endpoint: str) -> list[dict]:
         url = urljoin(endpoint, link or "")
         if urlparse(url).scheme != "https" or not urlparse(url).netloc:
             continue
-        candidates.append(
-            {
-                "provider_id": provider_id,
-                "title": title.strip(),
-                "discovered_url": url,
-                "verification_status": "DISCOVERY_ONLY",
-            }
-        )
+        candidate = {
+            "provider_id": provider_id,
+            "title": title.strip(),
+            "discovered_url": url,
+            "verification_status": "DISCOVERY_ONLY",
+        }
+        # RSS/Atom feeds frequently expose the publisher separately from the
+        # aggregator wrapper in ``<source url=...>``.  Preserve that hint as
+        # discovery metadata only.  It is never treated as the fetched page,
+        # ownership proof, or evidence; malformed/non-public hints are
+        # discarded rather than weakening URL safety.
+        source = node.find("source")
+        if source is None:
+            source = node.find("{http://www.w3.org/2005/Atom}source")
+        if source is not None:
+            source_url = str(source.get("url") or "").strip()
+            parsed_source = urlparse(urljoin(endpoint, source_url)) if source_url else None
+            if parsed_source and parsed_source.scheme == "https" and parsed_source.netloc and not parsed_source.username and not parsed_source.password:
+                candidate["publisher_hint_url"] = urlunsplit((
+                    parsed_source.scheme.casefold(),
+                    parsed_source.netloc.casefold(),
+                    parsed_source.path or "/",
+                    parsed_source.query,
+                    "",
+                ))
+            source_name = (source.text or "").strip()
+            if source_name:
+                candidate["publisher_hint_name"] = source_name
+        description = node.findtext("description") or node.findtext("{http://www.w3.org/2005/Atom}summary")
+        if description and str(description).strip():
+            candidate["discovery_description"] = str(description).strip()
+        candidates.append(candidate)
     return candidates
 
 
