@@ -108,6 +108,31 @@ def test_query_target_cannot_turn_third_party_tax_page_into_primary():
     assert classify_document_type(raw) == "NEWS_ARTICLE"
 
 
+def test_article_headline_actor_cannot_be_mistaken_for_publisher_identity():
+    action = _action(target="ACCOUNTABILITY", need="N-SAFIRCOM")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B",
+                   "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {
+        "url": "https://safircom.com/2026/09/03/morocco-elections-14/",
+        "canonical_url": "https://safircom.com/2026/09/03/morocco-elections-14/",
+        "title": "هيئة النزاهة تحذر من تأثير المال والنفوذ وتدعو إلى انتخابات نزيهة",
+        "publisher": "https://safircom.com/#organization",
+        "article_metadata": {
+            "publisher": {"name": "https://safircom.com/#organization", "canonical_domain": "safircom.com"},
+            "signals": {"html_title": "هيئة النزاهة تحذر من تأثير المال والنفوذ وتدعو إلى انتخابات نزيهة - سفيركم"},
+            "jsonld_article_types": ["Article"],
+        },
+        "text": "دعت الهيئة الوطنية للنزاهة والوقاية من الرشوة ومحاربتها إلى تعزيز نزاهة الانتخابات. " * 8,
+        "published_at": "2026-09-03", "fetch_status": "FETCHED", "content_hash": "e" * 64,
+        "source_class": "primary",
+    }
+    obs = make_observation(action, raw, set())
+    assert obs["source_role_resolution"]["evidence_role"] != "PRIMARY"
+    assert obs["source_role_resolution"]["publisher_event_relation"] != "PUBLISHER_IS_EVENT_ACTOR"
+    assert obs["source_class"] == "unknown"
+
+
 def test_observed_official_actor_can_still_resolve_primary():
     action = _action(target="ACCOUNTABILITY", need="N-OFFICIAL")
     action.update({"known_entities": ["Prosecution Authority"], "action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",

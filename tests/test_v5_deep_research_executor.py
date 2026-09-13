@@ -228,19 +228,65 @@ def test_public_rss_search_keeps_publisher_hint_non_evidentiary() -> None:
     assert observation["verification_status"] == "EXTRACTED_NOT_VERIFIED"
 
 
-def test_aggregator_wrapper_with_publisher_hint_is_not_fetch_selected() -> None:
+def test_aggregator_wrapper_without_publisher_hint_is_not_fetch_selected() -> None:
     adapter = RssSearchAdapter(
         adapter_id="public-rss-hint-selection-test",
         endpoint_template="https://search.example/rss?q={query}",
         transport=lambda url, timeout, maximum: FetchResponse(
             url, 200, "application/rss+xml",
-            b"<rss><channel><item><title>Notice</title><link>https://news.google.com/rss/articles/wrapper</link><source url=\"https://portal.example/news\">Portal Example</source></item></channel></rss>",
+            b"<rss><channel><item><title>Notice</title><link>https://news.google.com/rss/articles/wrapper</link></item></channel></rss>",
         ),
     )
     execution = execute_research_round(_job(), adapter, CONFIG)
     observation = execution["observations"][0]
-    assert observation["lead_attrition_reason"] == "AGGREGATOR_WRAPPER_WITH_PUBLISHER_HINT"
+    assert observation["lead_attrition_reason"] == "AGGREGATOR_WRAPPER_DISCOVERY_ONLY"
     assert observation["lead_attrition_state"] == "DISCOVERED_NOT_SELECTED"
+
+
+def test_aggregator_with_verified_route_publisher_hint_uses_bounded_navigation_target() -> None:
+    action = {
+        "action_id": "RSS-HINT-ROUTE", "action_type": "SEARCH_DISCOVERY",
+        "question_id": "Q", "priority_class": "P1_BREADTH",
+        "recovery_need_id": "NEED", "target_editorial_function": "SERVICE",
+        "route_scoped": True, "source_route": {"origin": "maroc.ma"},
+        "excluded_origins": [], "excluded_origin_families": [],
+        "query": "site:maroc.ma service deadline",
+    }
+    observations = [{
+        "observation_class": "LEAD",
+        "url": "https://news.google.com/rss/articles/wrapper",
+        "title": "Official service notice",
+        "publisher_hint_url": "https://maroc.ma/en/news",
+        "provenance": {"action_id": "RSS-HINT-ROUTE"},
+        "search_result": {"rank": 1, "snippet": "service deadline"},
+    }]
+    selected = select_leads_for_followup(observations, {"RSS-HINT-ROUTE": action}, {"total": 1, "P1_BREADTH": 1})
+    assert len(selected) == 1
+    assert selected[0]["followup_target_url"] == "https://maroc.ma/en/news"
+    assert selected[0]["followup_resolution_mode"] == "VERIFIED_ROUTE_PUBLISHER_HINT_NAVIGATION"
+
+
+def test_safe_unknown_publisher_hint_is_discovery_fetchable_but_not_trusted() -> None:
+    action = {
+        "action_id": "RSS-HINT-UNKNOWN", "action_type": "SEARCH_DISCOVERY",
+        "question_id": "Q", "priority_class": "P1_BREADTH",
+        "recovery_need_id": "NEED", "target_editorial_function": "ACCOUNTABILITY",
+        "route_scoped": False, "excluded_origins": [], "excluded_origin_families": [],
+        "query": "Morocco oversight",
+    }
+    observations = [{
+        "observation_class": "LEAD",
+        "url": "https://news.google.com/rss/articles/wrapper",
+        "title": "Oversight notice",
+        "publisher_hint_url": "https://unknown-publisher.example/news",
+        "provenance": {"action_id": "RSS-HINT-UNKNOWN"},
+        "search_result": {"rank": 1, "snippet": "oversight notice"},
+    }]
+    selected = select_leads_for_followup(observations, {"RSS-HINT-UNKNOWN": action}, {"total": 1, "P1_BREADTH": 1})
+    assert len(selected) == 1
+    assert selected[0]["followup_target_url"] == "https://unknown-publisher.example/news"
+    assert selected[0]["followup_resolution_mode"] == "SAFE_PUBLISHER_HINT_NAVIGATION"
+    assert selected[0]["source_identity"]["routing_class"] == "AGGREGATOR"
 
 
 def test_followup_fetch_inspects_rss_leads_within_the_reserved_lead_budget() -> None:

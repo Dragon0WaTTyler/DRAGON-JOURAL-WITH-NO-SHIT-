@@ -247,9 +247,21 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
                 candidate_origin == route_origin
                 or _registrable_domain(candidate_origin) == _registrable_domain(route_origin)
             ))
+            hint_url = str(item.get("publisher_hint_url") or "").strip()
+            hint_origin = (urlsplit(hint_url).hostname or "").casefold() if hint_url else ""
+            hint_safe = bool(hint_url and hint_origin and assess_source_url(hint_url).get("state") != "URL_UNSAFE")
+            hint_route_relation = bool(
+                item_parent.get("route_scoped") and route_origin and hint_origin and
+                (hint_origin == route_origin or _registrable_domain(hint_origin) == _registrable_domain(route_origin)) and hint_safe
+            )
+            # A safe publisher hint is a discovery navigation seed even when
+            # its ownership is not yet resolved.  It never becomes evidence;
+            # the exact fetched page must still pass source-role validation.
+            hint_fetchable = hint_safe and hint_origin not in set(parent.get("excluded_origins", [])) and _registrable_domain(hint_origin) not in set(parent.get("excluded_origin_families", []))
             title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
             if (
-                profile["routing_class"] in {"SOCIAL", "AGGREGATOR"}
+                profile["routing_class"] == "SOCIAL"
+                or (profile["routing_class"] == "AGGREGATOR" and not hint_fetchable)
                 or (profile["routing_class"] == "SOURCE_UNRESOLVED" and not route_relation)
                 or profile.get("origin") in set(parent.get("excluded_origins", []))
                 or profile.get("origin_family") in set(parent.get("excluded_origin_families", []))
@@ -267,6 +279,12 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
                 else:
                     item["lead_attrition_reason"] = "LOW_SOURCE_ROUTING_PRIORITY"
                 continue
+            if profile["routing_class"] == "AGGREGATOR" and hint_fetchable:
+                # A wrapper may be followed only to a publisher hint that is
+                # already within the verified route's domain family.  The
+                # hint is a bounded navigation seed, never an evidence role.
+                item["followup_target_url"] = hint_url
+                item["followup_resolution_mode"] = "VERIFIED_ROUTE_PUBLISHER_HINT_NAVIGATION" if hint_route_relation else "SAFE_PUBLISHER_HINT_NAVIGATION"
             item["lead_attrition_state"] = "SELECTED_FOR_FETCH"
             item["lead_attrition_reason"] = "RESERVED_SEMANTIC_BRANCH_CAPACITY"
             item["_followup_need"] = need
@@ -810,7 +828,7 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     document_type = classify_document_type(raw)
     publisher_aliases = _organization_aliases(
         publisher.get("name"), profile.get("canonical_publisher_name"), profile.get("canonical_domain"),
-        url, (metadata.get("signals") or {}).get("html_title"), raw.get("publisher"),
+        url, raw.get("publisher"),
         *(profile.get("known_aliases") or []),
     )
     # Query entities/targets are retrieval context only.  They must never
@@ -3617,16 +3635,20 @@ def execute_research_round(
             for item in observations if item.get("observation_class") == "LEAD" and item.get("url")
         ]
         lead_followup_selection.extend([
-            {"url": item.get("url"), "priority": item.get("lead_priority"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity")}
+            {"url": item.get("url"), "target_url": item.get("followup_target_url") or item.get("url"), "priority": item.get("lead_priority"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity"), "resolution": item.get("followup_resolution_mode")}
             for item in selected_leads
         ])
         for observation in selected_leads:
             parent = parents[observation["provenance"]["action_id"]]
+            target_url = observation.get("followup_target_url") or observation["url"]
             fetch_action = {
                 **parent,
-                "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", observation["url"]),
+                "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", target_url),
                 "action_type": "FETCH_URL",
-                "target": observation["url"],
+                "target": target_url,
+                "lead_wrapper_url": observation["url"] if target_url != observation["url"] else None,
+                "lead_followup_resolution": observation.get("followup_resolution_mode"),
+                "discovery_only": bool(observation.get("followup_target_url")),
                 "expected_result_type": "EXTRACTED_SOURCE",
                 "timeout_seconds": config["executor"]["action_timeout_seconds"],
                 "lead_followup": True,
@@ -3654,17 +3676,21 @@ def execute_research_round(
             ]
             for observation in additional:
                 parent = parents[observation["provenance"]["action_id"]]
+                target_url = observation.get("followup_target_url") or observation["url"]
                 fetch_action = {
                     **parent,
-                    "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", observation["url"]),
-                    "action_type": "FETCH_URL", "target": observation["url"],
+                    "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", target_url),
+                    "action_type": "FETCH_URL", "target": target_url,
+                    "lead_wrapper_url": observation["url"] if target_url != observation["url"] else None,
+                    "lead_followup_resolution": observation.get("followup_resolution_mode"),
+                    "discovery_only": bool(observation.get("followup_target_url")),
                     "expected_result_type": "EXTRACTED_SOURCE",
                     "timeout_seconds": config["executor"]["action_timeout_seconds"],
                     "lead_followup": True, "channel_fallback": None,
                 }
                 lead_followup_selection.append({
-                    "url": observation.get("url"), "priority": observation.get("lead_priority"),
-                    "need_id": observation.get("_followup_need"), "source_identity": observation.get("source_identity"),
+                    "url": observation.get("url"), "target_url": target_url, "priority": observation.get("lead_priority"),
+                    "need_id": observation.get("_followup_need"), "source_identity": observation.get("source_identity"), "resolution": observation.get("followup_resolution_mode"),
                 })
                 run_action(fetch_action)
                 if state["lead_followups"] >= followup_limits["total"]:
