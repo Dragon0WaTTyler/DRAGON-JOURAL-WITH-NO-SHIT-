@@ -98,6 +98,31 @@ def _json_stage(name: str, prerequisites: tuple[str, ...], runner):
     return StageDefinition(name=name, prerequisites=prerequisites, runner=runner)
 
 
+def _aggregate_research_epoch_execution(execution: dict, epoch1_execution: dict | None) -> dict:
+    """Build the read-only telemetry view across both bounded research epochs.
+
+    The production execution checkpoint remains Epoch 0 for resume/finality
+    compatibility, while yield telemetry must account for any bounded Epoch 1
+    continuation.  This helper changes reporting only; it does not rerun
+    actions, alter budgets, or merge evidence semantics.
+    """
+    if not isinstance(epoch1_execution, dict) or epoch1_execution.get("status") != "EXECUTED":
+        return execution
+    epoch0_jobs = [item for item in execution.get("jobs", []) if isinstance(item, dict)]
+    epoch1_jobs = [item for item in epoch1_execution.get("jobs", []) if isinstance(item, dict)]
+    aggregate = dict(execution)
+    aggregate["jobs"] = [*epoch0_jobs, *epoch1_jobs]
+    aggregate["actions_planned"] = [
+        action for job in aggregate["jobs"] for action in job.get("actions", [])
+        if isinstance(action, dict)
+    ]
+    aggregate["recovery_epochs"] = {
+        "epoch_0": {"jobs": len(epoch0_jobs), "actions": sum(len(job.get("actions", [])) for job in epoch0_jobs)},
+        "epoch_1": {"jobs": len(epoch1_jobs), "actions": sum(len(job.get("actions", [])) for job in epoch1_jobs)},
+    }
+    return aggregate
+
+
 def synthetic_preflight_stage() -> StageDefinition:
     def run(context: StageContext) -> StageResult:
         report = {
@@ -604,13 +629,15 @@ def build_stage_definitions(
         if final_unmapped:
             raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", ", ".join(sorted(final_unmapped)))
         yield_path = context.run_dir / "deep-research" / "yield-report.json"
+        telemetry_execution = _aggregate_research_epoch_execution(execution, epoch1_execution)
         yield_report = build_research_yield_report(
-            execution,
+            telemetry_execution,
             recovery_before=initial_recovery,
             recovery_after=report,
             intelligence_before=initial_intelligence,
             intelligence_after=intelligence,
         )
+        yield_report["recovery_epochs"] = deepcopy(report["recovery_epochs"])
         atomic_write_json(yield_path, yield_report)
         outputs = (*outputs, yield_path)
         issues = validate_recovery_plan(report)

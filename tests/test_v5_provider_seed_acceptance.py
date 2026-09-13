@@ -14,7 +14,7 @@ from dragon.provider_acceptance import (
     build_provider_seed_orchestrator,
 )
 from dragon.deep_research_executor import FixtureResearchAdapter
-from dragon.pipeline import build_stage_definitions
+from dragon.pipeline import _aggregate_research_epoch_execution, build_stage_definitions
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, SECTION_HEADINGS
 from dragon.state import sha256_file
 
@@ -33,6 +33,22 @@ class NoArticleProvider:
     def articles(self, research: dict) -> list[dict]:
         self.article_calls += 1
         raise AssertionError("article provider must not run before post-recovery readiness")
+
+
+def test_yield_telemetry_aggregates_bounded_epoch_one_jobs_without_mutating_checkpoints() -> None:
+    epoch0 = {"status": "EXECUTED", "jobs": [{"job_id": "E0", "actions": [{"action_id": "A0"}]}]}
+    epoch1 = {"status": "EXECUTED", "jobs": [{"job_id": "E1", "actions": [{"action_id": "A1"}, {"action_id": "A2"}]}]}
+
+    aggregate = _aggregate_research_epoch_execution(epoch0, epoch1)
+
+    assert [job["job_id"] for job in aggregate["jobs"]] == ["E0", "E1"]
+    assert [action["action_id"] for action in aggregate["actions_planned"]] == ["A0", "A1", "A2"]
+    assert aggregate["recovery_epochs"] == {
+        "epoch_0": {"jobs": 1, "actions": 1},
+        "epoch_1": {"jobs": 1, "actions": 2},
+    }
+    assert epoch0["jobs"][0]["job_id"] == "E0"
+    assert "actions_planned" not in epoch0
 
 
 def _source(identifier: str, source_type: str, origin: str) -> dict:
