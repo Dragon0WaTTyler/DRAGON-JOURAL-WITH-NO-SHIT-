@@ -567,6 +567,10 @@ def build_deep_research_state(
     executable_needs = [
         deepcopy(need) for need in recovery_plan.get("needs", [])
         if int(need.get("attempt_count", 0)) < int(need.get("max_attempts", 1))
+        or (
+            need.get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+            and int(need.get("pivot_attempt_count", 0)) < 1
+        )
     ]
     executable_need_ids = [str(need.get("need_id") or "") for need in executable_needs]
     if not all(executable_need_ids) or len(set(executable_need_ids)) != len(executable_need_ids):

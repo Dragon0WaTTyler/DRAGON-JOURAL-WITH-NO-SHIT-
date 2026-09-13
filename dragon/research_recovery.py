@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from copy import deepcopy
 
 from dragon.source_coverage import desk_recovery_context
 from dragon.evidence_policy import candidate_evidence_policy
@@ -153,6 +154,31 @@ def build_recovery_plan(
     source_by_id = {item["id"]: item for item in packet.get("sources", [])}
     events = _event_map(intelligence)
     needs: list[dict] = []
+    # Mode-B event bundles are run-scoped research state.  A concrete event
+    # whose evidence contract is terminally blocked remains visible, but the
+    # corresponding semantic need may use a later bounded slot for a distinct
+    # event.  This is not a candidate/evidence shortcut and never creates P0.
+    blocked_by_function: dict[str, list[dict]] = {}
+    pivot_attempts = {
+        str(item.get("need_id")): int(item.get("count", 0))
+        for item in packet.get("semantic_pivot_attempts", [])
+        if isinstance(item, dict) and item.get("need_id")
+    }
+    for bundle in packet.get("event_evidence_bundles", []):
+        if not isinstance(bundle, dict) or bundle.get("state") != "EVENT_EVIDENCE_BLOCKED":
+            continue
+        memory = bundle.get("blocked_event_memory") if isinstance(bundle.get("blocked_event_memory"), dict) else {
+            "event_lead_id": bundle.get("event_lead_id"),
+            "event_fingerprint": bundle.get("event_fingerprint"),
+            "recovery_need_id": bundle.get("recovery_need_id"),
+            "target_editorial_function": bundle.get("target_editorial_function"),
+            "blocker": bundle.get("failure_reason"),
+            "pivot_eligible": True,
+            "normal_recovery_attempted": True,
+        }
+        function = str(memory.get("target_editorial_function") or bundle.get("target_editorial_function") or "").upper()
+        if function and memory.get("pivot_eligible") and memory.get("normal_recovery_attempted"):
+            blocked_by_function.setdefault(function, []).append(deepcopy(memory))
     for section in packet.get("sections", []):
         # A captured or demoted candidate is a research lead, not an active
         # publication commitment.  Creating P0 work for every NO_NEWS lead
@@ -300,7 +326,32 @@ def build_recovery_plan(
                         "expected_evidence_topology": "CLAIM_SENSITIVE_POLICY",
                     },
                 })
+                blocked = blocked_by_function.get(target_function, [])
+                if blocked:
+                    pivot_count = pivot_attempts.get(need_id, 0)
+                    needs[-1].update({
+                        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+                        "blocked_event_memory": blocked,
+                        "blocked_event_fingerprints": [
+                            item for item in blocked
+                            if item.get("event_fingerprint")
+                        ],
+                        "pivot_reason": "CURRENT_EVENT_EVIDENCE_BLOCKED_AFTER_BOUNDED_RECOVERY",
+                        "pivot_attempt_count": pivot_count,
+                    })
             needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
+            if target_function and blocked_by_function.get(target_function):
+                # Keep exclusions in the acquisition plan so all subsequent
+                # strategies avoid reselecting the blocked event.  This is a
+                # retrieval exclusion, never an evidence or source blacklist.
+                needs[-1]["event_acquisition_plan"]["blocked_event_memory"] = deepcopy(blocked_by_function[target_function])
+                existing = list(needs[-1]["event_acquisition_plan"].get("excluded_event_fingerprints", []))
+                seen = {str(item.get("event_fingerprint") or "") for item in existing if isinstance(item, dict)}
+                for item in blocked_by_function[target_function]:
+                    fingerprint = item.get("event_fingerprint")
+                    if fingerprint and str(fingerprint) not in seen:
+                        existing.append({"event_id": item.get("event_lead_id"), "fingerprint": fingerprint, "blocker": item.get("blocker")})
+                needs[-1]["event_acquisition_plan"]["excluded_event_fingerprints"] = existing
     # ``minimum_active_sections`` is the inherited V4 publication-item floor
     # (four leads plus six secondary treatments), not a count of underlying
     # events.  A front lead, a service item and an analysis may legitimately
@@ -324,6 +375,11 @@ def build_recovery_plan(
             name: {"event_ids": sorted(event_ids), "count": len(event_ids)}
             for name, event_ids in function_coverage.items()
         },
+        "blocked_event_memory": [
+            deepcopy(item)
+            for values in blocked_by_function.values()
+            for item in values
+        ],
         "needs": needs,
         "article_generation_allowed": not needs,
     }

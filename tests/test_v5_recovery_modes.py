@@ -1,5 +1,6 @@
-from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton
-from dragon.research_recovery import _breadth_acquisition_plan
+from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton, query_ladder
+from dragon.deep_research_executor import apply_executor_results_to_packet
+from dragon.research_recovery import _breadth_acquisition_plan, build_recovery_plan
 from dragon.investigation_scope import evaluate_super_investigation_scope
 
 
@@ -155,3 +156,99 @@ def test_verified_route_records_health_without_granting_evidence():
     assert obs["route_health"]["route_id"] == "service-route"
     assert obs["route_health"]["status"] == "VERIFIED_WORKING"
     assert obs["verification_status"] != "VALIDATED_EVIDENCE"
+
+
+def test_mode_b_evidence_blocked_event_retains_memory_and_marks_pivot():
+    action = _action(target="ACCOUNTABILITY", need="BREADTH:accountability_and_service:1")
+    blocked = _observation(action, title="Prosecution circular", source_id="blocked-source")
+    blocked["source_class"] = "unknown"
+    blocked["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    blocked["extraction_status"] = "FETCHED"
+    bundles, discoveries = build_event_bundles([blocked], [], [], [action])
+    assert not discoveries
+    assert bundles[0]["state"] == "EVENT_EVIDENCE_BLOCKED"
+    memory = bundles[0]["blocked_event_memory"]
+    assert memory["blocker"] == "MISSING_PRIMARY"
+    assert memory["pivot_eligible"] is True
+    packet = {"edition_date": "2026-09-13", "sources": [], "sections": [], "event_evidence_bundles": bundles}
+    packet["sections"] = [
+        {"section_id": "investigations", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+        {"section_id": "opinion", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+        {"section_id": "service", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+    ]
+    coverage = {
+        "research_semantics": {"allow_open_discovery": True},
+        "sources": [{"source_id": sid, "name": sid, "url": f"https://{sid}.example", "origin": f"{sid}.example", "role": "PRIMARY", "enabled": True, "authority_class": "PUBLIC", "discovery_only": True, "primary_capable": True, "independent_reporting_capable": False} for sid in ("investigations", "opinion", "service")],
+        "desks": [{"section_id": sid, "source_ids": [sid], "coverage_status": "PARTIAL", "recovery_focus": ["fixture"]} for sid in ("investigations", "opinion", "service")],
+    }
+    plan = build_recovery_plan(packet, {"event_clusters": [], "source_records": []}, coverage, {"coverage_rules": [{"id": "accountability_and_service", "sections": ["investigations", "opinion", "service"], "minimum_active": 2}]})
+    pivot_need = next(item for item in plan["needs"] if item.get("target_editorial_function") == "ACCOUNTABILITY")
+    assert pivot_need["pivot_mode"] == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+    assert pivot_need["blocked_event_memory"][0]["event_fingerprint"] == "EVENT-1"
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1", "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY", "query_context": {"research_date": "2026-09-13"},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY", "excluded_event_fingerprints": []},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED", "blocked_event_memory": [memory],
+    }
+    ladder = query_ladder({"lead": {"event_entities": []}}, need)
+    assert ladder[0]["variant"] == "ALTERNATIVE_ROUTE_SCOPED_ARTIFACT"
+    assert "ALTERNATIVE_" in ladder[0]["intent"]
+
+
+def test_mode_b_alternative_event_gets_new_bundle_without_evidence_transfer():
+    action_a = _action(target="ACCOUNTABILITY", need="N-ALT", job="A")
+    action_b = _action(target="ACCOUNTABILITY", need="N-ALT", job="B")
+    event_a = _observation(action_a, title="Prosecution circular", fingerprint="EVENT-A", source_id="A")
+    event_a["source_class"] = "unknown"
+    event_a["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    event_a["extraction_status"] = "FETCHED"
+    event_b = _observation(action_b, title="Regulator directive adopts election integrity rules", fingerprint="EVENT-B", source_id="B", action_text="adopts", obj="election integrity rules")
+    event_b["observation_id"] = "OBS-B"
+    event_b["event_skeleton"]["actor"] = "Regulatory Council"
+    event_b["event_skeleton"]["topic"] = "Regulator directive adopts election integrity rules"
+    event_b["article_metadata"] = {"publisher": {"name": "Regulatory Council"}}
+    bundles, discoveries = build_event_bundles(
+        [event_a, event_b], [], [_source("B")], [action_a, action_b],
+    )
+    assert len(bundles) == 2
+    blocked = next(item for item in bundles if item["event_fingerprint"] == "EVENT-A")
+    alternative = next(item for item in bundles if item["event_fingerprint"] == "EVENT-B")
+    assert blocked["state"] == "EVENT_EVIDENCE_BLOCKED"
+    assert alternative["state"] == "EVENT_VALIDATED"
+    assert alternative["candidate_discovery"]
+    assert blocked["evidence_ids"] == []
+    assert alternative["evidence_ids"] == ["B"]
+    assert blocked["event_lead_id"] != alternative["event_lead_id"]
+    assert all(item["event_id"] == alternative["event_lead_id"] for item in discoveries)
+
+
+def test_mode_b_service_pivot_validates_first_party_operational_event():
+    action_a = _action(target="SERVICE", need="N-SVC", job="SA")
+    action_b = _action(target="SERVICE", need="N-SVC", job="SB")
+    blocked = _observation(action_a, title="Portal republication of service notice", fingerprint="SERVICE-A", source_id="SA")
+    blocked["source_class"] = "unknown"
+    blocked["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    blocked["extraction_status"] = "FETCHED"
+    alternative = _observation(action_b, title="Ministry opens registration deadline", fingerprint="SERVICE-B", source_id="SB", action_text="opens registration", obj="applications")
+    alternative["observation_id"] = "OBS-SB"
+    alternative["event_skeleton"]["actor"] = "Ministry of Public Service"
+    alternative["event_skeleton"]["topic"] = "Ministry opens registration deadline"
+    alternative["event_skeleton"]["lead_paragraphs"] = "Ministry opens registration for eligible applicants through the deadline on 2026-09-22 with access instructions. " * 3
+    alternative["article_metadata"] = {"publisher": {"name": "Ministry of Public Service"}}
+    bundles, discoveries = build_event_bundles([blocked, alternative], [], [_source("SB")], [action_a, action_b])
+    assert len(bundles) == 2
+    winner = next(item for item in bundles if item["event_fingerprint"] == "SERVICE-B")
+    assert winner["state"] == "EVENT_VALIDATED"
+    assert any(item["function"] == "SERVICE" for item in winner["editorial_functions"])
+    assert discoveries and discoveries[0]["event_id"] == winner["event_lead_id"]
+
+
+def test_epoch_alternative_bundle_merge_preserves_blocked_event_memory():
+    blocked = {"event_lead_id": "EVENT-A", "state": "EVENT_EVIDENCE_BLOCKED", "event_fingerprint": "A", "blocked_event_memory": {"pivot_eligible": True}}
+    alternative = {"event_lead_id": "EVENT-B", "state": "EVENT_VALIDATED", "event_fingerprint": "B"}
+    packet = {"sources": [], "sections": [], "event_evidence_bundles": [blocked]}
+    execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [alternative], "semantic_pivot_attempts": []}}
+    merged = apply_executor_results_to_packet(packet, execution)
+    assert {item["event_lead_id"] for item in merged["event_evidence_bundles"]} == {"EVENT-A", "EVENT-B"}
+    assert next(item for item in merged["event_evidence_bundles"] if item["event_lead_id"] == "EVENT-A")["state"] == "EVENT_EVIDENCE_BLOCKED"

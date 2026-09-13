@@ -669,6 +669,32 @@ def _recovery_event_id(need_id: object, target_function: object, skeleton: dict)
     return _stable_id("EVTREC", need_id, target_function, fingerprint)
 
 
+def _mark_semantic_event_blocked(bundle: dict, reason: str, policy: dict | None = None) -> None:
+    """Retain a concrete Mode-B event while recording its terminal evidence blocker.
+
+    This is deliberately bookkeeping only.  A blocked event is never promoted,
+    never creates P0 work, and never lends evidence to a later alternative.
+    The memory is run-scoped and lets the same semantic need spend a later
+    bounded slot on a different event instead of retrying the same dead end.
+    """
+    if not bundle.get("new_recovery_event") or not bundle.get("observations"):
+        return
+    bundle.update(state="EVENT_EVIDENCE_BLOCKED", failure_reason=reason)
+    bundle["evidence_policy"] = deepcopy(policy or bundle.get("evidence_policy") or {})
+    bundle["blocked_event_memory"] = {
+        "event_lead_id": bundle.get("event_lead_id"),
+        "event_fingerprint": bundle.get("event_fingerprint"),
+        "recovery_need_id": bundle.get("recovery_need_id"),
+        "target_editorial_function": bundle.get("target_editorial_function"),
+        "blocker": reason,
+        "evidence_ids": list(bundle.get("evidence_ids") or []),
+        "source_ids": list(bundle.get("sources") or []),
+        "attempted_observation_ids": list(bundle.get("observations") or []),
+        "pivot_eligible": True,
+        "normal_recovery_attempted": True,
+    }
+
+
 _ROLE_STOP_WORDS = _EVENT_IDENTITY_STOP_WORDS | {
     "official", "institutional", "portal", "institution", "international", "national", "commission",
 }
@@ -926,6 +952,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
     target_section = _breadth_target_section(need)
     target_function = str(plan.get("target_editorial_function") or need.get("target_editorial_function") or "")
     if target_function:
+        pivot_mode = str(need.get("pivot_mode") or "") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
         # Function-first acquisition never puts a desk label in the query.
         # The configured desk remains only a placement route after validation.
         terms = (
@@ -936,6 +963,18 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
         alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
+        if pivot_mode:
+            pivot_terms = (
+                ("قرار هيئة تنظيمية رقابة امتثال إنفاذ تتبع" if primary_language == "ar" else
+                 "regulator decision oversight compliance enforcement monitoring" if primary_language == "en" else
+                 "décision régulateur contrôle conformité exécution suivi")
+                if target_function == "ACCOUNTABILITY" else
+                ("خدمة عمومية منصة تشغيلية إجراء مهلة تسجيل ولوج" if primary_language == "ar" else
+                 "official public service operational platform procedure deadline registration access" if primary_language == "en" else
+                 "service public plateforme opérationnelle procédure délai inscription accès")
+            )
+            base_terms = f"{base_terms} {pivot_terms}"
+            alternate_terms = f"{alternate_terms} {pivot_terms}"
         base = " ".join(item for item in (geography, base_terms, month) if item)
         alternate = " ".join(item for item in (geography, alternate_terms, month) if item)
         route_candidates = [
@@ -979,6 +1018,8 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             "ar": terms[0], "en": terms[1], "fr": terms[2],
         }
         route_base_terms = language_terms.get(route_language, base_terms)
+        if pivot_mode:
+            route_base_terms = f"{route_base_terms} {pivot_terms}"
         route_temporal = {
             "ar": "نشط مستمر سبتمبر 2026",
             "fr": "actif en cours septembre 2026",
@@ -988,7 +1029,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         route_query = " ".join(item for item in (f"site:{route_origin}" if route_origin else "", route_terms) if item)
         strategies = [
             {
-                "intent": f"FUNCTION_{target_function}_VERIFIED_ROUTE_ARTIFACT", "variant": "ROUTE_SCOPED_ARTIFACT",
+                "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_VERIFIED_ROUTE_ARTIFACT", "variant": "ALTERNATIVE_ROUTE_SCOPED_ARTIFACT" if pivot_mode else "ROUTE_SCOPED_ARTIFACT",
                 "query": route_query or base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
                 "language": primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function, "source_route": canonical_route,
@@ -996,14 +1037,14 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "route_search_objective": "ACTIVE_WINDOW_ARTIFACT" if target_function == "SERVICE" else "CURRENT_FUNCTION_ARTIFACT",
             },
             {
-                "intent": f"FUNCTION_{target_function}_PRIMARY_WINDOW", "variant": "FUNCTION_DATE",
+                "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_PRIMARY_WINDOW", "variant": "ALTERNATIVE_FUNCTION_DATE" if pivot_mode else "FUNCTION_DATE",
                 "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
                 "language": primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function,
                 "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             },
             {
-                "intent": f"FUNCTION_{target_function}_CANONICAL_INSTITUTION", "variant": "CANONICAL_NAVIGATION",
+                "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_CANONICAL_INSTITUTION", "variant": "ALTERNATIVE_CANONICAL_NAVIGATION" if pivot_mode else "CANONICAL_NAVIGATION",
                 "query": " ".join(item for item in (route_base_terms if canonical_route else base_terms, "current notices decisions") if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE" if canonical_route else "SEARCH_DISCOVERY",
                 "target": canonical_route.get("url") if canonical_route else None,
@@ -1014,7 +1055,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "source_route": canonical_route,
             },
             {
-                "intent": f"FUNCTION_{target_function}_ALTERNATE_LANGUAGE", "variant": "FUNCTION_ALTERNATE",
+                "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_ALTERNATE_LANGUAGE", "variant": "ALTERNATIVE_FUNCTION" if pivot_mode else "FUNCTION_ALTERNATE",
                 "query": alternate, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"],
                 "language": alternate_language or primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function,
@@ -1289,6 +1330,8 @@ def create_research_action(
             "science_strict": job["regime"] == "SCIENCE",
         },
         "recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
+        "pivot_mode": (recovery_need or {}).get("pivot_mode"),
+        "blocked_event_memory": deepcopy((recovery_need or {}).get("blocked_event_memory") or []),
         # Recovery mode is explicit: breadth/function needs without an
         # existing event discover a new root; candidate evidence needs
         # corroborate an existing event lead.
@@ -1311,6 +1354,10 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
         (
             item for item in job.get("recovery_needs", [])
             if item.get("attempt_count", 0) < item.get("max_attempts", 1)
+            or (
+                item.get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+                and int(item.get("pivot_attempt_count", 0)) < 1
+            )
         ),
         key=lambda item: (PRIORITY_ORDER[recovery_priority(item)], str(item.get("need_id"))),
     )
@@ -2325,6 +2372,7 @@ def build_event_bundles(
     def add_lead(lead: dict) -> dict:
         skeleton = lead.get("event_skeleton") if isinstance(lead.get("event_skeleton"), dict) else {}
         lead_id = str(lead["event_lead_id"])
+        semantic_mode = str(lead.get("recovery_mode") or "") == "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED" or bool(lead.get("target_editorial_function")) and str(lead.get("recovery_need_id") or "").startswith("BREADTH:")
         for bundle in bundles:
             match = match_event_skeletons(bundle["event_skeleton"], skeleton)
             if match["state"] == "SAME_EVENT_HIGH_CONFIDENCE":
@@ -2333,12 +2381,15 @@ def build_event_bundles(
                 return bundle
         bundle = {
             "schema_version": 1, "event_lead_id": lead_id, "merged_event_lead_ids": [lead_id],
-            "state": "EVENT_LEAD_DISCOVERY_ONLY", "event_fingerprint": skeleton.get("event_fingerprint"),
+            "state": "EVENT_LEAD_DISCOVERY_ONLY", "event_lead_state": "NEW_RECOVERY_EVENT_LEAD" if semantic_mode else "EVENT_LEAD_DISCOVERY_ONLY",
+            "event_fingerprint": skeleton.get("event_fingerprint"),
             "event_skeleton": deepcopy(skeleton), "recovery_need_id": lead.get("recovery_need_id"),
             "desk": lead.get("desk"), "observations": [], "sources": [], "source_roles": [],
             "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
             "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
-            "provenance_edges": [],
+            "provenance_edges": [], "blocked_event_memory": None,
+            "recovery_mode": lead.get("recovery_mode"), "target_editorial_function": lead.get("target_editorial_function"),
+            "new_recovery_event": semantic_mode,
         }
         bundles.append(bundle)
         return bundle
@@ -2389,7 +2440,7 @@ def build_event_bundles(
                 "source_roles": [], "publisher_families": [], "evidence_ids": [],
                 "claims": [], "contradictions": [], "unresolved_origin_issues": [],
                 "matches": [], "candidate_discovery": None, "provenance_edges": [],
-                "new_recovery_event": True,
+                "new_recovery_event": True, "blocked_event_memory": None,
             }
             bundles.append(bundle)
             match = {"state": "DIFFERENT_EVENT", "reasons": ["NEW_NEED_SCOPED_EVENT"]}
@@ -2447,16 +2498,23 @@ def build_event_bundles(
         policy = candidate_evidence_policy(candidate, sources, section_id=bundle.get("desk"))
         actual = {item["role"] for item in bundle["source_roles"]}
         if not bundle["evidence_ids"]:
-            bundle.update(state="EVENT_LEAD_DISCOVERY_ONLY", failure_reason="MISSING_PRIMARY" if "PRIMARY" in policy["required_roles"] else "MISSING_INDEPENDENT", evidence_policy=policy)
+            missing_reason = "MISSING_PRIMARY" if "PRIMARY" in policy["required_roles"] else "MISSING_INDEPENDENT"
+            _mark_semantic_event_blocked(bundle, missing_reason, policy)
+            if bundle.get("state") != "EVENT_EVIDENCE_BLOCKED":
+                bundle.update(state="EVENT_LEAD_DISCOVERY_ONLY", failure_reason=missing_reason, evidence_policy=policy)
             continue
         if not set(policy["required_roles"]) <= actual:
             missing = "MISSING_PRIMARY" if "PRIMARY" in policy["required_roles"] and "PRIMARY" not in actual else "MISSING_INDEPENDENT"
-            bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason=missing, evidence_policy=policy)
+            _mark_semantic_event_blocked(bundle, missing, policy)
+            if bundle.get("state") != "EVENT_EVIDENCE_BLOCKED":
+                bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason=missing, evidence_policy=policy)
             continue
         primary_families = {item["publisher_family"] for item in bundle["source_roles"] if item["role"] == "PRIMARY"}
         independent_families = {item["publisher_family"] for item in bundle["source_roles"] if item["role"] == "INDEPENDENT"}
         if primary_families & independent_families:
-            bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason="SOURCE_ORIGIN_UNRESOLVED", evidence_policy=policy)
+            _mark_semantic_event_blocked(bundle, "SOURCE_ORIGIN_UNRESOLVED", policy)
+            if bundle.get("state") != "EVENT_EVIDENCE_BLOCKED":
+                bundle.update(state="EVENT_EVIDENCE_PARTIAL", failure_reason="SOURCE_ORIGIN_UNRESOLVED", evidence_policy=policy)
             continue
         action = actions_by_need.get(str(bundle.get("recovery_need_id") or ""), {})
         synthetic = {"title": candidate["title"], "claim": candidate["title"], "extracted_text": bundle["event_skeleton"].get("lead_paragraphs"), "published_at": bundle["event_skeleton"].get("published_at")}
@@ -2856,6 +2914,7 @@ def build_research_yield_report(
         "concrete_events_extracted": sum((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT" for item in observations),
         "new_unverified_event_leads": sum(item.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY" for item in observations),
         "alternative_coverage_searches_triggered": sum(item.get("query_intent") == "EVENT_LEAD_ALTERNATIVE_COVERAGE" for item in actions),
+        "semantic_pivot_actions": sum(str(item.get("pivot_mode") or "") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED" for item in actions),
         "starting_event_leads": sum(len(job.get("source_packet_patch", {}).get("event_leads", [])) for job in jobs if isinstance(job, dict)),
         "observations_attached_to_event_leads": sum(len(item.get("observations", [])) for item in event_bundles),
         "unattached_event_observations": sum(
@@ -2874,6 +2933,8 @@ def build_research_yield_report(
         "evidence_bundles_created": len(event_bundles),
         "new_recovery_event_roots": sum(bool(item.get("new_recovery_event")) for item in event_bundles),
         "partial_event_bundles": sum(item.get("state") == "EVENT_EVIDENCE_PARTIAL" for item in event_bundles),
+        "blocked_event_bundles": sum(item.get("state") == "EVENT_EVIDENCE_BLOCKED" for item in event_bundles),
+        "pivot_eligible_blocked_events": sum(bool((item.get("blocked_event_memory") or {}).get("pivot_eligible")) for item in event_bundles),
         "complete_event_bundles": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
         "validated_events": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
         "contradicted_events": sum(item.get("state") == "EVENT_CONTRADICTED" for item in event_bundles),
@@ -3177,6 +3238,9 @@ def execute_research_round(
                     "state": "EVENT_LEAD_DISCOVERY_ONLY",
                     "observation_id": observation["observation_id"],
                     "recovery_need_id": action.get("recovery_need_id"),
+                    "recovery_mode": action.get("recovery_mode"),
+                    "target_editorial_function": action.get("target_editorial_function") or action.get("event_acquisition_plan", {}).get("target_editorial_function"),
+                    "event_lead_state": "NEW_RECOVERY_EVENT_LEAD" if action.get("recovery_mode") == "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED" else "EVENT_LEAD_DISCOVERY_ONLY",
                     "desk": action.get("desk"),
                     "url": observation.get("url"),
                     "publisher_resolution": observation.get("source_resolution_state") or "PUBLISHER_UNRESOLVED",
@@ -3386,6 +3450,7 @@ def execute_research_round(
                 "url": next((item.get("url") for item in observations if item.get("observation_id") in bundle.get("observations", [])), None),
                 "event_skeleton": deepcopy(skeleton),
                 "publication_evidence": False,
+                "blocked_event_memory": deepcopy(bundle.get("blocked_event_memory")),
                 "cannot_close_breadth": True,
             })
     candidate_discoveries.extend(bundle_discoveries)
@@ -3411,6 +3476,11 @@ def execute_research_round(
         for need in job.get("recovery_needs", [])
         if need.get("target_editorial_function")
     }
+    pivot_attempts = sorted({
+        str(action.get("recovery_need_id"))
+        for action in executed
+        if action.get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED" and action.get("recovery_need_id")
+    })
     return {
         "schema_version": 1,
         "status": "EXECUTED",
@@ -3423,6 +3493,7 @@ def execute_research_round(
             "candidate_discoveries": candidate_discoveries,
             "event_leads": event_leads,
             "event_bundles": event_bundles,
+            "semantic_pivot_attempts": [{"need_id": need_id, "count": 1} for need_id in pivot_attempts],
         },
         "observation_snapshot": build_observation_snapshot(executed, observations, event_bundles),
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
@@ -3489,7 +3560,30 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
     # Persist explicit run-scoped bundle diagnostics separately from sources.
     # These entries are research provenance, never a production evidence cache.
     if execution["source_packet_patch"].get("event_bundles"):
-        value["event_evidence_bundles"] = deepcopy(execution["source_packet_patch"]["event_bundles"])
+        # Event bundles are run-scoped research memory.  Epoch-1/alternative
+        # work must not erase a blocked Event A when it creates Event B.
+        existing_bundles = {
+            str(item.get("event_lead_id")): deepcopy(item)
+            for item in value.get("event_evidence_bundles", [])
+            if isinstance(item, dict) and item.get("event_lead_id")
+        }
+        for bundle in execution["source_packet_patch"]["event_bundles"]:
+            if isinstance(bundle, dict) and bundle.get("event_lead_id"):
+                existing_bundles[str(bundle["event_lead_id"])] = deepcopy(bundle)
+        value["event_evidence_bundles"] = [existing_bundles[key] for key in sorted(existing_bundles)]
+    if execution["source_packet_patch"].get("semantic_pivot_attempts"):
+        counts = {
+            str(item.get("need_id")): int(item.get("count", 0))
+            for item in value.get("semantic_pivot_attempts", [])
+            if isinstance(item, dict) and item.get("need_id")
+        }
+        for item in execution["source_packet_patch"]["semantic_pivot_attempts"]:
+            if isinstance(item, dict) and item.get("need_id"):
+                key = str(item["need_id"])
+                counts[key] = min(1, counts.get(key, 0) + int(item.get("count", 0)))
+        value["semantic_pivot_attempts"] = [
+            {"need_id": key, "count": counts[key]} for key in sorted(counts)
+        ]
     for update in execution["source_packet_patch"]["candidate_evidence_updates"]:
         for section in value.get("sections", []):
             for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:

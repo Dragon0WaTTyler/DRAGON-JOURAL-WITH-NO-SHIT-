@@ -499,6 +499,14 @@ def build_stage_definitions(
                         lead for item in execution.get("jobs", [])
                         for lead in item.get("source_packet_patch", {}).get("event_leads", [])
                     ],
+                    "event_bundles": [
+                        bundle for item in execution.get("jobs", [])
+                        for bundle in item.get("source_packet_patch", {}).get("event_bundles", [])
+                    ],
+                    "semantic_pivot_attempts": [
+                        attempt for item in execution.get("jobs", [])
+                        for attempt in item.get("source_packet_patch", {}).get("semantic_pivot_attempts", [])
+                    ],
                 },
                 "recovery_attempts": [
                     need_id for item in execution.get("jobs", [])
@@ -567,7 +575,7 @@ def build_stage_definitions(
                 second_combined = {
                     "source_packet_patch": {
                         key: [value for item in epoch1_execution["jobs"] for value in item.get("source_packet_patch", {}).get(key, [])]
-                        for key in ("sources", "candidate_evidence_updates", "candidate_discoveries", "event_leads")
+                        for key in ("sources", "candidate_evidence_updates", "candidate_discoveries", "event_leads", "event_bundles", "semantic_pivot_attempts")
                     }
                 }
                 packet = apply_executor_results_to_packet(packet, second_combined)
