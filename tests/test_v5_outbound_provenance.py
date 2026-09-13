@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
-from dragon.deep_research_executor import _actor_first_query, execute_research_round
+from dragon.deep_research_executor import _actor_first_query, _select_actor_first_candidate, execute_research_round
 from dragon.discovery import assess_source_url
 from dragon.institutional_navigation import (
     classify_outbound_link, detect_official_portal_republication,
@@ -27,6 +27,19 @@ def test_actor_first_query_adds_observed_function_signals_without_mutating_event
     assert "Public Prosecution" in query
     assert "monitoring" in query and "integrity" in query
     assert skeleton["action"] == "close"
+
+
+def test_actor_first_candidate_can_fetch_unresolved_concrete_result_without_upgrading_role() -> None:
+    selected = _select_actor_first_candidate(
+        [
+            {"url": "https://news.example/item", "title": "Public Prosecution issues monitoring directive", "snippet": "complaints and enforcement during elections", "source_class": "unknown"},
+            {"url": "https://news.example/generic", "title": "Election conference", "snippet": "Public institutions meet", "source_class": "unknown"},
+        ],
+        "Public Prosecution",
+        {"target_editorial_function": "ACCOUNTABILITY"},
+    )
+    assert selected and selected["url"].endswith("/item")
+    assert selected["source_class"] == "unknown"
 
 
 def test_service_link_is_classified_without_becoming_evidence() -> None:

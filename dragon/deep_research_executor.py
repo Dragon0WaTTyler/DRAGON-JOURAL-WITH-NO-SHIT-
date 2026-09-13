@@ -164,6 +164,41 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     return " ".join(dict.fromkeys(item for item in parts if item)).strip()
 
 
+def _select_actor_first_candidate(items: list[dict], actor: str, action: dict) -> dict | None:
+    """Choose one bounded actor/action result for exact-page retrieval.
+
+    Search results are discovery metadata only.  This helper may prioritize a
+    concrete result whose title/snippet names the observed actor and action,
+    even when the adapter has not yet resolved its source class.  The fetched
+    page still passes the normal ownership, claim, and evidence-role gates.
+    """
+    target = str(action.get("target_editorial_function") or "").upper()
+    terms = {
+        "ACCOUNTABILITY": ("directive", "monitoring", "complaints", "enforcement", "oversight", "integrity", "probity", "مراقبة", "شكايات", "نزاهة"),
+        "SERVICE": ("service", "procedure", "deadline", "registration", "access", "polling", "notice", "منصة", "إجراء", "تسجيل", "إشعار"),
+    }.get(target, ())
+    actor_text = str(actor or "").casefold().strip()
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
+    route_origin = _route_search_origin(route)
+    scored: list[tuple[int, str, dict]] = []
+    for item in items:
+        if not isinstance(item, dict) or item.get("observation_class") in {"DUPLICATE", "IRRELEVANT", "DEAD_END"}:
+            continue
+        url = str(item.get("url") or item.get("canonical_url") or "").strip()
+        host = (urlsplit(url).hostname or "").casefold().strip(".")
+        haystack = " ".join(str(item.get(key) or "") for key in ("title", "snippet", "claim")).casefold()
+        actor_hit = bool(actor_text and actor_text in haystack)
+        action_hits = sum(1 for term in terms if term.casefold() in haystack)
+        supplied = str(item.get("source_class") or item.get("source_type") or "").casefold()
+        official_hint = supplied in {"official", "primary", "paper"} or host.endswith(".gov") or host.endswith(".gov.ma")
+        route_hint = bool(route_origin and (host == route_origin or host.endswith(f".{route_origin}")))
+        if not (official_hint or (actor_hit and action_hits >= 1)):
+            continue
+        score = (100 if official_hint else 0) + (25 if route_hint else 0) + (20 if actor_hit else 0) + min(action_hits, 4) * 8
+        scored.append((score, url, item))
+    return max(scored, key=lambda value: (value[0], value[1]))[2] if scored else None
+
+
 def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tuple]:
     """Categorical fetch priority, not a journalism-confidence score."""
     result = observation.get("search_result", {}) if isinstance(observation.get("search_result"), dict) else {}
@@ -3561,7 +3596,7 @@ def execute_research_round(
                             before = len(observations)
                             run_action(search_action)
                             new_items = [item for item in observations[before:] if item.get("url") and item.get("observation_id") != observation.get("observation_id")]
-                            exact = next((item for item in new_items if (item.get("source_class") or "").lower() in {"official", "primary"} or str(item.get("url", "")).lower().find(".gov") >= 0), None)
+                            exact = _select_actor_first_candidate(new_items, str(actor.get("name") or ""), search_action)
                             if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
                                 actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED", "after_official_link": selected.get("url")})
                                 run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
@@ -3588,7 +3623,7 @@ def execute_research_round(
                         before = len(observations)
                         run_action(search_action)
                         new_items = [item for item in observations[before:] if item.get("url") and item.get("observation_id") != observation.get("observation_id")]
-                        exact = next((item for item in new_items if (item.get("source_class") or "").lower() in {"official", "primary"} or str(item.get("url", "")).lower().find(".gov") >= 0), None)
+                        exact = _select_actor_first_candidate(new_items, str(actor.get("name") or ""), search_action)
                         if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
                             actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED"})
                             run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
