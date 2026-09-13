@@ -66,6 +66,21 @@ def test_listing_child_links_rank_semantic_first_party_and_bound_depth() -> None
     assert len(links) <= 8
 
 
+def test_listing_child_ranking_does_not_leak_parent_body_signals_into_navigation_links() -> None:
+    raw = {
+        "url": "https://portal.gov.ma/news", "canonical_url": "https://portal.gov.ma/news",
+        "title": "Current notices",
+        # These words describe a neighboring item, not every child link.
+        "text": "The ministry announced a registration deadline and active public-service procedure.",
+        "links": [
+            {"url": "https://portal.gov.ma/contact", "text": "Call us"},
+            {"url": "https://portal.gov.ma/news/polling-notice-2026-09-22", "text": "Polling-station notice through 22 September 2026"},
+        ],
+    }
+    selected = extract_listing_child_links(raw, semantic_target="SERVICE", edition_date="2026-09-13", maximum=1)
+    assert selected and selected[0]["url"].endswith("polling-notice-2026-09-22")
+
+
 def test_listing_without_detail_is_not_evidence() -> None:
     raw = {"url": "https://agency.gov.ma/", "title": "Current notices", "text": "No links are available."}
     assert extract_listing_child_links(raw, semantic_target="SERVICE", edition_date="2026-09-13") == []

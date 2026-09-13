@@ -373,22 +373,26 @@ def extract_listing_child_links(raw: dict, *, semantic_target: str | None, editi
     parent_host = urlsplit(parent).hostname or ""
     target = str(semantic_target or "").upper()
     markers = _ACCOUNTABILITY_MARKERS if target == "ACCOUNTABILITY" else _SERVICE_MARKERS if target == "SERVICE" else _INSTITUTION_MARKERS
-    full_text = str(raw.get("text") or raw.get("extracted_text") or "")
     candidates = []
     for url, label in _link_items(raw):
         host = urlsplit(url).hostname or ""
         path = urlsplit(url).path.casefold()
         if url == parent or label.casefold() in _NAVIGATION_NOISE or path in {"", "/"}:
             continue
-        haystack = f"{label} {url} {full_text}".casefold()
+        # Score the link's own label/path only.  Reusing the entire listing
+        # body here makes every navigation link inherit unrelated semantic and
+        # date markers from neighboring stories (for example, a "call us"
+        # page can outrank a real service notice).  Parent-page context remains
+        # discovery metadata, never a fact about each child artifact.
+        haystack = f"{label} {url}".casefold()
         score = 0
         reasons = []
         overlap = sum(marker.casefold() in haystack for marker in markers)
         if overlap:
             score += min(6, overlap * 2); reasons.append("SEMANTIC_FUNCTION_MATCH")
-        if re.search(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+[A-Za-zÀ-ÿ]+\s+\d{4}", label + " " + full_text):
+        if re.search(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+[A-Za-zÀ-ÿ]+\s+\d{4}", label):
             score += 2; reasons.append("DATE_SIGNAL")
-        if edition_date and str(edition_date)[:7] in (label + " " + full_text):
+        if edition_date and str(edition_date)[:7] in label:
             score += 2; reasons.append("EDITION_WINDOW_SIGNAL")
         if host == parent_host:
             score += 2; reasons.append("FIRST_PARTY_HOST")

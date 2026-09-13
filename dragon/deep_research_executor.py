@@ -76,6 +76,22 @@ def _registrable_domain(origin: str | None) -> str | None:
     return ".".join(labels[-2:]) if len(labels) >= 2 else origin.casefold()
 
 
+def _route_search_origin(route: dict | None) -> str:
+    """Return the canonical host used for bounded domain-scoped discovery.
+
+    Source configuration may retain a ``www`` presentation host while the
+    verified route itself is served from the apex domain (or vice versa).
+    Discovery should constrain to the same public domain family without
+    treating this normalization as an ownership or evidence decision.
+    """
+    if not isinstance(route, dict):
+        return ""
+    raw = str(route.get("origin") or "").strip().casefold().strip(".")
+    if not raw:
+        raw = (urlsplit(str(route.get("url") or "")).hostname or "").casefold().strip(".")
+    return raw[4:] if raw.startswith("www.") else raw
+
+
 def _lead_source_profile(url: str | None, title: str, snippet: str = "", *, semantic_target: str | None = None) -> dict:
     """Classify cheap, deterministic routing signals before an expensive fetch.
 
@@ -1153,9 +1169,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         # route is a retrieval seed only; it cannot populate observed facts or
         # confer an evidence role on any returned page.
         canonical_route = route_candidates[0] if route_candidates else None
-        route_origin = ""
-        if canonical_route:
-            route_origin = str(canonical_route.get("origin") or urlsplit(str(canonical_route.get("url") or "")).hostname or "").strip()
+        route_origin = _route_search_origin(canonical_route)
         route_languages = set(canonical_route.get("supported_languages") or []) if canonical_route else set()
         route_language = next((lang for lang in (primary_language, alternate_language, "en") if lang and lang in route_languages), primary_language)
         language_terms = {

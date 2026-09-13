@@ -108,6 +108,26 @@ def test_function_breadth_uses_bounded_verified_route_search_without_budget_grow
     assert "active" in route["query"] and "deadline" in route["query"]
 
 
+def test_route_scoped_query_normalizes_www_presentation_host_to_route_domain() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {
+            "configured_source_routes": [{
+                "route_id": "portal-news", "url": "https://maroc.ma/en/news", "origin": "www.maroc.ma",
+                "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY",
+                "name": "National portal", "authority_class": "NATIONAL_PORTAL",
+            }],
+        },
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategy = _breadth_event_queries(_job(desk="service"), need, month="2026-09", primary_language="en", alternate_language="fr", route=None)[0]
+    assert strategy["query"].startswith("site:maroc.ma ")
+    assert "site:www.maroc.ma" not in strategy["query"]
+
+
 def test_route_scoped_search_context_does_not_grant_evidence_role() -> None:
     action = {
         "action_id": "ROUTE-SEARCH", "question_id": "Q", "branch_id": "B",
