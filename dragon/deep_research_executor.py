@@ -442,6 +442,7 @@ _EVENT_ACTION_MARKERS = (
     "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected", "register", "registers", "registered", "registration", "inspect", "inspects", "inspected", "monitor", "monitors", "monitored", "enforce", "enforces", "enforced", "deadline", "expires", "expire", "change", "changes", "changed", "suspend", "suspends", "suspended",
     "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "orders", "order", "directive", "circular", "monitoring", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
     "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
+    "دعا", "دعت", "يدعو", "تدعو", "توجيهات", "التصدي", "تتبع", "مواكبة", "بلاغ",
 )
 _EVENT_GEOGRAPHIES = (
     "morocco", "meknes", "sudan", "gaza", "palestine", "israel", "west bank", "ceuta", "spain", "hong kong", "africa",
@@ -532,6 +533,14 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     marker_words = _query_words([action_marker])
     action_index = next((index for index, word in enumerate(words) if word in marker_words), min(len(words), 6))
     actor = " ".join(words[:action_index]).strip() or None
+    # Prefer a named institutional actor explicitly present in the page title
+    # (page-derived attribution only; never query or recovery context).
+    observed_actors = extract_actor_attributions(raw).get("actors", [])
+    title_prefix = title.casefold()[:220]
+    for candidate in observed_actors:
+        if any(str(alias).casefold() in title_prefix for alias in (candidate.get("aliases") or [])):
+            actor = candidate.get("name") or actor
+            break
     object_terms = " ".join(words[action_index + 1: action_index + 8]).strip() or None
     # Geography is an observed page fact.  Target geography in the query or
     # recovery need is never copied into the event skeleton.
@@ -748,7 +757,12 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
     attribution = raw.get("article_attribution") if isinstance(raw.get("article_attribution"), dict) else {}
     profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
-    origin_detail = detect_official_portal_republication(raw)
+    # Route/profile context establishes portal identity only; it is never
+    # copied into the page's observed claim fields.
+    origin_detail = detect_official_portal_republication({
+        **raw,
+        "source_route": action.get("source_route") if isinstance(action.get("source_route"), dict) else None,
+    })
     url = str(raw.get("canonical_url") or raw.get("url") or "")
     title = str(raw.get("title") or metadata.get("title") or "")
     text = str(raw.get("text") or raw.get("extracted_text") or "")
@@ -768,6 +782,20 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
             "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": "SYNDICATION_UNRESOLVED",
             "independence_state": "INDEPENDENCE_UNRESOLVED", "shared_organization_aliases": shared_aliases,
             "reason": "EVENT_MATCH_UNRESOLVED",
+        }
+    if origin_detail.get("article_origin_state") == "OFFICIAL_PORTAL_REPUBLICATION":
+        # A portal page can report an issuer's action, but republication is
+        # not the original artifact and must not silently become PRIMARY.
+        return {
+            "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+            "publisher_event_relation": "PUBLISHER_REPORTS_STATED_ISSUER",
+            "article_origin_state": "OFFICIAL_PORTAL_REPUBLICATION",
+            "independence_state": "NOT_INDEPENDENT_REPUBLICATION",
+            "shared_organization_aliases": shared_aliases,
+            "stated_issuing_authority": origin_detail.get("issuing_institution"),
+            "content_origin": origin_detail.get("content_origin"),
+            "original_artifact_state": origin_detail.get("original_artifact_state"),
+            "reason": "OFFICIAL_PORTAL_REPUBLICATION_ORIGINAL_ARTIFACT_UNRESOLVED",
         }
     action_value = _canonical_event_action((skeleton or {}).get("action"))
     action_terms = set(_query_words([title, text[:2000]]))
@@ -2124,7 +2152,10 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         institution_domain=institution_identity.get("canonical_institution_domain"),
     )
     attribution = extract_actor_attributions(raw)
-    origin_detail = detect_official_portal_republication(raw)
+    origin_detail = detect_official_portal_republication({
+        **raw,
+        "source_route": action.get("source_route") if isinstance(action.get("source_route"), dict) else None,
+    })
     if action.get("action_type") in FETCH_ACTIONS and not action.get("discovery_only") and not action.get("provenance_followup"):
         if not provenance_links:
             provenance_diagnostic = "OFFICIAL_LINK_NOT_EXTRACTED"
@@ -2145,6 +2176,11 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         })
     if action.get("action_type") in FETCH_ACTIONS and canonical and raw.get("publisher"):
         source_profile["identity_state"] = "SOURCE_IDENTIFIED"
+    metadata_publisher_name = (
+        ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")
+        if isinstance(raw.get("article_metadata"), dict) else None
+    )
+    page_publisher = origin_detail.get("portal_publisher") or metadata_publisher_name or raw.get("publisher")
     observation_id = _stable_id("OBS", action["action_id"], canonical or title or "TITLE_UNRESOLVED", result_class)
     kind = {
         "LEAD": "LEAD", "POTENTIAL_EVIDENCE": "POTENTIAL_EVIDENCE",
@@ -2186,6 +2222,12 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "event_actor_candidates": attribution.get("actors", []),
         "document_identifiers": attribution.get("document_identifiers", []),
         "origin_detail": origin_detail,
+        "page_publisher": page_publisher,
+        "content_origin": origin_detail.get("content_origin"),
+        "stated_issuing_authority": origin_detail.get("issuing_institution"),
+        "document_references": deepcopy(origin_detail.get("document_references") or []),
+        "original_artifact_state": origin_detail.get("original_artifact_state"),
+        "provenance_edges": deepcopy(origin_detail.get("provenance_edges") or []),
         "provenance_recovery_reason": provenance_diagnostic,
         "listing_links": listing_links,
         "listing_resolution_state": (
@@ -2893,6 +2935,11 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         "document_type": role_detail.get("document_type"),
         "publisher_event_relation": role_detail.get("publisher_event_relation"),
         "article_origin_state": role_detail.get("article_origin_state"),
+        "content_origin": observation.get("content_origin"),
+        "stated_issuing_authority": observation.get("stated_issuing_authority"),
+        "original_artifact_state": observation.get("original_artifact_state"),
+        "document_references": deepcopy(observation.get("document_references") or []),
+        "provenance_edges": deepcopy(observation.get("provenance_edges") or []),
         "independence_state": role_detail.get("independence_state"),
         "role_reason": role_detail.get("reason"),
         "page_type": observation.get("page_type"),
@@ -2938,6 +2985,10 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         }
         skeleton = extract_event_skeleton(raw, action)
         resolution = resolve_exact_source_role(raw, action, skeleton)
+        origin_detail = detect_official_portal_republication({
+            **raw,
+            "source_route": action.get("source_route") if isinstance(action.get("source_route"), dict) else None,
+        })
         resolution["field_provenance"] = {
             "publisher": "PAGE_STRUCTURED_METADATA" if (isinstance(raw.get("article_metadata"), dict) and ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")) else ("PAGE_TEXT_INFERRED" if raw.get("publisher") else "OTHER_DERIVED"),
             "event_actor": ((skeleton.get("field_provenance") or {}).get("actor") if isinstance(skeleton, dict) else None) or "OTHER_DERIVED",
@@ -2961,6 +3012,13 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         validation = validate_exact_page(raw, action)
         observation["event_skeleton"] = skeleton if skeleton.get("state") == "CONCRETE_EVENT" else observation.get("event_skeleton")
         observation["source_role_resolution"] = resolution
+        observation["origin_detail"] = origin_detail
+        observation["page_publisher"] = origin_detail.get("portal_publisher") or raw.get("publisher")
+        observation["content_origin"] = origin_detail.get("content_origin")
+        observation["stated_issuing_authority"] = origin_detail.get("issuing_institution")
+        observation["document_references"] = deepcopy(origin_detail.get("document_references") or [])
+        observation["original_artifact_state"] = origin_detail.get("original_artifact_state")
+        observation["provenance_edges"] = deepcopy(origin_detail.get("provenance_edges") or [])
         observation["source_class"] = str(validation.get("source_class") or raw["source_class"] or "unknown").casefold()
         observation["validation_state"] = validation.get("state", observation.get("validation_state"))
         observation["validation_progression"] = validation.get("progression", observation.get("validation_progression"))

@@ -120,6 +120,27 @@ def test_observed_official_actor_can_still_resolve_primary():
     assert obs["source_role_resolution"]["evidence_role"] == "PRIMARY"
 
 
+def test_official_portal_republication_never_auto_promotes_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-PORTAL")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "source_route": {"route_id": "maroc-news", "verification_provenance": "official-national-portal-navigation",
+                                    "semantic_capabilities": ["ACCOUNTABILITY"], "route_status": "VERIFIED_WORKING", "url": "https://maroc.ma/en/news"},
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive", "canonical_url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive",
+           "title": "رئاسة النيابة العامة تدعو النيابات إلى التعبئة", "publisher": "Maroc.ma",
+           "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "www.maroc.ma"}},
+           "text": ("أكد رئيس النيابة العامة في دورية جديدة موجهة إلى الوكلاء ضرورة تتبع مختلف مراحل الانتخابات "
+                    "والتصدي للممارسات المخالفة وإنجاز الأبحاث المرتبطة بالشكايات وتأمين المداومة. "
+                    "(ومع: 01 شتنبر 2026) " * 4),
+           "published_at": "2026-09-01", "fetch_status": "FETCHED", "content_hash": "d" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["origin_detail"]["portal_identity_state"] == "OFFICIAL_NATIONAL_PORTAL"
+    assert obs["content_origin"] == "MAP"
+    assert obs["stated_issuing_authority"] == "Public Prosecution"
+    assert obs["source_role_resolution"]["evidence_role"] == "UNRESOLVED"
+    assert obs["source_role_resolution"]["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
+
+
 def test_verified_route_records_health_without_granting_evidence():
     action = _action(target="SERVICE", need="N-ROUTE")
     action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",

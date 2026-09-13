@@ -5,7 +5,8 @@ from dragon.deep_research_executor import execute_research_round
 from dragon.discovery import assess_source_url
 from dragon.institutional_navigation import (
     classify_outbound_link, detect_official_portal_republication,
-    extract_actor_attributions, extract_outbound_link_candidates,
+    extract_actor_attributions, extract_document_references, extract_outbound_link_candidates,
+    resolve_institution_identity,
 )
 
 
@@ -57,6 +58,46 @@ def test_official_portal_republication_keeps_publisher_and_issuer_distinct() -> 
     assert detail["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
     assert detail["portal_publisher"] == "National Portal"
     assert detail["issuing_institution"] == "Ministry of Interior"
+
+
+def test_maroc_portal_preserves_map_origin_and_observed_issuer() -> None:
+    raw = {
+        "url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive",
+        "publisher": "Maroc.ma",
+        "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "www.maroc.ma"}},
+        "title": "رئاسة النيابة العامة تدعو النيابات إلى التعبئة",
+        "text": "أكد رئيس النيابة العامة في دورية جديدة موجهة إلى الوكلاء ضرورة تتبع الانتخابات. (ومع: 01 شتنبر 2026)",
+        "source_route": {"verification_provenance": "official-national-portal-navigation"},
+    }
+    detail = detect_official_portal_republication(raw)
+    assert detail["portal_identity_state"] == "OFFICIAL_NATIONAL_PORTAL"
+    assert detail["portal_publisher"] == "Maroc.ma"
+    assert detail["content_origin"] == "MAP"
+    assert detail["issuing_institution"] == "Public Prosecution"
+    assert detail["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
+    assert detail["original_artifact_state"] == "ORIGINAL_ARTIFACT_NOT_FOUND"
+    assert any(edge["type"] == "CONTENT_ORIGINATED_BY" for edge in detail["provenance_edges"])
+
+
+def test_document_reference_extraction_is_page_derived() -> None:
+    refs = extract_document_references({
+        "title": "بلاغ لوزير الداخلية بشأن إشعارات الناخبين",
+        "text": "بلاغ لوزير الداخلية يحدد الإجراء وآخر أجل 22 شتنبر 2026.",
+    })
+    assert refs
+    assert refs[0]["document_type"] in {"COMMUNIQUE", "SERVICE_NOTICE"}
+    assert refs[0]["issuer"] == "Ministry of Interior"
+    assert refs[0]["provenance"] == "PAGE_TEXT_EXPLICIT"
+
+
+def test_maroc_portal_profile_is_not_reclassified_by_article_topic() -> None:
+    identity = resolve_institution_identity({
+        "url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive",
+        "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "www.maroc.ma"}},
+        "text": "رئاسة النيابة العامة أصدرت دورية للمحاكم.",
+    })
+    assert identity["profile_type"] == "OFFICIAL_NATIONAL_PORTAL"
+    assert identity["state"] == "INSTITUTION_IDENTITY_RESOLVED"
 
 
 def test_url_safety_is_separate_from_source_trust() -> None:

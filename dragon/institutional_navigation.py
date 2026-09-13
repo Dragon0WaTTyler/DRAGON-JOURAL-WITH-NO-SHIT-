@@ -47,6 +47,12 @@ _OFFICIAL_HOST_MARKERS = (".gov", ".gov.", ".ac.", ".ma")
 _CITATION_MARKERS = ("according to", "announced by", "in a circular", "in a decision", "official portal", "selon le ministère", "selon l'autorité", "وفق", "حسب", "بلاغ", "قرار", "منصة رسمية")
 _DOCUMENT_MARKERS = (".pdf", "circular", "decision", "notice", "report", "directive", "communique", "بلاغ", "قرار", "تقرير", "مذكرة")
 
+# This is intentionally a small identity hint, not an evidence whitelist.
+# Maroc.ma is already a verified source-map profile; the hint lets provenance
+# code identify its portal publisher without treating every page as original
+# institutional evidence.
+_VERIFIED_OFFICIAL_PORTAL_DOMAINS = {"maroc.ma", "www.maroc.ma"}
+
 
 def classify_outbound_link(parent_url: str, link_url: str, *, label: str = "", context: str = "", semantic_target: str | None = None, institution_domain: str | None = None) -> dict:
     """Classify a discovered link for bounded navigation, never as evidence."""
@@ -124,6 +130,52 @@ def extract_actor_attributions(raw: dict) -> dict:
     return {"actors": actors, "attribution_phrases": phrases[:8], "document_identifiers": identifiers[:8]}
 
 
+def extract_document_references(raw: dict) -> list[dict]:
+    """Extract observed document/issuer references without assigning a role."""
+    text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim"))
+    refs: list[dict] = []
+    patterns = (
+        ("CIRCULAR", r"(?:دورية|circular)", ("Public Prosecution", ("النيابة العامة", "رئاسة النيابة العامة", "public prosecution", "parquet"))),
+        ("COMMUNIQUE", r"(?:بلاغ|communiqué|communique)", ("Ministry of Interior", ("وزارة الداخلية", "وزير الداخلية", "ministry of interior"))),
+        ("DIRECTIVE", r"(?:توجيهات|تعليمة|directive|enforcement instruction)", (None, ())),
+        ("DECISION", r"(?:قرار|decision)", (None, ())),
+        ("SERVICE_NOTICE", r"(?:إشعار|منصة|آخر أجل|service notice|deadline|procedure)", (None, ())),
+    )
+    for kind, pattern, issuer_spec in patterns:
+        match = re.search(pattern, text, flags=re.I)
+        if not match:
+            continue
+        issuer, aliases = issuer_spec
+        if issuer is None:
+            local_text = text[max(0, match.start() - 180): match.end() + 220]
+            for candidate, candidate_aliases in (
+                ("Public Prosecution", ("النيابة العامة", "رئاسة النيابة العامة", "public prosecution", "parquet")),
+                ("Ministry of Interior", ("وزارة الداخلية", "وزير الداخلية", "ministry of interior")),
+                ("Supreme Audit Council", ("المجلس الأعلى للحسابات", "supreme audit council", "cour des comptes")),
+            ):
+                # An institution mentioned elsewhere on a page is not the
+                # issuer of this document; require proximity to the matched
+                # document phrase.
+                if any(alias.casefold() in local_text.casefold() for alias in candidate_aliases):
+                    issuer = candidate
+                    aliases = candidate_aliases
+                    break
+        refs.append({
+            "document_type": kind,
+            "issuer": issuer,
+            "identifier": None,
+            "matched_text": text[max(0, match.start() - 90): match.end() + 140].strip(),
+            "provenance": "PAGE_TEXT_EXPLICIT",
+            "issuer_provenance": "PAGE_TEXT_EXPLICIT" if issuer else "ISSUER_UNRESOLVED",
+        })
+    # Keep explicit identifiers, but never mistake a bare year for one.
+    explicit_ids = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|(?:رقم|no\.?|n°)\s*[A-Za-z0-9\-/]+)\b", text, flags=re.I)))
+    for ref in refs:
+        if explicit_ids:
+            ref["identifier"] = explicit_ids[0]
+    return refs[:8]
+
+
 def detect_official_portal_republication(raw: dict) -> dict:
     """Record an official portal's stated origin without collapsing provenance."""
     url = str(raw.get("canonical_url") or raw.get("url") or "")
@@ -131,15 +183,46 @@ def detect_official_portal_republication(raw: dict) -> dict:
     metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
     publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
     text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim"))
+    route = raw.get("source_route") if isinstance(raw.get("source_route"), dict) else {}
+    profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
     issuer = raw.get("issuing_institution") or raw.get("stated_issuing_institution") or metadata.get("issuing_institution")
+    references = extract_document_references(raw)
+    if not issuer:
+        issuer = next((item.get("issuer") for item in references if item.get("issuer")), None)
     if not issuer:
         match = re.search(r"(?:according to|announced by|selon|وفق(?:ا لـ)?|حسب)\s+([^.;\n]{3,120})", text, flags=re.I)
         issuer = match.group(1).strip() if match else None
-    official_portal = host.endswith(".gov.ma") or host.endswith(".gov") or "official portal" in text.casefold() or "portail officiel" in text.casefold()
+    route_provenance = str(route.get("verification_provenance") or "").casefold()
+    canonical_profile_domain = str(profile.get("canonical_domain") or "").casefold().strip(".")
+    official_portal = (
+        host.endswith(".gov.ma") or host.endswith(".gov")
+        or host in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
+        or canonical_profile_domain in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
+        or "official-national-portal" in route_provenance
+        or "official portal" in text.casefold() or "portail officiel" in text.casefold()
+    )
     publisher_name = publisher.get("name") or raw.get("publisher") or host
-    if official_portal and issuer and str(issuer).casefold().strip() not in str(publisher_name).casefold().strip():
-        return {"article_origin_state": "OFFICIAL_PORTAL_REPUBLICATION", "portal_publisher": publisher_name, "issuing_institution": str(issuer).strip(), "origin_relationship": "PORTAL_REPUBLISHES_ISSUER"}
-    return {"article_origin_state": "PRIMARY_ORIGINAL_ARTIFACT" if official_portal else "ORIGIN_UNRESOLVED", "portal_publisher": publisher_name if official_portal else None, "issuing_institution": str(issuer).strip() if issuer else None, "origin_relationship": "PORTAL_ORIGINAL" if official_portal else "UNRESOLVED"}
+    wire_credit = bool(re.search(r"(?:\(\s*ومع\s*:|\bMAP\b|Maghreb\s+Arabe\s+Presse)", text, flags=re.I))
+    content_origin = "MAP" if wire_credit else None
+    publisher_folded = str(publisher_name or "").casefold().strip()
+    issuer_folded = str(issuer or "").casefold().strip()
+    republished = official_portal and bool(content_origin or (issuer and issuer_folded != publisher_folded))
+    return {
+        "portal_identity_state": "OFFICIAL_NATIONAL_PORTAL" if official_portal else "PORTAL_IDENTITY_UNRESOLVED",
+        "article_origin_state": "OFFICIAL_PORTAL_REPUBLICATION" if republished else "ORIGIN_UNRESOLVED",
+        "portal_publisher": publisher_name if official_portal else None,
+        "portal_owner": publisher_name if official_portal else None,
+        "content_origin": content_origin,
+        "issuing_institution": str(issuer).strip() if issuer else None,
+        "document_references": references,
+        "original_artifact_state": "ORIGINAL_ARTIFACT_NOT_FOUND" if republished else "ORIGINAL_ARTIFACT_NOT_REQUIRED_FOR_NARROW_CLAIM" if official_portal else "ORIGINAL_ARTIFACT_NOT_FOUND",
+        "origin_relationship": "PORTAL_REPUBLISHES_ISSUER" if republished else "PORTAL_ORIGIN_UNRESOLVED" if official_portal else "UNRESOLVED",
+        "provenance_edges": ([
+            {"type": "PUBLISHED_BY", "from": "artifact", "to": publisher_name},
+            *([{ "type": "CONTENT_ORIGINATED_BY", "from": "artifact", "to": content_origin}] if content_origin else []),
+            *([{ "type": "DOCUMENT_ISSUED_BY", "from": "artifact", "to": str(issuer).strip()}] if issuer else []),
+        ] if official_portal else []),
+    }
 
 
 def _text(raw: dict) -> str:
@@ -226,7 +309,11 @@ def resolve_institution_identity(raw: dict, *, known_profile: dict | None = None
     canonical = str(profile.get("canonical_domain") or publisher.get("canonical_domain") or host).casefold()
     site_name = publisher.get("name") or profile.get("canonical_publisher_name") or (metadata.get("signals") or {}).get("og_site_name") or raw.get("publisher")
     text = _text(raw)
-    public_signal = canonical.endswith((".gov", ".gov.ma", ".ac.ma")) or any(marker in f"{site_name} {text}".casefold() for marker in _INSTITUTION_MARKERS)
+    public_signal = (
+        canonical.endswith((".gov", ".gov.ma", ".ac.ma"))
+        or canonical in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
+        or any(marker in f"{site_name} {text}".casefold() for marker in _INSTITUTION_MARKERS)
+    )
     known = bool(profile.get("canonical_domain") or profile.get("identity_state") == "PUBLISHER_PROFILE_RESOLVED")
     if known or public_signal:
         state = "INSTITUTION_IDENTITY_RESOLVED"
@@ -237,12 +324,16 @@ def resolve_institution_identity(raw: dict, *, known_profile: dict | None = None
     relationship = "CANONICAL_HOST"
     if host and canonical and host != canonical:
         relationship = "SUBDOMAIN_OF_CANONICAL" if host.endswith("." + canonical) else "PAGE_OWNERSHIP_UNRESOLVED"
+    profile_type = "OFFICIAL_NATIONAL_PORTAL" if (
+        canonical in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
+        or "official-national-portal" in str((known_profile or {}).get("verification_provenance") or "").casefold()
+    ) else _profile_type(text, canonical)
     return {
         "state": state,
         "host": host or None,
         "canonical_institution_domain": canonical or None,
         "institution_name": str(site_name).strip() if site_name else None,
-        "profile_type": _profile_type(text, canonical),
+        "profile_type": profile_type,
         "relationship": relationship,
         "relationship_evidence": "canonical_profile_or_first_party_metadata" if known else "domain_and_page_signals" if public_signal else None,
         "identity_confidence": "HIGH" if known else "MEDIUM" if public_signal else "LOW",
