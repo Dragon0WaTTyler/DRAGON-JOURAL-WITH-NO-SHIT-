@@ -140,8 +140,8 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     context = action.get("event_context") if isinstance(action.get("event_context"), dict) else {}
     text = " ".join(str(observation.get(key) or "") for key in ("title", "claim", "extracted_text", "text")).casefold()
     vocabularies = {
-        "ACCOUNTABILITY": ("directive", "monitoring", "complaints", "enforcement", "oversight", "integrity", "probity", "دورية", "مراقبة", "شكايات", "زجر", "نزاهة"),
-        "SERVICE": ("service", "procedure", "deadline", "registration", "access", "polling", "notice", "منصة", "إجراء", "آخر أجل", "تسجيل", "إشعار", "مكتب التصويت"),
+        "ACCOUNTABILITY": ("monitoring", "integrity", "complaints", "directive", "enforcement", "oversight", "probity", "مراقبة", "نزاهة", "شكايات", "دورية", "زجر"),
+        "SERVICE": ("deadline", "procedure", "access", "service", "registration", "polling", "notice", "آخر أجل", "إجراء", "ولوج", "تسجيل", "منصة", "إشعار"),
     }
     vocabulary = vocabularies.get(target, ())
     # Keep a small deterministic set of action terms in every actor-first
@@ -149,15 +149,16 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     # (for example ``close`` from a "calls to safeguard" title), so the
     # query must retain concrete function signals without changing event
     # facts or expanding the retrieval budget.
-    default_hints = list(vocabulary[:6])
+    default_hints = list(vocabulary[:3])
     observed_hints = [term for term in vocabulary if term.casefold() in text]
-    context_hint = str(context.get("current_process_context") or "").strip()
+    observed_action = str(skeleton.get("action") or "").strip()
+    if observed_action and observed_action.casefold() not in text:
+        observed_action = ""
     parts = [
         str((observation.get("event_actor_candidates") or [{}])[0].get("name") or skeleton.get("actor") or "").strip(),
-        str(skeleton.get("action") or "").strip(),
+        observed_action,
         str(skeleton.get("object") or "").strip(),
-        *dict.fromkeys([*default_hints, *observed_hints]),
-        context_hint,
+        *dict.fromkeys([*default_hints, *observed_hints[:2]]),
         " ".join(skeleton.get("geography") or []),
         str(skeleton.get("published_at") or context.get("research_date") or "")[:10],
     ]
