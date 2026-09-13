@@ -155,13 +155,17 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     generic_actions = {"close", "open", "make", "take", "call", "calls", "safeguard", "ensure", "support"}
     if observed_action.casefold() in generic_actions or observed_action.casefold() not in text:
         observed_action = ""
+    process_hint = " ".join(str(context.get("current_process_context") or "").strip().split()[:2])
+    research_date = str(context.get("research_date") or skeleton.get("published_at") or "").strip()
+    date_hint = research_date[:7] if len(research_date) >= 7 else research_date
     parts = [
         str((observation.get("event_actor_candidates") or [{}])[0].get("name") or skeleton.get("actor") or "").strip(),
         observed_action,
         str(skeleton.get("object") or "").strip(),
         *dict.fromkeys([*default_hints, *observed_hints[:1]]),
+        process_hint,
         " ".join(skeleton.get("geography") or []),
-        str(skeleton.get("published_at") or context.get("research_date") or "")[:10],
+        date_hint,
     ]
     return " ".join(dict.fromkeys(item for item in parts if item)).strip()
 
