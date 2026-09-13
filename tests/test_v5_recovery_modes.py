@@ -1,6 +1,6 @@
 from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, create_research_action, extract_event_skeleton, query_ladder, _breadth_event_queries, _pivot_source_class_branches
 from dragon.deep_research_executor import apply_executor_results_to_packet
-from dragon.research_recovery import _breadth_acquisition_plan, build_recovery_plan
+from dragon.research_recovery import _breadth_acquisition_plan, _current_process_discovery_context, build_recovery_plan
 from dragon.investigation_scope import evaluate_super_investigation_scope
 
 
@@ -418,6 +418,22 @@ def test_context_priority_respects_attempted_source_class_memory():
     assert classes[0] != "ELECTION_ADMINISTRATION"
     assert "ELECTION_ADMINISTRATION" not in classes
     assert all("ELECTION_ADMINISTRATION" in item["source_class_memory_before"] for item in strategies)
+
+
+def test_recovery_need_derives_current_process_context_from_selected_packet_facts():
+    packet = {
+        "edition_date": "2026-09-13",
+        "sections": [{
+            "section_id": "front",
+            "status": "ACTIVE",
+            "selected_candidate_id": "C1",
+            "candidates": [{"id": "C1", "title": "Election campaign enters final phase", "facts": ["Polling continues"]}],
+        }],
+    }
+    selected = [(packet["sections"][0], packet["sections"][0]["candidates"][0])]
+    context = _current_process_discovery_context(packet, selected)
+    assert context == "Election campaign enters final phase"
+    assert len(context) <= 160
 
 
 def test_pivot_source_class_memory_persists_in_packet_merge():

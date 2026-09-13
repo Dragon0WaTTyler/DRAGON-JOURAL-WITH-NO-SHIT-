@@ -13,6 +13,34 @@ from dragon.editorial_functions import validated_function_names
 DEFAULT_RECOVERY_POLICY = {"max_attempts_per_need": 1}
 
 
+def _current_process_discovery_context(packet: dict, selected: list[tuple[dict, dict]]) -> str | None:
+    """Derive bounded current-process query context from existing packet facts.
+
+    This is a retrieval hint only.  It is never copied into an event skeleton
+    or evidence role.  An explicit packet value wins; otherwise selected
+    candidate titles/facts are used only when they contain a recognizable
+    active-process marker.
+    """
+    explicit = packet.get("current_process_context")
+    if explicit:
+        return " ".join(str(explicit).split())[:160]
+    markers = (
+        "election", "electoral", "vote", "poll", "campaign", "scrutin",
+        "انتخاب", "اقتراع", "التصويت", "الانتخابات", "حملة",
+        "procurement", "tender", "marché", "صفقة",
+    )
+    snippets: list[str] = []
+    for _section, candidate in selected:
+        text = " ".join(str(candidate.get(key) or "") for key in ("title", "facts", "claims"))
+        if text and any(marker in text.casefold() for marker in markers):
+            title = str(candidate.get("title") or "").strip()
+            if title:
+                snippets.append(title)
+    if not snippets:
+        return None
+    return " ".join(" ".join(snippets).split())[:160]
+
+
 def _breadth_acquisition_plan(need: dict, packet: dict, intelligence: dict) -> dict:
     """Make a breadth gap an event-first, bounded discovery objective."""
     candidates = {
@@ -268,6 +296,7 @@ def build_recovery_plan(
     active_sections = {section["section_id"] for section, _candidate in selected}
     distinct_events = set(selected_events)
     function_coverage = _function_coverage(selected_events)
+    current_process_context = _current_process_discovery_context(packet, selected)
     for rule in readiness.get("coverage_rules", []):
         if rule.get("id") == "accountability_and_service":
             rule_events = function_coverage["ACCOUNTABILITY"] | function_coverage["SERVICE"]
@@ -303,7 +332,11 @@ def build_recovery_plan(
                 "already_known_source_ids": [],
                 "already_known_origins": [],
                 "topic_identifiers": list(rule["sections"]),
-                "query_context": {"research_date": packet.get("edition_date"), "desk": eligible_sections},
+                "query_context": {
+                    "research_date": packet.get("edition_date"),
+                    "desk": eligible_sections,
+                    "current_process_context": current_process_context,
+                },
                 "search_constraints": {
                     "must_be_distinct_event": True,
                     "eligible_section_ids": eligible_sections,
