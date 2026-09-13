@@ -403,6 +403,23 @@ def test_current_process_context_prioritizes_matching_source_class_without_chang
         assert strategies[0]["source_class_selection_reason"] == "CURRENT_PROCESS_CONTEXT"
 
 
+def test_context_priority_respects_attempted_source_class_memory():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "active national election process"},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "pivot_source_classes_attempted": ["ELECTION_ADMINISTRATION"],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert classes[0] != "ELECTION_ADMINISTRATION"
+    assert "ELECTION_ADMINISTRATION" not in classes
+    assert all("ELECTION_ADMINISTRATION" in item["source_class_memory_before"] for item in strategies)
+
+
 def test_pivot_source_class_memory_persists_in_packet_merge():
     packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
     execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}
