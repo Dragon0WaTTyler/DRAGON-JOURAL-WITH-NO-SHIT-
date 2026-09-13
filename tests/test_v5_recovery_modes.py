@@ -356,6 +356,38 @@ def test_source_class_and_first_party_metadata_survive_action_materialization():
     assert action["institution_discovery_mode"] == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
 
 
+def test_current_process_context_guides_diversified_queries_without_becoming_event_fact():
+    job = {
+        "job_id": "JOB-CURRENT-PROCESS",
+        "round": 0,
+        "regime": "GENERAL_JOURNALISM",
+        "budget_class": "STANDARD",
+        "budget": {"max_followup_rounds": 2},
+        "lead": {"desk": "investigations", "topic": "public process", "event_entities": [], "related_event_cluster": None},
+        "question_tree": [{"question_id": "Q-CURRENT-PROCESS", "kind": "FUNCTION"}],
+        "branches": [{"branch_id": "BR-CURRENT-PROCESS", "question_ids": ["Q-CURRENT-PROCESS"]}],
+        "executor_state": {},
+    }
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {
+            "research_date": "2026-09-13",
+            "current_process_context": "active national election process",
+        },
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+    assert len(strategies) == 4
+    assert all(item["current_process_context"] == "active national election process" for item in strategies)
+    assert all("active national election process" in item["query"] for item in strategies if item.get("query"))
+    assert all("event_actor" not in item and "actor" not in item for item in strategies)
+    action = create_research_action(job, job["branches"][0], recovery_need=need, query_strategy=strategies[0])
+    assert action["current_process_context"] == "active national election process"
+    assert action["event_context"]["current_process_context"] == "active national election process"
+
+
 def test_pivot_source_class_memory_persists_in_packet_merge():
     packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
     execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}

@@ -1028,6 +1028,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
     target_section = _breadth_target_section(need)
     target_function = str(plan.get("target_editorial_function") or need.get("target_editorial_function") or "")
     if target_function:
+        context = need.get("query_context", {}) if isinstance(need.get("query_context", {}), dict) else {}
         pivot_mode = str(need.get("pivot_mode") or "") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
         # Function-first acquisition never puts a desk label in the query.
         # The configured desk remains only a placement route after validation.
@@ -1037,6 +1038,15 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             ("مكتب التصويت إشعار تسجيل وكالة منصة آخر أجل موعد إجراء أهلية", "polling station notice registration proxy platform deadline procedure eligibility access", "bureau de vote avis inscription procuration plateforme date limite procédure éligibilité accès")
         )
         geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
+        # Current-process context is retrieval guidance only.  It is copied
+        # into the query plan/action metadata but never into observed event
+        # facts or evidence-role fields.
+        current_process = str(
+            context.get("current_process_context")
+            or context.get("current_public_process")
+            or need.get("current_process_context")
+            or ""
+        ).strip()
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
         alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
         attempted_source_classes = list(need.get("pivot_source_classes_attempted") or need.get("source_class_attempts") or [])
@@ -1058,8 +1068,8 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             )
             base_terms = f"{base_terms} {pivot_terms}"
             alternate_terms = f"{alternate_terms} {pivot_terms}"
-        base = " ".join(item for item in (geography, base_terms, month) if item)
-        alternate = " ".join(item for item in (geography, alternate_terms, month) if item)
+        base = " ".join(item for item in (geography, current_process, base_terms, month) if item)
+        alternate = " ".join(item for item in (geography, current_process, alternate_terms, month) if item)
         route_candidates = [
             item for item in [
                 *need.get("search_constraints", {}).get("configured_source_routes", []),
@@ -1108,7 +1118,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             "fr": "actif en cours septembre 2026",
             "en": "active ongoing September 2026",
         }.get(route_language, "active ongoing September 2026")
-        route_terms = " ".join(item for item in (route_base_terms, route_temporal) if item)
+        route_terms = " ".join(item for item in (current_process, route_base_terms, route_temporal) if item)
         route_query = " ".join(item for item in (f"site:{route_origin}" if route_origin else "", route_terms) if item)
         strategies = [
             {
@@ -1118,17 +1128,19 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "candidate_event_theme": target_function, "source_route": canonical_route,
                 "route_scoped": bool(canonical_route),
                 "route_search_objective": "ACTIVE_WINDOW_ARTIFACT" if target_function == "SERVICE" else "CURRENT_FUNCTION_ARTIFACT",
+                "current_process_context": current_process or None,
             },
             {
                 "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_PRIMARY_WINDOW", "variant": "ALTERNATIVE_FUNCTION_DATE" if pivot_mode else "FUNCTION_DATE",
                 "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
                 "language": primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function,
+                "current_process_context": current_process or None,
                 "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
             },
             {
                 "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_CANONICAL_INSTITUTION", "variant": "ALTERNATIVE_CANONICAL_NAVIGATION" if pivot_mode else "CANONICAL_NAVIGATION",
-                "query": " ".join(item for item in (route_base_terms if canonical_route else base_terms, "current notices decisions") if item),
+                "query": " ".join(item for item in (current_process, route_base_terms if canonical_route else base_terms, "current notices decisions") if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE" if canonical_route else "SEARCH_DISCOVERY",
                 "target": canonical_route.get("url") if canonical_route else None,
                 "channel": "CONFIGURED_INSTITUTION_NAVIGATION", "backends": [] if canonical_route else ["searxng-general-search"],
@@ -1136,12 +1148,14 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "candidate_event_theme": target_function,
                 "discovery_only": True,
                 "source_route": canonical_route,
+                "current_process_context": current_process or None,
             },
             {
                 "intent": f"{('ALTERNATIVE_' if pivot_mode else '')}FUNCTION_{target_function}_ALTERNATE_LANGUAGE", "variant": "ALTERNATIVE_FUNCTION" if pivot_mode else "FUNCTION_ALTERNATE",
                 "query": alternate, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"],
                 "language": alternate_language or primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function,
+                "current_process_context": current_process or None,
             },
         ]
         source_class_priorities = (
@@ -1400,6 +1414,7 @@ def create_research_action(
         "institution_discovery_mode": strategy.get("institution_discovery_mode"),
         "source_class_branch_mode": strategy.get("source_class_branch_mode"),
         "source_class_memory_before": list(strategy.get("source_class_memory_before") or []),
+        "current_process_context": strategy.get("current_process_context"),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
         "discovery_only": bool(strategy.get("discovery_only")),
@@ -1420,6 +1435,7 @@ def create_research_action(
             "allowed_geographies": list((recovery_need or {}).get("allowed_geographies", [])),
             "scope_origin": (recovery_need or {}).get("scope_origin"),
             "scope_reason": (recovery_need or {}).get("scope_reason"),
+            "current_process_context": strategy.get("current_process_context"),
         },
         "known_event_ids": known_events,
         "known_event_fingerprints": list((recovery_need or {}).get("event_acquisition_plan", {}).get("excluded_event_fingerprints", [])),
