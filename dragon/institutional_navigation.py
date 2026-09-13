@@ -23,8 +23,8 @@ _INSTITUTION_MARKERS = (
 )
 _SERVICE_MARKERS = (
     "registration", "deadline", "eligibility", "application", "procedure", "service",
-    "schedule", "notice", "inscription", "date limite", "procédure", "service public",
-    "تسجيل", "آخر أجل", "أجل", "ولوج", "مسطرة", "خدمة", "إعلان",
+    "schedule", "notice", "inscription", "candidature", "date limite", "procédure", "service public",
+    "تسجيل", "التسجيل", "الترشح", "منصة", "مباراة", "آخر أجل", "أجل", "ولوج", "مسطرة", "خدمة", "إعلان",
 )
 _ACCOUNTABILITY_MARKERS = (
     "audit", "inspection", "oversight", "enforcement", "regulator", "court", "prosecution",
@@ -76,7 +76,7 @@ def classify_page_type(raw: dict, *, action: dict | None = None) -> str:
         return "PROCUREMENT_NOTICE"
     if any(marker in text for marker in _SERVICE_MARKERS) and any(marker in text for marker in ("deadline", "date limite", "آخر أجل", "registration", "تسجيل", "notice", "إعلان")):
         return "SERVICE_NOTICE"
-    if any(marker in text for marker in ("audit report", "inspection report", "rapport d'audit", "تقرير الافتحاص")):
+    if any(marker in text for marker in ("audit report", "inspection report", "rapport d'audit", "rapport", "situation du marché", "présentent", "table marocaine", "تقرير الافتحاص")):
         return "REPORT_DETAIL"
     if types & {"newsarticle", "article", "reportagenewsarticle", "analysisnewsarticle", "liveblogposting"}:
         return "ARTICLE_DETAIL"

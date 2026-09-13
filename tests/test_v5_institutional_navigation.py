@@ -18,6 +18,8 @@ def test_page_types_cover_institutional_shapes() -> None:
     assert classify_page_type({"url": "https://agency.gov.ma/", "title": "Portal", "text": "Welcome"}) == "PORTAL_HOME"
     assert classify_page_type({"url": "https://agency.gov.ma/notices", "title": "Current notices", "text": "Registration closes 2026-09-22", "links": ["https://agency.gov.ma/notices/1"]}) == "SERVICE_NOTICE"
     assert classify_page_type({"url": "https://audit.gov.ma/decisions/1", "title": "Official decision", "text": "Official decision enforcement against entity X."}) == "OFFICIAL_DECISION"
+    assert classify_page_type({"url": "https://service.gov.ma/concours", "title": "التسجيل في مباراة الشرطة", "text": "منصة التسجيل وآخر أجل 2026-09-22."}) == "SERVICE_NOTICE"
+    assert classify_page_type({"url": "https://hcp.ma/report", "title": "Situation du marché du travail", "text": "Le rapport présente les résultats de l'enquête."}) == "REPORT_DETAIL"
 
 
 def test_institution_identity_resolves_canonical_and_subdomain_relationship() -> None:
