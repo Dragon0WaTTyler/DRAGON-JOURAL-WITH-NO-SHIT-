@@ -2934,6 +2934,9 @@ def build_research_yield_report(
             "source_classes_queried": sorted({item for action in function_actions for item in action.get("source_class_priorities", [])}),
             "source_class_branches_attempted": sorted({str(action.get("target_source_class")) for action in function_actions if action.get("target_source_class")}),
             "source_class_memory": sorted({str(item) for action in function_actions for item in action.get("source_class_memory_before", [])}),
+            "source_class_selection_reasons": sorted({str(action.get("source_class_selection_reason")) for action in function_actions if action.get("source_class_selection_reason")}),
+            "first_party_discovery_actions": sum(action.get("first_party_discovery_objective") == "FIRST_PARTY_SELF_ACTION" for action in function_actions),
+            "institution_discovery_actions": sum(action.get("institution_discovery_mode") == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION" for action in function_actions),
             "searches": sum(action.get("action_type") in SEARCH_ACTIONS for action in function_actions),
             "leads": sum(item.get("observation_class") == "LEAD" for item in function_observations),
             "fetch_selections": sum(item.get("lead_attrition_state") == "SELECTED_FOR_FETCH" for item in function_observations),
@@ -2943,6 +2946,17 @@ def build_research_yield_report(
                 for item in function_observations
             ),
             "concrete_events": sum((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT" for item in function_observations),
+            "first_party_domains_resolved": len({
+                str(item.get("institution_identity", {}).get("canonical_institution_domain"))
+                for item in function_observations
+                if isinstance(item.get("institution_identity"), dict)
+                and item.get("institution_identity", {}).get("canonical_institution_domain")
+            }),
+            "primary_observations": sum(str(item.get("source_class") or "").casefold() in {"primary", "official", "paper"} for item in function_observations),
+            "event_b_candidates": sum(
+                str(bundle.get("candidate_discovery", {}).get("target_editorial_function") or "").upper() == function
+                for bundle in event_bundles
+            ),
             "validated_events": sum(
                 item.get("state") == "EVENT_VALIDATED"
                 and any(str(bundle.get("candidate_discovery", {}).get("target_editorial_function") or "").upper() == function for bundle in event_bundles)

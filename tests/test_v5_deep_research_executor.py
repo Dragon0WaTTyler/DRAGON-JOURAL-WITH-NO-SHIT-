@@ -241,6 +241,26 @@ def test_yield_report_marks_dead_ends_as_non_useful_and_exposes_zero_yield_branc
     assert all(item["contributed_useful_material"] is False for item in report["action_outcomes"])
 
 
+def test_function_metrics_expose_first_party_discovery_and_context_selection() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "active national election process"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    job = _job(desk="investigations", needs=[need])
+    actions = plan_research_actions(job, CONFIG)
+    execution = execute_research_round(job, FixtureResearchAdapter({actions[0]["action_type"]: [{"result_type": "DEAD_END", "reason": "fixture"}]}), CONFIG, actions=actions[:1])
+    report = build_research_yield_report({"jobs": [execution]})
+    metrics = report["function_metrics"]["ACCOUNTABILITY"]
+    assert metrics["first_party_discovery_actions"] == 1
+    assert metrics["institution_discovery_actions"] == 1
+    assert metrics["source_class_selection_reasons"] == ["CURRENT_PROCESS_CONTEXT"]
+
+
 @pytest.mark.parametrize(("source_class", "expected"), [("official", "PRIMARY"), ("independent", "INDEPENDENT")])
 def test_known_source_classes_become_potential_not_automatic_evidence(source_class: str, expected: str) -> None:
     job = _job()
