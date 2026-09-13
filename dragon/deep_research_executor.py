@@ -3393,6 +3393,26 @@ def execute_research_round(
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
     executed = []
+
+    def generic_search_budget_available(action: dict) -> bool:
+        """Reserve one existing search slot for actor-first recovery.
+
+        Semantic recovery may discover the concrete actor only after an exact
+        page is fetched. Dynamic fallback and event-fingerprint searches must
+        not consume the final search slot before that observed actor can be
+        resolved. Actor-first actions themselves consume the reserved slot;
+        the configured ceiling is unchanged.
+        """
+        reserve = int(
+            bool(
+                action.get("recovery_need_id")
+                and action.get("recovery_mode") == "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED"
+                and not action.get("actor_first_search")
+                and str(action.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+            )
+        )
+        return state["search_actions"] < max(0, limits["search_actions"] - reserve)
+
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
         nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, actor_first_telemetry
@@ -3653,7 +3673,8 @@ def execute_research_round(
                 "originating_event_lead_id": event_lead["event_lead_id"],
                 "originating_breadth_need_id": event_lead.get("recovery_need_id"),
             }
-            run_action(feedback_action)
+            if generic_search_budget_available(feedback_action):
+                run_action(feedback_action)
         # A configured route is a preferred read-only channel, not a single
         # point of failure.  On a zero-yield route failure, make exactly one
         # provider-neutral discovery fallback and retain its provenance.
@@ -3661,7 +3682,7 @@ def execute_research_round(
         yielded = any(str(item.get("result_type") or "").upper() not in {"DEAD_END", "IRRELEVANT", "DUPLICATE"} for item in raw_results)
         if fallback and not yielded:
             fallback_type = str(fallback.get("action_type") or "SEARCH_DISCOVERY")
-            if fallback_type in SEARCH_ACTIONS and state["search_actions"] < limits["search_actions"]:
+            if fallback_type in SEARCH_ACTIONS and generic_search_budget_available(action):
                 fallback_action = {
                     **action,
                     "action_id": _stable_id("ACT", action["action_id"], "CHANNEL_FALLBACK", fallback_type),
