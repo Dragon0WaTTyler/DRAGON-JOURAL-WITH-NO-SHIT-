@@ -1,4 +1,4 @@
-from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton, query_ladder, _breadth_event_queries, _pivot_source_class_branches
+from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, create_research_action, extract_event_skeleton, query_ladder, _breadth_event_queries, _pivot_source_class_branches
 from dragon.deep_research_executor import apply_executor_results_to_packet
 from dragon.research_recovery import _breadth_acquisition_plan, build_recovery_plan
 from dragon.investigation_scope import evaluate_super_investigation_scope
@@ -325,6 +325,35 @@ def test_initial_semantic_need_also_uses_bounded_source_class_branches():
     strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
     assert [item["target_source_class"] for item in strategies] == ["MINISTRY", "ELECTION_ADMINISTRATION", "PUBLIC_SERVICE_OPERATOR", "ADMINISTRATIVE_PORTAL"]
     assert all(item["source_class_branch_mode"] == "INITIAL_SEMANTIC" for item in strategies)
+
+
+def test_source_class_and_first_party_metadata_survive_action_materialization():
+    job = {
+        "job_id": "JOB-SOURCE-CLASS",
+        "round": 0,
+        "regime": "GENERAL_JOURNALISM",
+        "budget_class": "STANDARD",
+        "budget": {"max_followup_rounds": 2},
+        "lead": {"desk": "service", "topic": "public procedure", "event_entities": [], "related_event_cluster": None},
+        "question_tree": [{"question_id": "Q-SOURCE-CLASS", "kind": "FUNCTION"}],
+        "branches": [{"branch_id": "BR-SOURCE-CLASS", "question_ids": ["Q-SOURCE-CLASS"]}],
+        "executor_state": {},
+    }
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategy = _breadth_event_queries(job, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)[0]
+    action = create_research_action(job, job["branches"][0], recovery_need=need, query_strategy=strategy)
+    assert action["target_source_class"] == "MINISTRY"
+    assert action["source_class_branch_mode"] == "INITIAL_SEMANTIC"
+    assert action["first_party_discovery_objective"] == "FIRST_PARTY_SELF_ACTION"
+    assert action["institution_discovery_mode"] == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
 
 
 def test_pivot_source_class_memory_persists_in_packet_merge():
