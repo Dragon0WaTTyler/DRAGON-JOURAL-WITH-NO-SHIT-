@@ -276,6 +276,7 @@ def build_recovery_plan(
                     "eligible_section_ids": eligible_sections,
                     "must_satisfy_primary_and_independent_evidence": True,
                     "configured_source_routes": route_context["configured_source_routes"],
+                    "configured_discovery_routes": route_context.get("configured_discovery_routes", []),
                 },
                 # Normal breadth owns its own geography policy.  This is
                 # intentionally separate from the Super Investigation scope

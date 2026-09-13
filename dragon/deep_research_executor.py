@@ -838,6 +838,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         route_candidates = [
             item for item in [
                 *need.get("search_constraints", {}).get("configured_source_routes", []),
+                *need.get("search_constraints", {}).get("configured_discovery_routes", []),
                 *plan.get("canonical_source_routes", []),
             ] if item.get("url")
         ]
@@ -858,8 +859,29 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             0 if any(marker in str(item.get("authority_class") or "").upper() for marker in markers) else 1,
             str(item.get("origin") or ""), str(item.get("url") or ""),
         ))
+        # Keep one deterministic, high-fit route in the bounded ladder.  The
+        # route is a retrieval seed only; it cannot populate observed facts or
+        # confer an evidence role on any returned page.
         canonical_route = route_candidates[0] if route_candidates else None
+        route_origin = ""
+        if canonical_route:
+            route_origin = str(canonical_route.get("origin") or urlsplit(str(canonical_route.get("url") or "")).hostname or "").strip()
+        route_temporal = (
+            "active deadline procedure September 2026"
+            if target_function == "SERVICE" else
+            "current oversight enforcement decision September 2026"
+        )
+        route_terms = " ".join(item for item in (base_terms, route_temporal) if item)
+        route_query = " ".join(item for item in (f"site:{route_origin}" if route_origin else "", route_terms) if item)
         strategies = [
+            {
+                "intent": f"FUNCTION_{target_function}_VERIFIED_ROUTE_ARTIFACT", "variant": "ROUTE_SCOPED_ARTIFACT",
+                "query": route_query or base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
+                "language": primary_language, "target_desk": target_section,
+                "candidate_event_theme": target_function, "source_route": canonical_route,
+                "route_scoped": bool(canonical_route),
+                "route_search_objective": "ACTIVE_WINDOW_ARTIFACT" if target_function == "SERVICE" else "CURRENT_FUNCTION_ARTIFACT",
+            },
             {
                 "intent": f"FUNCTION_{target_function}_PRIMARY_WINDOW", "variant": "FUNCTION_DATE",
                 "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
@@ -883,11 +905,6 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "query": alternate, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"],
                 "language": alternate_language or primary_language, "target_desk": target_section,
                 "candidate_event_theme": target_function,
-            },
-            {
-                "intent": f"FUNCTION_{target_function}_GLOBAL_ALTERNATIVE", "variant": "FUNCTION_EVENT_ALTERNATIVE",
-                "query": " ".join((terms[1], month)), "channel": "GDELT_DOC", "backends": ["gdelt-doc"],
-                "language": "en", "target_desk": target_section, "candidate_event_theme": target_function,
             },
         ]
         source_class_priorities = (
@@ -1116,6 +1133,8 @@ def create_research_action(
         "target": target,
         "discovery_only": bool(strategy.get("discovery_only")),
         "source_route": deepcopy(strategy.get("source_route")) if isinstance(strategy.get("source_route"), dict) else None,
+        "route_scoped": bool(strategy.get("route_scoped")),
+        "route_search_objective": strategy.get("route_search_objective"),
         "navigation_depth": int(strategy.get("navigation_depth", 0) or 0),
         "navigation_parent_url": strategy.get("navigation_parent_url"),
         "known_entities": list(job["lead"].get("event_entities", [])),
@@ -1972,13 +1991,14 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     extraction_status = str(raw.get("fetch_status") or "NOT_RETRIEVED").upper()
     route_health = None
     if route:
+        is_route_search = action.get("action_type") in SEARCH_ACTIONS and action.get("route_scoped")
         route_health = {
             "route_id": route.get("route_id"),
             "route_url": route.get("url"),
             "route_type_expected": route.get("route_type"),
             "page_type_observed": page_type,
-            "request_outcome": "FETCHED" if extraction_status in {"FETCHED", "RETRIEVED"} else str(raw.get("reason") or extraction_status),
-            "status": "VERIFIED_WORKING" if extraction_status in {"FETCHED", "RETRIEVED"} else "TRANSIENT_FAILURE" if raw.get("reason") else str(route.get("route_status") or "UNKNOWN"),
+            "request_outcome": "ROUTE_SCOPED_SEARCHED" if is_route_search else "FETCHED" if extraction_status in {"FETCHED", "RETRIEVED"} else str(raw.get("reason") or extraction_status),
+            "status": str(route.get("route_status") or "UNKNOWN") if is_route_search else "VERIFIED_WORKING" if extraction_status in {"FETCHED", "RETRIEVED"} else "TRANSIENT_FAILURE" if raw.get("reason") else str(route.get("route_status") or "UNKNOWN"),
             "semantic_capabilities": list(route.get("semantic_capabilities") or []),
             "navigation_depth": route.get("navigation_depth"),
         }
@@ -2071,6 +2091,8 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "url_safety": url_safety,
         "source_trust_state": source_trust_state,
         "route_health": route_health,
+        "route_scoped": bool(action.get("route_scoped")),
+        "route_search_objective": action.get("route_search_objective"),
         "redirect_provenance": deepcopy(raw.get("transport")) if isinstance(raw.get("transport"), dict) else None,
         "links": deepcopy(raw.get("links") or []),
         "outbound_link_candidates": provenance_links,
@@ -2455,6 +2477,9 @@ def build_research_yield_report(
             "planned_channel": action.get("discovery_channel"),
             "desk": action["desk"],
             "target_editorial_function": action.get("target_editorial_function"),
+            "route_scoped": bool(action.get("route_scoped")),
+            "route_search_objective": action.get("route_search_objective"),
+            "source_route_id": (action.get("source_route") or {}).get("route_id") if isinstance(action.get("source_route"), dict) else None,
             "recovery_need_id": action.get("recovery_need_id"),
             "source_discovery_channels": sorted({
                 str(item.get("discovery_channel") or item.get("discovery_method") or "UNKNOWN")
@@ -2607,6 +2632,23 @@ def build_research_yield_report(
         "diagnostics": sorted(set(str(item.get("provenance_recovery_reason") or item.get("reason") or "") for item in observations if item.get("provenance_recovery_reason") or item.get("reason"))),
     }
     route_health = [deepcopy(item["route_health"]) for item in observations if isinstance(item.get("route_health"), dict)]
+    route_scoped_actions = [item for item in actions if item.get("route_scoped")]
+    route_scoped_ids = {item.get("action_id") for item in route_scoped_actions}
+    route_scoped_observations = [
+        item for item in observations
+        if item.get("provenance", {}).get("action_id") in route_scoped_ids
+    ]
+    route_scoped_retrieval = {
+        "routes_attempted": sorted({
+            (item.get("source_route") or {}).get("route_id")
+            for item in route_scoped_actions if isinstance(item.get("source_route"), dict) and (item.get("source_route") or {}).get("route_id")
+        }),
+        "queries": len(route_scoped_actions),
+        "results": len(route_scoped_observations),
+        "exact_detail_candidates": sum(bool(item.get("url")) and item.get("page_type") not in {"LISTING_PAGE", "PORTAL_HOME", "AGGREGATOR"} for item in route_scoped_observations),
+        "fetched_artifacts": sum(item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in route_scoped_observations),
+        "active_window_results": sum((item.get("temporal_relevance") or {}).get("active_on_edition_date") is True for item in route_scoped_observations),
+    }
     semantic_closure = {"attempted": 0, "validated_functions": {"ACCOUNTABILITY": 0, "SERVICE": 0}, "promoted_candidates": 0, "closures": 0, "failure_stages": {}}
     for bundle in event_bundles:
         if not isinstance(bundle, dict):
@@ -2723,6 +2765,7 @@ def build_research_yield_report(
             "transient_failures": sum(item.get("status") == "TRANSIENT_FAILURE" for item in route_health),
             "observed": route_health,
         },
+        "route_scoped_retrieval": route_scoped_retrieval,
         "semantic_closure": semantic_closure,
         "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {

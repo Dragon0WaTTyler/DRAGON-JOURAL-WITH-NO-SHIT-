@@ -184,5 +184,9 @@ def desk_recovery_context(coverage: dict, section_id: str) -> dict:
         # source intelligence, and provenance validation before any evidence
         # role can change.
         "configured_source_routes": [item for item in configured_routes if item["enabled"] and not item["discovery_only"]],
+        # Discovery-only routes remain eligible navigation/search seeds. They
+        # never grant an evidence role; exact artifacts still pass the normal
+        # source and claim validation pipeline.
+        "configured_discovery_routes": [item for item in configured_routes if item["enabled"]],
         "allow_open_discovery": coverage["research_semantics"]["allow_open_discovery"],
     }

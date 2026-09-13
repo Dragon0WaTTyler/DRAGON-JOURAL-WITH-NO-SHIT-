@@ -30,6 +30,7 @@ from dragon.deep_research_executor import (
     plan_research_actions,
     query_fingerprint,
     query_ladder,
+    _breadth_event_queries,
     replay_recovery_after_execution,
     replay_event_bundles_from_snapshot,
     resolve_exact_source_role,
@@ -77,6 +78,55 @@ def _result(url: str, source_class: str = "independent", **extra: object) -> dic
         "published_at": "2099-01-02", "retrieved_at": "2099-01-02T07:01:00Z",
         "content_hash": "a" * 64, **extra,
     }
+
+
+def test_function_breadth_uses_bounded_verified_route_search_without_budget_growth() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {
+            "configured_source_routes": [],
+            "configured_discovery_routes": [{
+                "route_id": "portal-news", "url": "https://maroc.ma/en/news", "origin": "maroc.ma",
+                "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY",
+                "name": "National portal", "authority_class": "NATIONAL_PORTAL",
+            }],
+        },
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategies = _breadth_event_queries(_job(desk="service"), need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+    assert len(strategies) == 4
+    route = strategies[0]
+    assert route["route_scoped"] is True
+    assert route["source_route"]["route_id"] == "portal-news"
+    assert route["query"].startswith("site:maroc.ma ")
+    assert route["backends"] == ["searxng-general-search"]
+    assert "active" in route["query"] and "deadline" in route["query"]
+
+
+def test_route_scoped_search_context_does_not_grant_evidence_role() -> None:
+    action = {
+        "action_id": "ROUTE-SEARCH", "question_id": "Q", "branch_id": "B",
+        "action_type": "SEARCH_DISCOVERY", "target_editorial_function": "SERVICE",
+        "candidate_event_theme": "SERVICE", "route_scoped": True,
+        "route_search_objective": "ACTIVE_WINDOW_ARTIFACT",
+        "source_route": {"route_id": "portal-news", "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "route_status": "VERIFIED_WORKING", "route_type": "NEWS_LISTING"},
+        "query": "site:maroc.ma registration deadline active September 2026",
+        "expected_result_type": "DISCOVERY_RESULT",
+        "event_context": {"research_date": "2026-09-13", "geography": ["Morocco"]},
+        "provenance_requirements": {"required_role": "PRIMARY"},
+    }
+    obs = __import__("dragon.deep_research_executor", fromlist=["_observation"])._observation(
+        action,
+        {"url": "https://maroc.ma/en/news/item", "title": "Announcement", "text": "A public announcement.", "fetch_status": "NOT_RETRIEVED", "source_class": "unknown"},
+        set(),
+    )
+    assert obs["route_scoped"] is True
+    assert obs["source_trust_state"] == "URL_SAFE_CANONICAL_INSTITUTION"
+    assert (obs.get("source_role_resolution") or {}).get("evidence_role") != "PRIMARY"
+    assert obs["verification_status"] != "VALIDATED_EVIDENCE"
 
 
 def _coverage() -> dict:
