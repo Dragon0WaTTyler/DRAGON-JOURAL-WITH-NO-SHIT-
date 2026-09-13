@@ -22,6 +22,7 @@ import yaml
 
 from dragon.deep_research import advance_research_job
 from dragon.discovery import DiscoveryError, default_transport, discover_rss, fetch_and_extract_source
+from dragon.discovery import assess_source_url
 from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
@@ -1896,6 +1897,12 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     page_type = classify_page_type(raw, action=action)
     known_profile = action.get("source_route") if isinstance(action.get("source_route"), dict) else None
     institution_identity = resolve_institution_identity(raw, known_profile=known_profile)
+    url_safety = assess_source_url(canonical or "") if canonical else {"state": "URL_UNSAFE", "reason": "MISSING_URL"}
+    source_trust_state = (
+        "URL_UNSAFE" if url_safety.get("state") == "URL_UNSAFE" else
+        "URL_SAFE_CANONICAL_INSTITUTION" if institution_identity.get("state") == "INSTITUTION_IDENTITY_RESOLVED" else
+        "URL_SAFE_INSTITUTION_CANDIDATE"
+    )
     listing_links = extract_listing_child_links(
         raw,
         semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
@@ -1982,6 +1989,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
         "page_type": page_type,
         "institution_identity": institution_identity,
+        "url_safety": url_safety,
+        "source_trust_state": source_trust_state,
+        "redirect_provenance": deepcopy(raw.get("transport")) if isinstance(raw.get("transport"), dict) else None,
         "links": deepcopy(raw.get("links") or []),
         "outbound_link_candidates": provenance_links,
         "official_link_candidates": [item for item in provenance_links if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"}],
@@ -2737,8 +2747,12 @@ def execute_research_round(
                 and observation.get("extraction_status") == "FETCHED"
                 and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
             ):
+                candidates = [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY"]
+                for item in candidates:
+                    item["url_safety"] = assess_source_url(str(item.get("url") or ""))
+                unsafe_candidates = [item for item in candidates if item.get("url_safety", {}).get("state") == "URL_UNSAFE"]
                 candidates = sorted(
-                    [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY"],
+                    [item for item in candidates if item.get("url_safety", {}).get("state") != "URL_UNSAFE"],
                     key=lambda item: ({"CITED_PRIMARY_SOURCE": 0, "OFFICIAL_SERVICE_DESTINATION": 1, "OFFICIAL_DOCUMENT": 2, "INSTITUTIONAL_DETAIL": 3}.get(item.get("type"), 9), item.get("url", "")),
                 )
                 target_function = str(action.get("target_editorial_function") or "").upper()
@@ -2757,6 +2771,9 @@ def execute_research_round(
                         "query_intent": "EXPLICIT_OFFICIAL_LINK_RECOVERY", "channel_fallback": None,
                     }
                     run_action(child_action)
+                elif unsafe_candidates:
+                    observation["provenance_recovery_reason"] = "OFFICIAL_LINK_REJECTED"
+                    observation["provenance_recovery_detail"] = [{"url": item.get("url"), "reason": item.get("url_safety", {}).get("reason")} for item in unsafe_candidates]
                 elif observation.get("event_actor_candidates") and state["search_actions"] < limits["search_actions"] and target_function:
                     actor = observation["event_actor_candidates"][0]
                     skeleton = observation.get("event_skeleton") or {}

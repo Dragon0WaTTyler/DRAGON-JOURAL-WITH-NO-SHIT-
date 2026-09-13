@@ -2,6 +2,7 @@ from pathlib import Path
 
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
 from dragon.deep_research_executor import execute_research_round
+from dragon.discovery import assess_source_url
 from dragon.institutional_navigation import (
     classify_outbound_link, detect_official_portal_republication,
     extract_actor_attributions, extract_outbound_link_candidates,
@@ -56,6 +57,19 @@ def test_official_portal_republication_keeps_publisher_and_issuer_distinct() -> 
     assert detail["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
     assert detail["portal_publisher"] == "National Portal"
     assert detail["issuing_institution"] == "Ministry of Interior"
+
+
+def test_url_safety_is_separate_from_source_trust() -> None:
+    safe = assess_source_url("https://service.public-institution.example/path?x=1#notice")
+    assert safe["state"] == "URL_SAFE_SOURCE_UNKNOWN"
+    assert safe["hostname"] == "service.public-institution.example"
+    assert safe["path"] == "/path"
+    assert safe["query"] == "x=1"
+    assert safe["fragment"] == "notice"
+    assert assess_source_url("http://guamcourts.gov/")["reason"] == "UNSUPPORTED_SCHEME_OR_MALFORMED_HOST"
+    assert assess_source_url("https://user:pass@example.org/")["reason"] == "EMBEDDED_CREDENTIALS"
+    assert assess_source_url("https://127.0.0.1/")["reason"] == "PRIVATE_OR_RESERVED_ADDRESS"
+    assert assess_source_url("https://example.org:8443/")["reason"] == "UNSAFE_PORT"
 
 
 def test_explicit_official_link_recovery_consumes_one_existing_followup_slot() -> None:

@@ -48,30 +48,41 @@ Transport = Callable[[str, int, int], FetchResponse]
 ExtractionFallback = Callable[[FetchResponse, str], dict | None]
 
 
-def _validate_source_url(
-    url: str, *, error_code: str = "SOURCE_URL_UNSAFE", resolve_dns: bool = False
-) -> None:
+def assess_source_url(url: str, *, resolve_dns: bool = False) -> dict:
+    """Return URL network-safety facts independently of source ownership."""
     parsed = urlparse(url)
     hostname = parsed.hostname
+    details = {"url": url, "scheme": parsed.scheme.casefold(), "hostname": hostname.casefold() if hostname else None,
+               "port": None, "path": parsed.path, "query": parsed.query, "fragment": parsed.fragment,
+               "state": "URL_SAFE_SOURCE_UNKNOWN", "reason": None}
     if parsed.scheme.casefold() != "https" or not hostname or not parsed.netloc:
-        raise DiscoveryError(error_code, "only absolute HTTPS source URLs are permitted")
+        details.update(state="URL_UNSAFE", reason="UNSUPPORTED_SCHEME_OR_MALFORMED_HOST")
+        return details
     try:
         port = parsed.port
     except ValueError as exc:
-        raise DiscoveryError(error_code, "source URL port is invalid") from exc
+        details.update(state="URL_UNSAFE", reason="MALFORMED_PORT")
+        return details
+    details["port"] = port or 443
     if parsed.username is not None or parsed.password is not None:
-        raise DiscoveryError(error_code, "source URLs must not contain credentials")
+        details.update(state="URL_UNSAFE", reason="EMBEDDED_CREDENTIALS")
+        return details
     normalized = hostname.rstrip(".").casefold()
     if normalized == "localhost" or normalized.endswith((".localhost", ".local", ".internal")):
-        raise DiscoveryError(error_code, "local source hosts are not permitted")
+        details.update(state="URL_UNSAFE", reason="LOCAL_HOSTNAME")
+        return details
     try:
         literal = ip_address(normalized)
     except ValueError:
         literal = None
     if literal is not None and not literal.is_global:
-        raise DiscoveryError(error_code, "non-public source addresses are not permitted")
+        details.update(state="URL_UNSAFE", reason="PRIVATE_OR_RESERVED_ADDRESS")
+        return details
+    if port not in (None, 443):
+        details.update(state="URL_UNSAFE", reason="UNSAFE_PORT")
+        return details
     if not resolve_dns or literal is not None:
-        return
+        return details
     try:
         addresses = {
             item[4][0]
@@ -80,11 +91,26 @@ def _validate_source_url(
             )
         }
     except OSError as exc:
-        raise DiscoveryError("SOURCE_FETCH_FAILED", f"source host resolution failed: {hostname}") from exc
+        details.update(state="URL_UNSAFE", reason="DNS_RESOLUTION_FAILED")
+        return details
     if not addresses:
-        raise DiscoveryError("SOURCE_FETCH_FAILED", f"source host has no addresses: {hostname}")
+        details.update(state="URL_UNSAFE", reason="DNS_NO_ADDRESSES")
+        return details
     if any(not ip_address(address.split("%", 1)[0]).is_global for address in addresses):
-        raise DiscoveryError(error_code, "source host resolves to a non-public address")
+        details.update(state="URL_UNSAFE", reason="DNS_RESOLVES_PRIVATE_OR_RESERVED")
+        return details
+    details["state"] = "URL_SAFE_SOURCE_UNKNOWN"
+    return details
+
+
+def _validate_source_url(
+    url: str, *, error_code: str = "SOURCE_URL_UNSAFE", resolve_dns: bool = False
+) -> None:
+    details = assess_source_url(url, resolve_dns=resolve_dns)
+    if details["state"] == "URL_UNSAFE":
+        reason = details.get("reason") or "URL_UNSAFE"
+        code = "SOURCE_FETCH_FAILED" if reason == "DNS_RESOLUTION_FAILED" or reason == "DNS_NO_ADDRESSES" else error_code
+        raise DiscoveryError(code, reason)
 
 
 class _SafeRedirectHandler(HTTPRedirectHandler):
