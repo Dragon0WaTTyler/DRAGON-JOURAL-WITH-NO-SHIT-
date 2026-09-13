@@ -213,6 +213,41 @@ def _sufficient_packet() -> dict:
     return {"edition_date": "2099-01-02", "sources": sources, "sections": sections}
 
 
+def _semantic_seven_event_packet(*, duplicate_everything: bool = False) -> dict:
+    """Ten publication placements can legitimately cover seven events.
+
+    Three placements are editorial treatments of an event already selected for
+    another desk: front/politics, education/service, and culture/opinion.
+    """
+    placements = [
+        ("front", "election"), ("siyasa_dawla", "election"),
+        ("iqtisad_flous", "trade"), ("ta3lim", "education"),
+        ("3adl_7o9o9", "justice"), ("filastin_middle_east", "yemen"),
+        ("world", "nepal"), ("culture", "heritage"),
+        ("opinion", "heritage"), ("service", "education"),
+    ]
+    sources, sections, event_sources = [], [], {}
+    for index, event in enumerate(sorted({event for _section, event in placements})):
+        primary, independent = f"p-{event}", f"i-{event}"
+        event_sources[event] = (primary, independent)
+        sources.extend([
+            _source(primary, "official", f"official-{index}.example"),
+            _source(independent, "independent", f"news-{index}.example"),
+        ])
+    for index, (section_id, event) in enumerate(placements):
+        if duplicate_everything:
+            event = "election"
+        primary, independent = event_sources[event]
+        candidate = _candidate(
+            f"{section_id}-{event}", f"Event {event}", [primary], [independent],
+        )
+        sections.append({
+            "section_id": section_id, "status": "ACTIVE",
+            "selected_candidate_id": candidate["id"], "candidates": [candidate],
+        })
+    return {"edition_date": "2099-01-02", "sources": sources, "sections": sections}
+
+
 def test_exhaustion_fails_closed_and_legitimate_recovered_fixture_passes() -> None:
     insufficient = _plan({
         "edition_date": "2099-01-02", "sources": [_source("p", "primary", "official.example")],
@@ -228,3 +263,48 @@ def test_exhaustion_fails_closed_and_legitimate_recovered_fixture_passes() -> No
     assert passed["status"] == "PASS"
     assert passed["article_generation_allowed"] is True
     assert validate_recovery_plan(passed) == []
+
+
+def test_semantic_coverage_accepts_seven_distinct_events_across_ten_placements() -> None:
+    """The inherited 10-item floor is not a raw 10-event requirement."""
+    plan = _plan(_semantic_seven_event_packet())
+    assert plan["selected_active_sections"] == 10
+    assert plan["distinct_event_count"] == 7
+    assert plan["status"] == "PASS"
+    assert plan["article_generation_allowed"] is True
+    assert not any(item["kind"] == "NEED_DISTINCT_EVENT" for item in plan["needs"])
+
+
+def test_semantic_coverage_rejects_many_placements_of_one_event() -> None:
+    plan = _plan(_semantic_seven_event_packet(duplicate_everything=True))
+    assert plan["selected_active_sections"] == 10
+    assert plan["distinct_event_count"] == 1
+    assert plan["status"] == "RECOVERY_REQUIRED"
+    assert {item["kind"] for item in plan["needs"]} >= {
+        "NEED_MOROCCO_BREADTH", "NEED_WORLD_BREADTH", "NEED_READER_LIFE",
+        "NEED_ACCOUNTABILITY_AND_SERVICE",
+    }
+
+
+def test_semantic_coverage_rejects_an_edition_without_morocco_coverage() -> None:
+    packet = _semantic_seven_event_packet()
+    for section in packet["sections"]:
+        if section["section_id"] in {
+            "front", "siyasa_dawla", "iqtisad_flous", "ta3lim", "3adl_7o9o9", "service",
+        }:
+            section["status"] = "SKIPPED"
+            section["selected_candidate_id"] = None
+    plan = _plan(packet)
+    assert plan["article_generation_allowed"] is False
+    assert any(item["kind"] == "NEED_MOROCCO_BREADTH" for item in plan["needs"])
+
+
+def test_semantic_coverage_rejects_an_edition_without_international_coverage() -> None:
+    packet = _semantic_seven_event_packet()
+    for section in packet["sections"]:
+        if section["section_id"] in {"filastin_middle_east", "world"}:
+            section["status"] = "SKIPPED"
+            section["selected_candidate_id"] = None
+    plan = _plan(packet)
+    assert plan["article_generation_allowed"] is False
+    assert any(item["kind"] == "NEED_WORLD_BREADTH" for item in plan["needs"])

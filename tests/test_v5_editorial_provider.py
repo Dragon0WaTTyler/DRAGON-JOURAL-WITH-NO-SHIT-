@@ -348,7 +348,7 @@ def test_inherited_edition_architecture_drives_provider_readiness() -> None:
             "3adl_7o9o9", "bi2a_manakh", "bniya_transport",
         ), 3),
         ("world_breadth", ("filastin_middle_east", "africa_sahel", "world"), 2),
-        ("reader_life", ("sport", "culture", "science"), 2),
+        ("reader_life", ("ta3lim", "se77a", "technology", "science", "sport", "culture", "service"), 2),
         ("accountability_and_service", ("investigations", "opinion", "service"), 2),
     )
 
@@ -410,7 +410,7 @@ def test_validated_one_lead_research_blocks_before_article_provider_invocation()
 
 def test_readiness_requires_inherited_section_coverage_before_article_generation() -> None:
     research = SyntheticEditorialProvider().research("2099-01-02")
-    retained = {"siyasa_dawla", "iqtisad_flous", "mojtama3", "ta3lim", "se77a", "3adl_7o9o9", "bi2a_manakh", "bniya_transport", "business_companies", "technology"}
+    retained = {"front", "siyasa_dawla", "iqtisad_flous", "mojtama3", "3adl_7o9o9", "bi2a_manakh", "bniya_transport", "meknes_local", "adab", "history"}
     for section in research["sections"]:
         if section["section_id"] in retained:
             continue

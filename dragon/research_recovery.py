@@ -207,34 +207,14 @@ def build_recovery_plan(
                 "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",
             })
             needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
-    missing_distinct = max(0, int(readiness["minimum_active_sections"]) - len(distinct_events))
-    for index in range(missing_distinct):
-        need_id = f"BREADTH:NEED_DISTINCT_EVENT:{index + 1}"
-        attempts = int(attempts_by_need.get(need_id, 0))
-        eligible_sections = sorted(active_sections)
-        route_context = desk_recovery_context(coverage, eligible_sections[index % len(eligible_sections)]) if eligible_sections else {"configured_source_routes": []}
-        needs.append({
-            "need_id": need_id,
-            "kind": "NEED_DISTINCT_EVENT",
-            "section_id": None,
-            "event_id": None,
-            "candidate_id": None,
-            "missing_evidence_role": None,
-            "already_known_source_ids": [],
-            "already_known_origins": [],
-            "topic_identifiers": sorted(active_sections),
-            "query_context": {"research_date": packet.get("edition_date"), "desk": eligible_sections},
-            "search_constraints": {
-                "must_be_distinct_event": True,
-                "must_satisfy_primary_and_independent_evidence": True,
-                "eligible_section_ids": eligible_sections,
-                "configured_source_routes": route_context["configured_source_routes"],
-            },
-            "attempt_count": attempts,
-            "max_attempts": maximum,
-            "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",
-        })
-        needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
+    # ``minimum_active_sections`` is the inherited V4 publication-item floor
+    # (four leads plus six secondary treatments), not a count of underlying
+    # events.  A front lead, a service item and an analysis may legitimately
+    # treat the same event, so turning that item floor into a global distinct
+    # event floor wrongly demands filler.  The article provider independently
+    # enforces the placement floor.  Research recovery instead enforces the
+    # semantic coverage rules above, each of which counts distinct events in
+    # its own editorial family.
     exhausted = bool(needs) and all(item["attempt_count"] >= item["max_attempts"] for item in needs)
     return {
         "schema_version": 1,

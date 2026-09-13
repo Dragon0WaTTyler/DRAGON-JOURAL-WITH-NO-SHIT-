@@ -21,8 +21,17 @@ def load_mapping(path: Path) -> dict[str, Any]:
 
 
 def _editorial_readiness(root: Path) -> dict[str, Any]:
-    """Derive provider preflight requirements from the inherited newspaper plan."""
+    """Derive V5 readiness without changing the inherited V4 architecture.
+
+    The V4 plan remains the authority for its layout and publication-item
+    minimum.  V5 may only overlay semantic membership of a coverage family in
+    its own configuration; it cannot alter a family's numerical minimum here.
+    """
     architecture = load_mapping(root / "config" / "edition-architecture.yaml")
+    v5_path = root / "config" / "edition-architecture-v5.yaml"
+    # Small isolated configuration fixtures exercise the inherited structure
+    # without needing a complete V5 presentation overlay.
+    v5_architecture = load_mapping(v5_path) if v5_path.is_file() else {}
     edition = architecture.get("edition")
     coverage = architecture.get("coverage_rules")
     if not isinstance(edition, dict) or not isinstance(coverage, list):
@@ -34,12 +43,27 @@ def _editorial_readiness(root: Path) -> dict[str, Any]:
     except (KeyError, IndexError, TypeError, ValueError) as exc:
         raise ValueError("EDITORIAL_READINESS_CONFIG_INVALID") from exc
     rules = []
+    overrides = v5_architecture.get("editorial_readiness", {}).get(
+        "coverage_rule_overrides", {}
+    )
+    if not isinstance(overrides, dict):
+        raise ValueError("EDITORIAL_READINESS_CONFIG_INVALID")
     for rule in coverage:
         if (
             not isinstance(rule, dict)
             or not isinstance(rule.get("id"), str)
             or not isinstance(rule.get("sections"), list)
             or not all(isinstance(section, str) for section in rule["sections"])
+        ):
+            raise ValueError("EDITORIAL_READINESS_CONFIG_INVALID")
+        override = overrides.get(rule["id"], {})
+        if not isinstance(override, dict) or set(override) - {"sections"}:
+            raise ValueError("EDITORIAL_READINESS_CONFIG_INVALID")
+        sections = override.get("sections", rule["sections"])
+        if (
+            not isinstance(sections, list)
+            or not sections
+            or not all(isinstance(section, str) for section in sections)
         ):
             raise ValueError("EDITORIAL_READINESS_CONFIG_INVALID")
         try:
@@ -51,7 +75,7 @@ def _editorial_readiness(root: Path) -> dict[str, Any]:
         rules.append(
             {
                 "id": rule["id"],
-                "sections": list(rule["sections"]),
+                "sections": list(sections),
                 "minimum_active": minimum,
             }
         )
