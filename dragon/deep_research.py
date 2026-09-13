@@ -717,6 +717,9 @@ def build_deep_research_state(
         "executable_recovery_need_ids": sorted(executable_need_ids),
         "recovery_job_mappings": recovery_job_mappings,
         "recovery_plan_status": recovery_plan.get("status"),
+        # The planning-stage objective makes the semantic gap visible before
+        # recovery executes; each bounded recovery job retains its own target.
+        "semantic_acquisition_objectives": deepcopy(research_plan.get("semantic_acquisition_objectives", [])),
         "recovery_epoch": recovery_epoch,
         "publication_gate_status": "NOT_EVALUATED",
     }

@@ -613,7 +613,9 @@ def build_stage_definitions(
         intelligence_path = context.run_dir / "source-intelligence" / "report.json"
         budget_path = context.root / "config" / "research-budget.yaml"
         budget_schema_path = context.root / "config" / "research-budget-schema.json"
+        local_config_path = context.root / "config" / "local-automation.yaml"
         budget_inputs: tuple[Path, ...] = ()
+        readiness_inputs: tuple[Path, ...] = ()
         if synthetic and not budget_path.exists():
             budget_config = DEFAULT_BUDGET_CONFIG
         else:
@@ -622,8 +624,19 @@ def build_stage_definitions(
             except ResearchPlanningError as exc:
                 raise StageFailure("RESEARCH_BUDGET_CONFIG_INVALID", str(exc)) from exc
             budget_inputs = (budget_path, budget_schema_path)
+        # Synthetic fixtures deliberately use isolated roots with no local
+        # production configuration.  They retain their established bypass;
+        # every non-synthetic run records the V5 readiness config as an input.
+        if synthetic and not local_config_path.exists():
+            readiness = None
+        else:
+            try:
+                readiness = load_local_config(context.root)["editorial_readiness"]
+            except ValueError as exc:
+                raise StageFailure("EDITORIAL_READINESS_CONFIG_INVALID", str(exc)) from exc
+            readiness_inputs = (local_config_path,)
         plan = build_research_plan(
-            _load(packet_path), _load(intelligence_path), budget_config
+            _load(packet_path), _load(intelligence_path), budget_config, readiness
         )
         issues = validate_research_plan(
             plan, {section_id for section_id, _ in SECTION_HEADINGS}
@@ -632,7 +645,7 @@ def build_stage_definitions(
             raise StageFailure("RESEARCH_PLAN_INVALID", "; ".join(issues))
         path = context.run_dir / "research-planning" / "plan.json"
         atomic_write_json(path, plan)
-        return StageResult((path,), inputs=(packet_path, intelligence_path, *budget_inputs))
+        return StageResult((path,), inputs=(packet_path, intelligence_path, *readiness_inputs, *budget_inputs))
 
     def chief_editor(context: StageContext) -> StageResult:
         values = _load(context.run_dir / "articles" / "articles.json")

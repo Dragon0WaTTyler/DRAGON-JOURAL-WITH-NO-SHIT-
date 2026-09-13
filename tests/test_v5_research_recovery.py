@@ -40,6 +40,16 @@ def _candidate(identifier: str, title: str, primary: list[str], independent: lis
     }
 
 
+def _function(name: str, source_ids: list[str]) -> dict:
+    return {
+        "function": name, "status": "VALIDATED",
+        "reason": f"Fixture {name} is grounded in a concrete event fact.",
+        "supporting_event_facts": ["A concrete, exact-page event fact."],
+        "evidence_source_ids": source_ids,
+        "classifier_version": "editorial-functions-v1",
+    }
+
+
 def _plan(packet: dict, *, attempts: dict[str, int] | None = None) -> dict:
     coverage = load_source_coverage(ROOT / "config" / "source-coverage.yaml", EXPECTED)
     readiness = load_local_config(ROOT)["editorial_readiness"]
@@ -209,6 +219,13 @@ def _sufficient_packet() -> dict:
         primary, independent = f"p{index}", f"i{index}"
         sources.extend([_source(primary, "primary", f"official-{index}.example"), _source(independent, "independent", f"news-{index}.example")])
         candidate = _candidate(f"c{index}", f"event{index}", [primary], [independent])
+        if section_id == "investigations":
+            candidate["editorial_functions"] = [_function("ACCOUNTABILITY", [primary, independent])]
+        elif section_id == "service":
+            candidate["editorial_functions"] = [
+                _function("SERVICE", [primary, independent]),
+                _function("READER_VALUE", [primary, independent]),
+            ]
         sections.append({"section_id": section_id, "status": "ACTIVE", "selected_candidate_id": candidate["id"], "candidates": [candidate]})
     return {"edition_date": "2099-01-02", "sources": sources, "sections": sections}
 
@@ -241,6 +258,13 @@ def _semantic_seven_event_packet(*, duplicate_everything: bool = False) -> dict:
         candidate = _candidate(
             f"{section_id}-{event}", f"Event {event}", [primary], [independent],
         )
+        if event == "justice":
+            candidate["editorial_functions"] = [_function("ACCOUNTABILITY", [primary, independent])]
+        elif event == "education":
+            candidate["editorial_functions"] = [
+                _function("SERVICE", [primary, independent]),
+                _function("READER_VALUE", [primary, independent]),
+            ]
         sections.append({
             "section_id": section_id, "status": "ACTIVE",
             "selected_candidate_id": candidate["id"], "candidates": [candidate],
@@ -284,6 +308,28 @@ def test_semantic_coverage_rejects_many_placements_of_one_event() -> None:
         "NEED_MOROCCO_BREADTH", "NEED_WORLD_BREADTH", "NEED_READER_LIFE",
         "NEED_ACCOUNTABILITY_AND_SERVICE",
     }
+
+
+def test_accountability_service_coverage_uses_validated_functions_not_desk_names() -> None:
+    plan = _plan(_semantic_seven_event_packet())
+    coverage = plan["editorial_function_coverage"]
+    assert coverage["ACCOUNTABILITY"]["count"] == 1
+    assert coverage["SERVICE"]["count"] == 1
+    assert not any(item["kind"] == "NEED_ACCOUNTABILITY_AND_SERVICE" for item in plan["needs"])
+
+
+def test_one_service_event_placed_twice_does_not_inflate_combined_coverage() -> None:
+    packet = _semantic_seven_event_packet()
+    for section in packet["sections"]:
+        for candidate in section["candidates"]:
+            if "education" not in candidate["id"]:
+                candidate.pop("editorial_functions", None)
+    plan = _plan(packet)
+    assert plan["editorial_function_coverage"]["SERVICE"]["count"] == 1
+    needs = [item for item in plan["needs"] if item["kind"] == "NEED_ACCOUNTABILITY_AND_SERVICE"]
+    assert len(needs) == 1
+    assert needs[0]["target_editorial_function"] == "ACCOUNTABILITY"
+    assert needs[0]["search_constraints"]["expected_evidence_topology"] == "CLAIM_SENSITIVE_POLICY"
 
 
 def test_semantic_coverage_rejects_an_edition_without_morocco_coverage() -> None:

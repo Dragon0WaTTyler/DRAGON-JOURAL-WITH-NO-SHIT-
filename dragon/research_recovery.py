@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from dragon.source_coverage import desk_recovery_context
 from dragon.evidence_policy import candidate_evidence_policy
+from dragon.editorial_functions import validated_function_names
 
 
 DEFAULT_RECOVERY_POLICY = {"max_attempts_per_need": 1}
@@ -23,6 +24,54 @@ def _breadth_acquisition_plan(need: dict, packet: dict, intelligence: dict) -> d
         labels = [str(candidates[key].get("title") or "") for key in cluster.get("candidate_keys", []) if key in candidates]
         exclusions.append({"event_id": cluster["event_id"], "candidate_keys": cluster.get("candidate_keys", []), "fingerprint": " | ".join(sorted(label for label in labels if label))})
     kind = str(need.get("kind") or "")
+    target_function = str(need.get("target_editorial_function") or "")
+    function_markers = {
+        "ACCOUNTABILITY": ("audit", "oversight", "regulator", "court", "procurement", "corruption", "رقابة", "افتحاص"),
+        "SERVICE": ("registration", "deadline", "schedule", "service", "eligibility", "transport", "تسجيل", "أجل", "خدمة"),
+    }.get(target_function, ())
+    canonical_source_routes = [
+        {
+            "source_id": record.get("source_id"), "name": record.get("publisher") or record.get("title"),
+            "url": record.get("canonical_url"), "origin": record.get("canonical_url"),
+            "role": "PRIMARY", "source_class": "KNOWN_INSTITUTIONAL_PUBLISHER",
+            "authority_class": "KNOWN_FROM_SOURCE_INTELLIGENCE",
+        }
+        for record in intelligence.get("source_records", [])
+        if target_function and record.get("canonical_url") and record.get("source_type") in {"PRIMARY", "OFFICIAL", "primary", "official"}
+        and any(marker in " ".join(str(record.get(key) or "") for key in ("publisher", "title", "claims_supported")).casefold() for marker in function_markers)
+    ]
+    if target_function == "ACCOUNTABILITY":
+        return {
+            "editorial_gap": "ACCOUNTABILITY_SERVICE_FUNCTION",
+            "objective": "Discover one distinct, evidence-backed event that documents oversight, enforcement, audit, or another concrete accountability mechanism.",
+            "target_editorial_function": target_function,
+            "current_function_coverage": need.get("current_function_coverage", {}),
+            "candidate_event_themes": ["audit or inspection finding", "regulatory or court enforcement", "procurement or public-spending scrutiny"],
+            "query_families": ["institutional", "oversight", "public-record"],
+            "languages": ["ar", "fr", "en"],
+            "geography_scope": "GLOBAL_WITH_MOROCCO_PRIORITY",
+            "discovery_backends": ["searxng-general-search", "gdelt-doc", "public-rss-search"],
+            "excluded_event_fingerprints": exclusions,
+            "promotion_criteria": ["NEW_EVENT", "EXACT_PAGE", "SOURCE_IDENTIFIED", "DATE_RELEVANT", "CLAIM_POLICY_SATISFIED", "EDITORIAL_VALUE", "FUNCTION_VALIDATED"],
+            "acceptable_story_roles": ["brief", "normal", "analysis"],
+            "canonical_source_routes": canonical_source_routes,
+        }
+    if target_function == "SERVICE":
+        return {
+            "editorial_gap": "ACCOUNTABILITY_SERVICE_FUNCTION",
+            "objective": "Discover one distinct, evidence-backed operational change, deadline, access rule, warning, or procedure that gives readers practical action-oriented information.",
+            "target_editorial_function": target_function,
+            "current_function_coverage": need.get("current_function_coverage", {}),
+            "candidate_event_themes": ["registration or application deadline", "public-service schedule or access change", "verified public warning or procedure"],
+            "query_families": ["operational", "deadline", "access"],
+            "languages": ["ar", "fr", "en"],
+            "geography_scope": "GLOBAL_WITH_MOROCCO_PRIORITY",
+            "discovery_backends": ["searxng-general-search", "gdelt-doc", "public-rss-search"],
+            "excluded_event_fingerprints": exclusions,
+            "promotion_criteria": ["NEW_EVENT", "EXACT_PAGE", "SOURCE_IDENTIFIED", "DATE_RELEVANT", "CLAIM_POLICY_SATISFIED", "EDITORIAL_VALUE", "FUNCTION_VALIDATED"],
+            "acceptable_story_roles": ["brief", "normal", "analysis"],
+            "canonical_source_routes": canonical_source_routes,
+        }
     is_morocco = "MOROCCO" in kind
     themes = (
         ["institutional action", "public service", "economy or infrastructure", "regional or local development"]
@@ -70,6 +119,17 @@ def _selected(packet: dict) -> list[tuple[dict, dict]]:
         if candidate is not None:
             selected.append((section, candidate))
     return selected
+
+
+def _function_coverage(selected_events: dict[str, list[tuple[str, dict]]]) -> dict[str, set[str]]:
+    """Count validated editorial functions per distinct event, never by desk."""
+    values = {"ACCOUNTABILITY": set(), "SERVICE": set(), "READER_VALUE": set()}
+    for event_id, placements in selected_events.items():
+        functions = set().union(*(validated_function_names(candidate) for _placement, candidate in placements))
+        for name in values:
+            if name in functions:
+                values[name].add(event_id)
+    return values
 
 
 def build_recovery_plan(
@@ -168,23 +228,37 @@ def build_recovery_plan(
                 "stop_condition": "ROLE_EVIDENCE_ADDED_OR_ATTEMPTS_EXHAUSTED",
             })
     selected = _selected(packet)
-    selected_events: dict[str, list[str]] = defaultdict(list)
+    selected_events: dict[str, list[tuple[str, dict]]] = defaultdict(list)
     for section, candidate in selected:
         key = f"{section['section_id']}:{candidate['id']}"
-        selected_events[events.get(key, f"UNCLUSTERED:{key}")].append(key)
+        selected_events[events.get(key, f"UNCLUSTERED:{key}")].append((key, candidate))
     active_sections = {section["section_id"] for section, _candidate in selected}
     distinct_events = set(selected_events)
+    function_coverage = _function_coverage(selected_events)
     for rule in readiness.get("coverage_rules", []):
-        rule_events = {
-            event_id for event_id, placements in selected_events.items()
-            if any(placement.split(":", 1)[0] in set(rule["sections"]) for placement in placements)
-        }
+        if rule.get("id") == "accountability_and_service":
+            rule_events = function_coverage["ACCOUNTABILITY"] | function_coverage["SERVICE"]
+        else:
+            rule_events = {
+                event_id for event_id, placements in selected_events.items()
+                if any(placement.split(":", 1)[0] in set(rule["sections"]) for placement, _candidate in placements)
+            }
         missing = max(0, int(rule["minimum_active"]) - len(rule_events))
         for index in range(missing):
             need_id = f"BREADTH:{rule['id']}:{index + 1}"
             attempts = int(attempts_by_need.get(need_id, 0))
             eligible_sections = list(rule["sections"])
-            route_context = desk_recovery_context(coverage, eligible_sections[index % len(eligible_sections)])
+            function_counts = {name: len(event_ids) for name, event_ids in function_coverage.items()}
+            target_function = None
+            route_section = eligible_sections[index % len(eligible_sections)]
+            if rule.get("id") == "accountability_and_service":
+                # The combined minimum stays intact.  Diversifying the first
+                # two bounded attempts gives the acquisition path a fair
+                # chance to find either missing journalistic function.
+                ordered = sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda name: (function_counts[name], name))
+                target_function = ordered[index % len(ordered)]
+                route_section = "investigations" if target_function == "ACCOUNTABILITY" else "service"
+            route_context = desk_recovery_context(coverage, route_section)
             needs.append({
                 "need_id": need_id,
                 "kind": f"NEED_{rule['id'].upper()}",
@@ -206,6 +280,16 @@ def build_recovery_plan(
                 "max_attempts": maximum,
                 "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",
             })
+            if target_function:
+                needs[-1].update({
+                    "target_editorial_function": target_function,
+                    "current_function_coverage": function_counts,
+                    "acquisition_diversity_key": target_function,
+                    "search_constraints": {
+                        **needs[-1]["search_constraints"],
+                        "expected_evidence_topology": "CLAIM_SENSITIVE_POLICY",
+                    },
+                })
             needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
     # ``minimum_active_sections`` is the inherited V4 publication-item floor
     # (four leads plus six secondary treatments), not a count of underlying
@@ -223,9 +307,13 @@ def build_recovery_plan(
         "selected_active_sections": len(active_sections),
         "distinct_event_count": len(distinct_events),
         "duplicate_placements": [
-            {"event_id": event_id, "candidate_keys": sorted(placements)}
+            {"event_id": event_id, "candidate_keys": sorted(placement for placement, _candidate in placements)}
             for event_id, placements in sorted(selected_events.items()) if len(placements) > 1
         ],
+        "editorial_function_coverage": {
+            name: {"event_ids": sorted(event_ids), "count": len(event_ids)}
+            for name, event_ids in function_coverage.items()
+        },
         "needs": needs,
         "article_generation_allowed": not needs,
     }

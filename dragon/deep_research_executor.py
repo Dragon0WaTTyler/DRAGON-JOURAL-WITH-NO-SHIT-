@@ -27,6 +27,8 @@ from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 from dragon.evidence_policy import candidate_evidence_policy
+from dragon.editorial_functions import classify_event_functions, validated_function_names
+from dragon.temporal_relevance import evaluate_temporal_relevance
 
 
 ACTION_TYPES = {
@@ -69,7 +71,7 @@ def _registrable_domain(origin: str | None) -> str | None:
     return ".".join(labels[-2:]) if len(labels) >= 2 else origin.casefold()
 
 
-def _lead_source_profile(url: str | None, title: str, snippet: str = "") -> dict:
+def _lead_source_profile(url: str | None, title: str, snippet: str = "", *, semantic_target: str | None = None) -> dict:
     """Classify cheap, deterministic routing signals before an expensive fetch.
 
     This identifies obvious social and aggregation routes for *selection*.  It
@@ -86,10 +88,19 @@ def _lead_source_profile(url: str | None, title: str, snippet: str = "") -> dict
         kind = "PUBLISHER_UNRESOLVED"
     else:
         kind = "SOURCE_UNRESOLVED"
+    target = str(semantic_target or "").upper()
+    institutional_markers = (
+        ("cour des comptes", "audit", "oversight", "regulator", "procurement", "anti-corruption", "election integrity", "ministry", "authority", "رقابة", "افتحاص", "هيئة", "وزارة")
+        if target == "ACCOUNTABILITY" else
+        ("registration", "deadline", "schedule", "eligibility", "public service", "transport", "education", "health", "election", "ministry", "authority", "تسجيل", "أجل", "خدمة", "نقل", "تعليم")
+        if target == "SERVICE" else ()
+    )
+    source_class_hint = "INSTITUTIONAL_CANDIDATE" if institutional_markers and any(marker in haystack for marker in institutional_markers) else "UNCLASSIFIED"
     return {
         "origin": origin or None,
         "origin_family": family,
         "routing_class": kind,
+        "source_class_hint": source_class_hint,
         "identity_state": "SOURCE_UNRESOLVED" if kind == "SOURCE_UNRESOLVED" else "SOURCE_IDENTITY_PENDING",
     }
 
@@ -99,7 +110,8 @@ def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tup
     result = observation.get("search_result", {}) if isinstance(observation.get("search_result"), dict) else {}
     title = str(observation.get("title") or "")
     snippet = str(result.get("snippet") or observation.get("claim") or "")
-    profile = _lead_source_profile(observation.get("url"), title, snippet)
+    target = str(action.get("target_editorial_function") or action.get("candidate_event_theme") or "")
+    profile = _lead_source_profile(observation.get("url"), title, snippet, semantic_target=target)
     haystack = f"{title} {snippet}".casefold()
     expected = {
         item.casefold() for item in [
@@ -118,6 +130,9 @@ def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tup
     if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}:
         reasons.append(profile["routing_class"])
         return "LOW", reasons, (2, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+    if profile.get("source_class_hint") == "INSTITUTIONAL_CANDIDATE" and overlap >= 1:
+        reasons.append("SEMANTIC_SOURCE_CLASS_MATCH")
+        return "HIGH", reasons, (0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
     if overlap >= 2:
         reasons.append("PUBLISHER_CANDIDATE")
         return "HIGH", reasons, (0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
@@ -136,6 +151,7 @@ def rank_discovery_leads(observations: list[dict], actions_by_id: dict[str, dict
         profile = _lead_source_profile(
             observation.get("url"), str(observation.get("title") or ""),
             str((observation.get("search_result") or {}).get("snippet") or ""),
+            semantic_target=str(action.get("target_editorial_function") or action.get("candidate_event_theme") or ""),
         )
         observation["lead_priority"] = priority
         observation["lead_priority_reasons"] = reasons
@@ -171,6 +187,7 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
             profile = item["source_identity"]
             title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
             if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
+                item["lead_attrition_reason"] = "FOLLOWUP_BUDGET_EXHAUSTED"
                 continue
             if (
                 profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}
@@ -179,8 +196,10 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
                 or profile.get("origin_family") in seen_families
                 or (require_event_diversity and title_key in seen_titles)
             ):
+                item["lead_attrition_reason"] = "LOW_SOURCE_ROUTING_PRIORITY"
                 continue
             item["lead_attrition_state"] = "SELECTED_FOR_FETCH"
+            item["lead_attrition_reason"] = "RESERVED_SEMANTIC_BRANCH_CAPACITY"
             item["_followup_need"] = need
             selected.append(item)
             seen_families.add(profile.get("origin_family"))
@@ -373,13 +392,14 @@ def _editorial_value_reason(observation: dict, action: dict) -> tuple[str | None
     title = str(observation.get("title") or "").strip()
     if not title or title.casefold() == "untitled research result":
         return None, "NO_DISCERNIBLE_EVENT"
-    research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
-    published_month = str(observation.get("published_at") or "")[:7]
-    if research_month and published_month != research_month:
-        # A missing publication date is not permission to place an otherwise
-        # unbounded page in today's edition; broader historical research has
-        # its own non-breadth routes.
-        return None, "EVENT_OUTSIDE_WINDOW" if published_month else "DATE_UNVERIFIED"
+    edition_date = str(action.get("event_context", {}).get("research_date") or "")
+    # Production actions carry the edition date.  A few legacy fixture
+    # actions do not; retain their historical editorial-value behavior rather
+    # than treating an absent comparison date as proof of staleness.
+    if edition_date:
+        temporal = evaluate_temporal_relevance(observation, edition_date)
+        if not temporal.get("active_on_edition_date"):
+            return None, temporal.get("rejection_reason") or "TEMPORAL_RELEVANCE_UNRESOLVED"
     text = " ".join(str(observation.get(key) or "") for key in ("title", "claim", "extracted_text")).casefold()
     for reason, markers in _EDITORIAL_VALUE_MARKERS:
         if any(marker in text for marker in markers):
@@ -406,8 +426,10 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     if not published_at:
         return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE"}
     research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
-    if research_month and not published_at.startswith(research_month):
-        return {"state": "EVENT_OUTSIDE_WINDOW", "reason": "EVENT_OUTSIDE_WINDOW", "title": title, "published_at": published_at}
+    edition_date = str(action.get("event_context", {}).get("research_date") or "")
+    temporal = evaluate_temporal_relevance(raw, edition_date, exact_text=text) if edition_date else None
+    if temporal is not None and not temporal.get("active_on_edition_date"):
+        return {"state": "EVENT_OUTSIDE_WINDOW", "reason": temporal.get("rejection_reason") or "TEMPORAL_RELEVANCE_UNRESOLVED", "title": title, "published_at": published_at, "temporal_relevance": temporal}
     subject = " ".join((title, text[:1600]))
     lowered = subject.casefold()
     subject_words = set(_query_words([subject]))
@@ -429,6 +451,7 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     fingerprint = _stable_id("EVENT", *fingerprint_parts)
     return {
         "state": "CONCRETE_EVENT", "title": title, "published_at": published_at,
+        "temporal_relevance": temporal,
         "actor": actor, "action": action_marker, "object": object_terms,
         "geography": geography, "institution": (metadata.get("publisher") or {}).get("name") if isinstance(metadata.get("publisher"), dict) else raw.get("publisher"),
         "identifiers": sorted(set(identifiers))[:5], "topic": title,
@@ -694,6 +717,12 @@ def _breadth_target_section(need: dict) -> str:
     Cycling the finite eligible list gives parallel needs different editorial
     targets, while retaining a stable route for audit and replay.
     """
+    plan = need.get("event_acquisition_plan", {})
+    target_function = str(plan.get("target_editorial_function") or need.get("target_editorial_function") or "")
+    if target_function == "ACCOUNTABILITY":
+        return "investigations"
+    if target_function == "SERVICE":
+        return "service"
     sections = list(need.get("search_constraints", {}).get("eligible_section_ids", []))
     if not sections:
         sections = list(need.get("topic_identifiers", []))
@@ -713,6 +742,14 @@ def _breadth_event_desk_preferences(bundle: dict, eligible_sections: list[str]) 
     describes its documented subject.
     """
     skeleton = bundle.get("event_skeleton") if isinstance(bundle.get("event_skeleton"), dict) else {}
+    functions = {
+        item.get("function") for item in bundle.get("editorial_functions", [])
+        if isinstance(item, dict) and item.get("status") == "VALIDATED"
+    }
+    if "ACCOUNTABILITY" in functions and "investigations" in eligible_sections:
+        return ["investigations", *[section for section in eligible_sections if section != "investigations"]]
+    if "SERVICE" in functions and "service" in eligible_sections:
+        return ["service", *[section for section in eligible_sections if section != "service"]]
     words = set(_query_words([skeleton.get("title"), skeleton.get("topic"), skeleton.get("object"), skeleton.get("lead_paragraphs")]))
     affinities = (
         ("3adl_7o9o9", {"corruption", "anti-corruption", "court", "justice", "rights", "probity", "integrity", "فساد", "نزاهة", "محكمة"}),
@@ -736,6 +773,75 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
     """
     plan = need.get("event_acquisition_plan", {})
     target_section = _breadth_target_section(need)
+    target_function = str(plan.get("target_editorial_function") or need.get("target_editorial_function") or "")
+    if target_function:
+        # Function-first acquisition never puts a desk label in the query.
+        # The configured desk remains only a placement route after validation.
+        terms = (
+            ("رقابة افتحاص تنفيذ عقوبة صفقات عمومية", "audit inspection sanction public procurement", "cour des comptes régulateur contrôle marché public")
+            if target_function == "ACCOUNTABILITY" else
+            ("تسجيل آخر أجل أهلية مسطرة ولوج", "registration deadline eligibility public procedure", "inscription date limite éligibilité procédure accès")
+        )
+        geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
+        base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
+        alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
+        base = " ".join(item for item in (geography, base_terms, month) if item)
+        alternate = " ".join(item for item in (geography, alternate_terms, month) if item)
+        route_candidates = [
+            item for item in [
+                *need.get("search_constraints", {}).get("configured_source_routes", []),
+                *plan.get("canonical_source_routes", []),
+            ] if item.get("url")
+        ]
+        if target_function == "ACCOUNTABILITY":
+            markers = ("AUDIT", "REGULATOR", "COURT", "OVERSIGHT", "PROCUREMENT", "PRIMARY")
+        else:
+            markers = ("PUBLIC", "SERVICE", "HEALTH", "EDUCATION", "TRANSPORT", "PRIMARY")
+        route_candidates.sort(key=lambda item: (
+            0 if any(marker in str(item.get("name") or "").upper() for marker in markers) else 1,
+            0 if any(marker in str(item.get("authority_class") or "").upper() for marker in markers) else 1,
+            str(item.get("origin") or ""),
+        ))
+        canonical_route = route_candidates[0] if route_candidates else None
+        strategies = [
+            {
+                "intent": f"FUNCTION_{target_function}_PRIMARY_WINDOW", "variant": "FUNCTION_DATE",
+                "query": base, "channel": "SEARXNG_GENERAL_SEARCH", "backends": ["searxng-general-search"],
+                "language": primary_language, "target_desk": target_section,
+                "candidate_event_theme": target_function,
+                "fallback": {"action_type": "SEARCH_DISCOVERY", "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"]},
+            },
+            {
+                "intent": f"FUNCTION_{target_function}_CANONICAL_INSTITUTION", "variant": "CANONICAL_NAVIGATION",
+                "query": " ".join(item for item in (base_terms, "current notices decisions") if item),
+                "action_type": "FETCH_CONFIGURED_SOURCE" if canonical_route else "SEARCH_DISCOVERY",
+                "target": canonical_route.get("url") if canonical_route else None,
+                "channel": "CONFIGURED_INSTITUTION_NAVIGATION", "backends": [] if canonical_route else ["searxng-general-search"],
+                "language": primary_language, "target_desk": target_section,
+                "candidate_event_theme": target_function,
+                "discovery_only": True,
+                "source_route": canonical_route,
+            },
+            {
+                "intent": f"FUNCTION_{target_function}_ALTERNATE_LANGUAGE", "variant": "FUNCTION_ALTERNATE",
+                "query": alternate, "channel": "GOOGLE_NEWS_RSS", "backends": ["public-rss-search"],
+                "language": alternate_language or primary_language, "target_desk": target_section,
+                "candidate_event_theme": target_function,
+            },
+            {
+                "intent": f"FUNCTION_{target_function}_GLOBAL_ALTERNATIVE", "variant": "FUNCTION_EVENT_ALTERNATIVE",
+                "query": " ".join((terms[1], month)), "channel": "GDELT_DOC", "backends": ["gdelt-doc"],
+                "language": "en", "target_desk": target_section, "candidate_event_theme": target_function,
+            },
+        ]
+        source_class_priorities = (
+            ["AUDIT_INSTITUTION", "REGULATOR", "COURT_OR_PROSECUTION", "ELECTION_INTEGRITY", "PROCUREMENT_OVERSIGHT", "INDEPENDENT_ACCOUNTABILITY_REPORTING"]
+            if target_function == "ACCOUNTABILITY" else
+            ["MINISTRY", "PUBLIC_AGENCY", "TRANSPORT_OPERATOR", "MUNICIPALITY", "ELECTION_ADMINISTRATION", "EDUCATION_AUTHORITY", "HEALTH_AUTHORITY", "UTILITY", "PUBLIC_SERVICE_PORTAL"]
+        )
+        for strategy in strategies:
+            strategy["source_class_priorities"] = source_class_priorities
+        return strategies
     themes = list(plan.get("candidate_event_themes", [])) or ["public institutional action"]
     families = list(plan.get("query_families", [])) or ["institutional", "topical", "geographical"]
     match = re.search(r":(\d+)$", str(need.get("need_id") or ""))
@@ -948,8 +1054,12 @@ def create_research_action(
         "search_time_range": strategy.get("time_range"),
         "search_page": strategy.get("page"),
         "candidate_event_theme": strategy.get("candidate_event_theme"),
+        "target_editorial_function": (recovery_need or {}).get("target_editorial_function") or (recovery_need or {}).get("event_acquisition_plan", {}).get("target_editorial_function"),
+        "source_class_priorities": list(strategy.get("source_class_priorities") or []),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
+        "discovery_only": bool(strategy.get("discovery_only")),
+        "source_route": deepcopy(strategy.get("source_route")) if isinstance(strategy.get("source_route"), dict) else None,
         "known_entities": list(job["lead"].get("event_entities", [])),
         "event_context": {
             "entities": list((recovery_need or {}).get("query_context", {}).get("entities", [])),
@@ -1624,10 +1734,11 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     # reach this state only through ``validate_exact_page`` below.
     if raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE":
         source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").casefold()
-        return "POTENTIAL_EVIDENCE", canonical, {
-            "state": "VALIDATED_EVIDENCE",
+        fixture_state = "DISCOVERY_ONLY_INDEX" if action.get("discovery_only") else "VALIDATED_EVIDENCE"
+        return "LEAD" if action.get("discovery_only") else "POTENTIAL_EVIDENCE", canonical, {
+            "state": fixture_state,
             "progression": ["DISCOVERED", "FETCHED", "EXTRACTED", "SOURCE_IDENTIFIED", "ORIGIN_CLASSIFIED", "ROLE_CLASSIFIED", "RELEVANCE_CONFIRMED", "POTENTIAL_EVIDENCE", "VALIDATED_EVIDENCE"],
-            "reason": "FIXTURE_EXACT_PAGE_VALIDATION",
+            "reason": "CANONICAL_LISTING_DISCOVERY_ONLY_EXACT_PAGE_REQUIRED" if action.get("discovery_only") else "FIXTURE_EXACT_PAGE_VALIDATION",
             "canonical_url": canonical,
             "origin": urlsplit(canonical).hostname if canonical else None,
             "source_class": source_class,
@@ -1660,6 +1771,10 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
             validation["event_skeleton"] = event_skeleton
         state = validation["state"]
         if state == "VALIDATED_EVIDENCE":
+            if action.get("discovery_only"):
+                validation["state"] = "DISCOVERY_ONLY_INDEX"
+                validation["reason"] = "CANONICAL_LISTING_DISCOVERY_ONLY_EXACT_PAGE_REQUIRED"
+                return "LEAD", canonical, validation
             return ("CONTRADICTION" if validation.get("relation") == "CONTRADICTS" else "POTENTIAL_EVIDENCE"), canonical, validation
         if state == "CONTEXT_ONLY":
             return "CONTEXT", canonical, validation
@@ -1760,6 +1875,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     title_state = str(raw.get("title_state") or (raw.get("article_metadata") or {}).get("title_state") or ("TITLE_RESOLVED" if title else "TITLE_UNRESOLVED"))
     source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").lower()
     source_id = _stable_id("SRC", canonical or action["action_id"], title or "TITLE_UNRESOLVED")
+    temporal_relevance = evaluate_temporal_relevance(raw, str(action.get("event_context", {}).get("research_date") or ""), exact_text=str(raw.get("text") or raw.get("extracted_text") or "")) if raw.get("text") or raw.get("extracted_text") else None
     fixture_verified = raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE"
     verification_status = (
         "VALIDATED_EVIDENCE"
@@ -1817,6 +1933,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "validation_progression": (validation or {}).get("progression", ["DISCOVERED"]),
         "validation_reason": (validation or {}).get("reason"),
         "event_skeleton": deepcopy((validation or {}).get("event_skeleton")) if isinstance((validation or {}).get("event_skeleton"), dict) else None,
+        "temporal_relevance": deepcopy(temporal_relevance),
         "event_state": (validation or {}).get("event_state") or ((validation or {}).get("event_skeleton") or {}).get("state"),
         "article_metadata": deepcopy(raw.get("article_metadata")) if isinstance(raw.get("article_metadata"), dict) else None,
         "source_role_resolution": deepcopy((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution")) if isinstance((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution"), dict) else None,
@@ -1978,7 +2095,26 @@ def build_event_bundles(
         if not value_reason:
             bundle.update(state="EVENT_REJECTED", failure_reason=rejection or "LOW_EDITORIAL_VALUE", evidence_policy=policy)
             continue
-        bundle.update(state="EVENT_VALIDATED", evidence_policy=policy)
+        editorial_functions = classify_event_functions(
+            title=candidate["title"],
+            facts=[
+                candidate["title"],
+                bundle["event_skeleton"].get("action"),
+                bundle["event_skeleton"].get("object"),
+                bundle["event_skeleton"].get("lead_paragraphs"),
+            ],
+            evidence_source_ids=bundle["evidence_ids"],
+            exact_page_validated=True,
+        )
+        target_function = str(action.get("event_acquisition_plan", {}).get("target_editorial_function") or action.get("target_editorial_function") or "")
+        function_names = {item["function"] for item in editorial_functions}
+        if target_function and target_function not in function_names:
+            bundle.update(
+                state="EVENT_REJECTED", failure_reason="FUNCTION_NOT_ESTABLISHED",
+                evidence_policy=policy, editorial_functions=editorial_functions,
+            )
+            continue
+        bundle.update(state="EVENT_VALIDATED", evidence_policy=policy, editorial_functions=editorial_functions)
         eligible_sections = [
             str(section) for section in action.get("event_context", {}).get("topic_terms", [])
             if str(section) in {"siyasa_dawla", "iqtisad_flous", "mojtama3", "ta3lim", "se77a", "3adl_7o9o9", "bi2a_manakh", "bniya_transport", "filastin_middle_east", "africa_sahel", "world", "investigations", "opinion", "service", "sport", "culture", "science"}
@@ -1987,6 +2123,9 @@ def build_event_bundles(
             "section_id": bundle.get("desk") or action.get("desk"), "event_id": bundle["event_lead_id"], "event_lead_id": bundle["event_lead_id"],
             "title": candidate["title"], "claim": candidate["title"], "source_ids": list(bundle["evidence_ids"]),
             "source_roles": deepcopy(bundle["source_roles"]), "editorial_value_reason": value_reason,
+            "editorial_functions": deepcopy(editorial_functions),
+            "target_editorial_function": target_function or None,
+            "temporal_relevance": deepcopy(bundle["event_skeleton"].get("temporal_relevance")),
             "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
             "recovery_need_id": bundle.get("recovery_need_id"),
             "eligible_section_ids": eligible_sections,
@@ -2094,6 +2233,7 @@ def build_research_yield_report(
             "query_variant": action.get("query_variant"),
             "planned_channel": action.get("discovery_channel"),
             "desk": action["desk"],
+            "target_editorial_function": action.get("target_editorial_function"),
             "recovery_need_id": action.get("recovery_need_id"),
             "source_discovery_channels": sorted({
                 str(item.get("discovery_channel") or item.get("discovery_method") or "UNKNOWN")
@@ -2181,6 +2321,38 @@ def build_research_yield_report(
             "new_distinct_events": sum(item.get("introduced_new_distinct_event") for item in backend_actions),
             "dead_ends": sum(item.get("observation_class") == "DEAD_END" for item in backend_observations),
         })
+    function_metrics = {}
+    for function in ("ACCOUNTABILITY", "SERVICE"):
+        function_actions = [
+            action for action in actions
+            if str(action.get("target_editorial_function") or "").upper() == function
+        ]
+        function_action_ids = {action.get("action_id") for action in function_actions}
+        function_observations = [
+            item for item in observations
+            if item.get("provenance", {}).get("action_id") in function_action_ids
+        ]
+        function_metrics[function] = {
+            "source_classes_queried": sorted({item for action in function_actions for item in action.get("source_class_priorities", [])}),
+            "searches": sum(action.get("action_type") in SEARCH_ACTIONS for action in function_actions),
+            "leads": sum(item.get("observation_class") == "LEAD" for item in function_observations),
+            "fetch_selections": sum(item.get("lead_attrition_state") == "SELECTED_FOR_FETCH" for item in function_observations),
+            "pages_fetched": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in function_observations),
+            "active_window_leads": sum(
+                (item.get("temporal_relevance") or {}).get("active_on_edition_date") is True
+                for item in function_observations
+            ),
+            "concrete_events": sum((item.get("event_skeleton") or {}).get("state") == "CONCRETE_EVENT" for item in function_observations),
+            "validated_events": sum(
+                item.get("state") == "EVENT_VALIDATED"
+                and any(str(bundle.get("candidate_discovery", {}).get("target_editorial_function") or "").upper() == function for bundle in event_bundles)
+                for item in event_bundles
+            ),
+            "closures": sum(
+                item.get("recovery_need_closed") and str(item.get("target_editorial_function") or "").upper() == function
+                for item in action_outcomes
+            ),
+        }
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -2268,6 +2440,11 @@ def build_research_yield_report(
         "action_outcomes": action_outcomes,
         "strategy_channel_yield": strategy_channel_yield,
         "backend_yield": backend_yield,
+        "function_metrics": function_metrics,
+        "budget_allocation": execution.get("budget_allocation") or {
+            "jobs": [item.get("budget_allocation", {}) for item in jobs if item.get("budget_allocation")],
+            "budget_increased": False,
+        },
     }
 
 
@@ -2598,6 +2775,13 @@ def execute_research_round(
         }
         for need_id, indices in sorted(attempted_strategies.items())
     ]
+    configured_limits = config["executor"]["budget_action_limits"][job["budget_class"]]
+    followup_capacity = config["executor"]["lead_followup_limits"][job["budget_class"]]
+    function_needs = {
+        str(need.get("target_editorial_function")): need.get("need_id")
+        for need in job.get("recovery_needs", [])
+        if need.get("target_editorial_function")
+    }
     return {
         "schema_version": 1,
         "status": "EXECUTED",
@@ -2616,6 +2800,18 @@ def execute_research_round(
         "recovery_attempts": [item["need_id"] for item in strategy_progress if item["attempt_exhausted"]],
         "recovery_strategy_progress": strategy_progress,
         "budget_consumed": {"search_actions": state["search_actions"], "fetches": state["fetches"], "lead_followups": state["lead_followups"]},
+        "budget_allocation": {
+            "budget_class": job["budget_class"],
+            "global_budget_before": dict(configured_limits),
+            "global_budget_after": dict(configured_limits),
+            "function_specific_reservations": {
+                function: {"need_id": need_id, "followup_cap": followup_capacity.get("P1_BREADTH", 0)}
+                for function, need_id in sorted(function_needs.items())
+            },
+            "generic_discovery_allocation": {"search_actions": configured_limits.get("search_actions", 0), "fetches": configured_limits.get("fetches", 0)},
+            "unused_or_deferred": {"search_actions": max(0, configured_limits.get("search_actions", 0) - state["search_actions"]), "fetches": max(0, configured_limits.get("fetches", 0) - state["fetches"])},
+            "budget_increased": False,
+        },
         "lead_followup_selection": lead_followup_selection,
         "lead_followup_candidates": lead_followup_candidates,
         "remaining_gaps": list(advanced["context"]["SOURCE_GAPS"]),
@@ -2663,6 +2859,9 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
         # breadth-value screen enforced by the executor.
         if not discovery.get("editorial_value_reason"):
             continue
+        target_function = str(discovery.get("target_editorial_function") or "")
+        if target_function and target_function not in validated_function_names({"editorial_functions": discovery.get("editorial_functions", [])}):
+            continue
         section_id = discovery.get("section_id")
         # For a breadth acquisition, the producing desk is a query route, not
         # a command to place the candidate there.  Prefer a declared,
@@ -2695,9 +2894,12 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
                 "recovery_revalidated": True,
                 "event_id": discovery["event_id"],
                 "editorial_value_reason": discovery.get("editorial_value_reason"),
+                "editorial_functions": deepcopy(discovery.get("editorial_functions", [])),
                 "permitted_story_roles": list(discovery.get("acceptable_story_roles") or []),
             }
             section.setdefault("candidates", []).append(candidate)
+        elif discovery.get("editorial_functions"):
+            candidate["editorial_functions"] = deepcopy(discovery["editorial_functions"])
         role_entries = discovery.get("source_roles") if isinstance(discovery.get("source_roles"), list) else []
         if not role_entries and discovery.get("source_id"):
             role_entries = [{"source_id": discovery["source_id"], "role": discovery.get("role")}]

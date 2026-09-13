@@ -414,6 +414,22 @@ def _otherwise_sufficient_packet() -> dict:
         primary, independent = f"p{index}", f"i{index}"
         sources.extend([_source(primary, "primary", f"official-{index}.example"), _source(independent, "independent", f"news-{index}.example")])
         candidate = _candidate(f"c{index}", [primary], [independent])
+        if section_id == "investigations":
+            candidate["editorial_functions"] = [{
+                "function": "ACCOUNTABILITY", "status": "VALIDATED",
+                "reason": "Fixture audit finding tied to a public authority.",
+                "supporting_event_facts": ["The authority completed an audit."],
+                "evidence_source_ids": [primary, independent],
+                "classifier_version": "editorial-functions-v1",
+            }]
+        elif section_id == "service":
+            candidate["editorial_functions"] = [{
+                "function": name, "status": "VALIDATED",
+                "reason": "Fixture verified actionable public procedure.",
+                "supporting_event_facts": ["Readers have a registration deadline."],
+                "evidence_source_ids": [primary, independent],
+                "classifier_version": "editorial-functions-v1",
+            } for name in ("SERVICE", "READER_VALUE")]
         sections.append({"section_id": section_id, "status": "ACTIVE", "selected_candidate_id": candidate["id"], "candidates": [candidate]})
     return {"edition_date": "2099-01-02", "sources": sources, "sections": sections}
 
@@ -648,8 +664,17 @@ def test_unknown_article_event_lead_triggers_alternative_coverage_before_promoti
     before = build_recovery_plan(closure_packet, build_source_intelligence(closure_packet), coverage, readiness)
     assert any(item["need_id"].startswith("BREADTH:") for item in before["needs"])
     replay = replay_recovery_after_execution(closure_packet, execution, coverage, readiness)
-    assert replay["status"] == "READY"
-    assert replay["article_generation_allowed"] is True
+    # A transport-agreement lead is concrete enough to remain a candidate,
+    # but does not claim a verified reader action or formal oversight
+    # mechanism.  A service desk placement alone cannot close the V5
+    # semantic family.
+    assert replay["status"] == "RESEARCH_GAPS_REMAIN"
+    assert any(
+        item["target_editorial_function"] in {"ACCOUNTABILITY", "SERVICE"}
+        for item in replay["recovery"]["needs"]
+        if item["kind"] == "NEED_ACCOUNTABILITY_AND_SERVICE"
+    )
+    assert replay["article_generation_allowed"] is False
 
 
 def test_event_matcher_uses_structured_cues_across_headlines_and_languages() -> None:

@@ -19,6 +19,8 @@ from dragon.deep_research_executor import (
     execute_research_round,
     plan_research_actions,
     query_ladder,
+    select_leads_for_followup,
+    _lead_priority,
 )
 from dragon.discovery import FetchResponse
 
@@ -146,6 +148,98 @@ def test_breadth_event_plan_uses_theme_date_and_rotating_eligible_desk() -> None
     action = plan_research_actions(job, CONFIG)[0]
     assert action["desk"] == "culture"
     assert action["known_event_fingerprints"][0]["event_id"] == "known"
+
+
+def test_function_breadth_queries_are_diversified_and_do_not_search_desk_names() -> None:
+    base = {
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE", "max_attempts": 1,
+        "query_context": {"research_date": "2026-09-11"},
+        "search_constraints": {"must_be_distinct_event": True, "eligible_section_ids": ["investigations", "service"]},
+    }
+    accountability = {
+        **base, "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    service = {
+        **base, "need_id": "BREADTH:accountability_and_service:2",
+        "target_editorial_function": "SERVICE",
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    accountability_ladder = query_ladder(_job(), accountability)
+    service_ladder = query_ladder(_job(), service)
+    assert accountability_ladder[0]["target_desk"] == "investigations"
+    assert service_ladder[0]["target_desk"] == "service"
+    assert accountability_ladder[0]["query"] != service_ladder[0]["query"]
+    assert any(term in accountability_ladder[0]["query"] for term in ("audit", "افتحاص", "رقابة"))
+    assert any(term in service_ladder[0]["query"] for term in ("registration", "تسجيل", "أجل"))
+    assert all("investigations" not in item["query"].casefold() for item in accountability_ladder)
+    assert all("service" not in item["query"].casefold() for item in service_ladder)
+
+
+def test_morocco_function_ladder_carries_arabic_and_french_routes() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2", "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "max_attempts": 1, "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-11"},
+        "search_constraints": {"eligible_section_ids": ["service"]},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    ladder = query_ladder(_job(), need)
+    assert any(item.get("language") == "ar" and "تسجيل" in item["query"] for item in ladder)
+    assert any(item.get("language") == "fr" and "inscription" in item["query"] for item in ladder)
+
+
+def test_function_route_uses_canonical_institution_navigation_as_discovery_only() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1", "kind": "NEED_ACCOUNTABILITY_AND_SERVICE", "max_attempts": 1,
+        "target_editorial_function": "ACCOUNTABILITY", "query_context": {"research_date": "2026-09-11"},
+        "search_constraints": {"eligible_section_ids": ["investigations"], "configured_source_routes": [
+            {"name": "Audit Institution", "origin": "audit.gov.ma", "url": "https://audit.gov.ma/notices", "role": "PRIMARY", "authority_class": "AUDIT_INSTITUTION"},
+            {"name": "Generic Ministry", "origin": "ministry.gov.ma", "url": "https://ministry.gov.ma/", "role": "PRIMARY", "authority_class": "PRIMARY_ORIGINAL"},
+        ]},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    ladder = query_ladder(_job(), need)
+    canonical = next(item for item in ladder if item["variant"] == "CANONICAL_NAVIGATION")
+    assert canonical["action_type"] == "FETCH_CONFIGURED_SOURCE"
+    assert canonical["target"] == "https://audit.gov.ma/notices"
+    assert canonical["discovery_only"] is True
+
+
+def test_canonical_listing_page_never_becomes_evidence_by_itself() -> None:
+    action = plan_research_actions(_job(), CONFIG)[0]
+    action.update({"action_type": "FETCH_URL", "discovery_only": True, "target": "https://official.example/page"})
+    observation = _observation(action, {
+        "verification_provenance": "FIXTURE_VERIFIED_EXACT_PAGE", "url": action["target"],
+        "title": "Current notices", "source_class": "official", "text": "A listing of current notices.",
+    }, set())
+    assert observation["observation_class"] == "LEAD"
+    assert observation["verification_status"] == "EXTRACTED_NOT_VERIFIED"
+    assert observation["validation_state"] == "DISCOVERY_ONLY_INDEX"
+
+
+def test_institutional_source_class_match_raises_fetch_priority_without_upgrading_evidence() -> None:
+    action = {"target_editorial_function": "SERVICE", "query": "تسجيل آخر أجل", "event_context": {}}
+    priority, reasons, _ = _lead_priority({
+        "url": "https://www.elections.gov.ma/notices", "title": "وزارة الداخلية تحدد آخر أجل للتسجيل",
+        "search_result": {"rank": 7, "snippet": "إعلان رسمي"},
+    }, action)
+    assert priority == "HIGH"
+    assert "SEMANTIC_SOURCE_CLASS_MATCH" in reasons
+
+
+def test_bounded_followup_inspects_both_missing_semantic_functions() -> None:
+    actions = {
+        "a": {"action_id": "a", "question_id": "qa", "action_type": "SEARCH_DISCOVERY", "priority_class": "P1_BREADTH", "recovery_need_id": "need-a", "target_editorial_function": "ACCOUNTABILITY", "excluded_origins": [], "excluded_origin_families": []},
+        "s": {"action_id": "s", "question_id": "qs", "action_type": "SEARCH_DISCOVERY", "priority_class": "P1_BREADTH", "recovery_need_id": "need-s", "target_editorial_function": "SERVICE", "excluded_origins": [], "excluded_origin_families": []},
+    }
+    observations = [
+        {"observation_class": "LEAD", "url": "https://audit.example/finding", "title": "Audit authority finding", "search_result": {"rank": 1, "snippet": "public audit"}, "provenance": {"action_id": "a"}},
+        {"observation_class": "LEAD", "url": "https://agency.example/deadline", "title": "Registration deadline", "search_result": {"rank": 1, "snippet": "official registration deadline"}, "provenance": {"action_id": "s"}},
+    ]
+    selected = select_leads_for_followup(observations, actions, {"total": 2, "P1_BREADTH": 1})
+    assert {item["_followup_need"] for item in selected} == {"need-a", "need-s"}
 
 
 def test_validated_page_without_discernible_event_cannot_propose_breadth_candidate() -> None:

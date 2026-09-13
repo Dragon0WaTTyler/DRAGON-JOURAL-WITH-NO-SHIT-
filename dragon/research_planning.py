@@ -8,6 +8,8 @@ from pathlib import Path
 from jsonschema import Draft202012Validator
 import yaml
 
+from dragon.editorial_functions import validated_function_names
+
 
 SECTION_PERSPECTIVES = {
     "front": ("المصلحة العامة", "المتأثرون", "الخبير المستقل", "المتشكك"),
@@ -118,7 +120,69 @@ def _budget(section_id: str, candidate: dict, independent_origins: int, config: 
     }
 
 
-def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | None = None) -> dict:
+def _semantic_acquisition_objectives(
+    packet: dict, events_by_candidate: dict[str, str], readiness: dict | None,
+) -> list[dict]:
+    """Expose semantic coverage gaps before candidate selection/recovery ends.
+
+    This is an acquisition objective, not a second gate or a budget change.
+    The recovery planner remains responsible for bounded job materialization.
+    """
+    rules = (readiness or {}).get("coverage_rules", [])
+    rule = next((item for item in rules if item.get("id") == "accountability_and_service"), None)
+    if not isinstance(rule, dict):
+        return []
+    covered = {"ACCOUNTABILITY": set(), "SERVICE": set(), "READER_VALUE": set()}
+    for section in packet.get("sections", []):
+        if section.get("status") != "ACTIVE":
+            continue
+        selected_id = section.get("selected_candidate_id")
+        candidate = next((item for item in section.get("candidates", []) if item.get("id") == selected_id), None)
+        if not isinstance(candidate, dict):
+            continue
+        key = f"{section.get('section_id')}:{selected_id}"
+        event_id = events_by_candidate.get(key, f"UNCLUSTERED:{key}")
+        for function in validated_function_names(candidate):
+            covered[function].add(event_id)
+    minimum = int(rule["minimum_active"])
+    union = covered["ACCOUNTABILITY"] | covered["SERVICE"]
+    missing = max(0, minimum - len(union))
+    counts = {name: len(event_ids) for name, event_ids in covered.items()}
+    ordered_functions = sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda item: (counts[item], item))
+    proposed = [ordered_functions[index % len(ordered_functions)] for index in range(missing)]
+    branch_catalog = {
+        "ACCOUNTABILITY": {
+            "source_classes": ["AUDIT_INSTITUTION", "REGULATOR", "COURT_OR_PROSECUTION", "ELECTION_INTEGRITY", "PROCUREMENT_OVERSIGHT", "INDEPENDENT_ACCOUNTABILITY_REPORTING"],
+            "branch_intents": ["CURRENT_DECISIONS", "CURRENT_ENFORCEMENT", "CURRENT_OVERSIGHT", "CURRENT_AUDIT_FINDINGS", "CURRENT_INTEGRITY_ACTIONS"],
+        },
+        "SERVICE": {
+            "source_classes": ["MINISTRY", "PUBLIC_AGENCY", "TRANSPORT_OPERATOR", "MUNICIPALITY", "ELECTION_ADMINISTRATION", "EDUCATION_AUTHORITY", "HEALTH_AUTHORITY", "UTILITY", "PUBLIC_SERVICE_PORTAL"],
+            "branch_intents": ["CURRENT_OFFICIAL_NOTICES", "CURRENT_DEADLINES", "ACTIVE_PUBLIC_PROCEDURES", "CURRENT_SERVICE_CHANGES"],
+        },
+    }
+    return [{
+        "coverage_rule_id": rule["id"],
+        "status": "SATISFIED" if not missing else "ACQUISITION_REQUIRED",
+        "minimum_distinct_events": minimum,
+        "current_distinct_event_count": len(union),
+        "function_coverage": {
+            name: {"count": len(event_ids), "event_ids": sorted(event_ids)}
+            for name, event_ids in covered.items()
+        },
+        "missing_distinct_events": missing,
+        "proposed_editorial_functions": proposed,
+        "acquisition_branches": [
+            {"function": name, **branch_catalog[name], "language_order": ["ar", "fr", "en"], "allocation": "BOUNDED_EXISTING_BUDGET"}
+            for name in proposed
+        ],
+        "classification_requirement": "VALIDATED_EXACT_PAGE_EVIDENCE",
+    }]
+
+
+def build_research_plan(
+    packet: dict, intelligence: dict, budget_config: dict | None = None,
+    readiness: dict | None = None,
+) -> dict:
     budget_config = budget_config or DEFAULT_BUDGET_CONFIG
     events_by_candidate = {
         key: event["event_id"]
@@ -243,6 +307,7 @@ def build_research_plan(packet: dict, intelligence: dict, budget_config: dict | 
         "status": "PASS",
         "edition_date": packet.get("edition_date"),
         "plans": plans,
+        "semantic_acquisition_objectives": _semantic_acquisition_objectives(packet, events_by_candidate, readiness),
     }
 
 
@@ -295,4 +360,16 @@ def validate_research_plan(value: dict, expected_sections: set[str]) -> list[str
             or set(item.get("critical_thinking_checks", {}).values()) != {"PLANNED"}
         ):
             issues.append(f"RESEARCH_PLAN_INCOMPLETE:{item.get('section_id')}")
+    objectives = value.get("semantic_acquisition_objectives", [])
+    if not isinstance(objectives, list):
+        issues.append("RESEARCH_PLAN_SEMANTIC_OBJECTIVES_INVALID")
+    for objective in objectives:
+        if (
+            not isinstance(objective, dict)
+            or objective.get("coverage_rule_id") != "accountability_and_service"
+            or objective.get("status") not in {"SATISFIED", "ACQUISITION_REQUIRED"}
+            or not isinstance(objective.get("function_coverage"), dict)
+            or objective.get("classification_requirement") != "VALIDATED_EXACT_PAGE_EVIDENCE"
+        ):
+            issues.append("RESEARCH_PLAN_SEMANTIC_OBJECTIVE_INVALID")
     return issues

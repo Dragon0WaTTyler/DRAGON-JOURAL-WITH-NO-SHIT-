@@ -127,6 +127,9 @@ def desk_recovery_context(coverage: dict, section_id: str) -> dict:
                 "source_id": item["source_id"], "name": item["name"],
                 "url": item["url"], "origin": item["origin"],
                 "role": item["role"], "enabled": item["enabled"],
+                "authority_class": item["authority_class"],
+                "source_class": "OFFICIAL_INSTITUTION" if item["role"] == "PRIMARY" else "INDEPENDENT_NEWSROOM",
+                "discovery_only": item["discovery_only"],
             }
             for item in routes if item["enabled"] and not item["discovery_only"]
         ],

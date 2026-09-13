@@ -96,6 +96,30 @@ def _nine_section_seed() -> dict:
         ])
         first = _candidate(f"{section_id}-1", primary, independent, 1)
         second = _candidate(f"{section_id}-2", primary, independent, 2)
+        if section_id == "siyasa_dawla":
+            first.update({
+                "title": "Audit authority publishes a procurement finding",
+                "facts": ["The public audit authority completed an inspection of a municipal procurement contract."],
+                "editorial_functions": [{
+                    "function": "ACCOUNTABILITY", "status": "VALIDATED",
+                    "reason": "Concrete audit mechanism tied to public power.",
+                    "supporting_event_facts": ["The authority completed an audit inspection."],
+                    "evidence_source_ids": [primary, independent],
+                    "classifier_version": "editorial-functions-v1",
+                }],
+            })
+        elif section_id == "service":
+            first.update({
+                "title": "University registration deadline",
+                "facts": ["Applicants must register before the stated deadline through the published procedure."],
+                "editorial_functions": [{
+                    "function": name, "status": "VALIDATED",
+                    "reason": "Verified actionable reader procedure.",
+                    "supporting_event_facts": ["Applicants must register before the deadline."],
+                    "evidence_source_ids": [primary, independent],
+                    "classifier_version": "editorial-functions-v1",
+                } for name in ("SERVICE", "READER_VALUE")],
+            })
         sections.append({
             "section_id": section_id,
             "status": "ACTIVE",

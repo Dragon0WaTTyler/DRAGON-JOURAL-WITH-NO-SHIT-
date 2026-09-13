@@ -120,3 +120,23 @@ def test_no_news_section_has_bounded_followup_without_candidate() -> None:
     assert plan["research_branches"] == []
     assert plan["fallback_action"] == "RADAR"
     assert validate_research_plan(value, {"meknes_local"}) == []
+
+
+def test_initial_plan_exposes_semantic_acquisition_before_recovery() -> None:
+    candidate = _candidate("lead")
+    packet = {"edition_date": "2099-01-02", "sections": [{
+        "section_id": "front", "selected_candidate_id": "lead", "candidates": [candidate],
+    }]}
+    intelligence = {"event_clusters": [{
+        "event_id": "EVT-1", "candidate_keys": ["front:lead"], "independent_origin_count": 2,
+    }]}
+    readiness = {"coverage_rules": [{
+        "id": "accountability_and_service", "sections": ["investigations", "opinion", "service"], "minimum_active": 2,
+    }]}
+    value = build_research_plan(packet, intelligence, readiness=readiness)
+    objective = value["semantic_acquisition_objectives"][0]
+    assert objective["status"] == "ACQUISITION_REQUIRED"
+    assert objective["missing_distinct_events"] == 2
+    assert objective["proposed_editorial_functions"] == ["ACCOUNTABILITY", "SERVICE"]
+    assert objective["classification_requirement"] == "VALIDATED_EXACT_PAGE_EVIDENCE"
+    assert validate_research_plan(value, {"front"}) == []
