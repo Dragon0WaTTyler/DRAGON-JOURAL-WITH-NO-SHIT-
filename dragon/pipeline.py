@@ -584,6 +584,12 @@ def build_stage_definitions(
                 }
                 packet = apply_executor_results_to_packet(packet, second_combined)
                 intelligence = build_source_intelligence(packet)
+                # Epoch-1 is a bounded continuation of the same recovery
+                # state.  Persist its packet patch before planning the final
+                # recovery result so pivot attempts, source-class memory, and
+                # Event-A/Event-B bundles survive resume and audit.
+                atomic_write_json(recovered_packet_path, packet)
+                atomic_write_json(recovered_intelligence_path, intelligence)
                 report = build_recovery_plan(packet, intelligence, coverage, readiness)
             epoch1_execution_path = context.run_dir / "deep-research" / "epoch-1-execution-report.json"
             atomic_write_json(epoch1_execution_path, epoch1_execution)
