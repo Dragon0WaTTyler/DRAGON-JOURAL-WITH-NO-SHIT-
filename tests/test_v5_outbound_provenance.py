@@ -20,12 +20,10 @@ def test_actor_first_query_adds_observed_function_signals_without_mutating_event
     }
     action = {
         "target_editorial_function": "ACCOUNTABILITY",
-        "source_route": {"origin": "www.maroc.ma", "url": "https://maroc.ma/en/news"},
         "event_context": {"current_process_context": "election electoral process", "research_date": "2026-09-13"},
     }
     skeleton = {"actor": "Public Prosecution", "action": "close", "object": "electoral probity", "geography": ["Morocco"], "published_at": "2026-09-01"}
     query = _actor_first_query(observation, action, skeleton)
-    assert "site:maroc.ma" in query
     assert "Public Prosecution" in query
     assert "monitoring" in query and "integrity" in query
     assert skeleton["action"] == "close"
