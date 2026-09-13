@@ -2486,6 +2486,24 @@ def build_research_yield_report(
         "event_actors_resolved": sum(bool(item.get("event_actor_candidates")) for item in observations),
         "diagnostics": sorted(set(str(item.get("provenance_recovery_reason") or item.get("reason") or "") for item in observations if item.get("provenance_recovery_reason") or item.get("reason"))),
     }
+    semantic_closure = {"attempted": 0, "validated_functions": {"ACCOUNTABILITY": 0, "SERVICE": 0}, "promoted_candidates": 0, "closures": 0, "failure_stages": {}}
+    for bundle in event_bundles:
+        if not isinstance(bundle, dict):
+            continue
+        semantic_closure["attempted"] += 1
+        for fn in (bundle.get("editorial_functions") or []):
+            if isinstance(fn, dict) and fn.get("status") == "VALIDATED" and fn.get("function") in semantic_closure["validated_functions"]:
+                semantic_closure["validated_functions"][fn["function"]] += 1
+        if bundle.get("candidate_discovery"):
+            semantic_closure["promoted_candidates"] += 1
+        if bundle.get("state") == "EVENT_VALIDATED" and bundle.get("candidate_discovery"):
+            semantic_closure["closures"] += 1
+        else:
+            stage = str(bundle.get("failure_reason") or "EVENT_MATCH")
+            semantic_closure["failure_stages"][stage] = semantic_closure["failure_stages"].get(stage, 0) + 1
+    for item in observations:
+        if item.get("verification_status") == "VALIDATED_EVIDENCE" and not any(item.get("observation_id") in bundle.get("observations", []) for bundle in event_bundles):
+            semantic_closure["failure_stages"]["EVENT_MATCH"] = semantic_closure["failure_stages"].get("EVENT_MATCH", 0) + 1
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -2577,6 +2595,7 @@ def build_research_yield_report(
         "institutional_identity": institutional_identity,
         "listing_resolution": listing_resolution,
         "provenance_recovery": provenance_recovery,
+        "semantic_closure": semantic_closure,
         "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {
             "jobs": [item.get("budget_allocation", {}) for item in jobs if item.get("budget_allocation")],
