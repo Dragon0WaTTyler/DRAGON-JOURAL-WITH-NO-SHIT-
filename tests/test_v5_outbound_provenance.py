@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
-from dragon.deep_research_executor import execute_research_round
+from dragon.deep_research_executor import _actor_first_query, execute_research_round
 from dragon.discovery import assess_source_url
 from dragon.institutional_navigation import (
     classify_outbound_link, detect_official_portal_republication,
@@ -11,6 +11,22 @@ from dragon.institutional_navigation import (
 
 
 CONFIG = load_deep_research_config(Path("config/deep-research.yaml"))
+
+
+def test_actor_first_query_adds_observed_function_signals_without_mutating_event_facts() -> None:
+    observation = {
+        "title": "Public Prosecution calls to safeguard electoral probity",
+        "event_actor_candidates": [{"name": "Public Prosecution"}],
+    }
+    action = {
+        "target_editorial_function": "ACCOUNTABILITY",
+        "event_context": {"current_process_context": "election electoral process", "research_date": "2026-09-13"},
+    }
+    skeleton = {"actor": "Public Prosecution", "action": "close", "object": "electoral probity", "geography": ["Morocco"], "published_at": "2026-09-01"}
+    query = _actor_first_query(observation, action, skeleton)
+    assert "Public Prosecution" in query
+    assert "monitoring" in query and "integrity" in query
+    assert skeleton["action"] == "close"
 
 
 def test_service_link_is_classified_without_becoming_evidence() -> None:

@@ -126,6 +126,44 @@ def _lead_source_profile(url: str | None, title: str, snippet: str = "", *, sema
     }
 
 
+def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
+    """Build a bounded actor/action lookup from observed text plus intent.
+
+    The extracted event action can be an awkward normalized verb (for example
+    ``close`` for a headline saying an authority *called to safeguard* an
+    election).  Keep that observed value, but add a small function vocabulary
+    and current-process hint so the canonical-source lookup can still find the
+    issuer's directive.  These terms are search context only and never alter
+    the event skeleton or evidence role.
+    """
+    target = str(action.get("target_editorial_function") or "").upper()
+    context = action.get("event_context") if isinstance(action.get("event_context"), dict) else {}
+    text = " ".join(str(observation.get(key) or "") for key in ("title", "claim", "extracted_text", "text")).casefold()
+    vocabularies = {
+        "ACCOUNTABILITY": ("directive", "monitoring", "complaints", "enforcement", "oversight", "integrity", "probity", "دورية", "مراقبة", "شكايات", "زجر", "نزاهة"),
+        "SERVICE": ("service", "procedure", "deadline", "registration", "access", "polling", "notice", "منصة", "إجراء", "آخر أجل", "تسجيل", "إشعار", "مكتب التصويت"),
+    }
+    vocabulary = vocabularies.get(target, ())
+    # Keep a small deterministic set of action terms in every actor-first
+    # lookup.  The observed headline may normalize to an unhelpful verb
+    # (for example ``close`` from a "calls to safeguard" title), so the
+    # query must retain concrete function signals without changing event
+    # facts or expanding the retrieval budget.
+    default_hints = list(vocabulary[:6])
+    observed_hints = [term for term in vocabulary if term.casefold() in text]
+    context_hint = str(context.get("current_process_context") or "").strip()
+    parts = [
+        str((observation.get("event_actor_candidates") or [{}])[0].get("name") or skeleton.get("actor") or "").strip(),
+        str(skeleton.get("action") or "").strip(),
+        str(skeleton.get("object") or "").strip(),
+        *dict.fromkeys([*default_hints, *observed_hints]),
+        context_hint,
+        " ".join(skeleton.get("geography") or []),
+        str(skeleton.get("published_at") or context.get("research_date") or "")[:10],
+    ]
+    return " ".join(dict.fromkeys(item for item in parts if item)).strip()
+
+
 def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tuple]:
     """Categorical fetch priority, not a journalism-confidence score."""
     result = observation.get("search_result", {}) if isinstance(observation.get("search_result"), dict) else {}
@@ -3505,8 +3543,7 @@ def execute_research_round(
                     ):
                         actor = observation["event_actor_candidates"][0]
                         skeleton = observation.get("event_skeleton") or {}
-                        query_parts = [actor.get("name"), skeleton.get("action"), skeleton.get("object"), " ".join(skeleton.get("geography") or []), str(skeleton.get("published_at") or action.get("event_context", {}).get("research_date") or "")[:10]]
-                        query = " ".join(str(item) for item in query_parts if item).strip()
+                        query = _actor_first_query(observation, action, skeleton)
                         if query:
                             search_action = {
                                 **action,
@@ -3533,8 +3570,7 @@ def execute_research_round(
                 elif observation.get("event_actor_candidates") and state["search_actions"] < limits["search_actions"] and target_function:
                     actor = observation["event_actor_candidates"][0]
                     skeleton = observation.get("event_skeleton") or {}
-                    query_parts = [actor.get("name"), skeleton.get("action"), skeleton.get("object"), " ".join(skeleton.get("geography") or []), str(skeleton.get("published_at") or action.get("event_context", {}).get("research_date") or "")[:10]]
-                    query = " ".join(str(item) for item in query_parts if item).strip()
+                    query = _actor_first_query(observation, action, skeleton)
                     if query:
                         search_action = {
                             **action,
