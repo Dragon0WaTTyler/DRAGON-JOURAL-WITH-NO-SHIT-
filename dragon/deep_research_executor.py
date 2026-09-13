@@ -149,16 +149,17 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     # (for example ``close`` from a "calls to safeguard" title), so the
     # query must retain concrete function signals without changing event
     # facts or expanding the retrieval budget.
-    default_hints = list(vocabulary[:3])
-    observed_hints = [term for term in vocabulary if term.casefold() in text]
+    default_hints = list(vocabulary[:2])
+    observed_hints = [term for term in vocabulary if term.casefold() in text and term not in default_hints]
     observed_action = str(skeleton.get("action") or "").strip()
-    if observed_action and observed_action.casefold() not in text:
+    generic_actions = {"close", "open", "make", "take", "call", "calls", "safeguard", "ensure", "support"}
+    if observed_action.casefold() in generic_actions or observed_action.casefold() not in text:
         observed_action = ""
     parts = [
         str((observation.get("event_actor_candidates") or [{}])[0].get("name") or skeleton.get("actor") or "").strip(),
         observed_action,
         str(skeleton.get("object") or "").strip(),
-        *dict.fromkeys([*default_hints, *observed_hints[:2]]),
+        *dict.fromkeys([*default_hints, *observed_hints[:1]]),
         " ".join(skeleton.get("geography") or []),
         str(skeleton.get("published_at") or context.get("research_date") or "")[:10],
     ]
