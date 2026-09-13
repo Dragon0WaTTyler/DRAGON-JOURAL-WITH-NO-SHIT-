@@ -1041,12 +1041,12 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         # Current-process context is retrieval guidance only.  It is copied
         # into the query plan/action metadata but never into observed event
         # facts or evidence-role fields.
-        current_process = str(
+        current_process = " ".join(str(
             context.get("current_process_context")
             or context.get("current_public_process")
             or need.get("current_process_context")
             or ""
-        ).strip()
+        ).split())[:160]
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
         alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
         attempted_source_classes = list(need.get("pivot_source_classes_attempted") or need.get("source_class_attempts") or [])
