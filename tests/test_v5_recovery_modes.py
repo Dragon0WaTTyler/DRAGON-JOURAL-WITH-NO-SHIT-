@@ -312,6 +312,21 @@ def test_pivot_allocates_distinct_service_source_classes():
     assert len(set(classes)) == len(classes)
 
 
+def test_initial_semantic_need_also_uses_bounded_source_class_branches():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    assert [item["target_source_class"] for item in strategies] == ["MINISTRY", "ELECTION_ADMINISTRATION", "PUBLIC_SERVICE_OPERATOR", "ADMINISTRATIVE_PORTAL"]
+    assert all(item["source_class_branch_mode"] == "INITIAL_SEMANTIC" for item in strategies)
+
+
 def test_pivot_source_class_memory_persists_in_packet_merge():
     packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
     execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}

@@ -1040,7 +1040,12 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
         alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
         attempted_source_classes = list(need.get("pivot_source_classes_attempted") or need.get("source_class_attempts") or [])
-        pivot_branches = _pivot_source_class_branches(target_function, attempted_source_classes) if pivot_mode else []
+        semantic_discovery_mode = bool(
+            need.get("recovery_mode") == "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED"
+            or str(need.get("kind") or "").startswith("NEED_ACCOUNTABILITY_AND_SERVICE")
+        )
+        branch_mode = "PIVOT" if pivot_mode else "INITIAL_SEMANTIC" if semantic_discovery_mode else None
+        pivot_branches = _pivot_source_class_branches(target_function, attempted_source_classes) if branch_mode else []
         if pivot_mode:
             pivot_terms = (
                 ("قرار هيئة تنظيمية رقابة امتثال إنفاذ تتبع" if primary_language == "ar" else
@@ -1145,7 +1150,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             ["MINISTRY", "PUBLIC_AGENCY", "TRANSPORT_OPERATOR", "MUNICIPALITY", "ELECTION_ADMINISTRATION", "EDUCATION_AUTHORITY", "HEALTH_AUTHORITY", "UTILITY", "PUBLIC_SERVICE_PORTAL"]
         )
         for strategy_index, strategy in enumerate(strategies):
-            if pivot_mode and pivot_branches:
+            if branch_mode and pivot_branches:
                 branch = pivot_branches[strategy_index % len(pivot_branches)]
                 branch_language = str(strategy.get("language") or primary_language)
                 branch_terms = branch["terms"].get(branch_language) or branch["terms"].get(primary_language) or branch["terms"]["en"]
@@ -1154,6 +1159,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 strategy["source_class_branch"] = branch["class"]
                 strategy["first_party_discovery_objective"] = "FIRST_PARTY_SELF_ACTION"
                 strategy["institution_discovery_mode"] = "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
+                strategy["source_class_branch_mode"] = branch_mode
                 strategy["source_class_memory_before"] = sorted(set(attempted_source_classes) | {
                     str(previous.get("target_source_class"))
                     for previous in strategies[:strategy_index]
@@ -1392,6 +1398,7 @@ def create_research_action(
         "source_class_branch": strategy.get("source_class_branch"),
         "first_party_discovery_objective": strategy.get("first_party_discovery_objective"),
         "institution_discovery_mode": strategy.get("institution_discovery_mode"),
+        "source_class_branch_mode": strategy.get("source_class_branch_mode"),
         "source_class_memory_before": list(strategy.get("source_class_memory_before") or []),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
