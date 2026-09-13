@@ -144,12 +144,21 @@ def load_source_coverage(path: Path, expected_sections: set[str]) -> dict:
     return value
 
 
-def desk_recovery_context(coverage: dict, section_id: str) -> dict:
+def desk_recovery_context(coverage: dict, section_id: str, *, capability: str | None = None) -> dict:
     """Return only bounded configured routing hints for one recovery need."""
     desk = next(item for item in coverage["desks"] if item["section_id"] == section_id)
     sources = {item["source_id"]: item for item in coverage["sources"]}
     routes = [sources[source_id] for source_id in desk["source_ids"]]
-    registry = [item for item in coverage.get("institution_routes", []) if item.get("source_id") in {route["source_id"] for route in routes} and item.get("status") in {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY"}]
+    route_source_ids = {route["source_id"] for route in routes}
+    registry = [
+        item for item in coverage.get("institution_routes", [])
+        if item.get("status") in {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY"}
+        and (item.get("source_id") in route_source_ids or (capability and capability in (item.get("semantic_capabilities") or [])))
+    ]
+    if capability:
+        for source_id in sorted({item.get("source_id") for item in registry if item.get("source_id")} - route_source_ids):
+            if source_id in sources:
+                routes.append(sources[source_id])
     registry_by_source: dict[str, list[dict]] = {}
     for route in registry:
         registry_by_source.setdefault(route["source_id"], []).append(route)

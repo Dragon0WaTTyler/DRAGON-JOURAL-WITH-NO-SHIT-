@@ -128,21 +128,63 @@ def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tup
     }
     overlap = sum(term in haystack for term in expected)
     reasons = []
+    if action.get("route_scoped"):
+        # Route-scoped ranking is retrieval triage only.  It uses observed
+        # title/snippet/URL signals and never assigns a source role or
+        # semantic function.  Active-window language is deliberately weighted
+        # above publication recency for SERVICE.
+        url_path = str(observation.get("url") or "").casefold()
+        artifact_markers = {
+            "ACCOUNTABILITY": ("decision", "directive", "report", "audit", "oversight", "monitor", "complaint", "enforcement", "prosecution", "mobilisation", "electoral", "communique", "arrêt", "rapport", "رقابة", "شكايات", "مراقبة", "النيابة", "تعبئة", "مخالفات", "انتخابات"),
+            "SERVICE": ("notice", "registration", "deadline", "procedure", "polling", "proxy", "voting", "election", "eligibility", "service", "avis", "inscription", "échéance", "bureau", "تسجيل", "أجل", "إشعار", "منصة", "إجراء", "التصويت", "الانتخابات", "الوكالة"),
+        }.get(target, ())
+        action_hits = sum(marker in haystack for marker in artifact_markers)
+        url_hits = sum(marker in url_path for marker in ("notice", "decision", "directive", "report", "publication", "communique", "avis", "inscription", "procedure", "service", "/news/", "الأخبار", "بلاغ", "مذكرة"))
+        active_markers = ("active", "ongoing", "deadline", "until", "through", "en cours", "date limite", "jusqu", "مستمر", "نشط", "آخر أجل")
+        active_hits = sum(marker in haystack for marker in active_markers)
+        route_name = str((action.get("source_route") or {}).get("name") or "").casefold() if isinstance(action.get("source_route"), dict) else ""
+        route_name_hits = sum(marker in haystack for marker in re.findall(r"[\w\u0600-\u06ff]+", route_name) if len(marker) > 3)
+        duplicate_hint = any(
+            str(item.get("fingerprint") or "").casefold() in haystack
+            for item in action.get("known_event_fingerprints", [])
+            if isinstance(item, dict) and item.get("fingerprint")
+        )
+        generic_penalty = 3 if any(marker in url_path for marker in ("/", "/tag=", "homepage", "/about")) and not url_hits else 0
+        route_score = action_hits * 2 + url_hits * 2 + active_hits * 3 + route_name_hits + (1 if action.get("source_route") else 0) - generic_penalty - (5 if duplicate_hint else 0)
+        if action_hits:
+            reasons.append("SEMANTIC_ACTION_SIGNAL")
+        if active_hits:
+            reasons.append("ACTIVE_WINDOW_SIGNAL")
+        if url_hits:
+            reasons.append("EXACT_ARTIFACT_PATH_SIGNAL")
+        if route_name_hits:
+            reasons.append("ROUTE_ACTOR_SIGNAL")
+        if duplicate_hint:
+            reasons.append("KNOWN_EVENT_DUPLICATE_HINT")
+        if route_score >= 6 and not duplicate_hint:
+            return "HIGH", reasons, (0, -route_score, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+        if route_score >= 2 and not duplicate_hint:
+            # A meaningful route-scoped action signal should receive the
+            # first fetch opportunity even when an open-web lead is labelled
+            # HIGH by generic token overlap.  This is retrieval priority only.
+            return "MEDIUM", reasons, (0, -route_score, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+        reasons.append("LOW_ROUTE_ARTIFACT_SIGNAL")
+        return "LOW", reasons, (2, -route_score, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
     if overlap:
         reasons.append("ENTITY_OR_EVENT_OVERLAP")
     if result.get("published_at") or observation.get("published_at"):
         reasons.append("DATE_AVAILABLE")
     if profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}:
         reasons.append(profile["routing_class"])
-        return "LOW", reasons, (2, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+        return "LOW", reasons, (2, 0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
     if profile.get("source_class_hint") == "INSTITUTIONAL_CANDIDATE" and overlap >= 1:
         reasons.append("SEMANTIC_SOURCE_CLASS_MATCH")
-        return "HIGH", reasons, (0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+        return "HIGH", reasons, (0, 0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
     if overlap >= 2:
         reasons.append("PUBLISHER_CANDIDATE")
-        return "HIGH", reasons, (0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+        return "HIGH", reasons, (0, 0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
     reasons.append("LIMITED_CONTEXT_MATCH")
-    return "MEDIUM", reasons, (1, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
+    return "MEDIUM", reasons, (1, 0, int(result.get("rank") or 10**6), str(observation.get("url") or ""))
 
 
 def rank_discovery_leads(observations: list[dict], actions_by_id: dict[str, dict]) -> list[dict]:
@@ -161,7 +203,8 @@ def rank_discovery_leads(observations: list[dict], actions_by_id: dict[str, dict
         observation["lead_priority"] = priority
         observation["lead_priority_reasons"] = reasons
         observation["source_identity"] = profile
-        observation["lead_attrition_state"] = "DISCOVERED_NOT_SELECTED"
+        if observation.get("lead_attrition_state") != "SELECTED_FOR_FETCH":
+            observation["lead_attrition_state"] = "DISCOVERED_NOT_SELECTED"
         observation["_lead_sort_key"] = key
         ranked.append(observation)
     return ranked
@@ -176,26 +219,38 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
         need = str(parent.get("recovery_need_id") or f"QUESTION:{parent['question_id']}")
         groups.setdefault(need, []).append(item)
     selected: list[dict] = []
-    for need in sorted(groups, key=lambda value: (
+    need_order = sorted(groups, key=lambda value: (
         PRIORITY_ORDER.get(str(actions_by_id[groups[value][0]["provenance"]["action_id"]].get("priority_class") or "P3_CONTEXT"), 99), value
-    )):
+    ))
+    seen_by_need: dict[str, tuple[set[str], set[str]]] = {need: (set(), set()) for need in need_order}
+    selected_by_need: dict[str, int] = {need: 0 for need in need_order}
+
+    def take_one(need: str, *, target_count: int) -> bool:
         items = groups[need]
         parent = actions_by_id[items[0]["provenance"]["action_id"]]
         allowance = int(limits.get(str(parent.get("priority_class") or "P3_CONTEXT"), 0))
-        seen_families, seen_titles = set(), set()
+        seen_families, seen_titles = seen_by_need[need]
         for item in sorted(items, key=lambda value: value["_lead_sort_key"]):
+            if selected_by_need[need] >= min(target_count, allowance):
+                return False
+            if item.get("_followup_need"):
+                continue
             item_parent = actions_by_id[item["provenance"]["action_id"]]
             require_event_diversity = (
                 str(item_parent.get("priority_class") or "") == "P1_DISTINCT_EVENT"
                 and not item_parent.get("event_lead_feedback")
             )
             profile = item["source_identity"]
+            route_origin = str((item_parent.get("source_route") or {}).get("origin") or "").casefold() if isinstance(item_parent.get("source_route"), dict) else ""
+            candidate_origin = str(profile.get("origin") or "").casefold()
+            route_relation = bool(item_parent.get("route_scoped") and route_origin and candidate_origin and (
+                candidate_origin == route_origin
+                or _registrable_domain(candidate_origin) == _registrable_domain(route_origin)
+            ))
             title_key = " ".join(re.findall(r"[\w\u0600-\u06ff]+", str(item.get("title") or "").casefold())[:8])
-            if len([value for value in selected if value.get("_followup_need") == need]) >= allowance:
-                item["lead_attrition_reason"] = "FOLLOWUP_BUDGET_EXHAUSTED"
-                continue
             if (
-                profile["routing_class"] in {"SOCIAL", "AGGREGATOR", "SOURCE_UNRESOLVED"}
+                profile["routing_class"] in {"SOCIAL", "AGGREGATOR"}
+                or (profile["routing_class"] == "SOURCE_UNRESOLVED" and not route_relation)
                 or profile.get("origin") in set(parent.get("excluded_origins", []))
                 or profile.get("origin_family") in set(parent.get("excluded_origin_families", []))
                 or profile.get("origin_family") in seen_families
@@ -207,10 +262,30 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
             item["lead_attrition_reason"] = "RESERVED_SEMANTIC_BRANCH_CAPACITY"
             item["_followup_need"] = need
             selected.append(item)
+            selected_by_need[need] += 1
             seen_families.add(profile.get("origin_family"))
             seen_titles.add(title_key)
-            if len(selected) >= int(limits.get("total", 0)):
-                return selected
+            return True
+        return False
+
+    total_limit = int(limits.get("total", 0))
+    # Reserve the first exact-artifact opportunity for every viable need
+    # before filling a second slot for an earlier need.
+    for need in need_order:
+        if len(selected) >= total_limit:
+            return selected
+        take_one(need, target_count=1)
+    for need in need_order:
+        if len(selected) >= total_limit:
+            return selected
+        while len(selected) < total_limit and take_one(need, target_count=selected_by_need[need] + 1):
+            pass
+    for need in need_order:
+        allowance = int(limits.get(str(actions_by_id[groups[need][0]["provenance"]["action_id"]].get("priority_class") or "P3_CONTEXT"), 0))
+        if selected_by_need[need] >= allowance:
+            for item in groups[need]:
+                if not item.get("_followup_need"):
+                    item["lead_attrition_reason"] = "FOLLOWUP_BUDGET_EXHAUSTED"
     return selected
 
 
@@ -826,9 +901,9 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         # Function-first acquisition never puts a desk label in the query.
         # The configured desk remains only a placement route after validation.
         terms = (
-            ("رقابة افتحاص تنفيذ عقوبة صفقات عمومية", "audit inspection sanction public procurement", "cour des comptes régulateur contrôle marché public")
+            ("مراقبة مخالفات شكايات متابعة نزاهة رقابة", "oversight violations complaints monitoring enforcement integrity prosecution audit finding", "surveillance infractions plaintes suivi intégrité contrôle poursuite constat audit")
             if target_function == "ACCOUNTABILITY" else
-            ("تسجيل آخر أجل أهلية مسطرة ولوج", "registration deadline eligibility public procedure", "inscription date limite éligibilité procédure accès")
+            ("مكتب التصويت إشعار تسجيل وكالة منصة آخر أجل موعد إجراء أهلية", "polling station notice registration proxy platform deadline procedure eligibility access", "bureau de vote avis inscription procuration plateforme date limite procédure éligibilité accès")
         )
         geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
@@ -847,12 +922,16 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         else:
             markers = ("PUBLIC", "SERVICE", "HEALTH", "EDUCATION", "TRANSPORT", "PRIMARY")
         desired_route_types = (
-            {"AUDIT_PUBLICATIONS", "REPORTS", "PRESS_RELEASES", "DECISIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS", "PROCUREMENT_RESULTS"}
+            {"AUDIT_PUBLICATIONS", "REPORTS", "PRESS_RELEASES", "DECISIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS", "PROCUREMENT_RESULTS", "NEWS_LISTING"}
             if target_function == "ACCOUNTABILITY" else
             {"SERVICE_PORTAL", "NOTICES", "CONSULTATIONS", "PROCUREMENT_RESULTS", "NEWS_LISTING", "PUBLICATIONS"}
         )
         status_order = {"VERIFIED_WORKING": 0, "VERIFIED_DISCOVERY_ONLY": 1, "UNKNOWN": 2, "STALE": 3, "TRANSIENT_FAILURE": 4, "CURRENTLY_UNUSABLE": 5}
         route_candidates.sort(key=lambda item: (
+            # A verified cross-function national/public portal is a useful
+            # process hub for both missing families.  This is capability
+            # routing, not a source-quality or evidence decision.
+            0 if len(set(item.get("semantic_capabilities") or []) & {target_function, "ACCOUNTABILITY", "SERVICE"}) >= 2 and str(item.get("route_type") or "") in {"NEWS_LISTING", "OTHER_PUBLIC_INDEX"} else 1,
             0 if str(item.get("route_type") or "") in desired_route_types else 1,
             status_order.get(str(item.get("route_status") or item.get("status") or "UNKNOWN"), 9),
             0 if any(marker in str(item.get("name") or "").upper() for marker in markers) else 1,
@@ -866,12 +945,18 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         route_origin = ""
         if canonical_route:
             route_origin = str(canonical_route.get("origin") or urlsplit(str(canonical_route.get("url") or "")).hostname or "").strip()
-        route_temporal = (
-            "active deadline procedure September 2026"
-            if target_function == "SERVICE" else
-            "current oversight enforcement decision September 2026"
-        )
-        route_terms = " ".join(item for item in (base_terms, route_temporal) if item)
+        route_languages = set(canonical_route.get("supported_languages") or []) if canonical_route else set()
+        route_language = next((lang for lang in (primary_language, alternate_language, "en") if lang and lang in route_languages), primary_language)
+        language_terms = {
+            "ar": terms[0], "en": terms[1], "fr": terms[2],
+        }
+        route_base_terms = language_terms.get(route_language, base_terms)
+        route_temporal = {
+            "ar": "نشط مستمر سبتمبر 2026",
+            "fr": "actif en cours septembre 2026",
+            "en": "active ongoing September 2026",
+        }.get(route_language, "active ongoing September 2026")
+        route_terms = " ".join(item for item in (route_base_terms, route_temporal) if item)
         route_query = " ".join(item for item in (f"site:{route_origin}" if route_origin else "", route_terms) if item)
         strategies = [
             {
@@ -891,7 +976,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             },
             {
                 "intent": f"FUNCTION_{target_function}_CANONICAL_INSTITUTION", "variant": "CANONICAL_NAVIGATION",
-                "query": " ".join(item for item in (base_terms, "current notices decisions") if item),
+                "query": " ".join(item for item in (route_base_terms if canonical_route else base_terms, "current notices decisions") if item),
                 "action_type": "FETCH_CONFIGURED_SOURCE" if canonical_route else "SEARCH_DISCOVERY",
                 "target": canonical_route.get("url") if canonical_route else None,
                 "channel": "CONFIGURED_INSTITUTION_NAVIGATION", "backends": [] if canonical_route else ["searxng-general-search"],
@@ -2632,11 +2717,18 @@ def build_research_yield_report(
         "diagnostics": sorted(set(str(item.get("provenance_recovery_reason") or item.get("reason") or "") for item in observations if item.get("provenance_recovery_reason") or item.get("reason"))),
     }
     route_health = [deepcopy(item["route_health"]) for item in observations if isinstance(item.get("route_health"), dict)]
-    route_scoped_actions = [item for item in actions if item.get("route_scoped")]
-    route_scoped_ids = {item.get("action_id") for item in route_scoped_actions}
+    route_scoped_all_actions = [item for item in actions if item.get("route_scoped")]
+    route_scoped_actions = [item for item in route_scoped_all_actions if item.get("action_type") in SEARCH_ACTIONS]
+    route_scoped_search_ids = {item.get("action_id") for item in route_scoped_actions}
     route_scoped_observations = [
         item for item in observations
-        if item.get("provenance", {}).get("action_id") in route_scoped_ids
+        if item.get("provenance", {}).get("action_id") in route_scoped_search_ids
+    ]
+    route_scoped_all_ids = {item.get("action_id") for item in route_scoped_all_actions}
+    route_scoped_fetch_observations = [
+        item for item in observations
+        if item.get("provenance", {}).get("action_id") in route_scoped_all_ids
+        and item.get("extraction_status") in {"FETCHED", "RETRIEVED"}
     ]
     route_scoped_retrieval = {
         "routes_attempted": sorted({
@@ -2646,8 +2738,9 @@ def build_research_yield_report(
         "queries": len(route_scoped_actions),
         "results": len(route_scoped_observations),
         "exact_detail_candidates": sum(bool(item.get("url")) and item.get("page_type") not in {"LISTING_PAGE", "PORTAL_HOME", "AGGREGATOR"} for item in route_scoped_observations),
-        "fetched_artifacts": sum(item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in route_scoped_observations),
-        "active_window_results": sum((item.get("temporal_relevance") or {}).get("active_on_edition_date") is True for item in route_scoped_observations),
+        "selected_fetches": len(route_scoped_fetch_observations),
+        "fetched_artifacts": len(route_scoped_fetch_observations),
+        "active_window_results": sum((item.get("temporal_relevance") or {}).get("active_on_edition_date") is True for item in route_scoped_fetch_observations),
     }
     semantic_closure = {"attempted": 0, "validated_functions": {"ACCOUNTABILITY": 0, "SERVICE": 0}, "promoted_candidates": 0, "closures": 0, "failure_stages": {}}
     for bundle in event_bundles:

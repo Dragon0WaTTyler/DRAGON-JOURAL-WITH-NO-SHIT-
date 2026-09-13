@@ -28,6 +28,8 @@ from dragon.deep_research_executor import (
     execute_research_round,
     match_event_skeletons,
     plan_research_actions,
+    rank_discovery_leads,
+    select_leads_for_followup,
     query_fingerprint,
     query_ladder,
     _breadth_event_queries,
@@ -127,6 +129,40 @@ def test_route_scoped_search_context_does_not_grant_evidence_role() -> None:
     assert obs["source_trust_state"] == "URL_SAFE_CANONICAL_INSTITUTION"
     assert (obs.get("source_role_resolution") or {}).get("evidence_role") != "PRIMARY"
     assert obs["verification_status"] != "VALIDATED_EVIDENCE"
+
+
+def test_semantic_capability_routing_includes_maroc_portal_for_both_functions() -> None:
+    routes = [
+        {"route_id": "cdc", "url": "https://audit.example/press", "origin": "audit.example", "route_type": "PRESS_RELEASES", "route_status": "VERIFIED_WORKING", "name": "Audit institution", "authority_class": "PRIMARY_ORIGINAL", "semantic_capabilities": ["ACCOUNTABILITY"]},
+        {"route_id": "maroc", "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY", "name": "National portal", "authority_class": "PRIMARY_ORIGINAL", "semantic_capabilities": ["ACCOUNTABILITY", "SERVICE"], "supported_languages": ["en", "fr", "ar"]},
+    ]
+    for function in ("ACCOUNTABILITY", "SERVICE"):
+        need = {"need_id": f"BREADTH:accountability_and_service:{function}", "kind": "NEED_ACCOUNTABILITY_AND_SERVICE", "target_editorial_function": function, "query_context": {"research_date": "2026-09-13"}, "search_constraints": {"configured_source_routes": routes}, "event_acquisition_plan": {"target_editorial_function": function}}
+        strategy = _breadth_event_queries(_job(desk="service"), need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)[0]
+        assert strategy["source_route"]["route_id"] == "maroc"
+        assert strategy["route_scoped"] is True
+
+
+def test_route_scoped_ranking_prefers_active_exact_service_artifact() -> None:
+    action = {"action_id": "RANK", "action_type": "SEARCH_DISCOVERY", "route_scoped": True, "target_editorial_function": "SERVICE", "candidate_event_theme": "SERVICE", "query": "site:maroc.ma polling station deadline", "source_route": {"origin": "maroc.ma", "route_id": "maroc", "route_type": "NEWS_LISTING"}, "known_event_fingerprints": []}
+    observations = [
+        {"observation_id": "generic", "observation_class": "LEAD", "url": "https://maroc.ma/en/news/politics", "title": "Current political news", "claim": "Current political news", "search_result": {"rank": 1, "snippet": "A general political update."}, "provenance": {"action_id": "RANK"}},
+        {"observation_id": "active", "observation_class": "LEAD", "url": "https://maroc.ma/en/news/polling-notice", "title": "Polling station notice: proxy procedure through 22 September", "claim": "Polling station notice", "search_result": {"rank": 4, "snippet": "The active deadline and procedure remain available through 22 September."}, "provenance": {"action_id": "RANK"}},
+    ]
+    ranked = sorted(rank_discovery_leads(observations, {"RANK": action}), key=lambda item: item["_lead_sort_key"])
+    assert ranked[0]["observation_id"] == "active"
+    assert "ACTIVE_WINDOW_SIGNAL" in ranked[0]["lead_priority_reasons"]
+
+
+def test_followup_selection_reserves_one_slot_per_need() -> None:
+    def lead(action_id, need, url, title):
+        return {"observation_id": url, "observation_class": "LEAD", "url": url, "title": title, "claim": title, "search_result": {"rank": 1, "snippet": title}, "provenance": {"action_id": action_id}}
+    actions = {
+        "A": {"action_id": "A", "action_type": "SEARCH_DISCOVERY", "recovery_need_id": "A", "priority_class": "P1_BREADTH", "query": "audit", "target_editorial_function": "ACCOUNTABILITY", "route_scoped": True, "source_route": {"origin": "a.example"}},
+        "S": {"action_id": "S", "action_type": "SEARCH_DISCOVERY", "recovery_need_id": "S", "priority_class": "P1_BREADTH", "query": "service", "target_editorial_function": "SERVICE", "route_scoped": True, "source_route": {"origin": "s.example"}},
+    }
+    selected = select_leads_for_followup([lead("A", "A", "https://a.example/notice", "Audit directive"), lead("S", "S", "https://s.example/notice", "Service deadline")], actions, {"total": 2, "P1_BREADTH": 2})
+    assert {item["_followup_need"] for item in selected} == {"A", "S"}
 
 
 def _coverage() -> dict:

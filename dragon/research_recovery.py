@@ -258,7 +258,7 @@ def build_recovery_plan(
                 ordered = sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda name: (function_counts[name], name))
                 target_function = ordered[index % len(ordered)]
                 route_section = "investigations" if target_function == "ACCOUNTABILITY" else "service"
-            route_context = desk_recovery_context(coverage, route_section)
+            route_context = desk_recovery_context(coverage, route_section, capability=target_function)
             needs.append({
                 "need_id": need_id,
                 "kind": f"NEED_{rule['id'].upper()}",
