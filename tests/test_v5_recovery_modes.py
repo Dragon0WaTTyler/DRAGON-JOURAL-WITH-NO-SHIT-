@@ -274,8 +274,27 @@ def test_pivot_allocates_distinct_accountability_source_classes_without_budget_g
     assert len(strategies) == 4
     assert len(set(classes)) == 4
     assert "PROSECUTION_JUDICIARY" not in classes
-    assert all(item["target_source_class"] in item["source_class_memory_before"] or item["target_source_class"] not in item["source_class_memory_before"] for item in strategies)
+    assert strategies[0]["source_class_memory_before"] == ["PROSECUTION_JUDICIARY"]
+    assert strategies[1]["target_source_class"] not in strategies[1]["source_class_memory_before"]
+    assert strategies[1]["source_class_memory_before"] == ["PROSECUTION_JUDICIARY", strategies[0]["target_source_class"]]
     assert all(item["target_source_class"].casefold() in item["query"].casefold() or item["target_source_class"] in {"REGULATOR", "AUDIT_BODY", "ELECTION_INTEGRITY", "ANTI_CORRUPTION"} for item in strategies)
+    assert all(item["first_party_discovery_objective"] == "FIRST_PARTY_SELF_ACTION" for item in strategies)
+    assert all(item["institution_discovery_mode"] == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION" for item in strategies)
+
+
+def test_pivot_query_does_not_copy_blocked_event_actor_or_institution():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13", "entities": ["Blocked Authority"], "aliases": ["Blocked Authority"]},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "blocked_event_memory": [{"event_actor": "Blocked Authority", "event_fingerprint": "BLOCKED"}],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    assert all("Blocked Authority" not in item["query"] for item in strategies)
+    assert all(item["target_source_class"] for item in strategies)
 
 
 def test_pivot_allocates_distinct_service_source_classes():

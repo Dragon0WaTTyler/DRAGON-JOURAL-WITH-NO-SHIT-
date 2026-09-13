@@ -1152,6 +1152,8 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 strategy["query"] = " ".join(item for item in (strategy.get("query"), branch_terms) if item)
                 strategy["target_source_class"] = branch["class"]
                 strategy["source_class_branch"] = branch["class"]
+                strategy["first_party_discovery_objective"] = "FIRST_PARTY_SELF_ACTION"
+                strategy["institution_discovery_mode"] = "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
                 strategy["source_class_memory_before"] = sorted(set(attempted_source_classes) | {
                     str(previous.get("target_source_class"))
                     for previous in strategies[:strategy_index]
@@ -1388,6 +1390,8 @@ def create_research_action(
         "source_class_priorities": list(strategy.get("source_class_priorities") or []),
         "target_source_class": strategy.get("target_source_class"),
         "source_class_branch": strategy.get("source_class_branch"),
+        "first_party_discovery_objective": strategy.get("first_party_discovery_objective"),
+        "institution_discovery_mode": strategy.get("institution_discovery_mode"),
         "source_class_memory_before": list(strategy.get("source_class_memory_before") or []),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
@@ -2771,6 +2775,8 @@ def build_research_yield_report(
             "desk": action["desk"],
             "target_editorial_function": action.get("target_editorial_function"),
             "target_source_class": action.get("target_source_class"),
+            "first_party_discovery_objective": action.get("first_party_discovery_objective"),
+            "institution_discovery_mode": action.get("institution_discovery_mode"),
             "source_class_memory_before": list(action.get("source_class_memory_before") or []),
             "route_scoped": bool(action.get("route_scoped")),
             "route_search_objective": action.get("route_search_objective"),
