@@ -39,6 +39,17 @@ def test_unresolved_identity_has_specific_diagnostic() -> None:
     assert value["state"] == "CANONICAL_DOMAIN_UNRESOLVED"
 
 
+def test_article_body_institution_mention_does_not_establish_publisher_ownership() -> None:
+    value = resolve_institution_identity({
+        "url": "https://news.example/story",
+        "title": "News report",
+        "publisher": "News Example",
+        "text": "The Ministry of Interior announced a public procedure.",
+    })
+    assert value["state"] == "CANONICAL_DOMAIN_UNRESOLVED"
+    assert value["identity_confidence"] == "LOW"
+
+
 def test_listing_child_links_rank_semantic_first_party_and_bound_depth() -> None:
     raw = {
         "url": "https://service.gov.ma/notices", "canonical_url": "https://service.gov.ma/notices",

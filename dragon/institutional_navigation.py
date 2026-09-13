@@ -311,7 +311,10 @@ def resolve_institution_identity(raw: dict, *, known_profile: dict | None = None
     public_signal = (
         canonical.endswith((".gov", ".gov.ma", ".ac.ma"))
         or canonical in _VERIFIED_OFFICIAL_PORTAL_DOMAINS
-        or any(marker in f"{site_name} {text}".casefold() for marker in _INSTITUTION_MARKERS)
+        # Article body text can describe an institution without establishing
+        # ownership of the publishing host.  Only host/profile metadata may
+        # resolve identity here; observed page facts remain separate.
+        or any(marker in str(site_name or "").casefold() for marker in _INSTITUTION_MARKERS)
     )
     known = bool(profile.get("canonical_domain") or profile.get("identity_state") == "PUBLISHER_PROFILE_RESOLVED")
     if known or public_signal:
