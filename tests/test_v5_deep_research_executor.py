@@ -32,6 +32,7 @@ from dragon.deep_research_executor import (
     select_leads_for_followup,
     query_fingerprint,
     query_ladder,
+    _skip_mode_b_feedback,
     _breadth_event_queries,
     replay_recovery_after_execution,
     replay_event_bundles_from_snapshot,
@@ -80,6 +81,21 @@ def _result(url: str, source_class: str = "independent", **extra: object) -> dic
         "published_at": "2099-01-02", "retrieved_at": "2099-01-02T07:01:00Z",
         "content_hash": "a" * 64, **extra,
     }
+
+
+def test_mode_b_feedback_skip_preserves_source_class_diversity_without_affecting_mode_a() -> None:
+    assert _skip_mode_b_feedback({
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "ACCOUNTABILITY",
+    })
+    assert _skip_mode_b_feedback({
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+    })
+    assert not _skip_mode_b_feedback({
+        "recovery_mode": "CORROBORATE_EXISTING_EVENT",
+        "target_editorial_function": "ACCOUNTABILITY",
+    })
 
 
 def test_function_breadth_uses_bounded_verified_route_search_without_budget_growth() -> None:

@@ -205,6 +205,14 @@ def _select_actor_first_candidate(items: list[dict], actor: str, action: dict) -
     return max(scored, key=lambda value: (value[0], value[1]))[2] if scored else None
 
 
+def _skip_mode_b_feedback(action: dict) -> bool:
+    """Whether same-lead feedback would defeat semantic source diversity."""
+    return (
+        action.get("recovery_mode") == "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED"
+        and str(action.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+    )
+
+
 def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tuple]:
     """Categorical fetch priority, not a journalism-confidence score."""
     result = observation.get("search_result", {}) if isinstance(observation.get("search_result"), dict) else {}
@@ -3735,6 +3743,14 @@ def execute_research_round(
         # context, not evidence.  Spend at most one ordinary bounded search
         # action on better coverage of its fingerprint.
         for event_lead in feedback_leads:
+            # Mode B already has an explicit source-class ladder for finding a
+            # new semantic event.  Re-querying the just-created unknown-role
+            # lead here only repeats the same class and consumes a bounded
+            # search slot before untouched classes run.  Keep this feedback
+            # path for Mode A/event-corroboration recovery.
+            if _skip_mode_b_feedback(action):
+                event_lead["feedback_skipped_reason"] = "MODE_B_SOURCE_CLASS_DIVERSITY"
+                continue
             skeleton = event_lead["event_skeleton"]
             query = " ".join(item for item in (
                 skeleton.get("actor"), skeleton.get("action"), skeleton.get("object"),
