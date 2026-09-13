@@ -3449,7 +3449,50 @@ def execute_research_round(
                         "discovery_channel": f"{action.get('discovery_channel') or 'FETCH'}-official-link",
                         "query_intent": "EXPLICIT_OFFICIAL_LINK_RECOVERY", "channel_fallback": None,
                     }
+                    # A cited link can legitimately be navigation-only or a
+                    # portal republication.  Preserve that fetch, but do not
+                    # let it suppress the bounded actor-first route when the
+                    # page has an observed actor and the child did not yield
+                    # validated evidence.  This is discovery/ownership
+                    # recovery only; it never upgrades the parent role.
+                    child_start = len(observations)
                     run_action(child_action)
+                    child_items = observations[child_start:]
+                    child_validated = any(
+                        item.get("verification_status") == "VALIDATED_EVIDENCE"
+                        and str(item.get("source_class") or "").casefold() in {"primary", "official", "independent", "paper"}
+                        for item in child_items
+                    )
+                    if (
+                        not child_validated
+                        and observation.get("event_actor_candidates")
+                        and state["search_actions"] < limits["search_actions"]
+                        and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
+                    ):
+                        actor = observation["event_actor_candidates"][0]
+                        skeleton = observation.get("event_skeleton") or {}
+                        query_parts = [actor.get("name"), skeleton.get("action"), skeleton.get("object"), " ".join(skeleton.get("geography") or []), str(skeleton.get("published_at") or action.get("event_context", {}).get("research_date") or "")[:10]]
+                        query = " ".join(str(item) for item in query_parts if item).strip()
+                        if query:
+                            search_action = {
+                                **action,
+                                "action_id": _stable_id("ACT", action["action_id"], "ACTOR_FIRST_SEARCH", actor.get("name"), selected.get("url")),
+                                "action_type": "SEARCH_OFFICIAL_SOURCE", "target": None, "query": query,
+                                "query_intent": "ACTOR_FIRST_CANONICAL_ARTIFACT", "query_variant": "ACTOR_ACTION_OBJECT_DATE",
+                                "query_fingerprint": query_fingerprint(query, intent="ACTOR_FIRST_CANONICAL_ARTIFACT"),
+                                "actor_first_search": True, "route_scoped": False, "route_search_objective": None,
+                                "originating_observation_id": observation.get("observation_id"),
+                                "discovery_channel": "SEARXNG_GENERAL_SEARCH", "discovery_backends": ["searxng-general-search"],
+                                "expected_result_type": "DISCOVERY_RESULT", "channel_fallback": None,
+                            }
+                            actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "actor": actor.get("name"), "query": query, "status": "SEARCH_DISPATCHED", "after_official_link": selected.get("url")})
+                            before = len(observations)
+                            run_action(search_action)
+                            new_items = [item for item in observations[before:] if item.get("url") and item.get("observation_id") != observation.get("observation_id")]
+                            exact = next((item for item in new_items if (item.get("source_class") or "").lower() in {"official", "primary"} or str(item.get("url", "")).lower().find(".gov") >= 0), None)
+                            if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
+                                actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED", "after_official_link": selected.get("url")})
+                                run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
                 elif unsafe_candidates:
                     observation["provenance_recovery_reason"] = "OFFICIAL_LINK_REJECTED"
                     observation["provenance_recovery_detail"] = [{"url": item.get("url"), "reason": item.get("url_safety", {}).get("reason")} for item in unsafe_candidates]

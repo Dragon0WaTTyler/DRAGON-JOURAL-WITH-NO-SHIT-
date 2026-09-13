@@ -162,3 +162,60 @@ def test_explicit_official_link_recovery_consumes_one_existing_followup_slot() -
     parent = next(item for item in result["observations"] if item["url"] == "https://recrutements.ma/story")
     assert parent["source_class"] == "unknown"
     assert result["provenance_recovery"]["official_links_selected"] == 1
+
+
+def test_navigation_link_failure_opens_bounded_actor_first_discovery() -> None:
+    lead = create_lead(
+        desk="investigations", topic="election oversight", discovery_source={"url": "https://signal.example/lead"},
+        observed_at="2026-09-13T07:00:00Z", reason_interesting="fixture", geography=["Morocco"],
+    )
+    job = start_research_job(lead, CONFIG, budget_class="STANDARD")
+    branch = job["branches"][0]
+    action = {
+        "job_id": job["job_id"], "branch_id": branch["branch_id"], "question_id": branch["question_ids"][0],
+        "action_id": "PORTAL-ACTION", "desk": "investigations", "research_regime": "GENERAL",
+        "action_type": "FETCH_URL", "target": "https://maroc.ma/story", "query": "election oversight",
+        "query_intent": "FUNCTION_ACCOUNTABILITY_PRIMARY_WINDOW", "query_variant": "EXACT", "query_fingerprint": "PORTAL",
+        "priority_class": "P1_BREADTH", "discovery_channel": "fixture", "known_entities": ["Public Prosecution", "election"],
+        "known_event_ids": [], "already_seen_urls": [], "already_seen_origins": [], "budget": {"class": "STANDARD"},
+        "timeout_seconds": 5, "expected_result_type": "EXTRACTED_SOURCE", "recovery_need_id": "accountability",
+        "recovery_candidate_id": None, "provenance_requirements": {"required_role": None, "must_be_distinct_event": False, "science_strict": False},
+        "event_context": {"entities": ["Public Prosecution", "election"], "event_terms": ["directive"], "topic_terms": [], "aliases": [], "geography": ["Morocco"], "research_date": "2026-09-13"},
+        "channel_fallback": None, "target_editorial_function": "ACCOUNTABILITY", "discovery_only": False, "navigation_depth": 0,
+    }
+
+    class Adapter:
+        follow_discovery_leads = False
+        def __init__(self): self.actions = []
+        def execute(self, value):
+            self.actions.append(value)
+            target = value.get("target")
+            if target == "https://maroc.ma/story":
+                return [{
+                    "url": target, "canonical_url": target, "title": "Public Prosecution announced election directive",
+                    "text": "Public Prosecution announced a directive ordering monitoring and complaint handling during the election period. " * 8,
+                    "published_at": "2026-09-10", "fetch_status": "FETCHED", "content_hash": "p" * 64,
+                    "source_class": "unknown", "publisher": "Maroc.ma", "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "maroc.ma"}},
+                    "links": [{"url": "https://prosecution.gov.ma/notices", "text": "official notices"}],
+                }]
+            if value.get("action_type") == "FETCH_URL" and target == "https://prosecution.gov.ma/notices":
+                return [{"url": target, "canonical_url": target, "title": "Official notices", "text": "Institutional notices index." * 30, "published_at": "2026-09-10", "fetch_status": "FETCHED", "content_hash": "n" * 64, "source_class": "unknown", "publisher": "Public Prosecution"}]
+            if value.get("action_type") == "SEARCH_OFFICIAL_SOURCE":
+                return [{"url": "https://prosecution.gov.ma/directive-2026", "title": "Public Prosecution announced directive", "snippet": "directive monitoring election complaints", "source_class": "unknown"}]
+            if target == "https://prosecution.gov.ma/directive-2026":
+                return [{
+                    "url": target, "canonical_url": target, "title": "Public Prosecution announced directive",
+                    "text": "Public Prosecution announced a directive ordering monitoring and complaint handling during the election period. " * 8,
+                    "published_at": "2026-09-10", "fetch_status": "FETCHED", "content_hash": "d" * 64,
+                    "source_class": "unknown", "publisher": "Public Prosecution", "article_metadata": {"publisher": {"name": "Public Prosecution", "canonical_domain": "prosecution.gov.ma"}},
+                }]
+            return [{"result_type": "DEAD_END", "reason": "UNEXPECTED_FIXTURE_ACTION"}]
+
+    adapter = Adapter()
+    result = execute_research_round(job, adapter, CONFIG, actions=[action])
+    actor_searches = [item for item in result["actor_first_telemetry"] if item.get("status") == "SEARCH_DISPATCHED"]
+    assert actor_searches and actor_searches[0].get("after_official_link") == "https://prosecution.gov.ma/notices"
+    assert any(item.get("target") == "https://prosecution.gov.ma/directive-2026" for item in adapter.actions)
+    exact = [item for item in result["observations"] if item.get("url") == "https://prosecution.gov.ma/directive-2026" and item.get("extraction_status") == "FETCHED"]
+    assert exact and exact[0]["source_class"] == "primary", exact
+    assert exact[0]["verification_status"] == "VALIDATED_EVIDENCE"
