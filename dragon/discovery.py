@@ -543,7 +543,9 @@ def discover_rss(xml: bytes, *, provider_id: str, endpoint: str) -> list[dict]:
         if source is not None:
             source_url = str(source.get("url") or "").strip()
             parsed_source = urlparse(urljoin(endpoint, source_url)) if source_url else None
-            if parsed_source and parsed_source.scheme == "https" and parsed_source.netloc and not parsed_source.username and not parsed_source.password:
+            hint = parsed_source.geturl() if parsed_source else ""
+            hint_safety = assess_source_url(hint) if hint else {"state": "URL_UNSAFE"}
+            if parsed_source and hint_safety.get("state") != "URL_UNSAFE":
                 candidate["publisher_hint_url"] = urlunsplit((
                     parsed_source.scheme.casefold(),
                     parsed_source.netloc.casefold(),

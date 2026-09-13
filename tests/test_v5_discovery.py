@@ -71,6 +71,13 @@ def test_rss_preserves_explicit_publisher_hint_as_discovery_metadata_only() -> N
     }]
 
 
+def test_rss_discards_unsafe_publisher_hint_without_fetching_it() -> None:
+    xml = b"""<rss><channel><item><title>Unsafe hint</title><link>https://news.google.com/rss/articles/wrapper</link><source url=\"https://127.0.0.1:8443/private\">Private</source></item></channel></rss>"""
+    value = discover_rss(xml, provider_id="feed", endpoint="https://news.google.com/rss")
+    assert "publisher_hint_url" not in value[0]
+    assert value[0]["discovered_url"].startswith("https://news.google.com/")
+
+
 def test_trafilatura_adapter_extracts_bounded_html_with_provenance() -> None:
     html = (
         "<html><head><title>Exact report</title></head><body><article><h1>Exact report</h1>"
