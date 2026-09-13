@@ -25,11 +25,13 @@ def _contains(text: str, markers: tuple[str, ...]) -> list[str]:
 _ACCOUNTABILITY_MECHANISMS = (
     "audit", "inspection", "oversight", "regulator", "regulatory", "enforcement",
     "sanction", "procurement", "ombudsman", "prosecution", "prosecutor",
+    "monitoring", "directive", "circular", "complaint", "investigation",
     "parliamentary inquiry", "public accounts", "anti-corruption", "court ruling",
     "cour des comptes", "inspection générale", "contrôle", "régulateur",
     "sanction", "marché public", "médiateur", "poursuite", "parquet",
     "افتحاص", "تدقيق", "رقابة", "هيئة تنظيم", "عقوبة", "صفقة عمومية",
     "وسيط", "متابعة قضائية", "النيابة", "مكافحة الفساد", "لجنة برلمانية",
+    "مراقبة", "توجيه", "دورية", "شكاية", "تحقيق",
 )
 _PUBLIC_POWER = (
     "public", "government", "ministry", "municipal", "authority", "state",

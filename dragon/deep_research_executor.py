@@ -566,6 +566,16 @@ def _event_lead_id(job: dict, action: dict, skeleton: dict) -> str:
     return _stable_id("EVL", job.get("job_id"), action.get("recovery_need_id"), skeleton.get("event_fingerprint"), action.get("action_id"))
 
 
+def _recovery_event_id(need_id: object, target_function: object, skeleton: dict) -> str:
+    """Stable identity for a new semantic event, independent of retrieval IDs."""
+    fingerprint = skeleton.get("event_fingerprint")
+    if not fingerprint:
+        fingerprint = "|".join(str(skeleton.get(key) or "") for key in (
+            "actor", "action", "object", "topic", "published_at", "event_time",
+        ))
+    return _stable_id("EVTREC", need_id, target_function, fingerprint)
+
+
 _ROLE_STOP_WORDS = _EVENT_IDENTITY_STOP_WORDS | {
     "official", "institutional", "portal", "institution", "international", "national", "commission",
 }
@@ -1088,6 +1098,10 @@ def create_research_action(
             "topic_terms": list((recovery_need or {}).get("topic_identifiers", [])),
             "geography": list((recovery_need or {}).get("query_context", {}).get("geography", [])),
             "research_date": (recovery_need or {}).get("query_context", {}).get("research_date"),
+            "geography_policy": (recovery_need or {}).get("geography_policy") or (recovery_need or {}).get("event_acquisition_plan", {}).get("geography_scope"),
+            "allowed_geographies": list((recovery_need or {}).get("allowed_geographies", [])),
+            "scope_origin": (recovery_need or {}).get("scope_origin"),
+            "scope_reason": (recovery_need or {}).get("scope_reason"),
         },
         "known_event_ids": known_events,
         "known_event_fingerprints": list((recovery_need or {}).get("event_acquisition_plan", {}).get("excluded_event_fingerprints", [])),
@@ -1115,6 +1129,14 @@ def create_research_action(
             "science_strict": job["regime"] == "SCIENCE",
         },
         "recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
+        # Recovery mode is explicit: breadth/function needs without an
+        # existing event discover a new root; candidate evidence needs
+        # corroborate an existing event lead.
+        "recovery_mode": (
+            (recovery_need or {}).get("recovery_mode")
+            or ("DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED" if recovery_need and not recovery_need.get("event_id") and recovery_need.get("target_editorial_function") else "CORROBORATE_EXISTING_EVENT")
+        ),
+        "originating_recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
         "recovery_candidate_id": recovery_need.get("candidate_id") if recovery_need else None,
         "channel_fallback": deepcopy(strategy.get("fallback")) if strategy.get("fallback") else None,
     }
@@ -2036,6 +2058,8 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "action_id": action["action_id"],
             "originating_event_lead_id": action.get("originating_event_lead_id"),
             "originating_breadth_need_id": action.get("originating_breadth_need_id"),
+            "originating_recovery_need_id": action.get("originating_recovery_need_id") or action.get("recovery_need_id"),
+            "recovery_mode": action.get("recovery_mode"),
             "query_fingerprint": action.get("query_fingerprint"),
             "excluded_origins": list(action.get("excluded_origins") or []),
             "target_evidence_role": action.get("provenance_requirements", {}).get("required_role"),
@@ -2081,6 +2105,7 @@ def build_event_bundles(
     aliases: dict[str, str] = {}
     sources = {item.get("id"): item for item in source_records if isinstance(item, dict) and item.get("id")}
     actions_by_need = {str(item.get("recovery_need_id") or ""): item for item in actions if isinstance(item, dict)}
+    actions_by_id = {str(item.get("action_id")): item for item in actions if isinstance(item, dict) and item.get("action_id")}
 
     def by_id(value: object) -> dict | None:
         canonical = aliases.get(str(value or ""), str(value or ""))
@@ -2116,6 +2141,7 @@ def build_event_bundles(
         if skeleton.get("state") != "CONCRETE_EVENT":
             continue
         provenance = observation.get("provenance") if isinstance(observation.get("provenance"), dict) else {}
+        action = actions_by_id.get(str(provenance.get("action_id") or ""), {})
         bundle = by_id(provenance.get("originating_event_lead_id") or observation.get("event_lead_id"))
         match = None
         if bundle is None:
@@ -2126,8 +2152,39 @@ def build_event_bundles(
         else:
             match = match_event_skeletons(bundle["event_skeleton"], skeleton)
         if bundle is None:
-            continue
-        if match and match["state"] not in {"SAME_EVENT_HIGH_CONFIDENCE", "SAME_EVENT_PLAUSIBLE"}:
+            # Mode B has no pre-existing event lead by design.  Once an exact
+            # artifact yields a concrete event, create a need-scoped root
+            # unless the event is plausibly the same as an existing cluster.
+            mode = str(provenance.get("recovery_mode") or action.get("recovery_mode") or "")
+            if mode != "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED":
+                continue
+            plausible = next((item for item in bundles if match_event_skeletons(item["event_skeleton"], skeleton)["state"] in {"SAME_EVENT_PLAUSIBLE", "EVENT_MATCH_UNRESOLVED"}), None)
+            if plausible:
+                plausible_match = match_event_skeletons(plausible["event_skeleton"], skeleton)
+                plausible["matches"].append({"observation_id": observation.get("observation_id"), **plausible_match})
+                continue
+            need_id = provenance.get("originating_recovery_need_id") or provenance.get("originating_breadth_need_id") or action.get("recovery_need_id")
+            target_function = action.get("target_editorial_function") or action.get("event_acquisition_plan", {}).get("target_editorial_function")
+            new_id = _recovery_event_id(need_id, target_function, skeleton)
+            bundle = {
+                "schema_version": 1, "event_lead_id": new_id,
+                "merged_event_lead_ids": [new_id], "state": "EVENT_LEAD_DISCOVERY_ONLY",
+                "event_lead_state": "NEW_RECOVERY_EVENT_LEAD",
+                "event_fingerprint": skeleton.get("event_fingerprint"),
+                "event_skeleton": deepcopy(skeleton),
+                "recovery_need_id": need_id, "originating_recovery_need_id": need_id,
+                "recovery_mode": mode, "target_editorial_function": target_function,
+                "desk": action.get("desk"), "observations": [], "sources": [],
+                "source_roles": [], "publisher_families": [], "evidence_ids": [],
+                "claims": [], "contradictions": [], "unresolved_origin_issues": [],
+                "matches": [], "candidate_discovery": None, "provenance_edges": [],
+                "new_recovery_event": True,
+            }
+            bundles.append(bundle)
+            match = {"state": "DIFFERENT_EVENT", "reasons": ["NEW_NEED_SCOPED_EVENT"]}
+        if match and match["state"] not in {"SAME_EVENT_HIGH_CONFIDENCE", "SAME_EVENT_PLAUSIBLE"} and not (
+            bundle.get("new_recovery_event") and match.get("state") == "DIFFERENT_EVENT"
+        ):
             bundle["matches"].append({"observation_id": observation.get("observation_id"), **match})
             continue
         bundle["observations"].append(observation.get("observation_id"))
@@ -2197,13 +2254,14 @@ def build_event_bundles(
             bundle.update(state="EVENT_REJECTED", failure_reason=rejection or "LOW_EDITORIAL_VALUE", evidence_policy=policy)
             continue
         editorial_functions = classify_event_functions(
-            title=candidate["title"],
-            facts=[
-                candidate["title"],
-                bundle["event_skeleton"].get("action"),
-                bundle["event_skeleton"].get("object"),
-                bundle["event_skeleton"].get("lead_paragraphs"),
-            ],
+                title=candidate["title"],
+                facts=[
+                    candidate["title"],
+                    bundle["event_skeleton"].get("actor"),
+                    bundle["event_skeleton"].get("action"),
+                    bundle["event_skeleton"].get("object"),
+                    bundle["event_skeleton"].get("lead_paragraphs"),
+                ],
             evidence_source_ids=bundle["evidence_ids"],
             exact_page_validated=True,
         )
@@ -2574,6 +2632,7 @@ def build_research_yield_report(
             for bundle in event_bundles for match in bundle.get("matches", []) if isinstance(match, dict)
         ),
         "evidence_bundles_created": len(event_bundles),
+        "new_recovery_event_roots": sum(bool(item.get("new_recovery_event")) for item in event_bundles),
         "partial_event_bundles": sum(item.get("state") == "EVENT_EVIDENCE_PARTIAL" for item in event_bundles),
         "complete_event_bundles": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
         "validated_events": sum(item.get("state") == "EVENT_VALIDATED" for item in event_bundles),
@@ -3028,6 +3087,26 @@ def execute_research_round(
     # bundle can become one normal candidate patch rather than disconnected
     # article-level discoveries.
     event_bundles, bundle_discoveries = build_event_bundles(observations, event_leads, source_records, executed)
+    # Persist need-scoped event roots alongside ordinary discovery leads.  A
+    # root is bookkeeping only and cannot create a blocking P0 by itself.
+    for bundle in event_bundles:
+        if bundle.get("new_recovery_event") and not any(item.get("event_lead_id") == bundle.get("event_lead_id") for item in event_leads):
+            skeleton = bundle.get("event_skeleton") or {}
+            event_leads.append({
+                "schema_version": 1,
+                "event_lead_id": bundle.get("event_lead_id"),
+                "state": "NEW_RECOVERY_EVENT_LEAD",
+                "observation_id": (bundle.get("observations") or [None])[0],
+                "recovery_need_id": bundle.get("recovery_need_id"),
+                "originating_recovery_need_id": bundle.get("originating_recovery_need_id"),
+                "recovery_mode": bundle.get("recovery_mode"),
+                "target_editorial_function": bundle.get("target_editorial_function"),
+                "desk": bundle.get("desk"),
+                "url": next((item.get("url") for item in observations if item.get("observation_id") in bundle.get("observations", [])), None),
+                "event_skeleton": deepcopy(skeleton),
+                "publication_evidence": False,
+                "cannot_close_breadth": True,
+            })
     candidate_discoveries.extend(bundle_discoveries)
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
     advanced = advance_research_job(job, results, config)
@@ -3121,7 +3200,7 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
             existing_ids.add(source["id"])
             existing_urls.add(normalize_url(source["url"]))
     for lead in execution["source_packet_patch"].get("event_leads", []):
-        if lead.get("state") != "EVENT_LEAD_DISCOVERY_ONLY" or not lead.get("url"):
+        if lead.get("state") not in {"EVENT_LEAD_DISCOVERY_ONLY", "NEW_RECOVERY_EVENT_LEAD"} or not lead.get("url"):
             continue
         stored = value.setdefault("discovery_event_leads", [])
         if not any(item.get("url") == lead["url"] for item in stored if isinstance(item, dict)):

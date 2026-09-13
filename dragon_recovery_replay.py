@@ -107,6 +107,25 @@ def replay_captured_event_observations(
         if item.get("source_class") == "unknown" and str(item.get("extraction_status")).upper() == "FETCHED"
     }
     observations, resolved_sources = replay_exact_source_roles(observations, actions)
+    # Historical captures predate explicit Mode A/B lineage.  Reconstruct the
+    # deterministic mode for audit replay only; this does not mutate preserved
+    # inputs and lets need-scoped event genesis be evaluated honestly.
+    for action in actions:
+        if action.get("recovery_mode"):
+            continue
+        target = action.get("target_editorial_function")
+        action["recovery_mode"] = (
+            "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED"
+            if target and not action.get("originating_event_lead_id") and not action.get("event_id")
+            else "CORROBORATE_EXISTING_EVENT"
+        )
+        action["originating_recovery_need_id"] = action.get("recovery_need_id")
+    for observation in observations:
+        provenance = observation.get("provenance") if isinstance(observation.get("provenance"), dict) else {}
+        action = action_by_id.get(provenance.get("action_id"), {})
+        provenance.setdefault("recovery_mode", action.get("recovery_mode"))
+        provenance.setdefault("originating_recovery_need_id", action.get("recovery_need_id"))
+        observation["provenance"] = provenance
     sources = [*captured_sources, *resolved_sources]
     observations_by_id = {item.get("observation_id"): item for item in observations}
     leads = []

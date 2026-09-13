@@ -265,6 +265,7 @@ def build_recovery_plan(
                 "section_id": None,
                 "event_id": None,
                 "candidate_id": None,
+                "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
                 "missing_evidence_role": None,
                 "already_known_source_ids": [],
                 "already_known_origins": [],
@@ -276,6 +277,14 @@ def build_recovery_plan(
                     "must_satisfy_primary_and_independent_evidence": True,
                     "configured_source_routes": route_context["configured_source_routes"],
                 },
+                # Normal breadth owns its own geography policy.  This is
+                # intentionally separate from the Super Investigation scope
+                # guard and prevents that subsystem's metadata from leaking
+                # into ordinary semantic acquisition.
+                "geography_policy": "GLOBAL_WITH_MOROCCO_PRIORITY",
+                "allowed_geographies": [],
+                "scope_origin": "NORMAL_EDITORIAL_BREADTH",
+                "scope_reason": "Edition-wide accountability/service coverage; Morocco is a priority, not an exclusivity gate.",
                 "attempt_count": attempts,
                 "max_attempts": maximum,
                 "stop_condition": "DISTINCT_ELIGIBLE_EVENT_ADDED_OR_ATTEMPTS_EXHAUSTED",

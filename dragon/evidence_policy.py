@@ -19,8 +19,10 @@ _OFFICIAL_MARKERS = (
     "announc", "portal", "بلاغ", "وزارة", "الوزارة", "البوابة", "أعلنت",
     "اعلنت", "موعد", "نشرة", "ضوابط", "نتائج",
     "audit report", "تقرير تدقيق", "تقرير الافتحاص",
+    "directive", "circular", "monitoring", "enforcement", "complaint",
+    "توجيه", "دورية", "مراقبة", "شكاية", "إنفاذ",
 )
-_ROUTINE_MARKERS = ("schedule", "timetable", "warning", "forecast", "service", "موعد", "نشرة", "توقع", "خدمة")
+_ROUTINE_MARKERS = ("schedule", "timetable", "warning", "forecast", "service", "registration", "procedure", "deadline", "application", "موعد", "نشرة", "توقع", "خدمة", "تسجيل", "إجراء", "أجل")
 
 
 def candidate_evidence_policy(candidate: dict, sources_by_id: dict[str, dict], *, section_id: str | None = None) -> dict:
