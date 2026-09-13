@@ -2954,12 +2954,12 @@ def build_research_yield_report(
             }),
             "primary_observations": sum(str(item.get("source_class") or "").casefold() in {"primary", "official", "paper"} for item in function_observations),
             "event_b_candidates": sum(
-                str(bundle.get("candidate_discovery", {}).get("target_editorial_function") or "").upper() == function
+                str((bundle.get("candidate_discovery") or {}).get("target_editorial_function") or "").upper() == function
                 for bundle in event_bundles
             ),
             "validated_events": sum(
                 item.get("state") == "EVENT_VALIDATED"
-                and any(str(bundle.get("candidate_discovery", {}).get("target_editorial_function") or "").upper() == function for bundle in event_bundles)
+                and any(str((bundle.get("candidate_discovery") or {}).get("target_editorial_function") or "").upper() == function for bundle in event_bundles)
                 for item in event_bundles
             ),
             "closures": sum(
