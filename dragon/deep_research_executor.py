@@ -158,7 +158,11 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     process_hint = " ".join(str(context.get("current_process_context") or "").strip().split()[:2])
     research_date = str(context.get("research_date") or skeleton.get("published_at") or "").strip()
     date_hint = research_date[:7] if len(research_date) >= 7 else research_date
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
+    route_origin = _route_search_origin(route)
+    domain_hint = f"site:{route_origin}" if route_origin else ""
     parts = [
+        domain_hint,
         str((observation.get("event_actor_candidates") or [{}])[0].get("name") or skeleton.get("actor") or "").strip(),
         observed_action,
         str(skeleton.get("object") or "").strip(),
