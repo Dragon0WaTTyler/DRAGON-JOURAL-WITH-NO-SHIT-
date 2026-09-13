@@ -436,6 +436,26 @@ def test_recovery_need_derives_current_process_context_from_selected_packet_fact
     assert len(context) <= 160
 
 
+def test_derived_long_process_context_is_compacted_for_discovery_only():
+    packet = {
+        "edition_date": "2026-09-13",
+        "sections": [{
+            "section_id": "front",
+            "status": "ACTIVE",
+            "selected_candidate_id": "C1",
+            "candidates": [{
+                "id": "C1",
+                "title": "الانتخابات التشريعية 2026: حصيلة مؤقتة تفتح أسئلة المنافسة والتمثيل وإيداع لوائح المترشحين ومراحل الاقتراع",
+                "facts": ["تتواصل العملية الانتخابية خلال شتنبر 2026"],
+            }],
+        }],
+    }
+    selected = [(packet["sections"][0], packet["sections"][0]["candidates"][0])]
+    context = _current_process_discovery_context(packet, selected)
+    assert context == "election electoral process 2026"
+    assert len(context) < 96
+
+
 def test_pivot_source_class_memory_persists_in_packet_merge():
     packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
     execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}

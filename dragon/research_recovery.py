@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from copy import deepcopy
+import re
 
 from dragon.source_coverage import desk_recovery_context
 from dragon.evidence_policy import candidate_evidence_policy
@@ -38,7 +39,26 @@ def _current_process_discovery_context(packet: dict, selected: list[tuple[dict, 
                 snippets.append(title)
     if not snippets:
         return None
-    return " ".join(" ".join(snippets).split())[:160]
+    normalized = " ".join(" ".join(snippets).split())
+    # Selected headlines can contain an entire article title and unrelated
+    # nouns.  Keep only a compact, reusable process hint for discovery so the
+    # bounded class queries remain discriminative.  This is still query
+    # context only; it never becomes an observed event fact.
+    if len(normalized) > 96:
+        lowered = normalized.casefold()
+        compact: list[str] = []
+        if any(marker in lowered for marker in ("election", "electoral", "vote", "poll", "scrutin", "انتخاب", "اقتراع", "التصويت", "الانتخابات", "حملة")):
+            compact.extend(("election", "electoral process"))
+        if any(marker in lowered for marker in ("procurement", "tender", "marché", "صفقة")):
+            compact.append("public procurement")
+        if any(marker in lowered for marker in ("budget", "tax", "financial", "ميزانية", "ضريبة", "مالية")):
+            compact.append("public finance")
+        years = re.findall(r"\b20\d{2}\b", normalized)
+        if years:
+            compact.append(years[0])
+        if compact:
+            return " ".join(dict.fromkeys(compact))[:160]
+    return normalized[:160]
 
 
 def _breadth_acquisition_plan(need: dict, packet: dict, intelligence: dict) -> dict:
