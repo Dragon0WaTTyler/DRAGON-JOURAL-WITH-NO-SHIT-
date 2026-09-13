@@ -687,8 +687,14 @@ def _mark_semantic_event_blocked(bundle: dict, reason: str, policy: dict | None 
         "recovery_need_id": bundle.get("recovery_need_id"),
         "target_editorial_function": bundle.get("target_editorial_function"),
         "blocker": reason,
+        "missing_evidence_role": (
+            "PRIMARY" if policy and "PRIMARY" in policy.get("required_roles", []) and not any(item.get("role") == "PRIMARY" for item in bundle.get("source_roles", []))
+            else "INDEPENDENT" if policy and "INDEPENDENT" in policy.get("required_roles", []) and not any(item.get("role") == "INDEPENDENT" for item in bundle.get("source_roles", []))
+            else None
+        ),
         "evidence_ids": list(bundle.get("evidence_ids") or []),
         "source_ids": list(bundle.get("sources") or []),
+        "attempted_source_routes": list(bundle.get("attempted_source_routes") or []),
         "attempted_observation_ids": list(bundle.get("observations") or []),
         "pivot_eligible": True,
         "normal_recovery_attempted": True,
@@ -1256,6 +1262,17 @@ def create_research_action(
     strategy = query_strategy or query_ladder(job, recovery_need)[0]
     query = str(strategy.get("query") or job["lead"].get("topic") or "")
     target = target or strategy.get("target")
+    recovery_mode = (
+        (recovery_need or {}).get("recovery_mode")
+        or ("DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED" if recovery_need and not recovery_need.get("event_id") and recovery_need.get("target_editorial_function") else "CORROBORATE_EXISTING_EVENT")
+    )
+    recovery_intent = (
+        "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+        if (recovery_need or {}).get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+        else "COMPLETE_CURRENT_EVENT_EVIDENCE"
+        if recovery_mode == "CORROBORATE_EXISTING_EVENT"
+        else "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED"
+    )
     return {
         "schema_version": 1,
         "action_id": _stable_id(
@@ -1332,13 +1349,11 @@ def create_research_action(
         "recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
         "pivot_mode": (recovery_need or {}).get("pivot_mode"),
         "blocked_event_memory": deepcopy((recovery_need or {}).get("blocked_event_memory") or []),
+        "recovery_intent": recovery_intent,
         # Recovery mode is explicit: breadth/function needs without an
         # existing event discover a new root; candidate evidence needs
         # corroborate an existing event lead.
-        "recovery_mode": (
-            (recovery_need or {}).get("recovery_mode")
-            or ("DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED" if recovery_need and not recovery_need.get("event_id") and recovery_need.get("target_editorial_function") else "CORROBORATE_EXISTING_EVENT")
-        ),
+        "recovery_mode": recovery_mode,
         "originating_recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
         "recovery_candidate_id": recovery_need.get("candidate_id") if recovery_need else None,
         "channel_fallback": deepcopy(strategy.get("fallback")) if strategy.get("fallback") else None,
@@ -2387,7 +2402,7 @@ def build_event_bundles(
             "desk": lead.get("desk"), "observations": [], "sources": [], "source_roles": [],
             "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
             "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
-            "provenance_edges": [], "blocked_event_memory": None,
+        "provenance_edges": [], "attempted_source_routes": [], "blocked_event_memory": None,
             "recovery_mode": lead.get("recovery_mode"), "target_editorial_function": lead.get("target_editorial_function"),
             "new_recovery_event": semantic_mode,
         }
@@ -2439,7 +2454,7 @@ def build_event_bundles(
                 "desk": action.get("desk"), "observations": [], "sources": [],
                 "source_roles": [], "publisher_families": [], "evidence_ids": [],
                 "claims": [], "contradictions": [], "unresolved_origin_issues": [],
-                "matches": [], "candidate_discovery": None, "provenance_edges": [],
+                "matches": [], "candidate_discovery": None, "provenance_edges": [], "attempted_source_routes": [],
                 "new_recovery_event": True, "blocked_event_memory": None,
             }
             bundles.append(bundle)
@@ -2454,6 +2469,9 @@ def build_event_bundles(
         if parent_id:
             bundle["provenance_edges"].append({"from_observation_id": parent_id, "relation": "CITES_OR_POINTS_TO", "to_source_id": observation.get("source_id"), "to_observation_id": observation.get("observation_id")})
         bundle["matches"].append({"observation_id": observation.get("observation_id"), **(match or {"state": "SAME_EVENT_HIGH_CONFIDENCE", "reasons": ["EVENT_LEAD_ANCHOR"]})})
+        route_id = provenance.get("route_id")
+        if route_id:
+            bundle["attempted_source_routes"].append(route_id)
         if observation.get("source_id"):
             bundle["sources"].append(observation["source_id"])
         family = _publisher_family(observation)
@@ -2487,6 +2505,7 @@ def build_event_bundles(
         for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
             bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
         bundle["provenance_edges"] = [item for item in bundle.get("provenance_edges", []) if isinstance(item, dict)]
+        bundle["attempted_source_routes"] = list(dict.fromkeys(item for item in bundle.get("attempted_source_routes", []) if item))
         role_items = {json.dumps(item, ensure_ascii=False, sort_keys=True): item for item in bundle["source_roles"]}
         bundle["source_roles"] = [role_items[key] for key in sorted(role_items)]
         if bundle["contradictions"]:

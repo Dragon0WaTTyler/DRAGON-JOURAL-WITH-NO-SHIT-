@@ -173,6 +173,8 @@ def build_recovery_plan(
             "recovery_need_id": bundle.get("recovery_need_id"),
             "target_editorial_function": bundle.get("target_editorial_function"),
             "blocker": bundle.get("failure_reason"),
+            "missing_evidence_role": None,
+            "attempted_source_routes": list(bundle.get("attempted_source_routes") or []),
             "pivot_eligible": True,
             "normal_recovery_attempted": True,
         }
