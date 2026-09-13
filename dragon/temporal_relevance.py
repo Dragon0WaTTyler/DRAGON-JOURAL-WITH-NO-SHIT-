@@ -55,20 +55,22 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
     """Classify currentness without inventing dates or treating guidance as news."""
     edition = _date_value(edition_date)
     metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
-    publication = _first_date((raw.get("published_at"), raw.get("publication_date"), metadata.get("publication_date")))
+    structured = raw.get("structured_fields") if isinstance(raw.get("structured_fields"), dict) else {}
+    publication = _first_date((raw.get("published_at"), raw.get("publication_date"), metadata.get("publication_date"), structured.get("publication_date")))
     text = " ".join(str(item or "") for item in (exact_text, raw.get("text"), raw.get("extracted_text"), raw.get("claim")))
     values = {
         "PUBLICATION_TIME": publication,
-        "EVENT_TIME": _first_date((raw.get("event_time"), raw.get("event_date"), metadata.get("event_time"))),
-        "EFFECTIVE_START": _first_date((raw.get("effective_start"), metadata.get("effective_start"))),
-        "EFFECTIVE_END": _first_date((raw.get("effective_end"), metadata.get("effective_end"))),
-        "DEADLINE": _first_date((raw.get("deadline"), metadata.get("deadline"))),
+        "EVENT_TIME": _first_date((raw.get("event_time"), raw.get("event_date"), metadata.get("event_time"), structured.get("event_time"))),
+        "EFFECTIVE_START": _first_date((raw.get("effective_start"), metadata.get("effective_start"), structured.get("effective_start"))),
+        "EFFECTIVE_END": _first_date((raw.get("effective_end"), metadata.get("effective_end"), structured.get("effective_end"))),
+        "DEADLINE": _first_date((raw.get("deadline"), metadata.get("deadline"), structured.get("deadline"))),
         # A continuing story is current only when the exact page supplies a
         # dated material development.  This is deliberately separate from
         # publication time so an old, still-valid framework cannot qualify.
         "NEW_DEVELOPMENT_TIME": _first_date((
             raw.get("new_development_date"), raw.get("material_development_date"),
             metadata.get("new_development_date"), metadata.get("material_development_date"),
+            structured.get("new_development_date"), structured.get("material_development_date"),
         )),
     }
     # Explicit labelled dates in exact text are admissible source evidence.

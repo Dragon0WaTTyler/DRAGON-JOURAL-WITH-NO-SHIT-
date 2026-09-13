@@ -191,6 +191,26 @@ def extract_structured_document(
     if len(text) < 20:
         raise DocumentExtractionError("DOCUMENT_EXTRACTION_EMPTY", source_url)
     links = sorted(set(re.findall(r"https://[^\s<>()\]\[{}]+", text)))
+    structured_fields = {}
+    # Preserve only explicitly labelled portal/document fields.  This is
+    # metadata for downstream event extraction, never an inferred value.
+    if material_type == "JSON":
+        try:
+            value = json.loads(payload.decode("utf-8", errors="strict"))
+        except (UnicodeError, json.JSONDecodeError):
+            value = None
+        if isinstance(value, dict):
+            for key in ("notice_number", "reference", "publication_date", "deadline", "issuer", "status", "category", "description", "effective_start", "effective_end"):
+                if key in value and value[key] not in (None, "", []):
+                    structured_fields[key] = value[key]
+    elif tables and tables[0]:
+        headers = [str(item).strip().casefold() for item in tables[0][0]]
+        if headers and any(item in headers for item in ("notice_number", "reference", "deadline", "issuer", "status", "category")):
+            row = tables[0][1] if len(tables[0]) > 1 else []
+            structured_fields = {
+                headers[index]: row[index] for index in range(min(len(headers), len(row)))
+                if headers[index] in {"notice_number", "reference", "publication_date", "deadline", "issuer", "status", "category", "description"} and row[index] not in (None, "")
+            }
     return {
         "canonical_url": source_url,
         "discovered_url": source_url,
@@ -211,6 +231,7 @@ def extract_structured_document(
         "text": text,
         "sections": sections,
         "tables": tables,
+        "structured_fields": structured_fields,
         "links": links,
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }

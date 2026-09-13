@@ -29,6 +29,10 @@ from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_f
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import classify_event_functions, validated_function_names
 from dragon.temporal_relevance import evaluate_temporal_relevance
+from dragon.institutional_navigation import (
+    classify_page_type, extract_listing_child_links, resolve_institution_identity,
+    select_listing_child_link,
+)
 
 
 ACTION_TYPES = {
@@ -359,7 +363,8 @@ _EDITORIAL_VALUE_MARKERS = (
 )
 
 _EVENT_ACTION_MARKERS = (
-    "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected",
+    "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected", "register", "registers", "registered", "registration", "inspect", "inspects", "inspected", "monitor", "monitors", "monitored", "enforce", "enforces", "enforced", "deadline", "expires", "expire", "change", "changes", "changed", "suspend", "suspends", "suspended",
+    "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
     "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
 )
 _EVENT_GEOGRAPHIES = (
@@ -419,15 +424,20 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     date_info = raw.get("publication_date") if isinstance(raw.get("publication_date"), dict) else metadata.get("publication_date", {})
     published_at = str(raw.get("published_at") or date_info.get("normalized") or "").strip()
     text = str(raw.get("text") or raw.get("extracted_text") or raw.get("content") or "").strip()
+    page_type = classify_page_type(raw, action=action)
+    structured = raw.get("structured_fields") if isinstance(raw.get("structured_fields"), dict) else {}
     if title_state == "TITLE_UNRESOLVED" or not title:
         return {"state": "EVENT_UNRESOLVED", "reason": "TITLE_UNRESOLVED"}
-    if len(text) < 200:
+    minimum_text = 80 if page_type in {"OFFICIAL_NOTICE", "OFFICIAL_DECISION", "PRESS_RELEASE", "PROCUREMENT_NOTICE", "SERVICE_NOTICE", "REPORT_DETAIL"} or structured else 200
+    if len(text) < minimum_text:
         return {"state": "EVENT_UNRESOLVED", "reason": "ARTICLE_TEXT_UNUSABLE"}
-    if not published_at:
-        return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE"}
     research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
     edition_date = str(action.get("event_context", {}).get("research_date") or "")
     temporal = evaluate_temporal_relevance(raw, edition_date, exact_text=text) if edition_date else None
+    if not published_at and temporal and not temporal.get("active_on_edition_date"):
+        return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE", "temporal_relevance": temporal}
+    if not published_at and not temporal:
+        return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE"}
     if temporal is not None and not temporal.get("active_on_edition_date"):
         return {"state": "EVENT_OUTSIDE_WINDOW", "reason": temporal.get("rejection_reason") or "TEMPORAL_RELEVANCE_UNRESOLVED", "title": title, "published_at": published_at, "temporal_relevance": temporal}
     subject = " ".join((title, text[:1600]))
@@ -436,6 +446,10 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     # Never use substring matching here: ``ban`` inside ``bank`` created a
     # false action, which then made unrelated pages look like one event.
     action_marker = next((marker for marker in _EVENT_ACTION_MARKERS if marker.casefold() in subject_words), None)
+    if not action_marker and structured:
+        # Structured notice fields can carry the action even when the prose is
+        # terse.  Preserve the field provenance in the resulting skeleton.
+        action_marker = next((str(structured.get(key)).strip() for key in ("action", "status", "procedure", "decision") if str(structured.get(key) or "").strip()), None)
     if not action_marker:
         return {"state": "EVENT_UNRESOLVED", "reason": "NO_CONCRETE_ACTION", "title": title, "published_at": published_at}
     words = _query_words([title])
@@ -447,10 +461,11 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     geography.extend(str(item) for item in action.get("event_context", {}).get("geography", []) if str(item).casefold() in lowered)
     geography = sorted(set(geography))
     identifiers = re.findall(r"\b(?:[A-Z]{2,}[\-\d]{2,}|\d{3,})\b", subject)
-    fingerprint_parts = [actor or "", action_marker, object_terms or "", published_at[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
+    fingerprint_parts = [actor or "", action_marker, object_terms or "", (published_at or temporal.get("event_time") or temporal.get("deadline") or temporal.get("effective_start") or "")[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
     fingerprint = _stable_id("EVENT", *fingerprint_parts)
     return {
-        "state": "CONCRETE_EVENT", "title": title, "published_at": published_at,
+        "state": "CONCRETE_EVENT", "title": title, "published_at": published_at or None,
+        "page_type": page_type, "structured_fields": deepcopy(structured),
         "temporal_relevance": temporal,
         "actor": actor, "action": action_marker, "object": object_terms,
         "geography": geography, "institution": (metadata.get("publisher") or {}).get("name") if isinstance(metadata.get("publisher"), dict) else raw.get("publisher"),
@@ -1060,6 +1075,8 @@ def create_research_action(
         "target": target,
         "discovery_only": bool(strategy.get("discovery_only")),
         "source_route": deepcopy(strategy.get("source_route")) if isinstance(strategy.get("source_route"), dict) else None,
+        "navigation_depth": int(strategy.get("navigation_depth", 0) or 0),
+        "navigation_parent_url": strategy.get("navigation_parent_url"),
         "known_entities": list(job["lead"].get("event_entities", [])),
         "event_context": {
             "entities": list((recovery_need or {}).get("query_context", {}).get("entities", [])),
@@ -1874,8 +1891,24 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     title = _first_present(raw.get("title"), raw.get("claim"), raw.get("reason"))
     title_state = str(raw.get("title_state") or (raw.get("article_metadata") or {}).get("title_state") or ("TITLE_RESOLVED" if title else "TITLE_UNRESOLVED"))
     source_class = str(raw.get("source_class") or raw.get("source_type") or "unknown").lower()
+    page_type = classify_page_type(raw, action=action)
+    known_profile = action.get("source_route") if isinstance(action.get("source_route"), dict) else None
+    institution_identity = resolve_institution_identity(raw, known_profile=known_profile)
+    listing_links = extract_listing_child_links(
+        raw,
+        semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
+        edition_date=action.get("event_context", {}).get("research_date") if isinstance(action.get("event_context"), dict) else None,
+    ) if page_type == "LISTING_PAGE" else []
     source_id = _stable_id("SRC", canonical or action["action_id"], title or "TITLE_UNRESOLVED")
     temporal_relevance = evaluate_temporal_relevance(raw, str(action.get("event_context", {}).get("research_date") or ""), exact_text=str(raw.get("text") or raw.get("extracted_text") or "")) if raw.get("text") or raw.get("extracted_text") else None
+    if temporal_relevance is not None and isinstance(action.get("listing_temporal_context"), dict):
+        # Preserve the listing -> detail temporal chain for audit.  The
+        # listing's dates never independently grant currentness to the child.
+        temporal_relevance["listing_temporal_context"] = deepcopy(action["listing_temporal_context"])
+        temporal_relevance["temporal_provenance_chain"] = [
+            {"stage": "LISTING_PAGE", "temporal": deepcopy(action["listing_temporal_context"])},
+            {"stage": "EXACT_DETAIL_OR_ARTIFACT", "temporal": {key: temporal_relevance.get(key) for key in ("publication_time", "event_time", "effective_start", "effective_end", "deadline", "active_on_edition_date")}},
+        ]
     fixture_verified = raw.get("verification_provenance") == "FIXTURE_VERIFIED_EXACT_PAGE"
     verification_status = (
         "VALIDATED_EVIDENCE"
@@ -1884,6 +1917,14 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
     )
     origin = urlsplit(canonical).hostname if canonical else None
     source_profile = _lead_source_profile(canonical, str(title or ""), str((raw.get("search_result") or {}).get("snippet") or ""))
+    # Identity routing is additive and intentionally does not grant an
+    # evidence role.  The exact page still must pass the role/evidence gate.
+    source_profile.update({
+        "institution_identity_state": institution_identity.get("state"),
+        "institution_profile_type": institution_identity.get("profile_type"),
+        "canonical_institution_domain": institution_identity.get("canonical_institution_domain"),
+        "institution_relationship": institution_identity.get("relationship"),
+    })
     metadata_publisher = ((raw.get("article_metadata") or {}).get("publisher") or {}) if isinstance(raw.get("article_metadata"), dict) else {}
     if metadata_publisher.get("state") == "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING":
         source_profile.update({
@@ -1919,9 +1960,20 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "content_hash": raw.get("content_hash"),
         "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
+        "page_type": page_type,
+        "institution_identity": institution_identity,
+        "links": deepcopy(raw.get("links") or []),
+        "listing_links": listing_links,
+        "listing_resolution_state": (
+            "CHILD_LINKS_AVAILABLE" if listing_links else "LISTING_NO_DETAIL_SELECTED"
+        ) if page_type == "LISTING_PAGE" else None,
         "source_resolution_state": ((raw.get("article_metadata") or {}).get("publisher") or {}).get("state") if isinstance((raw.get("article_metadata") or {}).get("publisher"), dict) else None,
+        "structured_fields": deepcopy(raw.get("structured_fields")) if isinstance(raw.get("structured_fields"), dict) else None,
         "discovery_method": action["action_type"],
         "discovery_channel": str(raw.get("discovery_channel") or action.get("discovery_channel") or action["action_type"]),
+        "navigation_depth": int(action.get("navigation_depth", 0) or 0),
+        "navigation_parent_url": action.get("navigation_parent_url"),
+        "navigation_failure_reason": "DETAIL_FETCH_FAILED" if int(action.get("navigation_depth", 0) or 0) == 2 and result_class == "DEAD_END" else None,
         "related_entities": list(raw.get("related_entities") or action["known_entities"]),
         "related_event": raw.get("event_id"),
         "claim": str(raw.get("claim") or title or ""),
@@ -1935,6 +1987,10 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "event_skeleton": deepcopy((validation or {}).get("event_skeleton")) if isinstance((validation or {}).get("event_skeleton"), dict) else None,
         "temporal_relevance": deepcopy(temporal_relevance),
         "event_state": (validation or {}).get("event_state") or ((validation or {}).get("event_skeleton") or {}).get("state"),
+        "event_unresolved_reason": (
+            "NO_CONCRETE_OPERATIONAL_CHANGE" if int(action.get("navigation_depth", 0) or 0) == 2 and not isinstance((validation or {}).get("event_skeleton"), dict)
+            else None
+        ),
         "article_metadata": deepcopy(raw.get("article_metadata")) if isinstance(raw.get("article_metadata"), dict) else None,
         "source_role_resolution": deepcopy((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution")) if isinstance((validation or {}).get("source_role_resolution") or raw.get("source_role_resolution"), dict) else None,
         "evidence_relation": (validation or {}).get("relation"),
@@ -2353,6 +2409,27 @@ def build_research_yield_report(
                 for item in action_outcomes
             ),
         }
+    institutional_observations = [
+        item for item in observations
+        if isinstance(item.get("institution_identity"), dict)
+        and item.get("institution_identity", {}).get("profile_type") not in {None, "OTHER_INSTITUTION"}
+    ]
+    listing_observations = [item for item in observations if item.get("page_type") == "LISTING_PAGE"]
+    child_actions = [item for item in actions if int(item.get("navigation_depth", 0) or 0) == 2]
+    institutional_identity = {
+        "institutional_leads": sum(item.get("observation_class") == "LEAD" for item in institutional_observations),
+        "identities_resolved": sum(item.get("institution_identity", {}).get("state") == "INSTITUTION_IDENTITY_RESOLVED" for item in institutional_observations),
+        "canonical_domains_resolved": sum(bool(item.get("institution_identity", {}).get("canonical_institution_domain")) for item in institutional_observations),
+        "unresolved_identities": sum(item.get("institution_identity", {}).get("state") != "INSTITUTION_IDENTITY_RESOLVED" for item in institutional_observations),
+    }
+    listing_resolution = {
+        "listing_pages": len(listing_observations),
+        "child_links_extracted": sum(len(item.get("listing_links") or []) for item in listing_observations),
+        "child_links_selected": sum(item.get("listing_resolution_state") == "CHILD_DETAIL_SELECTED" for item in listing_observations),
+        "detail_fetches": len(child_actions),
+        "exact_artifacts_reached": sum(item.get("page_type") not in {"LISTING_PAGE", "PORTAL_HOME", "AGGREGATOR"} and item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in observations if item.get("provenance", {}).get("action_id") in {action.get("action_id") for action in child_actions}),
+        "maximum_navigation_depth": 2,
+    }
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -2441,6 +2518,9 @@ def build_research_yield_report(
         "strategy_channel_yield": strategy_channel_yield,
         "backend_yield": backend_yield,
         "function_metrics": function_metrics,
+        "institutional_identity": institutional_identity,
+        "listing_resolution": listing_resolution,
+        "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {
             "jobs": [item.get("budget_allocation", {}) for item in jobs if item.get("budget_allocation")],
             "budget_increased": False,
@@ -2475,6 +2555,10 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         "article_origin_state": role_detail.get("article_origin_state"),
         "independence_state": role_detail.get("independence_state"),
         "role_reason": role_detail.get("reason"),
+        "page_type": observation.get("page_type"),
+        "institution_identity": deepcopy(observation.get("institution_identity")),
+        "structured_fields": deepcopy(observation.get("structured_fields")),
+        "temporal_relevance": deepcopy(observation.get("temporal_relevance")),
         "provenance": observation["provenance"],
         "recovery_need_id": action.get("recovery_need_id"),
     }
@@ -2559,7 +2643,7 @@ def execute_research_round(
     executed = []
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
-        nonlocal observations, source_records, updates, candidate_discoveries, event_leads
+        nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
@@ -2581,6 +2665,7 @@ def execute_research_round(
         if not isinstance(raw_results, list):
             raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
         feedback_leads: list[dict] = []
+        listing_children: list[tuple[dict, dict]] = []
         for raw in raw_results:
             if not isinstance(raw, dict):
                 raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
@@ -2591,6 +2676,18 @@ def execute_research_round(
             observation = _observation(action, raw, seen_urls)
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
+            if observation.get("page_type") == "LISTING_PAGE":
+                child = select_listing_child_link(
+                    raw,
+                    semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
+                    edition_date=action.get("event_context", {}).get("research_date") if isinstance(action.get("event_context"), dict) else None,
+                )
+                if child and int(action.get("navigation_depth", 0) or 0) < 2:
+                    listing_children.append((observation, child))
+                elif not child:
+                    observation["listing_resolution_state"] = "LISTING_NO_DETAIL_SELECTED"
+                else:
+                    observation["listing_resolution_state"] = "MAXIMUM_NAVIGATION_DEPTH_REACHED"
             if observation.get("event_state") == "EVENT_LEAD_DISCOVERY_ONLY":
                 skeleton = observation.get("event_skeleton") or {}
                 event_lead = {
@@ -2636,6 +2733,37 @@ def execute_research_round(
                             "editorial_value_reason": value_reason,
                             "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
                         })
+        # A listing/index consumes at most one additional existing follow-up
+        # slot for its strongest child.  Depth is fixed at listing -> detail;
+        # no recursive crawler or unbounded site traversal is introduced.
+        child_cap = config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]
+        for listing_observation, child in listing_children:
+            if state["lead_followups"] >= child_cap:
+                listing_observation["listing_resolution_state"] = "CHILD_FOLLOWUP_BUDGET_EXHAUSTED"
+                listing_observation["listing_resolution_reason"] = "FOLLOWUP_BUDGET_EXHAUSTED"
+                continue
+            child_action = {
+                **action,
+                "action_id": _stable_id("ACT", action["action_id"], "LISTING_CHILD", child["url"]),
+                "action_type": "FETCH_URL", "target": child["url"],
+                "expected_result_type": "EXTRACTED_SOURCE", "lead_followup": True,
+                "discovery_only": False, "navigation_depth": 2,
+                "navigation_parent_url": listing_observation.get("url"),
+                "listing_temporal_context": deepcopy(listing_observation.get("temporal_relevance")),
+                "listing_parent_observation_id": listing_observation.get("observation_id"),
+                "query_variant": f"{action.get('query_variant', 'LISTING')}_CHILD_DETAIL",
+                "query_intent": "LISTING_TO_DETAIL_EXACT_ARTIFACT",
+                "discovery_channel": f"{action.get('discovery_channel') or 'CONFIGURED'}-listing-child",
+                "channel_fallback": None,
+            }
+            listing_observation["listing_resolution_state"] = "CHILD_DETAIL_SELECTED"
+            listing_observation["selected_child_link"] = deepcopy(child)
+            lead_followup_selection.append({
+                "url": child["url"], "priority": "LISTING_CHILD_DETAIL",
+                "need_id": action.get("recovery_need_id"),
+                "source_identity": listing_observation.get("institution_identity"),
+            })
+            run_action(child_action)
         # A concrete event from an unknown-role source is useful discovery
         # context, not evidence.  Spend at most one ordinary bounded search
         # action on better coverage of its fingerprint.
@@ -2701,10 +2829,10 @@ def execute_research_round(
             {"url": item.get("url"), "priority": item.get("lead_priority"), "attrition_state": item.get("lead_attrition_state"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity")}
             for item in observations if item.get("observation_class") == "LEAD" and item.get("url")
         ]
-        lead_followup_selection = [
+        lead_followup_selection.extend([
             {"url": item.get("url"), "priority": item.get("lead_priority"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity")}
             for item in selected_leads
-        ]
+        ])
         for observation in selected_leads:
             parent = parents[observation["provenance"]["action_id"]]
             fetch_action = {
