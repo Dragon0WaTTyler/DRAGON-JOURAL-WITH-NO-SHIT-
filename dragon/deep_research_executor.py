@@ -3552,6 +3552,7 @@ def execute_research_round(
                                 "query_intent": "ACTOR_FIRST_CANONICAL_ARTIFACT", "query_variant": "ACTOR_ACTION_OBJECT_DATE",
                                 "query_fingerprint": query_fingerprint(query, intent="ACTOR_FIRST_CANONICAL_ARTIFACT"),
                                 "actor_first_search": True, "route_scoped": False, "route_search_objective": None,
+                                "lead_followup": False,
                                 "originating_observation_id": observation.get("observation_id"),
                                 "discovery_channel": "SEARXNG_GENERAL_SEARCH", "discovery_backends": ["searxng-general-search"],
                                 "expected_result_type": "DISCOVERY_RESULT", "channel_fallback": None,
@@ -3579,6 +3580,7 @@ def execute_research_round(
                             "query_intent": "ACTOR_FIRST_CANONICAL_ARTIFACT", "query_variant": "ACTOR_ACTION_OBJECT_DATE",
                             "query_fingerprint": query_fingerprint(query, intent="ACTOR_FIRST_CANONICAL_ARTIFACT"),
                             "actor_first_search": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"),
+                            "lead_followup": False,
                             "discovery_channel": "SEARXNG_GENERAL_SEARCH", "discovery_backends": ["searxng-general-search"],
                             "expected_result_type": "DISCOVERY_RESULT", "channel_fallback": None,
                         }

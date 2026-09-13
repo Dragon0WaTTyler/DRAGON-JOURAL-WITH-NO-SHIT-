@@ -198,6 +198,10 @@ def test_navigation_link_failure_opens_bounded_actor_first_discovery() -> None:
         "recovery_candidate_id": None, "provenance_requirements": {"required_role": None, "must_be_distinct_event": False, "science_strict": False},
         "event_context": {"entities": ["Public Prosecution", "election"], "event_terms": ["directive"], "topic_terms": [], "aliases": [], "geography": ["Morocco"], "research_date": "2026-09-13"},
         "channel_fallback": None, "target_editorial_function": "ACCOUNTABILITY", "discovery_only": False, "navigation_depth": 0,
+        # Reproduce a listing-child parent: the official-link fetch already
+        # consumes one follow-up slot, but the actor-first search must remain
+        # a search action so the exact-artifact fetch can use the second slot.
+        "lead_followup": True,
     }
 
     class Adapter:
