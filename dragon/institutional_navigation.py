@@ -15,7 +15,14 @@ PAGE_TYPES = {
     "UNKNOWN_PAGE_TYPE",
 }
 
+OUTBOUND_LINK_TYPES = {
+    "CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT",
+    "INSTITUTIONAL_DETAIL", "BACKGROUND_REFERENCE", "NEWSROOM_SOURCE",
+    "AGGREGATOR_LINK", "SOCIAL_LINK", "UNRELATED_LINK", "LINK_RELATION_UNRESOLVED",
+}
+
 _AGGREGATOR_HOSTS = {"news.google.com", "www.google.com"}
+_SOCIAL_HOSTS = {"facebook.com", "www.facebook.com", "x.com", "twitter.com", "www.twitter.com", "instagram.com", "www.instagram.com", "youtube.com", "www.youtube.com", "tiktok.com", "www.tiktok.com"}
 _INSTITUTION_MARKERS = (
     "ministry", "department", "authority", "agency", "commission", "office",
     "government", "public", "institution", "university", "municipality",
@@ -35,6 +42,104 @@ _NAVIGATION_NOISE = {
     "home", "homepage", "about", "contact", "login", "privacy", "terms", "cookies",
     "accueil", "connexion", "اتصل", "الرئيسية", "من نحن",
 }
+
+_OFFICIAL_HOST_MARKERS = (".gov", ".gov.", ".ac.", ".ma")
+_CITATION_MARKERS = ("according to", "announced by", "in a circular", "in a decision", "official portal", "selon le ministère", "selon l'autorité", "وفق", "حسب", "بلاغ", "قرار", "منصة رسمية")
+_DOCUMENT_MARKERS = (".pdf", "circular", "decision", "notice", "report", "directive", "communique", "بلاغ", "قرار", "تقرير", "مذكرة")
+
+
+def classify_outbound_link(parent_url: str, link_url: str, *, label: str = "", context: str = "", semantic_target: str | None = None, institution_domain: str | None = None) -> dict:
+    """Classify a discovered link for bounded navigation, never as evidence."""
+    parent = normalize_url(str(parent_url or ""))
+    link = normalize_url(str(link_url or ""))
+    p_host = (urlsplit(parent).hostname or "").casefold()
+    host = (urlsplit(link).hostname or "").casefold()
+    path = (urlsplit(link).path or "/").casefold()
+    target = str(semantic_target or "").upper()
+    haystack = f"{label} {context} {link}".casefold()
+    same_domain = bool(host and p_host and (host == p_host or host.endswith("." + p_host) or p_host.endswith("." + host)))
+    official_domain = bool(host and (host.endswith(".gov.ma") or host.endswith(".gov") or host.endswith(".ac.ma") or (institution_domain and host == str(institution_domain).casefold())))
+    service = any(marker in haystack for marker in _SERVICE_MARKERS) or any(token in path for token in ("application", "inscription", "candidature", "register", "service", "portal", "suivi"))
+    document = any(marker in haystack for marker in _DOCUMENT_MARKERS)
+    citation = any(marker in haystack for marker in _CITATION_MARKERS)
+    if not link or urlsplit(link).scheme != "https":
+        kind = "LINK_RELATION_UNRESOLVED"
+        reason = "UNSUPPORTED_OR_NONPUBLIC_SCHEME"
+    elif host in _AGGREGATOR_HOSTS or "news.google.com/rss" in link:
+        kind, reason = "AGGREGATOR_LINK", "AGGREGATOR_HOST"
+    elif host in _SOCIAL_HOSTS:
+        kind, reason = "SOCIAL_LINK", "SOCIAL_HOST"
+    elif path in {"", "/"} and official_domain:
+        kind, reason = "INSTITUTIONAL_DETAIL", "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY"
+    elif official_domain and service and target == "SERVICE":
+        kind, reason = "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_SERVICE_ROUTE"
+    elif official_domain and (document or citation):
+        kind, reason = "CITED_PRIMARY_SOURCE" if citation else "OFFICIAL_DOCUMENT", "OFFICIAL_ARTIFACT_SIGNAL"
+    elif official_domain and (same_domain or institution_domain):
+        kind, reason = "INSTITUTIONAL_DETAIL", "OFFICIAL_INSTITUTION_RELATION"
+    elif same_domain and document:
+        kind, reason = "INSTITUTIONAL_DETAIL", "SAME_DOMAIN_DOCUMENT_ROUTE"
+    elif any(marker in haystack for marker in ("news", "article", "press", "صحافة", "خبر")):
+        kind, reason = "NEWSROOM_SOURCE", "NEWSROOM_SIGNAL"
+    elif any(marker in haystack for marker in ("facebook.com", "twitter.com", "instagram.com", "youtube.com")):
+        kind, reason = "SOCIAL_LINK", "SOCIAL_SIGNAL"
+    elif same_domain:
+        kind, reason = "BACKGROUND_REFERENCE", "SAME_DOMAIN_NON_ARTIFACT"
+    else:
+        kind, reason = "UNRELATED_LINK", "NO_INSTITUTION_OR_SEMANTIC_RELATION"
+    return {"url": link, "label": str(label or ""), "type": kind, "reason": reason,
+            "same_domain": same_domain, "cross_domain": bool(host and p_host and not same_domain),
+            "official_looking": official_domain, "service_signal": service, "document_signal": document,
+            "citation_signal": citation}
+
+
+def extract_outbound_link_candidates(raw: dict, *, semantic_target: str | None = None, institution_domain: str | None = None) -> list[dict]:
+    """Extract links from structured fields and Markdown text with provenance."""
+    parent = str(raw.get("canonical_url") or raw.get("url") or "")
+    context = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text"))
+    items = _link_items(raw)
+    result = []
+    for url, label in items:
+        result.append(classify_outbound_link(parent, url, label=label, context=context, semantic_target=semantic_target, institution_domain=institution_domain))
+    return result
+
+
+def extract_actor_attributions(raw: dict) -> dict:
+    """Extract concrete institutional actors and attribution phrases as routing metadata."""
+    text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim"))
+    phrases = [text[m.start():m.end()].strip() for m in re.finditer(r"(?:according to|announced by|in a circular|in a decision|وفق(?:ا لـ)?|حسب|بلاغ|قرار|بناء على)[^.;\n]{0,140}", text, flags=re.I)]
+    known = (
+        ("Supreme Audit Council", ("Supreme Audit Council", "Cour des comptes", "المجلس الأعلى للحسابات")),
+        ("General Inspectorate of Finance", ("General Inspectorate of Finance", "Inspection Générale des Finances", "المفتشية العامة للمالية")),
+        ("General Directorate of National Security", ("DGSN", "Direction Générale de la Sûreté Nationale", "المديرية العامة للأمن الوطني")),
+        ("Public Prosecution", ("Public Prosecution", "Parquet", "النيابة العامة")),
+    )
+    actors = []
+    lowered = text.casefold()
+    for canonical, aliases in known:
+        matched = [alias for alias in aliases if alias.casefold() in lowered]
+        if matched:
+            actors.append({"name": canonical, "aliases": matched, "confidence": "HIGH", "provenance": "TEXT_OR_TITLE"})
+    identifiers = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|\d{3,})\b", text)))
+    return {"actors": actors, "attribution_phrases": phrases[:8], "document_identifiers": identifiers[:8]}
+
+
+def detect_official_portal_republication(raw: dict) -> dict:
+    """Record an official portal's stated origin without collapsing provenance."""
+    url = str(raw.get("canonical_url") or raw.get("url") or "")
+    host = (urlsplit(url).hostname or "").casefold()
+    metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+    publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
+    text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim"))
+    issuer = raw.get("issuing_institution") or raw.get("stated_issuing_institution") or metadata.get("issuing_institution")
+    if not issuer:
+        match = re.search(r"(?:according to|announced by|selon|وفق(?:ا لـ)?|حسب)\s+([^.;\n]{3,120})", text, flags=re.I)
+        issuer = match.group(1).strip() if match else None
+    official_portal = host.endswith(".gov.ma") or host.endswith(".gov") or "official portal" in text.casefold() or "portail officiel" in text.casefold()
+    publisher_name = publisher.get("name") or raw.get("publisher") or host
+    if official_portal and issuer and str(issuer).casefold().strip() not in str(publisher_name).casefold().strip():
+        return {"article_origin_state": "OFFICIAL_PORTAL_REPUBLICATION", "portal_publisher": publisher_name, "issuing_institution": str(issuer).strip(), "origin_relationship": "PORTAL_REPUBLISHES_ISSUER"}
+    return {"article_origin_state": "PRIMARY_ORIGINAL_ARTIFACT" if official_portal else "ORIGIN_UNRESOLVED", "portal_publisher": publisher_name if official_portal else None, "issuing_institution": str(issuer).strip() if issuer else None, "origin_relationship": "PORTAL_ORIGINAL" if official_portal else "UNRESOLVED"}
 
 
 def _text(raw: dict) -> str:
@@ -149,6 +254,7 @@ def _link_items(raw: dict) -> list[tuple[str, str]]:
     values = list(raw.get("links") or [])
     text = str(raw.get("text") or raw.get("extracted_text") or "")
     values.extend((url, label) for label, url in re.findall(r"\[([^\]]{2,160})\]\((https?://[^)]+)\)", text))
+    values.extend((url, "") for url in re.findall(r"https?://[^\s)\]>]+", text))
     items = []
     seen = set()
     for item in values:

@@ -31,7 +31,7 @@ from dragon.editorial_functions import classify_event_functions, validated_funct
 from dragon.temporal_relevance import evaluate_temporal_relevance
 from dragon.institutional_navigation import (
     classify_page_type, extract_listing_child_links, resolve_institution_identity,
-    select_listing_child_link,
+    select_listing_child_link, extract_outbound_link_candidates, extract_actor_attributions, detect_official_portal_republication,
 )
 
 
@@ -641,6 +641,7 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
     attribution = raw.get("article_attribution") if isinstance(raw.get("article_attribution"), dict) else {}
     profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
+    origin_detail = detect_official_portal_republication(raw)
     url = str(raw.get("canonical_url") or raw.get("url") or "")
     title = str(raw.get("title") or metadata.get("title") or "")
     text = str(raw.get("text") or raw.get("extracted_text") or "")
@@ -693,7 +694,8 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
             "independence_state": "NOT_APPLICABLE_PRIMARY", "shared_organization_aliases": shared_aliases,
             "reason": "FIRST_PARTY_ARTIFACT_DOES_NOT_DIRECTLY_ESTABLISH_LIMITED_CLAIM",
         }
-    origin_state = str(attribution.get("article_origin_state") or "SYNDICATION_UNRESOLVED")
+    detected_origin = str(origin_detail.get("article_origin_state") or "")
+    origin_state = detected_origin if detected_origin in {"OFFICIAL_PORTAL_REPUBLICATION", "PRIMARY_ORIGINAL_ARTIFACT"} else str(attribution.get("article_origin_state") or "SYNDICATION_UNRESOLVED")
     if document_type == "NEWS_ARTICLE":
         if origin_state in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}:
             return {
@@ -1925,6 +1927,24 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "canonical_institution_domain": institution_identity.get("canonical_institution_domain"),
         "institution_relationship": institution_identity.get("relationship"),
     })
+    provenance_links = extract_outbound_link_candidates(
+        raw,
+        semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
+        institution_domain=institution_identity.get("canonical_institution_domain"),
+    )
+    attribution = extract_actor_attributions(raw)
+    origin_detail = detect_official_portal_republication(raw)
+    if action.get("action_type") in FETCH_ACTIONS and not action.get("discovery_only") and not action.get("provenance_followup"):
+        if not provenance_links:
+            provenance_diagnostic = "OFFICIAL_LINK_NOT_EXTRACTED"
+        elif not any(item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY" for item in provenance_links):
+            provenance_diagnostic = "OFFICIAL_LINK_REJECTED"
+        elif not attribution.get("actors"):
+            provenance_diagnostic = "ACTOR_UNRESOLVED"
+        else:
+            provenance_diagnostic = None
+    else:
+        provenance_diagnostic = None
     metadata_publisher = ((raw.get("article_metadata") or {}).get("publisher") or {}) if isinstance(raw.get("article_metadata"), dict) else {}
     if metadata_publisher.get("state") == "PUBLISHER_RESOLVED_ARTICLE_ROLE_PENDING":
         source_profile.update({
@@ -1963,6 +1983,13 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "page_type": page_type,
         "institution_identity": institution_identity,
         "links": deepcopy(raw.get("links") or []),
+        "outbound_link_candidates": provenance_links,
+        "official_link_candidates": [item for item in provenance_links if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"}],
+        "citation_attributions": attribution.get("attribution_phrases", []),
+        "event_actor_candidates": attribution.get("actors", []),
+        "document_identifiers": attribution.get("document_identifiers", []),
+        "origin_detail": origin_detail,
+        "provenance_recovery_reason": provenance_diagnostic,
         "listing_links": listing_links,
         "listing_resolution_state": (
             "CHILD_LINKS_AVAILABLE" if listing_links else "LISTING_NO_DETAIL_SELECTED"
@@ -2010,6 +2037,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "content_hash": raw.get("content_hash"),
             "language": raw.get("language"),
             "discovery_is_not_publication_evidence": True,
+            "originating_observation_id": action.get("originating_observation_id"),
+            "outbound_link_type": action.get("outbound_link_type"),
+            "actor_first": bool(action.get("actor_first_search") or action.get("actor_first_fetch")),
         },
         "publication_evidence": False,
         "supporting_evidence_ids": list(raw.get("supporting_evidence_ids") or []),
@@ -2062,6 +2092,7 @@ def build_event_bundles(
             "desk": lead.get("desk"), "observations": [], "sources": [], "source_roles": [],
             "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
             "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
+            "provenance_edges": [],
         }
         bundles.append(bundle)
         return bundle
@@ -2090,6 +2121,9 @@ def build_event_bundles(
             bundle["matches"].append({"observation_id": observation.get("observation_id"), **match})
             continue
         bundle["observations"].append(observation.get("observation_id"))
+        parent_id = provenance.get("originating_observation_id")
+        if parent_id:
+            bundle["provenance_edges"].append({"from_observation_id": parent_id, "relation": "CITES_OR_POINTS_TO", "to_source_id": observation.get("source_id"), "to_observation_id": observation.get("observation_id")})
         bundle["matches"].append({"observation_id": observation.get("observation_id"), **(match or {"state": "SAME_EVENT_HIGH_CONFIDENCE", "reasons": ["EVENT_LEAD_ANCHOR"]})})
         if observation.get("source_id"):
             bundle["sources"].append(observation["source_id"])
@@ -2123,6 +2157,7 @@ def build_event_bundles(
     for bundle in bundles:
         for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
             bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
+        bundle["provenance_edges"] = [item for item in bundle.get("provenance_edges", []) if isinstance(item, dict)]
         role_items = {json.dumps(item, ensure_ascii=False, sort_keys=True): item for item in bundle["source_roles"]}
         bundle["source_roles"] = [role_items[key] for key in sorted(role_items)]
         if bundle["contradictions"]:
@@ -2430,6 +2465,17 @@ def build_research_yield_report(
         "exact_artifacts_reached": sum(item.get("page_type") not in {"LISTING_PAGE", "PORTAL_HOME", "AGGREGATOR"} and item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in observations if item.get("provenance", {}).get("action_id") in {action.get("action_id") for action in child_actions}),
         "maximum_navigation_depth": 2,
     }
+    provenance_recovery = {
+        "secondary_pages_inspected": sum(1 for item in observations if item.get("extraction_status") == "FETCHED" and item.get("source_class") == "unknown"),
+        "attribution_phrases": sum(len(item.get("citation_attributions") or []) for item in observations),
+        "official_links_extracted": sum(len(item.get("official_link_candidates") or []) for item in observations),
+        "official_links_selected": sum(1 for action in actions if action.get("outbound_link_type")),
+        "outbound_link_followups": sum(bool(action.get("provenance_followup") and action.get("outbound_link_type")) for action in actions),
+        "actor_first_searches": sum(bool(action.get("actor_first_search")) for action in actions),
+        "actor_first_fetches": sum(bool(action.get("actor_first_fetch")) for action in actions),
+        "event_actors_resolved": sum(bool(item.get("event_actor_candidates")) for item in observations),
+        "diagnostics": sorted(set(str(item.get("provenance_recovery_reason") or item.get("reason") or "") for item in observations if item.get("provenance_recovery_reason") or item.get("reason"))),
+    }
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -2520,6 +2566,7 @@ def build_research_yield_report(
         "function_metrics": function_metrics,
         "institutional_identity": institutional_identity,
         "listing_resolution": listing_resolution,
+        "provenance_recovery": provenance_recovery,
         "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {
             "jobs": [item.get("budget_allocation", {}) for item in jobs if item.get("budget_allocation")],
@@ -2638,12 +2685,14 @@ def execute_research_round(
     observations, source_records, updates, candidate_discoveries, event_leads = [], [], [], [], []
     lead_followup_selection: list[dict] = []
     lead_followup_candidates: list[dict] = []
+    provenance_followup_selection: list[dict] = []
+    actor_first_telemetry: list[dict] = []
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
     executed = []
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
-        nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection
+        nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, actor_first_telemetry
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
@@ -2676,6 +2725,62 @@ def execute_research_round(
             observation = _observation(action, raw, seen_urls)
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
+            # Bounded provenance recovery applies to fetched secondary or
+            # unresolved leads only.  It consumes the existing follow-up cap
+            # and never upgrades the originating observation's evidence role.
+            if (
+                action.get("action_type") in FETCH_ACTIONS
+                and not action.get("discovery_only")
+                and not action.get("provenance_followup")
+                and not action.get("actor_first_search")
+                and action.get("recovery_need_id")
+                and observation.get("extraction_status") == "FETCHED"
+                and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
+            ):
+                candidates = sorted(
+                    [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY"],
+                    key=lambda item: ({"CITED_PRIMARY_SOURCE": 0, "OFFICIAL_SERVICE_DESTINATION": 1, "OFFICIAL_DOCUMENT": 2, "INSTITUTIONAL_DETAIL": 3}.get(item.get("type"), 9), item.get("url", "")),
+                )
+                target_function = str(action.get("target_editorial_function") or "").upper()
+                if candidates:
+                    selected = candidates[0]
+                    observation["provenance_recovery_state"] = "OFFICIAL_LINK_SELECTED"
+                    observation["provenance_recovery_reason"] = selected.get("type")
+                    provenance_followup_selection.append({"parent_observation_id": observation.get("observation_id"), "url": selected.get("url"), "link_type": selected.get("type"), "need_id": action.get("recovery_need_id")})
+                    child_action = {
+                        **action,
+                        "action_id": _stable_id("ACT", action["action_id"], "OFFICIAL_LINK", selected["url"]),
+                        "action_type": "FETCH_URL", "target": selected["url"], "expected_result_type": "EXTRACTED_SOURCE",
+                        "lead_followup": True, "provenance_followup": True, "outbound_link_type": selected.get("type"),
+                        "originating_observation_id": observation.get("observation_id"), "navigation_parent_url": observation.get("url"),
+                        "discovery_channel": f"{action.get('discovery_channel') or 'FETCH'}-official-link",
+                        "query_intent": "EXPLICIT_OFFICIAL_LINK_RECOVERY", "channel_fallback": None,
+                    }
+                    run_action(child_action)
+                elif observation.get("event_actor_candidates") and state["search_actions"] < limits["search_actions"] and target_function:
+                    actor = observation["event_actor_candidates"][0]
+                    skeleton = observation.get("event_skeleton") or {}
+                    query_parts = [actor.get("name"), skeleton.get("action"), skeleton.get("object"), " ".join(skeleton.get("geography") or []), str(skeleton.get("published_at") or action.get("event_context", {}).get("research_date") or "")[:10]]
+                    query = " ".join(str(item) for item in query_parts if item).strip()
+                    if query:
+                        search_action = {
+                            **action,
+                            "action_id": _stable_id("ACT", action["action_id"], "ACTOR_FIRST_SEARCH", actor.get("name")),
+                            "action_type": "SEARCH_OFFICIAL_SOURCE", "target": None, "query": query,
+                            "query_intent": "ACTOR_FIRST_CANONICAL_ARTIFACT", "query_variant": "ACTOR_ACTION_OBJECT_DATE",
+                            "query_fingerprint": query_fingerprint(query, intent="ACTOR_FIRST_CANONICAL_ARTIFACT"),
+                            "actor_first_search": True, "originating_observation_id": observation.get("observation_id"),
+                            "discovery_channel": "SEARXNG_GENERAL_SEARCH", "discovery_backends": ["searxng-general-search"],
+                            "expected_result_type": "DISCOVERY_RESULT", "channel_fallback": None,
+                        }
+                        actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "actor": actor.get("name"), "query": query, "status": "SEARCH_DISPATCHED"})
+                        before = len(observations)
+                        run_action(search_action)
+                        new_items = [item for item in observations[before:] if item.get("url") and item.get("observation_id") != observation.get("observation_id")]
+                        exact = next((item for item in new_items if (item.get("source_class") or "").lower() in {"official", "primary"} or str(item.get("url", "")).lower().find(".gov") >= 0), None)
+                        if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
+                            actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED"})
+                            run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
             if observation.get("page_type") == "LISTING_PAGE":
                 child = select_listing_child_link(
                     raw,
@@ -2942,6 +3047,23 @@ def execute_research_round(
         },
         "lead_followup_selection": lead_followup_selection,
         "lead_followup_candidates": lead_followup_candidates,
+        "provenance_followup_selection": provenance_followup_selection,
+        "actor_first_telemetry": actor_first_telemetry,
+        "provenance_recovery": {
+            "official_links_selected": len(provenance_followup_selection),
+            "outbound_link_followups": len(provenance_followup_selection),
+            "actor_first_searches": sum(1 for item in actor_first_telemetry if item.get("status") == "SEARCH_DISPATCHED"),
+            "actor_first_fetches": sum(1 for item in actor_first_telemetry if item.get("status") == "ARTIFACT_FETCH_DISPATCHED"),
+        },
+        "provenance_telemetry": {
+            "secondary_pages_inspected": sum(1 for item in observations if item.get("extraction_status") == "FETCHED" and (item.get("source_class") or "unknown").lower() == "unknown"),
+            "attribution_phrases": sum(len(item.get("citation_attributions") or []) for item in observations),
+            "official_links_extracted": sum(len(item.get("official_link_candidates") or []) for item in observations),
+            "official_links_selected": len(provenance_followup_selection),
+            "actor_first_searches": sum(1 for item in actor_first_telemetry if item.get("status") == "SEARCH_DISPATCHED"),
+            "actor_first_fetches": sum(1 for item in actor_first_telemetry if item.get("status") == "ARTIFACT_FETCH_DISPATCHED"),
+            "outbound_link_followups": len(provenance_followup_selection),
+        },
         "remaining_gaps": list(advanced["context"]["SOURCE_GAPS"]),
         "stop_reason": advanced.get("stop_condition"),
     }
