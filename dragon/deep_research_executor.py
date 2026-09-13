@@ -947,6 +947,76 @@ def _breadth_event_desk_preferences(bundle: dict, eligible_sections: list[str]) 
     return preferred + [section for section in eligible_sections if section not in preferred]
 
 
+_PIVOT_SOURCE_CLASS_BRANCHES = {
+    "ACCOUNTABILITY": [
+        {
+            "class": "REGULATOR",
+            "terms": {"ar": "هيئة تنظيمية قرار رقابة امتثال إنفاذ", "fr": "régulateur décision contrôle conformité application", "en": "regulator decision oversight compliance enforcement"},
+        },
+        {
+            "class": "AUDIT_BODY",
+            "terms": {"ar": "مجلس حسابات تقرير افتحاص نتائج رقابة مالية", "fr": "cour des comptes rapport audit constat contrôle financier", "en": "audit body report audit finding financial oversight"},
+        },
+        {
+            "class": "PROSECUTION_JUDICIARY",
+            "terms": {"ar": "نيابة عامة دورية شكايات متابعة زجر", "fr": "parquet circulaire plaintes poursuite enforcement", "en": "prosecution directive complaints enforcement"},
+        },
+        {
+            "class": "ELECTION_INTEGRITY",
+            "terms": {"ar": "نزاهة الانتخابات مراقبة مراحل اقتراع مخالفات", "fr": "intégrité électorale suivi étapes scrutin infractions", "en": "election integrity monitoring electoral violations"},
+        },
+        {
+            "class": "ANTI_CORRUPTION",
+            "terms": {"ar": "هيئة محاربة الرشوة وقاية نزاهة تبليغ", "fr": "anti-corruption prévention intégrité signalement", "en": "anti-corruption integrity reporting prevention"},
+        },
+        {
+            "class": "OTHER_FORMAL_OVERSIGHT",
+            "terms": {"ar": "رقابة مؤسساتية قرار رسمي تتبع", "fr": "contrôle institutionnel décision officielle suivi", "en": "formal oversight official decision monitoring"},
+        },
+    ],
+    "SERVICE": [
+        {
+            "class": "MINISTRY",
+            "terms": {"ar": "وزارة بلاغ رسمي إجراء عمومي", "fr": "ministère communiqué procédure publique", "en": "ministry official notice public procedure"},
+        },
+        {
+            "class": "ELECTION_ADMINISTRATION",
+            "terms": {"ar": "إدارة الانتخابات مكتب التصويت إشعار ناخبين", "fr": "administration électorale bureau de vote avis électeurs", "en": "election administration polling station voter notice"},
+        },
+        {
+            "class": "PUBLIC_SERVICE_OPERATOR",
+            "terms": {"ar": "مؤسسة عمومية منصة خدمة ولوج تشغيلي", "fr": "opérateur public plateforme service accès opérationnel", "en": "public service operator platform operational access"},
+        },
+        {
+            "class": "ADMINISTRATIVE_PORTAL",
+            "terms": {"ar": "بوابة إدارية تسجيل مهلة طلب إلكتروني", "fr": "portail administratif inscription délai demande en ligne", "en": "administrative portal registration deadline online application"},
+        },
+        {
+            "class": "TRANSPORT_AUTHORITY",
+            "terms": {"ar": "نقل عمومي إشعار مواعيد خدمة", "fr": "autorité transport avis horaires service", "en": "transport authority notice schedule service"},
+        },
+        {
+            "class": "OTHER_SERVICE_AUTHORITY",
+            "terms": {"ar": "مرفق عمومي إجراء مستفيدين ولوج", "fr": "service public procédure usagers accès", "en": "public authority procedure user access"},
+        },
+    ],
+}
+
+
+def _pivot_source_class_branches(target_function: str, attempted: list[str] | None = None) -> list[dict]:
+    """Return a bounded, function-first branch set for a semantic pivot.
+
+    Branches are retrieval context only.  The exact page still determines
+    actor, event, evidence role, and semantic function.  Memory is applied
+    before selecting the four-strategy ladder so a failed class does not
+    consume every alternative slot.
+    """
+    attempted_set = {str(item).upper() for item in (attempted or [])}
+    branches = [deepcopy(item) for item in _PIVOT_SOURCE_CLASS_BRANCHES.get(str(target_function).upper(), [])]
+    fresh = [item for item in branches if item["class"] not in attempted_set]
+    return fresh or branches
+
+
 def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_language: str, alternate_language: str | None, route: dict | None) -> list[dict]:
     """Return an event-acquisition ladder without copying provider prose.
 
@@ -969,6 +1039,8 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
         base_terms = terms[0] if primary_language == "ar" else terms[1] if primary_language == "en" else terms[2]
         alternate_terms = terms[2] if alternate_language == "fr" else terms[1]
+        attempted_source_classes = list(need.get("pivot_source_classes_attempted") or need.get("source_class_attempts") or [])
+        pivot_branches = _pivot_source_class_branches(target_function, attempted_source_classes) if pivot_mode else []
         if pivot_mode:
             pivot_terms = (
                 ("قرار هيئة تنظيمية رقابة امتثال إنفاذ تتبع" if primary_language == "ar" else
@@ -1072,8 +1144,22 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             if target_function == "ACCOUNTABILITY" else
             ["MINISTRY", "PUBLIC_AGENCY", "TRANSPORT_OPERATOR", "MUNICIPALITY", "ELECTION_ADMINISTRATION", "EDUCATION_AUTHORITY", "HEALTH_AUTHORITY", "UTILITY", "PUBLIC_SERVICE_PORTAL"]
         )
-        for strategy in strategies:
-            strategy["source_class_priorities"] = source_class_priorities
+        for strategy_index, strategy in enumerate(strategies):
+            if pivot_mode and pivot_branches:
+                branch = pivot_branches[strategy_index % len(pivot_branches)]
+                branch_language = str(strategy.get("language") or primary_language)
+                branch_terms = branch["terms"].get(branch_language) or branch["terms"].get(primary_language) or branch["terms"]["en"]
+                strategy["query"] = " ".join(item for item in (strategy.get("query"), branch_terms) if item)
+                strategy["target_source_class"] = branch["class"]
+                strategy["source_class_branch"] = branch["class"]
+                strategy["source_class_memory_before"] = sorted(set(attempted_source_classes) | {
+                    str(previous.get("target_source_class"))
+                    for previous in strategies[:strategy_index]
+                    if previous.get("target_source_class")
+                })
+                strategy["source_class_priorities"] = [branch["class"], *[item for item in source_class_priorities if item != branch["class"]]]
+            else:
+                strategy["source_class_priorities"] = source_class_priorities
         return strategies
     themes = list(plan.get("candidate_event_themes", [])) or ["public institutional action"]
     families = list(plan.get("query_families", [])) or ["institutional", "topical", "geographical"]
@@ -1300,6 +1386,9 @@ def create_research_action(
         "candidate_event_theme": strategy.get("candidate_event_theme"),
         "target_editorial_function": (recovery_need or {}).get("target_editorial_function") or (recovery_need or {}).get("event_acquisition_plan", {}).get("target_editorial_function"),
         "source_class_priorities": list(strategy.get("source_class_priorities") or []),
+        "target_source_class": strategy.get("target_source_class"),
+        "source_class_branch": strategy.get("source_class_branch"),
+        "source_class_memory_before": list(strategy.get("source_class_memory_before") or []),
         "acceptable_story_roles": list((recovery_need or {}).get("event_acquisition_plan", {}).get("acceptable_story_roles", [])),
         "target": target,
         "discovery_only": bool(strategy.get("discovery_only")),
@@ -2681,6 +2770,8 @@ def build_research_yield_report(
             "planned_channel": action.get("discovery_channel"),
             "desk": action["desk"],
             "target_editorial_function": action.get("target_editorial_function"),
+            "target_source_class": action.get("target_source_class"),
+            "source_class_memory_before": list(action.get("source_class_memory_before") or []),
             "route_scoped": bool(action.get("route_scoped")),
             "route_search_objective": action.get("route_search_objective"),
             "source_route_id": (action.get("source_route") or {}).get("route_id") if isinstance(action.get("source_route"), dict) else None,
@@ -2784,6 +2875,8 @@ def build_research_yield_report(
         ]
         function_metrics[function] = {
             "source_classes_queried": sorted({item for action in function_actions for item in action.get("source_class_priorities", [])}),
+            "source_class_branches_attempted": sorted({str(action.get("target_source_class")) for action in function_actions if action.get("target_source_class")}),
+            "source_class_memory": sorted({str(item) for action in function_actions for item in action.get("source_class_memory_before", [])}),
             "searches": sum(action.get("action_type") in SEARCH_ACTIONS for action in function_actions),
             "leads": sum(item.get("observation_class") == "LEAD" for item in function_observations),
             "fetch_selections": sum(item.get("lead_attrition_state") == "SELECTED_FOR_FETCH" for item in function_observations),
@@ -3500,6 +3593,12 @@ def execute_research_round(
         for action in executed
         if action.get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED" and action.get("recovery_need_id")
     })
+    pivot_source_classes = [
+        {"need_id": str(action.get("recovery_need_id")), "source_class": str(action.get("target_source_class"))}
+        for action in executed
+        if action.get("pivot_mode") == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+        and action.get("recovery_need_id") and action.get("target_source_class")
+    ]
     return {
         "schema_version": 1,
         "status": "EXECUTED",
@@ -3513,6 +3612,7 @@ def execute_research_round(
             "event_leads": event_leads,
             "event_bundles": event_bundles,
             "semantic_pivot_attempts": [{"need_id": need_id, "count": 1} for need_id in pivot_attempts],
+            "semantic_pivot_source_classes": pivot_source_classes,
         },
         "observation_snapshot": build_observation_snapshot(executed, observations, event_bundles),
         # A recovery attempt is a whole bounded ladder, not a single RSS hit.
@@ -3603,6 +3703,18 @@ def apply_executor_results_to_packet(packet: dict, execution: dict) -> dict:
         value["semantic_pivot_attempts"] = [
             {"need_id": key, "count": counts[key]} for key in sorted(counts)
         ]
+    existing_classes = {
+        (str(item.get("need_id")), str(item.get("source_class")).upper())
+        for item in value.get("semantic_pivot_source_classes", [])
+        if isinstance(item, dict) and item.get("need_id") and item.get("source_class")
+    }
+    for item in execution["source_packet_patch"].get("semantic_pivot_source_classes", []):
+        if isinstance(item, dict) and item.get("need_id") and item.get("source_class"):
+            existing_classes.add((str(item["need_id"]), str(item["source_class"]).upper()))
+    value["semantic_pivot_source_classes"] = [
+        {"need_id": need_id, "source_class": source_class}
+        for need_id, source_class in sorted(existing_classes)
+    ]
     for update in execution["source_packet_patch"]["candidate_evidence_updates"]:
         for section in value.get("sections", []):
             for candidate in [*section.get("candidates", []), *section.get("recovery_candidates", [])]:

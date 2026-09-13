@@ -164,6 +164,11 @@ def build_recovery_plan(
         for item in packet.get("semantic_pivot_attempts", [])
         if isinstance(item, dict) and item.get("need_id")
     }
+    pivot_source_classes: dict[str, list[str]] = {}
+    for item in packet.get("semantic_pivot_source_classes", []):
+        if not isinstance(item, dict) or not item.get("need_id") or not item.get("source_class"):
+            continue
+        pivot_source_classes.setdefault(str(item["need_id"]), []).append(str(item["source_class"]).upper())
     for bundle in packet.get("event_evidence_bundles", []):
         if not isinstance(bundle, dict) or bundle.get("state") != "EVENT_EVIDENCE_BLOCKED":
             continue
@@ -340,6 +345,7 @@ def build_recovery_plan(
                         ],
                         "pivot_reason": "CURRENT_EVENT_EVIDENCE_BLOCKED_AFTER_BOUNDED_RECOVERY",
                         "pivot_attempt_count": pivot_count,
+                        "pivot_source_classes_attempted": sorted(set(pivot_source_classes.get(need_id, []))),
                     })
             needs[-1]["event_acquisition_plan"] = _breadth_acquisition_plan(needs[-1], packet, intelligence)
             if target_function and blocked_by_function.get(target_function):

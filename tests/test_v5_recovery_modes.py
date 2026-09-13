@@ -1,4 +1,4 @@
-from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton, query_ladder
+from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, extract_event_skeleton, query_ladder, _breadth_event_queries, _pivot_source_class_branches
 from dragon.deep_research_executor import apply_executor_results_to_packet
 from dragon.research_recovery import _breadth_acquisition_plan, build_recovery_plan
 from dragon.investigation_scope import evaluate_super_investigation_scope
@@ -252,3 +252,49 @@ def test_epoch_alternative_bundle_merge_preserves_blocked_event_memory():
     merged = apply_executor_results_to_packet(packet, execution)
     assert {item["event_lead_id"] for item in merged["event_evidence_bundles"]} == {"EVENT-A", "EVENT-B"}
     assert next(item for item in merged["event_evidence_bundles"] if item["event_lead_id"] == "EVENT-A")["state"] == "EVENT_EVIDENCE_BLOCKED"
+
+
+def test_pivot_allocates_distinct_accountability_source_classes_without_budget_growth():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": [{
+            "route_id": "maroc", "url": "https://maroc.ma/en/news", "origin": "maroc.ma",
+            "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY",
+            "name": "National portal", "semantic_capabilities": ["ACCOUNTABILITY", "SERVICE"],
+            "supported_languages": ["ar", "fr", "en"],
+        }]},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "pivot_source_classes_attempted": ["PROSECUTION_JUDICIARY"],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert len(strategies) == 4
+    assert len(set(classes)) == 4
+    assert "PROSECUTION_JUDICIARY" not in classes
+    assert all(item["target_source_class"] in item["source_class_memory_before"] or item["target_source_class"] not in item["source_class_memory_before"] for item in strategies)
+    assert all(item["target_source_class"].casefold() in item["query"].casefold() or item["target_source_class"] in {"REGULATOR", "AUDIT_BODY", "ELECTION_INTEGRITY", "ANTI_CORRUPTION"} for item in strategies)
+
+
+def test_pivot_allocates_distinct_service_source_classes():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert classes == ["MINISTRY", "ELECTION_ADMINISTRATION", "PUBLIC_SERVICE_OPERATOR", "ADMINISTRATIVE_PORTAL"]
+    assert len(set(classes)) == len(classes)
+
+
+def test_pivot_source_class_memory_persists_in_packet_merge():
+    packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
+    execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}
+    merged = apply_executor_results_to_packet(packet, execution)
+    assert merged["semantic_pivot_source_classes"] == [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]
