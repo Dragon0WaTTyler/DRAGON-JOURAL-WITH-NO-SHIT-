@@ -1192,7 +1192,45 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 branch = pivot_branches[strategy_index % len(pivot_branches)]
                 branch_language = str(strategy.get("language") or primary_language)
                 branch_terms = branch["terms"].get(branch_language) or branch["terms"].get(primary_language) or branch["terms"]["en"]
-                strategy["query"] = " ".join(item for item in (strategy.get("query"), branch_terms) if item)
+                # Preserve the legacy semantic ladder when no current
+                # process is available.  The class metadata still records a
+                # diversified branch, while the original Arabic/French
+                # function vocabulary remains available to callers/tests and
+                # to ordinary initial discovery.  Contextual/pivot runs use
+                # the compact branch query below.
+                branch_contextual = bool(current_process or pivot_mode)
+                # Keep class-branch queries compact enough for bounded public
+                # indexes.  Concatenating the full semantic ladder and the
+                # process headline can suppress otherwise useful results.
+                # This is discovery context only; observed facts remain
+                # derived exclusively from fetched pages.
+                if branch_contextual:
+                    branch_temporal = "active deadline September 2026" if target_function == "SERVICE" else "active September 2026"
+                    # Three branch tokens retain the class signal while keeping
+                    # Google News/RSS and similar bounded indexes usable.
+                    compact_branch_terms = " ".join(branch_terms.split()[:3])
+                    branch_query = " ".join(item for item in (geography, current_process, compact_branch_terms, branch_temporal) if item)
+                    if strategy_index == 0 and route_origin:
+                        strategy["query"] = f"site:{route_origin} {branch_query}".strip()
+                    elif strategy_index == 2:
+                        strategy["query"] = " ".join(item for item in (current_process, compact_branch_terms, "current notices decisions") if item)
+                    else:
+                        strategy["query"] = branch_query
+                    # If the primary search backend is unavailable, the existing
+                    # RSS fallback should receive a short French/English query,
+                    # not the Arabic branch text that often produces blank feeds.
+                    rss_terms = branch["terms"].get("en") or branch["terms"].get("fr") or branch_terms
+                    rss_compact_terms = " ".join(rss_terms.split()[:2])
+                    rss_process = (
+                        current_process
+                        if len(current_process.split()) <= 4
+                        else current_process.split()[0]
+                    ) if current_process else ""
+                    rss_temporal = "deadline September 2026" if target_function == "SERVICE" else "September 2026"
+                    rss_query = " ".join(item for item in (geography, rss_process, rss_compact_terms, rss_temporal) if item)
+                    strategy["fallback_query"] = rss_query
+                    if strategy.get("channel") == "GOOGLE_NEWS_RSS":
+                        strategy["query"] = rss_query
                 strategy["target_source_class"] = branch["class"]
                 strategy["source_class_branch"] = branch["class"]
                 strategy["first_party_discovery_objective"] = "FIRST_PARTY_SELF_ACTION"
@@ -1499,6 +1537,7 @@ def create_research_action(
         "originating_recovery_need_id": recovery_need.get("need_id") if recovery_need else None,
         "recovery_candidate_id": recovery_need.get("candidate_id") if recovery_need else None,
         "channel_fallback": deepcopy(strategy.get("fallback")) if strategy.get("fallback") else None,
+        "channel_fallback_query": strategy.get("fallback_query"),
     }
 
 
@@ -3538,6 +3577,7 @@ def execute_research_round(
                     "discovery_channel": str(fallback.get("channel") or "GOOGLE_NEWS_RSS"),
                     "discovery_backends": list(fallback.get("backends") or []),
                     "query_variant": f"{action.get('query_variant', 'CONFIGURED_ROUTE')}_FALLBACK",
+                    "query": action.get("channel_fallback_query") or action.get("query"),
                     "strategy_index": float(action.get("strategy_index", 0)) + 0.5,
                     "channel_fallback": None,
                 }

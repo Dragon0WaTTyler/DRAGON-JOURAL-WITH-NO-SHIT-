@@ -461,3 +461,27 @@ def test_pivot_source_class_memory_persists_in_packet_merge():
     execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}
     merged = apply_executor_results_to_packet(packet, execution)
     assert merged["semantic_pivot_source_classes"] == [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]
+
+
+def test_source_class_branch_queries_are_compact_and_context_scoped():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "election electoral process 2026"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "search_constraints": {"configured_source_routes": [{
+            "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "route_type": "NEWS_LISTING",
+            "route_status": "VERIFIED_WORKING", "supported_languages": ["ar", "fr"],
+        }]},
+    }
+    strategies = _breadth_event_queries(
+        {"lead": {"event_entities": []}}, need, month="September 2026",
+        primary_language="ar", alternate_language="fr", route=None,
+    )
+    assert len(strategies) == 4
+    assert all(len(item["query"].split()) <= 14 for item in strategies)
+    assert all("election electoral process 2026" in item["query"] or item["target_source_class"] == "AUDIT_BODY" for item in strategies)
+    assert strategies[1]["fallback_query"]
+    assert "هيئة" not in strategies[1]["fallback_query"]
