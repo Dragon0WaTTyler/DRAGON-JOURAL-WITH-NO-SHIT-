@@ -187,6 +187,22 @@ def test_service_target_without_index_date_remains_fetch_eligible() -> None:
     assert candidate["current_window_signal"] == "UNKNOWN"
 
 
+def test_service_category_prefers_operator_endpoint_over_language_and_pagination() -> None:
+    raw = {
+        "url": "https://maroc.ma/en/digital-services", "title": "Digital services",
+        "links": [
+            {"url": "https://maroc.ma/fr/services-numeriques", "text": "Français"},
+            {"url": "https://maroc.ma/en/digital-services?page=1", "text": "2"},
+            {"url": "https://maroc.ma/en/digital-services/general-public", "text": "General Public"},
+            {"url": "https://passport.gov.ma/Home/Index", "text": "Biometric Passport Application Service"},
+            {"url": "https://agency.gov.ma/procedure", "text": "Public service procedure"},
+        ],
+    }
+    values = extract_listing_child_links(raw, semantic_target="SERVICE", edition_date="2026-09-13", expected_artifact_family="SERVICE_NOTICE", maximum=5)
+    assert all(item["candidate_type"] not in {"LANGUAGE_VARIANT", "PAGINATION"} for item in values)
+    assert values[0]["candidate_type"] in {"SERVICE_ENDPOINT", "APPLICATION_PORTAL"}
+
+
 def test_navigation_subtypes_preserve_route_shape() -> None:
     assert classify_navigation_type({"url": "https://gov.ma/news", "links": ["https://gov.ma/news/1"]}, action={"source_route": {"route_type": "NEWS_LISTING"}}) == "NEWS_INDEX"
     assert classify_navigation_type({"url": "https://gov.ma/reports", "links": ["https://gov.ma/reports/1"]}, action={"source_route": {"route_type": "AUDIT_PUBLICATIONS"}}) == "REPORT_INDEX"

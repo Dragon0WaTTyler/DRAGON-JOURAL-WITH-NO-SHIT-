@@ -498,6 +498,20 @@ def _artifact_family_for_link(label: str, url: str, expected: str | None) -> tup
     return None, "WEAK_ARTIFACT_CANDIDATE"
 
 
+def _service_target_type(label: str, url: str) -> str:
+    """Classify a service link for bounded retrieval prioritization only."""
+    text = f"{label} {url}".casefold()
+    if label.strip().casefold() in {"français", "العربية", "english", "español", "ⵜⴰⵎⴰⵣⵉⵖⵜ"}:
+        return "LANGUAGE_VARIANT"
+    if re.search(r"(?:[?&](?:page|pageno)=\d+|/page/\d+)$", url, flags=re.I) or label.strip().isdigit():
+        return "PAGINATION"
+    if any(marker in text for marker in ("general public", "businesses", "professionals", "digital-services", "services-numeriques")):
+        return "GENERIC_CATEGORY"
+    if any(marker in text for marker in ("access service", "start procedure", "apply", "application", "portal", "service", "prestation", "demande", "منصة", "خدمة", "طلب", "استفادة")):
+        return "SERVICE_ENDPOINT" if urlsplit(url).hostname and "." in (urlsplit(url).hostname or "") else "APPLICATION_PORTAL"
+    return "SERVICE_DETAIL"
+
+
 def extract_listing_child_links(raw: dict, *, semantic_target: str | None, edition_date: str | None, maximum: int = 8, expected_artifact_family: str | None = None, anchors: object = None) -> list[dict]:
     """Extract and rank only a bounded set of likely detail/artifact links."""
     parent = normalize_url(str(raw.get("canonical_url") or raw.get("url") or ""))
@@ -533,6 +547,11 @@ def extract_listing_child_links(raw: dict, *, semantic_target: str | None, editi
         if host == parent_host:
             score += 2; reasons.append("FIRST_PARTY_HOST")
         family, candidate_class = _artifact_family_for_link(f"{label} {record.get('surrounding_text') or ''}", url, expected_artifact_family)
+        target_type = _service_target_type(label, url) if target == "SERVICE" else None
+        if target_type in {"LANGUAGE_VARIANT", "PAGINATION"}:
+            continue
+        if target_type == "GENERIC_CATEGORY":
+            score -= 3
         if family:
             score += 4 if candidate_class == "EXACT_ARTIFACT_MATCH" else 2
             reasons.append(candidate_class)
@@ -553,6 +572,7 @@ def extract_listing_child_links(raw: dict, *, semantic_target: str | None, editi
             "link_position": record.get("link_position"), "section": record.get("section"),
             "target_domain": host, "same_domain": host == parent_host or host.endswith("." + parent_host),
             "file_extension": extension, "possible_document_type": family,
+            "candidate_type": target_type,
             "possible_date": candidate_date,
             "possible_reference_number": next((re.sub(r"^\s*(?:N°|No\.?|REF|رقم)\s*", "", value, flags=re.I) for value in re.findall(r"\b(?:N°|No\.?|REF|رقم)\s*[-:/A-Za-z0-9]+", f"{label} {record.get('surrounding_text')}", flags=re.I)), None),
             "candidate_class": candidate_class,

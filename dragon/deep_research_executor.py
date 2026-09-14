@@ -17,6 +17,7 @@ import re
 from typing import Protocol
 from urllib.parse import quote_plus, urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from xml.etree import ElementTree
 
 import yaml
 
@@ -2037,28 +2038,35 @@ class RssSearchAdapter:
         try:
             response = self.transport(endpoint, self.timeout_seconds, self.maximum_bytes)
             if not 200 <= response.status < 300:
-                return [{"result_type": "DEAD_END", "reason": f"RSS_HTTP_{response.status}", "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id}]
+                return [{"result_type": "DEAD_END", "reason": f"RSS_HTTP_{response.status}", "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id, "backend_counts": {"raw_results": 0, "parsed_results": 0, "filtered_results": 0}}]
+            try:
+                feed_root = ElementTree.fromstring(response.body)
+                feed_nodes = list(feed_root.findall(".//item")) + list(feed_root.findall(".//{http://www.w3.org/2005/Atom}entry"))
+                raw_result_count = len(feed_nodes)
+            except ElementTree.ParseError:
+                raw_result_count = 0
             candidates = discover_rss(
                 response.body, provider_id=self.adapter_id, endpoint=response.url
             )[: self.maximum_results]
         except (DiscoveryError, OSError, TimeoutError) as exc:
-            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", type(exc).__name__), "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", type(exc).__name__), "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id, "backend_counts": {"raw_results": 0, "parsed_results": 0, "filtered_results": 0}}]
         timestamp = datetime.now(timezone.utc).isoformat()
         if not candidates:
-            return [{"result_type": "DEAD_END", "reason": "RSS_NO_MATCHES", "diagnostic": "BACKEND_EMPTY", "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": "RSS_NO_MATCHES", "diagnostic": "BACKEND_EMPTY" if raw_result_count == 0 else "RSS_ENTRY_PRESENT_PARSER_DROPPED", "discovery_channel": self.adapter_id, "backend_counts": {"raw_results": raw_result_count, "parsed_results": 0, "filtered_results": raw_result_count}}]
         return [
             {
                 "result_type": "LEAD",
-                "canonical_url": item["discovered_url"],
+                "canonical_url": normalize_url(item["discovered_url"]),
                 "title": item["title"],
                 "source_class": "unknown",
                 "discovered_at": timestamp,
                 "discovery_channel": self.adapter_id,
+                "backend_counts": {"raw_results": raw_result_count, "parsed_results": len(candidates), "filtered_results": max(0, raw_result_count - len(candidates))},
                 "discovery_endpoint": response.url,
                 "verification_provenance": "DISCOVERY_ONLY_RSS",
                 "search_result": {
                     "query": str(action.get("query") or ""), "backend": self.adapter_id,
-                    "result_url": item["discovered_url"], "title": item["title"],
+                    "result_url": normalize_url(item["discovered_url"]), "title": item["title"],
                     "snippet": item.get("discovery_description"), "published_at": None, "engine": "rss",
                     "rank": index, "discovered_at": timestamp,
                 },
@@ -2216,10 +2224,11 @@ class SearxngSearchAdapter:
             return [{
                 "result_type": "DEAD_END", "reason": "SEARCH_BACKEND_UNAVAILABLE", "diagnostic": "BACKEND_UNAVAILABLE",
                 "detail": getattr(exc, "code", type(exc).__name__), "discovery_channel": self.adapter_id,
+                "backend_counts": {"raw_results": 0, "parsed_results": 0, "filtered_results": 0},
             }]
         results = payload.get("results") if isinstance(payload, dict) else None
         if not isinstance(results, list):
-            return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "diagnostic": "BACKEND_SCHEMA_UNEXPECTED", "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "diagnostic": "BACKEND_SCHEMA_UNEXPECTED", "discovery_channel": self.adapter_id, "backend_counts": {"raw_results": 0, "parsed_results": 0, "filtered_results": 0}}]
         normalized = []
         missing_url_results = 0
         invalid_url_results = 0
@@ -2233,7 +2242,7 @@ class SearxngSearchAdapter:
                 invalid_url_results += 1
                 continue
             normalized.append({
-                "result_type": "LEAD", "canonical_url": url,
+                "result_type": "LEAD", "canonical_url": normalize_url(url),
                 "title": str(item.get("title") or "Untitled search result"),
                 "claim": str(item.get("content") or item.get("title") or ""),
                 "published_at": item.get("publishedDate") or item.get("published_at"),
@@ -2242,13 +2251,16 @@ class SearxngSearchAdapter:
                 "verification_provenance": "DISCOVERY_ONLY_SEARXNG",
                 "search_result": {
                     "query": str(action.get("query") or ""), "backend": self.adapter_id,
-                    "result_url": url, "title": str(item.get("title") or ""),
+                    "result_url": normalize_url(url), "title": str(item.get("title") or ""),
                     "snippet": str(item.get("content") or ""), "engine": item.get("engine"),
                     "rank": rank, "discovered_at": timestamp,
                     "language": item.get("language") or action.get("search_language"),
                 },
                 "language": item.get("language") or action.get("search_language"),
             })
+        backend_counts = {"raw_results": len(results), "parsed_results": len(normalized), "filtered_results": missing_url_results + invalid_url_results}
+        for item in normalized:
+            item["backend_counts"] = backend_counts
         if normalized:
             return normalized
         return [{
@@ -2261,6 +2273,7 @@ class SearxngSearchAdapter:
                 "RESULT_PARSE_EMPTY"
             ),
             "discovery_channel": self.adapter_id,
+            "backend_counts": {"raw_results": len(results), "parsed_results": len(normalized), "filtered_results": missing_url_results + invalid_url_results},
         }]
 
 
@@ -2693,6 +2706,11 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         expected_artifact_family=expected_artifact_family,
         anchors=anchors,
     ) if navigation_type in {"LISTING_PAGE", "NEWS_INDEX", "PRESS_RELEASE_INDEX", "DOCUMENT_INDEX", "REPORT_INDEX", "PUBLICATION_INDEX", "PROCUREMENT_LISTING", "SEARCH_RESULTS_PAGE", "CATEGORY_PAGE", "ARCHIVE_INDEX", "DATASET_INDEX", "OTHER_NAVIGATION", "PORTAL_HOME"} else []
+    service_candidates = [
+        {key: item.get(key) for key in ("label", "url", "candidate_type", "possible_document_type", "target_domain", "same_domain", "score", "reasons")}
+        for item in listing_links
+        if (action.get("target_editorial_function") or "").upper() == "SERVICE"
+    ]
     source_id = _stable_id("SRC", canonical or action["action_id"], title or "TITLE_UNRESOLVED")
     temporal_relevance = evaluate_temporal_relevance(raw, str(action.get("event_context", {}).get("research_date") or ""), exact_text=str(raw.get("text") or raw.get("extracted_text") or "")) if raw.get("text") or raw.get("extracted_text") else None
     if temporal_relevance is not None and isinstance(action.get("listing_temporal_context"), dict):
@@ -2870,6 +2888,12 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "followup_scheduled": False,
         "followup_result": None,
         "exact_artifact_reached": page_type not in NAVIGATION_PAGE_TYPES,
+        "service_candidates_found": len(service_candidates),
+        "service_target_candidates": service_candidates,
+        "service_relevant_candidates": sum(item.get("candidate_type") not in {"GENERIC_CATEGORY", "LANGUAGE_VARIANT", "PAGINATION"} for item in service_candidates),
+        "service_selected_target": None,
+        "service_followup_result": None,
+        "exact_service_target_reached": bool((action.get("target_editorial_function") or "").upper() == "SERVICE" and int(action.get("navigation_depth", 0) or 0) >= 1 and page_type not in NAVIGATION_PAGE_TYPES),
         "listing_resolution_state": (
             "CHILD_LINKS_AVAILABLE" if listing_links else "LISTING_NO_DETAIL_SELECTED"
         ) if navigation_type in NAVIGATION_PAGE_TYPES or page_type == "LISTING_PAGE" else None,
@@ -2877,6 +2901,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "structured_fields": deepcopy(raw.get("structured_fields")) if isinstance(raw.get("structured_fields"), dict) else None,
         "discovery_method": action["action_type"],
         "discovery_channel": str(raw.get("discovery_channel") or action.get("discovery_channel") or action["action_type"]),
+        "backend_counts": deepcopy(raw.get("backend_counts")) if isinstance(raw.get("backend_counts"), dict) else None,
         # RSS publisher hints describe the feed's stated outlet, not the
         # wrapper page that was observed.  Keep them namespaced as discovery
         # metadata so they cannot satisfy source identity or evidence gates.
@@ -4093,7 +4118,13 @@ def execute_research_round(
                     expected_artifact_family=action.get("artifact_family") or action.get("expected_artifact_family"),
                     anchors=(action.get("event_context") or {}).get("entities", []) + (action.get("event_context") or {}).get("event_terms", []) if isinstance(action.get("event_context"), dict) else None,
                 )
-                if child and int(action.get("navigation_depth", 0) or 0) < 2:
+                service_endpoint_followup = bool(
+                    child and (action.get("target_editorial_function") or "").upper() == "SERVICE"
+                    and observation.get("page_type") == "CATEGORY_PAGE"
+                    and child.get("candidate_type") in {"SERVICE_ENDPOINT", "APPLICATION_PORTAL", "SERVICE_DETAIL"}
+                )
+                if child and (int(action.get("navigation_depth", 0) or 0) < 2 or service_endpoint_followup):
+                    observation["service_endpoint_followup"] = service_endpoint_followup
                     listing_children.append((observation, child))
                 elif not child:
                     observation["listing_resolution_state"] = "LISTING_NO_DETAIL_SELECTED"
@@ -4167,6 +4198,7 @@ def execute_research_round(
                 "navigation_type": listing_observation.get("navigation_type"),
                 "expected_artifact_family": action.get("artifact_family") or action.get("expected_artifact_family"),
                 "selected_target_class": child.get("candidate_class"),
+                "service_endpoint_followup": bool(listing_observation.get("service_endpoint_followup")),
                 "listing_parent_observation_id": listing_observation.get("observation_id"),
                 "query_variant": f"{action.get('query_variant', 'LISTING')}_CHILD_DETAIL",
                 "query_intent": "LISTING_TO_DETAIL_EXACT_ARTIFACT",
@@ -4179,6 +4211,9 @@ def execute_research_round(
             listing_observation["selection_reason"] = child.get("candidate_class") or "RELEVANT_DETAIL_LINK"
             listing_observation["followup_scheduled"] = True
             listing_observation["followup_result"] = "SCHEDULED"
+            if (action.get("target_editorial_function") or "").upper() == "SERVICE":
+                listing_observation["service_selected_target"] = child.get("url")
+                listing_observation["service_followup_result"] = "SCHEDULED"
             lead_followup_selection.append({
                 "url": child["url"], "priority": "LISTING_CHILD_DETAIL",
                 "need_id": action.get("recovery_need_id"),

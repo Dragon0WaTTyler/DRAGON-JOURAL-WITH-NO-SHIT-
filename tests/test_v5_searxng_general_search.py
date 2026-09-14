@@ -65,6 +65,17 @@ def test_searxng_propagates_bounded_language_date_category_and_page() -> None:
     assert params == {"q": ["Meknes audit"], "format": ["json"], "pageno": ["2"], "language": ["fr"], "categories": ["news"], "time_range": ["day"]}
 
 
+def test_searxng_preserves_raw_parsed_and_filtered_counts() -> None:
+    adapter = SearxngSearchAdapter(
+        adapter_id="searxng-fixture", base_url="https://search.example",
+        timeout_seconds=3, maximum_bytes=100_000, maximum_results=5,
+        transport=lambda *_: FetchResponse("https://search.example/search", 200, "application/json", b'{"results":[{"title":"target","url":"https://example.org/target"},{"title":"missing"},{"title":"bad","url":"ftp://example.org/bad"}]}'),
+    )
+    value = adapter.execute({"action_type": "SEARCH_DISCOVERY", "query": "target"})
+    assert value[0]["result_type"] == "LEAD"
+    assert value[0]["backend_counts"] == {"raw_results": 3, "parsed_results": 1, "filtered_results": 2}
+
+
 def test_unavailable_searxng_uses_bounded_rss_fallback_without_promoting_search_metadata() -> None:
     need = {
         "need_id": "independent", "candidate_id": "weak", "kind": "FIND_INDEPENDENT_CORROBORATION", "max_attempts": 1,
