@@ -252,7 +252,18 @@ def classify_page_type(raw: dict, *, action: dict | None = None) -> str:
         return "SEARCH_RESULTS_PAGE"
     if any(marker in path for marker in ("/category/", "/categories/", "/tag/", "/archive/", "/rubrique/")):
         return "CATEGORY_PAGE"
+    # About/contact/legal/department landing pages are navigation material even
+    # when an extractor supplies a synthetic publication date.  They may be
+    # useful for ownership discovery, never as exact event artifacts.
+    normalized_path = path.rstrip("/") or "/"
+    if any(normalized_path == marker or normalized_path.endswith(marker) for marker in ("/about", "/about-us", "/contact", "/who-we-are", "/communication")):
+        return "NAVIGATION_PAGE"
     strong_event = ("deadline", "date limite", "آخر أجل", "registration closes", "enforcement decision", "قرار تنفيذي", "audit finding", "نتيجة الافتحاص")
+    # Localised portal roots are navigation/ownership material even when an
+    # extractor exposes a page-level timestamp.  Only an explicit event-like
+    # body can make such a root an artifact candidate.
+    if path.rstrip("/") in {"", "/", "/ar", "/fr", "/en"} and not any(marker in text for marker in strong_event):
+        return "PORTAL_HOME"
     if path in {"", "/", "/index.html", "/index.php"} and not raw.get("published_at") and not raw.get("links") and ("portal" in text or "homepage" in title or not any(marker in text for marker in _SERVICE_MARKERS + _ACCOUNTABILITY_MARKERS)) and not any(marker in text for marker in strong_event):
         return "PORTAL_HOME"
     if any(marker in text for marker in ("official decision", "enforcement decision", "قرار رسمي", "قرار إداري")):

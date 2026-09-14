@@ -35,6 +35,7 @@ from dragon.institutional_navigation import (
     select_listing_child_link, extract_outbound_link_candidates, extract_actor_attributions, detect_official_portal_republication,
 )
 from dragon.original_source_resolution import build_original_source_resolution, preferred_resolution_query, resolution_failure_for_observation
+from dragon.post_fetch_qualification import qualify_fetched_artifact
 
 
 ACTION_TYPES = {
@@ -2594,6 +2595,15 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         if isinstance(raw.get("article_metadata"), dict) else None
     )
     page_publisher = origin_detail.get("portal_publisher") or metadata_publisher_name or raw.get("publisher")
+    post_fetch_qualification = qualify_fetched_artifact(
+        raw,
+        page_type=page_type,
+        validation=validation,
+        role_resolution=(validation or {}).get("source_role_resolution") if isinstance(validation, dict) else None,
+        temporal=temporal_relevance,
+        origin_detail=origin_detail,
+        event_skeleton=(validation or {}).get("event_skeleton") if isinstance(validation, dict) else None,
+    )
     observation_id = _stable_id("OBS", action["action_id"], canonical or title or "TITLE_UNRESOLVED", result_class)
     kind = {
         "LEAD": "LEAD", "POTENTIAL_EVIDENCE": "POTENTIAL_EVIDENCE",
@@ -2728,6 +2738,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "source_identity": source_profile,
         "publisher_profile": deepcopy(raw.get("publisher_profile")) if isinstance(raw.get("publisher_profile"), dict) else None,
         "article_attribution": deepcopy(raw.get("article_attribution")) if isinstance(raw.get("article_attribution"), dict) else None,
+        "post_fetch_qualification": post_fetch_qualification,
     }
 
 
@@ -2973,6 +2984,7 @@ def build_observation_snapshot(actions: list[dict], observations: list[dict], bu
         "source_role_resolution": item.get("source_role_resolution"), "validation_state": item.get("validation_state"),
         "original_source_resolution": item.get("original_source_resolution"),
         "resolution_failure_category": item.get("resolution_failure_category"),
+        "post_fetch_qualification": item.get("post_fetch_qualification"),
     } for item in observations]
     payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -3035,6 +3047,18 @@ def build_research_yield_report(
         state = item.get("lead_attrition_state")
         if state:
             attrition_counts[str(state)] = attrition_counts.get(str(state), 0) + 1
+    qualification_items = [
+        item.get("post_fetch_qualification") for item in observations
+        if item.get("extraction_status") in {"FETCHED", "RETRIEVED"}
+        and isinstance(item.get("post_fetch_qualification"), dict)
+    ]
+    qualification_blockers: dict[str, int] = {}
+    qualification_states: dict[str, int] = {}
+    for item in qualification_items:
+        state = str(item.get("state") or "UNKNOWN")
+        blocker = str(item.get("first_blocking_reason") or "UNKNOWN")
+        qualification_states[state] = qualification_states.get(state, 0) + 1
+        qualification_blockers[blocker] = qualification_blockers.get(blocker, 0) + 1
     urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
     origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
     before_ids = {
@@ -3100,6 +3124,11 @@ def build_research_yield_report(
             "recovery_need_closed": action.get("recovery_need_id") in closed,
             "readiness_changed": action.get("recovery_need_id") in closed,
             "zero_yield": not action_useful,
+            "post_fetch_qualification": {
+                "fetched": sum(item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in action_observations),
+                "states": sorted({str((item.get("post_fetch_qualification") or {}).get("state")) for item in action_observations if isinstance(item.get("post_fetch_qualification"), dict)}),
+                "first_blockers": sorted({str((item.get("post_fetch_qualification") or {}).get("first_blocking_reason")) for item in action_observations if isinstance(item.get("post_fetch_qualification"), dict)}),
+            },
         })
     useful_questions = {
         action["question_id"] for action in actions
@@ -3379,6 +3408,12 @@ def build_research_yield_report(
             for item in observations
         ),
         "lead_attrition": dict(sorted(attrition_counts.items())),
+        "post_fetch_qualification": {
+            "fetched_pages": len(qualification_items),
+            "states": dict(sorted(qualification_states.items())),
+            "first_blockers": dict(sorted(qualification_blockers.items())),
+            "eligible_observations": sum(item.get("first_blocking_reason") == "ELIGIBLE_OBSERVATION" for item in qualification_items),
+        },
         "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
         "action_outcomes": action_outcomes,
@@ -3546,6 +3581,15 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         observation["evidence_relation"] = validation.get("relation", observation.get("evidence_relation"))
         observation["directness"] = validation.get("directness", observation.get("directness"))
         observation["verification_status"] = "VALIDATED_EVIDENCE" if validation.get("state") == "VALIDATED_EVIDENCE" else "EXTRACTED_NOT_VERIFIED"
+        observation["post_fetch_qualification"] = qualify_fetched_artifact(
+            raw,
+            page_type=classify_page_type(raw, action=action),
+            validation=validation,
+            role_resolution=resolution,
+            temporal=observation.get("temporal_relevance") if isinstance(observation.get("temporal_relevance"), dict) else None,
+            origin_detail=origin_detail,
+            event_skeleton=skeleton,
+        )
         if observation["verification_status"] == "VALIDATED_EVIDENCE":
             observation["observation_class"] = "POTENTIAL_EVIDENCE"
             observation["kind"] = "POTENTIAL_EVIDENCE"

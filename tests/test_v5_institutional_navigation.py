@@ -16,6 +16,7 @@ CONFIG = load_deep_research_config(Path("config/deep-research.yaml"))
 def test_page_types_cover_institutional_shapes() -> None:
     assert classify_page_type({"url": "https://news.google.com/rss/x", "title": "x"}) == "AGGREGATOR"
     assert classify_page_type({"url": "https://agency.gov.ma/", "title": "Portal", "text": "Welcome"}) == "PORTAL_HOME"
+    assert classify_page_type({"url": "https://maroc.ma/ar", "title": "Maroc.ma", "text": "Welcome", "published_at": "2026-09-14"}) == "PORTAL_HOME"
     assert classify_page_type({"url": "https://agency.gov.ma/notices", "title": "Current notices", "text": "Registration closes 2026-09-22", "links": ["https://agency.gov.ma/notices/1"]}) == "SERVICE_NOTICE"
     assert classify_page_type({"url": "https://audit.gov.ma/decisions/1", "title": "Official decision", "text": "Official decision enforcement against entity X."}) == "OFFICIAL_DECISION"
     assert classify_page_type({"url": "https://service.gov.ma/concours", "title": "التسجيل في مباراة الشرطة", "text": "منصة التسجيل وآخر أجل 2026-09-22."}) == "SERVICE_NOTICE"
