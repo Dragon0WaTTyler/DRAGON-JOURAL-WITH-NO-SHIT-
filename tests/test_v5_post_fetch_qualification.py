@@ -97,6 +97,7 @@ def test_exact_artifact_requires_claim_support_before_eligibility():
     )
     assert result["claim_support"]["state"] == "CLAIM_SUPPORT_FOUND"
     assert result["first_blocking_reason"] == "ELIGIBLE_OBSERVATION"
+    assert result["progression"][-1] == "OBSERVATION_CREATED"
 
 
 def test_stale_artifact_is_temporally_blocked():
@@ -106,4 +107,3 @@ def test_stale_artifact_is_temporally_blocked():
         temporal={"active_on_edition_date": False, "reason": "EXPIRED_DEADLINE"},
     )
     assert result["first_blocking_reason"] == "TEMPORAL_OUT_OF_WINDOW"
-

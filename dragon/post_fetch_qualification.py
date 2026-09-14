@@ -66,6 +66,8 @@ def qualify_fetched_artifact(
     publisher = (
         ((metadata.get("publisher") or {}).get("name") if isinstance(metadata.get("publisher"), dict) else None)
         or raw.get("publisher") or raw.get("page_publisher") or origin_detail.get("portal_publisher")
+        or ((raw.get("publisher_profile") or {}).get("canonical_publisher_name") if isinstance(raw.get("publisher_profile"), dict) else None)
+        or ((raw.get("publisher_profile") or {}).get("publisher_name") if isinstance(raw.get("publisher_profile"), dict) else None)
     )
     issuer = raw.get("stated_issuing_authority") or raw.get("issuing_institution") or origin_detail.get("issuing_institution")
     dates = _date_resolution(raw)
@@ -92,6 +94,25 @@ def qualify_fetched_artifact(
         blocker = "ROLE_UNRESOLVED"
     else:
         blocker = "ELIGIBLE_OBSERVATION"
+    progression = ["FETCHED", "PARSED"]
+    if page_type not in {"UNKNOWN_PAGE_TYPE", "UNKNOWN"}:
+        progression.append("ARTIFACT_TYPE_RESOLVED")
+    if publisher:
+        progression.append("PUBLISHER_RESOLVED")
+    if dates.get("value"):
+        progression.append("DATE_RESOLVED")
+    if temporal.get("active_on_edition_date") is True:
+        progression.append("TEMPORAL_MATCH")
+    if origin:
+        progression.append("ORIGIN_RESOLVED")
+    if validation.get("state") not in {"WRONG_EVENT", "CONTEXT_ONLY"} and event_skeleton.get("state") == "CONCRETE_EVENT":
+        progression.append("EVENT_MATCH")
+    if claim_state == "CLAIM_SUPPORT_FOUND":
+        progression.append("CLAIM_SUPPORT_FOUND")
+    if role_resolution.get("evidence_role") not in {None, "UNRESOLVED"}:
+        progression.append("ROLE_CLASSIFIED")
+    if blocker == "ELIGIBLE_OBSERVATION":
+        progression.append("OBSERVATION_CREATED")
     return {
         "schema_version": 1,
         "state": "ELIGIBLE_OBSERVATION" if blocker == "ELIGIBLE_OBSERVATION" else "QUALIFICATION_BLOCKED",
@@ -112,6 +133,7 @@ def qualify_fetched_artifact(
         "claim_support": {"state": claim_state, "locator": locator},
         "evidence_role": role_resolution.get("evidence_role") or "UNRESOLVED",
         "validation_state": validation.get("state") or "DISCOVERED",
+        "progression": progression,
     }
 
 
