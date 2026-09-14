@@ -34,6 +34,7 @@ from dragon.institutional_navigation import (
     classify_page_type, extract_listing_child_links, resolve_institution_identity,
     select_listing_child_link, extract_outbound_link_candidates, extract_actor_attributions, detect_official_portal_republication,
 )
+from dragon.original_source_resolution import build_original_source_resolution, preferred_resolution_query, resolution_failure_for_observation
 
 
 ACTION_TYPES = {
@@ -2333,6 +2334,9 @@ def _classification(raw: dict, action: dict, seen_urls: set[str]) -> tuple[str, 
     if action.get("action_type") in FETCH_ACTIONS:
         event_skeleton = extract_event_skeleton(raw, action)
         role_resolution = resolve_exact_source_role(raw, action, event_skeleton)
+        role_resolution["original_source_resolution"] = build_original_source_resolution(
+            raw, action, skeleton=event_skeleton,
+        )
         role_resolution["field_provenance"] = {
             "publisher": "PAGE_STRUCTURED_METADATA" if (isinstance(raw.get("article_metadata"), dict) and ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")) else ("PAGE_TEXT_INFERRED" if raw.get("publisher") else "OTHER_DERIVED"),
             "event_actor": ((event_skeleton.get("field_provenance") or {}).get("actor") if isinstance(event_skeleton, dict) else None) or "OTHER_DERIVED",
@@ -2532,6 +2536,14 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         **raw,
         "source_route": action.get("source_route") if isinstance(action.get("source_route"), dict) else None,
     })
+    # Acquisition-only provenance resolver. It derives a bounded original
+    # source plan from exact page facts; it never upgrades the observation's
+    # role and never treats action/query context as an observed claim.
+    event_skeleton = (validation or {}).get("event_skeleton") if isinstance(validation, dict) else None
+    original_source_resolution = build_original_source_resolution(
+        {**raw, **origin_detail}, action,
+        skeleton=event_skeleton if isinstance(event_skeleton, dict) else None,
+    )
     if action.get("action_type") in FETCH_ACTIONS and not action.get("discovery_only") and not action.get("provenance_followup"):
         if not provenance_links:
             provenance_diagnostic = "OFFICIAL_LINK_NOT_EXTRACTED"
@@ -2598,13 +2610,24 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "event_actor_candidates": attribution.get("actors", []),
         "document_identifiers": attribution.get("document_identifiers", []),
         "origin_detail": origin_detail,
+        "original_source_resolution": original_source_resolution,
         "page_publisher": page_publisher,
         "content_origin": origin_detail.get("content_origin"),
         "stated_issuing_authority": origin_detail.get("issuing_institution"),
         "document_references": deepcopy(origin_detail.get("document_references") or []),
         "original_artifact_state": origin_detail.get("original_artifact_state"),
-        "provenance_edges": deepcopy(origin_detail.get("provenance_edges") or []),
+        "provenance_edges": [
+            *deepcopy(origin_detail.get("provenance_edges") or []),
+            *deepcopy(original_source_resolution.get("provenance_edges") or []),
+        ],
         "provenance_recovery_reason": provenance_diagnostic,
+        "resolution_failure_category": resolution_failure_for_observation({
+            "original_source_resolution": original_source_resolution,
+            "validation_state": (validation or {}).get("state", "DISCOVERED"),
+            "validation_reason": (validation or {}).get("reason"),
+            "content_origin": origin_detail.get("content_origin"),
+            "original_artifact_state": origin_detail.get("original_artifact_state"),
+        }),
         "listing_links": listing_links,
         "listing_resolution_state": (
             "CHILD_LINKS_AVAILABLE" if listing_links else "LISTING_NO_DETAIL_SELECTED"
@@ -2787,6 +2810,13 @@ def build_event_bundles(
         parent_id = provenance.get("originating_observation_id")
         if parent_id:
             bundle["provenance_edges"].append({"from_observation_id": parent_id, "relation": "CITES_OR_POINTS_TO", "to_source_id": observation.get("source_id"), "to_observation_id": observation.get("observation_id")})
+        # Preserve the full source-chain assertions from the observation
+        # (discovery -> attribution -> target). They remain provenance
+        # metadata; they never upgrade a republication to PRIMARY.
+        bundle["provenance_edges"].extend(
+            deepcopy(item) for item in (observation.get("provenance_edges") or [])
+            if isinstance(item, dict)
+        )
         bundle["matches"].append({"observation_id": observation.get("observation_id"), **(match or {"state": "SAME_EVENT_HIGH_CONFIDENCE", "reasons": ["EVENT_LEAD_ANCHOR"]})})
         route_id = provenance.get("route_id")
         if route_id:
@@ -2913,6 +2943,8 @@ def build_observation_snapshot(actions: list[dict], observations: list[dict], bu
         "extraction_status": item.get("extraction_status"), "article_metadata": item.get("article_metadata"),
         "article_attribution": item.get("article_attribution"), "publisher_profile": item.get("publisher_profile"),
         "source_role_resolution": item.get("source_role_resolution"), "validation_state": item.get("validation_state"),
+        "original_source_resolution": item.get("original_source_resolution"),
+        "resolution_failure_category": item.get("resolution_failure_category"),
     } for item in observations]
     payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -3361,6 +3393,8 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         "original_artifact_state": observation.get("original_artifact_state"),
         "document_references": deepcopy(observation.get("document_references") or []),
         "provenance_edges": deepcopy(observation.get("provenance_edges") or []),
+        "original_source_resolution": deepcopy(observation.get("original_source_resolution") or {}),
+        "resolution_failure_category": observation.get("resolution_failure_category"),
         "independence_state": role_detail.get("independence_state"),
         "role_reason": role_detail.get("reason"),
         "page_type": observation.get("page_type"),
@@ -3406,10 +3440,16 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         }
         skeleton = extract_event_skeleton(raw, action)
         resolution = resolve_exact_source_role(raw, action, skeleton)
+        resolution["original_source_resolution"] = build_original_source_resolution(
+            raw, action, skeleton=skeleton,
+        )
         origin_detail = detect_official_portal_republication({
             **raw,
             "source_route": action.get("source_route") if isinstance(action.get("source_route"), dict) else None,
         })
+        original_source_resolution = build_original_source_resolution(
+            {**raw, **origin_detail}, action, skeleton=skeleton if isinstance(skeleton, dict) else None,
+        )
         resolution["field_provenance"] = {
             "publisher": "PAGE_STRUCTURED_METADATA" if (isinstance(raw.get("article_metadata"), dict) and ((raw.get("article_metadata") or {}).get("publisher") or {}).get("name")) else ("PAGE_TEXT_INFERRED" if raw.get("publisher") else "OTHER_DERIVED"),
             "event_actor": ((skeleton.get("field_provenance") or {}).get("actor") if isinstance(skeleton, dict) else None) or "OTHER_DERIVED",
@@ -3434,12 +3474,23 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
         observation["event_skeleton"] = skeleton if skeleton.get("state") == "CONCRETE_EVENT" else observation.get("event_skeleton")
         observation["source_role_resolution"] = resolution
         observation["origin_detail"] = origin_detail
+        observation["original_source_resolution"] = original_source_resolution
         observation["page_publisher"] = origin_detail.get("portal_publisher") or raw.get("publisher")
         observation["content_origin"] = origin_detail.get("content_origin")
         observation["stated_issuing_authority"] = origin_detail.get("issuing_institution")
         observation["document_references"] = deepcopy(origin_detail.get("document_references") or [])
         observation["original_artifact_state"] = origin_detail.get("original_artifact_state")
-        observation["provenance_edges"] = deepcopy(origin_detail.get("provenance_edges") or [])
+        observation["provenance_edges"] = [
+            *deepcopy(origin_detail.get("provenance_edges") or []),
+            *deepcopy(original_source_resolution.get("provenance_edges") or []),
+        ]
+        observation["resolution_failure_category"] = resolution_failure_for_observation({
+            "original_source_resolution": original_source_resolution,
+            "validation_state": validation.get("state"),
+            "validation_reason": validation.get("reason"),
+            "content_origin": origin_detail.get("content_origin"),
+            "original_artifact_state": origin_detail.get("original_artifact_state"),
+        })
         observation["source_class"] = str(validation.get("source_class") or raw["source_class"] or "unknown").casefold()
         observation["validation_state"] = validation.get("state", observation.get("validation_state"))
         observation["validation_progression"] = validation.get("progression", observation.get("validation_progression"))
@@ -3592,7 +3643,7 @@ def execute_research_round(
                     ):
                         actor = observation["event_actor_candidates"][0]
                         skeleton = observation.get("event_skeleton") or {}
-                        query = _actor_first_query(observation, action, skeleton)
+                        query = preferred_resolution_query(observation.get("original_source_resolution")) or _actor_first_query(observation, action, skeleton)
                         if query:
                             search_action = {
                                 **action,
@@ -3626,7 +3677,7 @@ def execute_research_round(
                 elif observation.get("event_actor_candidates") and state["search_actions"] < limits["search_actions"] and target_function:
                     actor = observation["event_actor_candidates"][0]
                     skeleton = observation.get("event_skeleton") or {}
-                    query = _actor_first_query(observation, action, skeleton)
+                    query = preferred_resolution_query(observation.get("original_source_resolution")) or _actor_first_query(observation, action, skeleton)
                     if query:
                         search_action = {
                             **action,
