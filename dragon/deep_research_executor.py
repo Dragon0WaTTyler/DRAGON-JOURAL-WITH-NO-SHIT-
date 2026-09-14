@@ -2739,6 +2739,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "publisher_profile": deepcopy(raw.get("publisher_profile")) if isinstance(raw.get("publisher_profile"), dict) else None,
         "article_attribution": deepcopy(raw.get("article_attribution")) if isinstance(raw.get("article_attribution"), dict) else None,
         "post_fetch_qualification": post_fetch_qualification,
+        "claim_support": deepcopy(post_fetch_qualification.get("claim_support")),
     }
 
 
@@ -2985,6 +2986,7 @@ def build_observation_snapshot(actions: list[dict], observations: list[dict], bu
         "original_source_resolution": item.get("original_source_resolution"),
         "resolution_failure_category": item.get("resolution_failure_category"),
         "post_fetch_qualification": item.get("post_fetch_qualification"),
+        "claim_support": item.get("claim_support"),
     } for item in observations]
     payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -3054,11 +3056,14 @@ def build_research_yield_report(
     ]
     qualification_blockers: dict[str, int] = {}
     qualification_states: dict[str, int] = {}
+    support_types: dict[str, int] = {}
     for item in qualification_items:
         state = str(item.get("state") or "UNKNOWN")
         blocker = str(item.get("first_blocking_reason") or "UNKNOWN")
         qualification_states[state] = qualification_states.get(state, 0) + 1
         qualification_blockers[blocker] = qualification_blockers.get(blocker, 0) + 1
+        support_type = str((item.get("claim_support") or {}).get("support_type") or "NO_SUPPORT")
+        support_types[support_type] = support_types.get(support_type, 0) + 1
     urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
     origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
     before_ids = {
@@ -3128,6 +3133,7 @@ def build_research_yield_report(
                 "fetched": sum(item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in action_observations),
                 "states": sorted({str((item.get("post_fetch_qualification") or {}).get("state")) for item in action_observations if isinstance(item.get("post_fetch_qualification"), dict)}),
                 "first_blockers": sorted({str((item.get("post_fetch_qualification") or {}).get("first_blocking_reason")) for item in action_observations if isinstance(item.get("post_fetch_qualification"), dict)}),
+                "support_types": sorted({str(((item.get("post_fetch_qualification") or {}).get("claim_support") or {}).get("support_type") or "NO_SUPPORT") for item in action_observations if isinstance(item.get("post_fetch_qualification"), dict)}),
             },
         })
     useful_questions = {
@@ -3412,7 +3418,19 @@ def build_research_yield_report(
             "fetched_pages": len(qualification_items),
             "states": dict(sorted(qualification_states.items())),
             "first_blockers": dict(sorted(qualification_blockers.items())),
+            "support_types": dict(sorted(support_types.items())),
             "eligible_observations": sum(item.get("first_blocking_reason") == "ELIGIBLE_OBSERVATION" for item in qualification_items),
+        },
+        "claim_support_resolution": {
+            "fetched_pages": len(qualification_items),
+            "support_types": dict(sorted(support_types.items())),
+            "exact_locators": sum(bool((item.get("claim_support") or {}).get("locator")) for item in qualification_items),
+            "direct_support": support_types.get("DIRECT_SUPPORT", 0),
+            "partial_support": support_types.get("PARTIAL_SUPPORT", 0),
+            "context_only": support_types.get("CONTEXT_ONLY", 0),
+            "contradicts": support_types.get("CONTRADICTS", 0),
+            "ambiguous": support_types.get("AMBIGUOUS", 0),
+            "no_support": support_types.get("NO_SUPPORT", 0),
         },
         "questions_with_zero_useful_results": len({item["question_id"] for item in actions} - useful_questions),
         "branches_with_zero_useful_results": len({item["branch_id"] for item in actions} - useful_branches),
@@ -3484,6 +3502,7 @@ def _source_patch(observation: dict, action: dict) -> dict | None:
         "institution_identity": deepcopy(observation.get("institution_identity")),
         "structured_fields": deepcopy(observation.get("structured_fields")),
         "temporal_relevance": deepcopy(observation.get("temporal_relevance")),
+        "claim_support": deepcopy(observation.get("claim_support") or (observation.get("post_fetch_qualification") or {}).get("claim_support")),
         "provenance": observation["provenance"],
         "recovery_need_id": action.get("recovery_need_id"),
     }
@@ -3590,6 +3609,7 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
             origin_detail=origin_detail,
             event_skeleton=skeleton,
         )
+        observation["claim_support"] = deepcopy(observation["post_fetch_qualification"].get("claim_support"))
         if observation["verification_status"] == "VALIDATED_EVIDENCE":
             observation["observation_class"] = "POTENTIAL_EVIDENCE"
             observation["kind"] = "POTENTIAL_EVIDENCE"

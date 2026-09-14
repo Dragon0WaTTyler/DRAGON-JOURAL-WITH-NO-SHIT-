@@ -11,6 +11,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+from dragon.claim_support import resolve_claim_support
+
 
 _NAVIGATION_TYPES = {
     "LISTING_PAGE", "SEARCH_RESULTS_PAGE", "CATEGORY_PAGE", "PORTAL_HOME",
@@ -84,8 +86,12 @@ def qualify_fetched_artifact(
     dates = _date_resolution(raw)
     event_skeleton = event_skeleton if isinstance(event_skeleton, dict) else (raw.get("event_skeleton") if isinstance(raw.get("event_skeleton"), dict) else {})
     temporal_ok = temporal.get("active_on_edition_date") is True
-    locator = raw.get("support_locator") or raw.get("claim_locator") or raw.get("exact_support_locator")
-    claim_state = "CLAIM_SUPPORT_FOUND" if locator or validation.get("state") == "VALIDATED_EVIDENCE" else "CLAIM_SUPPORT_NOT_FOUND"
+    claim_support = resolve_claim_support(
+        raw,
+        claim=raw.get("claim") or event_skeleton.get("title") or raw.get("title"),
+    )
+    locator = claim_support.get("locator")
+    claim_state = str(claim_support.get("state") or "CLAIM_SUPPORT_NOT_FOUND")
     origin = raw.get("content_origin") or origin_detail.get("content_origin")
     if page_type in _NAVIGATION_TYPES:
         blocker = "NAVIGATION_ONLY"
@@ -97,7 +103,11 @@ def qualify_fetched_artifact(
         blocker = "TEMPORAL_OUT_OF_WINDOW"
     elif validation.get("state") in {"WRONG_EVENT", "CONTEXT_ONLY"}:
         blocker = "EVENT_MISMATCH"
-    elif claim_state != "CLAIM_SUPPORT_FOUND":
+    elif claim_support.get("support_type") == "CONTRADICTS":
+        blocker = "CLAIM_SUPPORT_CONTRADICTS"
+    elif claim_support.get("support_type") in {"PARTIAL_SUPPORT", "CONTEXT_ONLY", "AMBIGUOUS"}:
+        blocker = "CLAIM_SUPPORT_AMBIGUOUS"
+    elif claim_support.get("support_type") != "DIRECT_SUPPORT":
         blocker = "CLAIM_SUPPORT_NOT_FOUND"
     elif origin_detail.get("article_origin_state") in {"OFFICIAL_PORTAL_REPUBLICATION", "SYNDICATION_UNRESOLVED"} and not origin:
         blocker = "ORIGIN_UNRESOLVED"
@@ -141,7 +151,7 @@ def qualify_fetched_artifact(
             "active_on_edition_date": temporal.get("active_on_edition_date"),
             "reason": temporal.get("reason"),
         },
-        "claim_support": {"state": claim_state, "locator": locator},
+        "claim_support": claim_support,
         "evidence_role": role_resolution.get("evidence_role") or "UNRESOLVED",
         "validation_state": validation.get("state") or "DISCOVERED",
         "progression": progression,
