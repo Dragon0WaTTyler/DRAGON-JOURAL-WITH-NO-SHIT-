@@ -3057,6 +3057,7 @@ def build_research_yield_report(
     qualification_blockers: dict[str, int] = {}
     qualification_states: dict[str, int] = {}
     support_types: dict[str, int] = {}
+    support_diagnoses: dict[str, int] = {}
     for item in qualification_items:
         state = str(item.get("state") or "UNKNOWN")
         blocker = str(item.get("first_blocking_reason") or "UNKNOWN")
@@ -3064,6 +3065,8 @@ def build_research_yield_report(
         qualification_blockers[blocker] = qualification_blockers.get(blocker, 0) + 1
         support_type = str((item.get("claim_support") or {}).get("support_type") or "NO_SUPPORT")
         support_types[support_type] = support_types.get(support_type, 0) + 1
+        diagnosis = str((item.get("claim_support") or {}).get("diagnosis") or "UNRESOLVED")
+        support_diagnoses[diagnosis] = support_diagnoses.get(diagnosis, 0) + 1
     urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
     origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
     before_ids = {
@@ -3419,11 +3422,13 @@ def build_research_yield_report(
             "states": dict(sorted(qualification_states.items())),
             "first_blockers": dict(sorted(qualification_blockers.items())),
             "support_types": dict(sorted(support_types.items())),
+            "diagnoses": dict(sorted(support_diagnoses.items())),
             "eligible_observations": sum(item.get("first_blocking_reason") == "ELIGIBLE_OBSERVATION" for item in qualification_items),
         },
         "claim_support_resolution": {
             "fetched_pages": len(qualification_items),
             "support_types": dict(sorted(support_types.items())),
+            "diagnoses": dict(sorted(support_diagnoses.items())),
             "exact_locators": sum(bool((item.get("claim_support") or {}).get("locator")) for item in qualification_items),
             "direct_support": support_types.get("DIRECT_SUPPORT", 0),
             "partial_support": support_types.get("PARTIAL_SUPPORT", 0),

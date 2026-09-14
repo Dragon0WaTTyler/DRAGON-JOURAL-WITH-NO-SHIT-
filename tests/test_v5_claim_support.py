@@ -48,10 +48,10 @@ def test_structured_list_recovers_locator_when_body_extraction_lost_support():
     assert result["support_type"] == "DIRECT_SUPPORT"
     assert result["locator"] == {"structure": "rows", "index": 1}
     assert result["passage"] == "Institution issued circular X"
+    assert result["diagnosis"] == "SUPPORT_PRESENT_EXTRACTION_LOSS"
 
 
 def test_attributed_portal_copy_is_partial_and_preserves_claim_components():
     result = resolve_claim_support({"text": "According to MAP, the Institution issued circular X."}, claim="Institution issued circular X")
     assert result["support_type"] == "PARTIAL_SUPPORT"
     assert normalize_claim("Institution issued circular X")["tokens"]
-

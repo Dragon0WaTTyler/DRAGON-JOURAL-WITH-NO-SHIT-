@@ -102,10 +102,10 @@ def resolve_claim_support(raw: dict, *, claim: Any = None, claim_family: Any = N
         return {
             "state": "CLAIM_SUPPORT_FOUND", "support_type": "DIRECT_SUPPORT", "locator": explicit,
             "passage": None, "matched_terms": sorted(target_tokens), "candidate_passages": [],
-            "claim": components,
+            "claim": components, "diagnosis": "SUPPORT_PRESENT_LOCATOR_SUPPLIED",
         }
     if not target_tokens:
-        return {"state": "CLAIM_SUPPORT_NOT_FOUND", "support_type": "NO_SUPPORT", "locator": None, "passage": None, "matched_terms": [], "candidate_passages": [], "claim": components}
+        return {"state": "CLAIM_SUPPORT_NOT_FOUND", "support_type": "NO_SUPPORT", "locator": None, "passage": None, "matched_terms": [], "candidate_passages": [], "claim": components, "diagnosis": "TARGET_CLAIM_TOO_VAGUE"}
     candidates = []
     for passage in _passages(raw):
         text = passage["text"]
@@ -119,21 +119,21 @@ def resolve_claim_support(raw: dict, *, claim: Any = None, claim_family: Any = N
         candidates.append({**passage, "matched_terms": sorted(matched), "match_ratio": round(ratio, 3)})
     candidates.sort(key=lambda item: (-len(item["matched_terms"]), -item["match_ratio"], str(item["locator"])))
     if not candidates:
-        return {"state": "CLAIM_SUPPORT_NOT_FOUND", "support_type": "NO_SUPPORT", "locator": None, "passage": None, "matched_terms": [], "candidate_passages": [], "claim": components}
+        return {"state": "CLAIM_SUPPORT_NOT_FOUND", "support_type": "NO_SUPPORT", "locator": None, "passage": None, "matched_terms": [], "candidate_passages": [], "claim": components, "diagnosis": "SUPPORT_GENUINELY_ABSENT"}
     best = candidates[0]
     text = best["text"]
     matched_terms = best["matched_terms"]
     if not _numeric_match(target, text):
-        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "AMBIGUOUS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "NUMERIC_MISMATCH"}
+        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "AMBIGUOUS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "NUMERIC_MISMATCH", "diagnosis": "TARGET_CLAIM_TOO_SPECIFIC"}
     if _NEGATION.search(text):
-        return {"state": "CLAIM_SUPPORT_FOUND", "support_type": "CONTRADICTS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "NEGATED_ASSERTION"}
+        return {"state": "CLAIM_SUPPORT_FOUND", "support_type": "CONTRADICTS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "NEGATED_ASSERTION", "diagnosis": "CONTRADICTORY_SOURCE"}
     if _MODAL.search(text):
-        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "AMBIGUOUS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "MODAL_OR_FUTURE_ASSERTION"}
+        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "AMBIGUOUS", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "MODAL_OR_FUTURE_ASSERTION", "diagnosis": "TARGET_CLAIM_TOO_SPECIFIC"}
     if _ATTRIBUTION.search(text):
-        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "PARTIAL_SUPPORT", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "ATTRIBUTED_ASSERTION"}
+        return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "PARTIAL_SUPPORT", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "ATTRIBUTED_ASSERTION", "diagnosis": "SUPPORT_PRESENT_LOCATOR_FOUND"}
     if best["match_ratio"] >= 0.6 or len(matched_terms) >= 4:
-        return {"state": "CLAIM_SUPPORT_FOUND", "support_type": "DIRECT_SUPPORT", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components}
-    return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "CONTEXT_ONLY", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "INSUFFICIENT_PROPOSITION_MATCH"}
+        return {"state": "CLAIM_SUPPORT_FOUND", "support_type": "DIRECT_SUPPORT", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "diagnosis": "SUPPORT_PRESENT_EXTRACTION_LOSS" if best["source"] == "STRUCTURED" else "SUPPORT_PRESENT_LOCATOR_FOUND"}
+    return {"state": "CLAIM_SUPPORT_AMBIGUOUS", "support_type": "CONTEXT_ONLY", "locator": best["locator"], "passage": text, "matched_terms": matched_terms, "candidate_passages": candidates[:5], "claim": components, "reason": "INSUFFICIENT_PROPOSITION_MATCH", "diagnosis": "CONTEXT_ONLY"}
 
 
 __all__ = ["normalize_claim", "resolve_claim_support"]
