@@ -2604,7 +2604,24 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         origin_detail=origin_detail,
         event_skeleton=(validation or {}).get("event_skeleton") if isinstance(validation, dict) else None,
     )
+    support = post_fetch_qualification.get("claim_support") if isinstance(post_fetch_qualification.get("claim_support"), dict) else {}
+    role_detail = (validation or {}).get("source_role_resolution") if isinstance(validation, dict) and isinstance((validation or {}).get("source_role_resolution"), dict) else {}
+    support_observation = None
+    if support.get("locator") and support.get("support_type") in {"DIRECT_SUPPORT", "PARTIAL_SUPPORT", "CONTEXT_ONLY", "CONTRADICTS"}:
+        observed_role = role_detail.get("evidence_role")
+        if observed_role in {None, "UNRESOLVED"}:
+            observed_role = "REPUBLICATION" if role_detail.get("article_origin_state") == "OFFICIAL_PORTAL_REPUBLICATION" else "SECONDARY"
+        support_observation = {
+            "state": "OBSERVATION_CREATED",
+            "claim_support": deepcopy(support),
+            "role": observed_role,
+            "primary_requirement_satisfied": observed_role == "PRIMARY",
+            "requirement_state": "MET" if observed_role == "PRIMARY" else "NOT_MET",
+            "observation_id": None,
+        }
     observation_id = _stable_id("OBS", action["action_id"], canonical or title or "TITLE_UNRESOLVED", result_class)
+    if support_observation:
+        support_observation["observation_id"] = observation_id
     kind = {
         "LEAD": "LEAD", "POTENTIAL_EVIDENCE": "POTENTIAL_EVIDENCE",
         "CONTEXT": "CONTEXT", "CONTRADICTION": "CONTRADICTION",
@@ -2740,6 +2757,7 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         "article_attribution": deepcopy(raw.get("article_attribution")) if isinstance(raw.get("article_attribution"), dict) else None,
         "post_fetch_qualification": post_fetch_qualification,
         "claim_support": deepcopy(post_fetch_qualification.get("claim_support")),
+        "support_observation": support_observation,
     }
 
 
@@ -2781,7 +2799,7 @@ def build_event_bundles(
             "state": "EVENT_LEAD_DISCOVERY_ONLY", "event_lead_state": "NEW_RECOVERY_EVENT_LEAD" if semantic_mode else "EVENT_LEAD_DISCOVERY_ONLY",
             "event_fingerprint": skeleton.get("event_fingerprint"),
             "event_skeleton": deepcopy(skeleton), "recovery_need_id": lead.get("recovery_need_id"),
-            "desk": lead.get("desk"), "observations": [], "sources": [], "source_roles": [],
+            "desk": lead.get("desk"), "observations": [], "support_observations": [], "sources": [], "source_roles": [],
             "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
             "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
         "provenance_edges": [], "attempted_source_routes": [], "blocked_event_memory": None,
@@ -2833,7 +2851,7 @@ def build_event_bundles(
                 "event_skeleton": deepcopy(skeleton),
                 "recovery_need_id": need_id, "originating_recovery_need_id": need_id,
                 "recovery_mode": mode, "target_editorial_function": target_function,
-                "desk": action.get("desk"), "observations": [], "sources": [],
+                "desk": action.get("desk"), "observations": [], "support_observations": [], "sources": [],
                 "source_roles": [], "publisher_families": [], "evidence_ids": [],
                 "claims": [], "contradictions": [], "unresolved_origin_issues": [],
                 "matches": [], "candidate_discovery": None, "provenance_edges": [], "attempted_source_routes": [],
@@ -2847,6 +2865,8 @@ def build_event_bundles(
             bundle["matches"].append({"observation_id": observation.get("observation_id"), **match})
             continue
         bundle["observations"].append(observation.get("observation_id"))
+        if isinstance(observation.get("support_observation"), dict):
+            bundle["support_observations"].append(deepcopy(observation["support_observation"]))
         parent_id = provenance.get("originating_observation_id")
         if parent_id:
             bundle["provenance_edges"].append({"from_observation_id": parent_id, "relation": "CITES_OR_POINTS_TO", "to_source_id": observation.get("source_id"), "to_observation_id": observation.get("observation_id")})
@@ -2893,6 +2913,8 @@ def build_event_bundles(
     for bundle in bundles:
         for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
             bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
+        support_items = {str(item.get("observation_id")): item for item in bundle.get("support_observations", []) if isinstance(item, dict) and item.get("observation_id")}
+        bundle["support_observations"] = [support_items[key] for key in sorted(support_items)]
         bundle["provenance_edges"] = [item for item in bundle.get("provenance_edges", []) if isinstance(item, dict)]
         bundle["attempted_source_routes"] = list(dict.fromkeys(item for item in bundle.get("attempted_source_routes", []) if item))
         role_items = {json.dumps(item, ensure_ascii=False, sort_keys=True): item for item in bundle["source_roles"]}
@@ -2987,6 +3009,7 @@ def build_observation_snapshot(actions: list[dict], observations: list[dict], bu
         "resolution_failure_category": item.get("resolution_failure_category"),
         "post_fetch_qualification": item.get("post_fetch_qualification"),
         "claim_support": item.get("claim_support"),
+        "support_observation": item.get("support_observation"),
     } for item in observations]
     payload = {"mode": "TEST_REPLAY_EVIDENCE", "actions": actions, "observations": items, "event_bundles": bundles}
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -3615,6 +3638,18 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
             event_skeleton=skeleton,
         )
         observation["claim_support"] = deepcopy(observation["post_fetch_qualification"].get("claim_support"))
+        support = observation["claim_support"] if isinstance(observation.get("claim_support"), dict) else {}
+        observed_role = resolution.get("evidence_role")
+        if observed_role in {None, "UNRESOLVED"}:
+            observed_role = "REPUBLICATION" if resolution.get("article_origin_state") == "OFFICIAL_PORTAL_REPUBLICATION" else "SECONDARY"
+        observation["support_observation"] = {
+            "state": "OBSERVATION_CREATED",
+            "claim_support": deepcopy(support),
+            "role": observed_role,
+            "primary_requirement_satisfied": observed_role == "PRIMARY",
+            "requirement_state": "MET" if observed_role == "PRIMARY" else "NOT_MET",
+            "observation_id": observation.get("observation_id"),
+        } if support.get("locator") and support.get("support_type") in {"DIRECT_SUPPORT", "PARTIAL_SUPPORT", "CONTEXT_ONLY", "CONTRADICTS"} else None
         if observation["verification_status"] == "VALIDATED_EVIDENCE":
             observation["observation_class"] = "POTENTIAL_EVIDENCE"
             observation["kind"] = "POTENTIAL_EVIDENCE"
