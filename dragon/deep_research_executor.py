@@ -3082,6 +3082,11 @@ def build_research_yield_report(
     support_types: dict[str, int] = {}
     support_diagnoses: dict[str, int] = {}
     support_observation_roles: dict[str, int] = {}
+    support_observation_records = [
+        item.get("support_observation") for item in observations
+        if item.get("extraction_status") in {"FETCHED", "RETRIEVED"}
+        and isinstance(item.get("support_observation"), dict)
+    ]
     for item in qualification_items:
         state = str(item.get("state") or "UNKNOWN")
         blocker = str(item.get("first_blocking_reason") or "UNKNOWN")
@@ -3091,10 +3096,9 @@ def build_research_yield_report(
         support_types[support_type] = support_types.get(support_type, 0) + 1
         diagnosis = str((item.get("claim_support") or {}).get("diagnosis") or "UNRESOLVED")
         support_diagnoses[diagnosis] = support_diagnoses.get(diagnosis, 0) + 1
-        support_record = item.get("support_observation") if isinstance(item.get("support_observation"), dict) else None
-        if support_record:
-            support_role = str(support_record.get("role") or "UNRESOLVED")
-            support_observation_roles[support_role] = support_observation_roles.get(support_role, 0) + 1
+    for support_record in support_observation_records:
+        support_role = str(support_record.get("role") or "UNRESOLVED")
+        support_observation_roles[support_role] = support_observation_roles.get(support_role, 0) + 1
     urls = {item["url"] for item in observations if isinstance(item.get("url"), str) and item["url"]}
     origins = {item["origin"] for item in observations if isinstance(item.get("origin"), str) and item["origin"]}
     before_ids = {
