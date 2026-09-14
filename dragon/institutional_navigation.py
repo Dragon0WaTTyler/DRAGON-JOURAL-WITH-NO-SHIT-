@@ -12,7 +12,15 @@ PAGE_TYPES = {
     "ARTICLE_DETAIL", "OFFICIAL_NOTICE", "OFFICIAL_DECISION", "PRESS_RELEASE",
     "REPORT_DETAIL", "PROCUREMENT_NOTICE", "SERVICE_NOTICE", "LISTING_PAGE",
     "SEARCH_RESULTS_PAGE", "CATEGORY_PAGE", "PORTAL_HOME", "AGGREGATOR",
-    "UNKNOWN_PAGE_TYPE",
+    "UNKNOWN_PAGE_TYPE", "NEWS_INDEX", "PRESS_RELEASE_INDEX", "DOCUMENT_INDEX",
+    "REPORT_INDEX", "PUBLICATION_INDEX", "PROCUREMENT_LISTING", "SEARCH_RESULTS_PAGE",
+    "CATEGORY_PAGE", "ARCHIVE_INDEX", "DATASET_INDEX", "OTHER_NAVIGATION",
+}
+
+NAVIGATION_PAGE_TYPES = {
+    "LISTING_PAGE", "NEWS_INDEX", "PRESS_RELEASE_INDEX", "DOCUMENT_INDEX",
+    "REPORT_INDEX", "PUBLICATION_INDEX", "PROCUREMENT_LISTING", "SEARCH_RESULTS_PAGE",
+    "CATEGORY_PAGE", "ARCHIVE_INDEX", "DATASET_INDEX", "OTHER_NAVIGATION", "PORTAL_HOME",
 }
 
 OUTBOUND_LINK_TYPES = {
@@ -47,6 +55,24 @@ _OFFICIAL_HOST_MARKERS = (".gov", ".gov.", ".ac.", ".ma")
 _CITATION_MARKERS = ("according to", "announced by", "in a circular", "in a decision", "official portal", "selon le ministère", "selon l'autorité", "وفق", "حسب", "بلاغ", "قرار", "منصة رسمية")
 _DOCUMENT_MARKERS = (".pdf", "circular", "decision", "notice", "report", "directive", "communique", "بلاغ", "قرار", "تقرير", "مذكرة")
 
+_ARTIFACT_MARKERS = {
+    "AUDIT_REPORT": ("audit report", "audit", "report", "rapport", "rapport annuel", "findings", "publication", "pdf", "تقرير", "افتحاص", "نتائج المراقبة"),
+    "CONTRACT_AWARD": ("award", "attribution", "contract", "marché", "résultat", "supplier", "fournisseur", "نتيجة", "إسناد", "صفقة"),
+    "SERVICE_NOTICE": ("notice", "announcement", "service", "procedure", "schedule", "deadline", "registration", "communiqué", "avis", "إشعار", "إعلان", "خدمة", "مسطرة", "آخر أجل", "منصة"),
+    "STATISTICAL_RELEASE": ("bulletin", "dataset", "release", "indicator", "table", "statistics", "publication", "بيانات", "إحصائيات", "مؤشر", "نشرة"),
+    "PRESS_RELEASE": ("press release", "communiqué", "communique", "بلاغ صحفي", "بلاغ"),
+    "DIRECTIVE": ("directive", "circular", "دورية", "تعليمة", "توجيه"),
+    "DECISION": ("decision", "décision", "قرار"),
+    "PARLIAMENTARY_RECORD": ("parliament", "committee", "question", "parlement", "لجنة", "سؤال برلماني"),
+}
+
+_ARTIFACT_PATH_MARKERS = {
+    "AUDIT_REPORT": ("report", "rapport", "audit", "publication", "avis", "communique", "pdf", "document"),
+    "CONTRACT_AWARD": ("attribution", "result", "résultat", "award", "contract", "marché", "pv"),
+    "SERVICE_NOTICE": ("notice", "avis", "service", "procedure", "inscription", "registration", "annonce", "communique"),
+    "STATISTICAL_RELEASE": ("bulletin", "dataset", "release", "publication", "download", "table"),
+}
+
 # This is intentionally a small identity hint, not an evidence whitelist.
 # Maroc.ma is already a verified source-map profile; the hint lets provenance
 # code identify its portal publisher without treating every page as original
@@ -62,7 +88,10 @@ def classify_outbound_link(parent_url: str, link_url: str, *, label: str = "", c
     host = (urlsplit(link).hostname or "").casefold()
     path = (urlsplit(link).path or "/").casefold()
     target = str(semantic_target or "").upper()
-    haystack = f"{label} {context} {link}".casefold()
+    # Classify the destination from link-local signals.  Parent-page prose is
+    # discovery context, not a property of every anchor; including it here
+    # would turn language switches and navigation links into fake citations.
+    haystack = f"{label} {link}".casefold()
     same_domain = bool(host and p_host and (host == p_host or host.endswith("." + p_host) or p_host.endswith("." + host)))
     official_domain = bool(host and (host.endswith(".gov.ma") or host.endswith(".gov") or host.endswith(".ac.ma") or (institution_domain and host == str(institution_domain).casefold())))
     service = any(marker in haystack for marker in _SERVICE_MARKERS) or any(token in path for token in ("application", "inscription", "candidature", "register", "service", "portal", "suivi"))
@@ -250,8 +279,25 @@ def classify_page_type(raw: dict, *, action: dict | None = None) -> str:
         return "LISTING_PAGE"
     if any(marker in title or marker in text[:1800] for marker in ("search results", "résultats de recherche", "نتائج البحث")):
         return "SEARCH_RESULTS_PAGE"
+    # Public procurement portals expose search forms/results under route names
+    # that also contain ``notice``/``award`` tokens.  Treat those surfaces as
+    # navigation, not as exact procurement artifacts; the row/detail result
+    # must be fetched before evidence classification can begin.
+    if any(marker in path for marker in ("entrepriseadvancedsearch", "advancedsearch", "searchresults", "resultats-recherche")):
+        return "SEARCH_RESULTS_PAGE"
     if any(marker in path for marker in ("/category/", "/categories/", "/tag/", "/archive/", "/rubrique/")):
         return "CATEGORY_PAGE"
+    # Known public navigation surfaces are not article evidence, even when a
+    # discovery adapter supplies a synthetic timestamp for the route.
+    if any(marker in path for marker in ("/digital-services", "/services-numeriques", "/actualites", "/news", "/publications", "/downloads", "/press-releases", "/communique", "/rapports", "/reports")):
+        if any(marker in path for marker in ("/digital-services", "/services-numeriques")):
+            return "CATEGORY_PAGE"
+        if any(marker in path for marker in ("/publications", "/downloads", "/rapports", "/reports")):
+            return "REPORT_INDEX" if any(marker in path for marker in ("rapport", "report")) else "PUBLICATION_INDEX"
+        if any(marker in path for marker in ("/press-releases", "/communique")):
+            return "PRESS_RELEASE_INDEX" if not raw.get("published_at") else "PRESS_RELEASE"
+        if any(marker in path for marker in ("/actualites", "/news")) and not raw.get("published_at"):
+            return "NEWS_INDEX"
     # About/contact/legal/department landing pages are navigation material even
     # when an extractor supplies a synthetic publication date.  They may be
     # useful for ownership discovery, never as exact event artifacts.
@@ -283,6 +329,30 @@ def classify_page_type(raw: dict, *, action: dict | None = None) -> str:
     if raw.get("title") and raw.get("text") and raw.get("published_at"):
         return "ARTICLE_DETAIL"
     return "UNKNOWN_PAGE_TYPE"
+
+
+def classify_navigation_type(raw: dict, *, action: dict | None = None) -> str | None:
+    """Return a stable navigation subtype without changing evidence page type."""
+    action = action or {}
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
+    route_type = str(route.get("route_type") or "").upper()
+    page_type = classify_page_type(raw, action=action)
+    if page_type == "CATEGORY_PAGE":
+        return "CATEGORY_PAGE"
+    if int(action.get("navigation_depth", 0) or 0) == 0 and not action.get("discovery_only") and raw.get("title") and (raw.get("text") or raw.get("extracted_text")) and page_type not in {"LISTING_PAGE", "PORTAL_HOME"}:
+        return None
+    route_map = {
+        "NEWS_LISTING": "NEWS_INDEX", "PRESS_RELEASES": "PRESS_RELEASE_INDEX",
+        "AUDIT_PUBLICATIONS": "REPORT_INDEX", "REPORTS": "REPORT_INDEX",
+        "PUBLICATIONS": "PUBLICATION_INDEX", "PROCUREMENT_RESULTS": "PROCUREMENT_LISTING",
+        "SEARCH_RESULTS": "SEARCH_RESULTS_PAGE", "SERVICE_PORTAL": "OTHER_NAVIGATION",
+        "NOTICES": "DOCUMENT_INDEX", "ARCHIVE": "ARCHIVE_INDEX",
+    }
+    if route_type in route_map:
+        return route_map[route_type]
+    if page_type in NAVIGATION_PAGE_TYPES:
+        return page_type if page_type != "LISTING_PAGE" else "OTHER_NAVIGATION"
+    return None
 
 
 def _profile_type(text: str, host: str) -> str:
@@ -354,38 +424,82 @@ def resolve_institution_identity(raw: dict, *, known_profile: dict | None = None
     }
 
 
-def _link_items(raw: dict) -> list[tuple[str, str]]:
+def _link_records(raw: dict) -> list[dict]:
     values = list(raw.get("links") or [])
     text = str(raw.get("text") or raw.get("extracted_text") or "")
     values.extend((url, label) for label, url in re.findall(r"\[([^\]]{2,160})\]\((https?://[^)]+)\)", text))
     values.extend((url, "") for url in re.findall(r"https?://[^\s)\]>]+", text))
     items = []
     seen = set()
-    for item in values:
+    for position, item in enumerate(values):
         if isinstance(item, dict):
             url, label = item.get("url") or item.get("href"), item.get("text") or item.get("title") or ""
+            surrounding = item.get("surrounding_text") or item.get("context") or ""
+            section = item.get("section") or item.get("section_name")
         elif isinstance(item, (tuple, list)) and len(item) >= 2:
             url, label = str(item[0]), str(item[1])
+            surrounding, section = "", None
         else:
             url, label = str(item), ""
+            surrounding, section = "", None
         if not isinstance(url, str) or not url.startswith("https://"):
             continue
         canonical = normalize_url(url)
         if canonical in seen:
             continue
         seen.add(canonical)
-        items.append((canonical, str(label).strip()))
+        parsed = urlsplit(canonical)
+        items.append({
+            "href": canonical, "anchor_text": str(label).strip(),
+            "surrounding_text": str(surrounding or "").strip(),
+            "link_position": position, "section": section,
+            "target_domain": (parsed.hostname or "").casefold(),
+        })
     return items
 
 
-def extract_listing_child_links(raw: dict, *, semantic_target: str | None, edition_date: str | None, maximum: int = 8) -> list[dict]:
+def _link_items(raw: dict) -> list[tuple[str, str]]:
+    return [(item["href"], item["anchor_text"]) for item in _link_records(raw)]
+
+
+def _possible_date(text: str) -> str | None:
+    value = str(text or "")
+    match = re.search(r"\b(20\d{2}[-/]\d{1,2}[-/]\d{1,2})\b|\b(\d{1,2}\s+[A-Za-zÀ-ÿ]{2,12}\.?\s+20\d{2})\b|\b(20\d{2})\b", value, flags=re.I)
+    if not match:
+        return None
+    direct = next((group for group in match.groups() if group), None)
+    if not direct or re.fullmatch(r"20\d{2}", direct):
+        return direct
+    day, month, year = re.match(r"(\d{1,2})\s+([A-Za-zÀ-ÿ]{2,12})\.?\s+(20\d{2})", direct, flags=re.I).groups()
+    months = {"jan":1,"janv":1,"january":1,"févr":2,"fevr":2,"feb":2,"february":2,"mars":3,"mar":3,"march":3,"avr":4,"apr":4,"april":4,"mai":5,"may":5,"juin":6,"jun":6,"june":6,"juil":7,"jul":7,"july":7,"août":8,"aout":8,"aug":8,"august":8,"sept":9,"sep":9,"september":9,"oct":10,"october":10,"nov":11,"november":11,"déc":12,"dec":12,"december":12}
+    month_number = months.get(month.casefold().rstrip("."))
+    return f"{year}-{month_number:02d}-{int(day):02d}" if month_number else direct
+
+
+def _artifact_family_for_link(label: str, url: str, expected: str | None) -> tuple[str | None, str]:
+    haystack = f"{label} {url}".casefold()
+    if not expected:
+        return None, "UNSPECIFIED"
+    markers = _ARTIFACT_MARKERS.get(str(expected).upper(), ())
+    overlap = sum(marker.casefold() in haystack for marker in markers)
+    if overlap:
+        return str(expected).upper(), "EXACT_ARTIFACT_MATCH" if overlap >= 2 else "STRONG_ARTIFACT_CANDIDATE"
+    # A document extension is a useful bounded hint, but not an evidence role.
+    if re.search(r"\.(?:pdf|docx?|xlsx?|csv)(?:$|[?#])", url, flags=re.I):
+        return str(expected).upper(), "STRONG_ARTIFACT_CANDIDATE"
+    return None, "WEAK_ARTIFACT_CANDIDATE"
+
+
+def extract_listing_child_links(raw: dict, *, semantic_target: str | None, edition_date: str | None, maximum: int = 8, expected_artifact_family: str | None = None, anchors: object = None) -> list[dict]:
     """Extract and rank only a bounded set of likely detail/artifact links."""
     parent = normalize_url(str(raw.get("canonical_url") or raw.get("url") or ""))
     parent_host = urlsplit(parent).hostname or ""
     target = str(semantic_target or "").upper()
     markers = _ACCOUNTABILITY_MARKERS if target == "ACCOUNTABILITY" else _SERVICE_MARKERS if target == "SERVICE" else _INSTITUTION_MARKERS
     candidates = []
-    for url, label in _link_items(raw):
+    anchor_text = " ".join(str(item or "") for item in (anchors or []))
+    for record in _link_records(raw):
+        url, label = record["href"], record["anchor_text"]
         host = urlsplit(url).hostname or ""
         path = urlsplit(url).path.casefold()
         if url == parent or label.casefold() in _NAVIGATION_NOISE or path in {"", "/"}:
@@ -395,31 +509,50 @@ def extract_listing_child_links(raw: dict, *, semantic_target: str | None, editi
         # date markers from neighboring stories (for example, a "call us"
         # page can outrank a real service notice).  Parent-page context remains
         # discovery metadata, never a fact about each child artifact.
-        haystack = f"{label} {url}".casefold()
+        haystack = f"{label} {record.get('surrounding_text') or ''} {url}".casefold()
         score = 0
         reasons = []
         overlap = sum(marker.casefold() in haystack for marker in markers)
         if overlap:
             score += min(6, overlap * 2); reasons.append("SEMANTIC_FUNCTION_MATCH")
-        if re.search(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+[A-Za-zÀ-ÿ]+\s+\d{4}", label):
+        if re.search(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}\s+[A-Za-zÀ-ÿ]+\.?\s+\d{4}", label):
             score += 2; reasons.append("DATE_SIGNAL")
+        candidate_date = _possible_date(f"{label} {record.get('surrounding_text')}")
+        if candidate_date and edition_date and candidate_date[:4] == str(edition_date)[:4]:
+            score += 2; reasons.append("EDITION_YEAR_SIGNAL")
         if edition_date and str(edition_date)[:7] in label:
             score += 2; reasons.append("EDITION_WINDOW_SIGNAL")
         if host == parent_host:
             score += 2; reasons.append("FIRST_PARTY_HOST")
+        family, candidate_class = _artifact_family_for_link(f"{label} {record.get('surrounding_text') or ''}", url, expected_artifact_family)
+        if family:
+            score += 4 if candidate_class == "EXACT_ARTIFACT_MATCH" else 2
+            reasons.append(candidate_class)
+        if anchor_text and any(token.casefold() in haystack for token in re.findall(r"[\w\u0600-\u06ff]{4,}", anchor_text)):
+            score += 1; reasons.append("NEED_ANCHOR_MATCH")
         if any(token in path for token in ("notice", "decision", "report", "detail", "communique", "annonce", "a4", "pdf", "document")):
             score += 2; reasons.append("DETAIL_OR_ARTIFACT_PATH")
         if score <= 0:
             continue
+        extension = (urlsplit(url).path.rsplit(".", 1)[-1].casefold() if "." in urlsplit(url).path.rsplit("/", 1)[-1] else None)
+        stale = bool(edition_date and candidate_date and candidate_date[:4] < str(edition_date)[:4])
         candidates.append({
             "url": url, "label": label or urlsplit(url).path.rsplit("/", 1)[-1],
             "score": score, "reasons": reasons, "host": host,
             "parent_url": parent, "navigation_depth": 2,
             "page_type": "UNKNOWN_PAGE_TYPE", "discovery_only": True,
+            "href": url, "anchor_text": label, "surrounding_text": record.get("surrounding_text") or "",
+            "link_position": record.get("link_position"), "section": record.get("section"),
+            "target_domain": host, "same_domain": host == parent_host or host.endswith("." + parent_host),
+            "file_extension": extension, "possible_document_type": family,
+            "possible_date": candidate_date,
+            "possible_reference_number": next((re.sub(r"^\s*(?:N°|No\.?|REF|رقم)\s*", "", value, flags=re.I) for value in re.findall(r"\b(?:N°|No\.?|REF|رقم)\s*[-:/A-Za-z0-9]+", f"{label} {record.get('surrounding_text')}", flags=re.I)), None),
+            "candidate_class": candidate_class,
+            "current_window_signal": "STALE" if stale else "UNKNOWN",
         })
-    candidates.sort(key=lambda item: (-item["score"], item["url"]))
+    candidates.sort(key=lambda item: (0 if item.get("candidate_class") == "EXACT_ARTIFACT_MATCH" else 1 if item.get("candidate_class") == "STRONG_ARTIFACT_CANDIDATE" else 2, 0 if item.get("current_window_signal") != "STALE" else 1, -item["score"], item["url"]))
     return candidates[:maximum]
 
 
-def select_listing_child_link(raw: dict, *, semantic_target: str | None, edition_date: str | None) -> dict | None:
-    return (extract_listing_child_links(raw, semantic_target=semantic_target, edition_date=edition_date, maximum=1) or [None])[0]
+def select_listing_child_link(raw: dict, *, semantic_target: str | None, edition_date: str | None, expected_artifact_family: str | None = None, anchors: object = None) -> dict | None:
+    return (extract_listing_child_links(raw, semantic_target=semantic_target, edition_date=edition_date, maximum=1, expected_artifact_family=expected_artifact_family, anchors=anchors) or [None])[0]

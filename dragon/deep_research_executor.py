@@ -34,7 +34,7 @@ from dragon.editorial_functions import classify_event_functions, validated_funct
 from dragon.temporal_relevance import evaluate_temporal_relevance
 from dragon.institutional_navigation import (
     classify_page_type, extract_listing_child_links, resolve_institution_identity,
-    select_listing_child_link, extract_outbound_link_candidates, extract_actor_attributions, detect_official_portal_republication,
+    NAVIGATION_PAGE_TYPES, classify_navigation_type, select_listing_child_link, extract_outbound_link_candidates, extract_actor_attributions, detect_official_portal_republication,
 )
 from dragon.original_source_resolution import build_original_source_resolution, preferred_resolution_query, resolution_failure_for_observation
 from dragon.post_fetch_qualification import qualify_fetched_artifact
@@ -2679,11 +2679,20 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "semantic_capabilities": list(route.get("semantic_capabilities") or []),
             "navigation_depth": route.get("navigation_depth"),
         }
+    navigation_type = classify_navigation_type(raw, action=action)
+    expected_artifact_family = action.get("artifact_family") or action.get("expected_artifact_family")
+    event_context = action.get("event_context") if isinstance(action.get("event_context"), dict) else {}
+    anchors = [
+        *(event_context.get("entities") or []), *(event_context.get("aliases") or []),
+        *(event_context.get("event_terms") or []), action.get("actor"), action.get("document_type"),
+    ]
     listing_links = extract_listing_child_links(
         raw,
         semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
-        edition_date=action.get("event_context", {}).get("research_date") if isinstance(action.get("event_context"), dict) else None,
-    ) if page_type == "LISTING_PAGE" else []
+        edition_date=event_context.get("research_date"),
+        expected_artifact_family=expected_artifact_family,
+        anchors=anchors,
+    ) if navigation_type in {"LISTING_PAGE", "NEWS_INDEX", "PRESS_RELEASE_INDEX", "DOCUMENT_INDEX", "REPORT_INDEX", "PUBLICATION_INDEX", "PROCUREMENT_LISTING", "SEARCH_RESULTS_PAGE", "CATEGORY_PAGE", "ARCHIVE_INDEX", "DATASET_INDEX", "OTHER_NAVIGATION", "PORTAL_HOME"} else []
     source_id = _stable_id("SRC", canonical or action["action_id"], title or "TITLE_UNRESOLVED")
     temporal_relevance = evaluate_temporal_relevance(raw, str(action.get("event_context", {}).get("research_date") or ""), exact_text=str(raw.get("text") or raw.get("extracted_text") or "")) if raw.get("text") or raw.get("extracted_text") else None
     if temporal_relevance is not None and isinstance(action.get("listing_temporal_context"), dict):
@@ -2847,9 +2856,23 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "original_artifact_state": origin_detail.get("original_artifact_state"),
         }),
         "listing_links": listing_links,
+        "navigation_url": canonical,
+        "navigation_type": navigation_type,
+        "expected_artifact_family": expected_artifact_family,
+        "links_discovered": len(raw.get("links") or []),
+        "links_relevant": len(listing_links),
+        "artifact_candidates": [
+            {key: item.get(key) for key in ("url", "candidate_class", "possible_document_type", "possible_date", "current_window_signal", "score", "reasons")}
+            for item in listing_links if item.get("candidate_class") in {"EXACT_ARTIFACT_MATCH", "STRONG_ARTIFACT_CANDIDATE"}
+        ],
+        "selected_target": None,
+        "selection_reason": None,
+        "followup_scheduled": False,
+        "followup_result": None,
+        "exact_artifact_reached": page_type not in NAVIGATION_PAGE_TYPES,
         "listing_resolution_state": (
             "CHILD_LINKS_AVAILABLE" if listing_links else "LISTING_NO_DETAIL_SELECTED"
-        ) if page_type == "LISTING_PAGE" else None,
+        ) if navigation_type in NAVIGATION_PAGE_TYPES or page_type == "LISTING_PAGE" else None,
         "source_resolution_state": ((raw.get("article_metadata") or {}).get("publisher") or {}).get("state") if isinstance((raw.get("article_metadata") or {}).get("publisher"), dict) else None,
         "structured_fields": deepcopy(raw.get("structured_fields")) if isinstance(raw.get("structured_fields"), dict) else None,
         "discovery_method": action["action_type"],
@@ -3471,7 +3494,7 @@ def build_research_yield_report(
         if isinstance(item.get("institution_identity"), dict)
         and item.get("institution_identity", {}).get("profile_type") not in {None, "OTHER_INSTITUTION"}
     ]
-    listing_observations = [item for item in observations if item.get("page_type") == "LISTING_PAGE"]
+    listing_observations = [item for item in observations if item.get("navigation_type") or item.get("page_type") == "LISTING_PAGE"]
     child_actions = [item for item in actions if int(item.get("navigation_depth", 0) or 0) == 2]
     institutional_identity = {
         "institutional_leads": sum(item.get("observation_class") == "LEAD" for item in institutional_observations),
@@ -3482,9 +3505,15 @@ def build_research_yield_report(
     listing_resolution = {
         "listing_pages": len(listing_observations),
         "child_links_extracted": sum(len(item.get("listing_links") or []) for item in listing_observations),
+        "navigation_pages": len(listing_observations),
+        "navigation_types": sorted({str(item.get("navigation_type")) for item in listing_observations if item.get("navigation_type")} ),
+        "links_discovered": sum(int(item.get("links_discovered", 0) or 0) for item in listing_observations),
+        "links_relevant": sum(int(item.get("links_relevant", 0) or 0) for item in listing_observations),
+        "artifact_candidates": sum(len(item.get("artifact_candidates") or []) for item in listing_observations),
+        "followups_scheduled": sum(bool(item.get("followup_scheduled")) for item in listing_observations),
         "child_links_selected": sum(item.get("listing_resolution_state") == "CHILD_DETAIL_SELECTED" for item in listing_observations),
         "detail_fetches": len(child_actions),
-        "exact_artifacts_reached": sum(item.get("page_type") not in {"LISTING_PAGE", "PORTAL_HOME", "AGGREGATOR"} and item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in observations if item.get("provenance", {}).get("action_id") in {action.get("action_id") for action in child_actions}),
+        "exact_artifacts_reached": sum(bool(item.get("exact_artifact_reached")) and item.get("extraction_status") in {"FETCHED", "RETRIEVED"} for item in observations if item.get("provenance", {}).get("action_id") in {action.get("action_id") for action in child_actions}),
         "maximum_navigation_depth": 2,
     }
     provenance_recovery = {
@@ -3954,7 +3983,7 @@ def execute_research_round(
                 and observation.get("extraction_status") == "FETCHED"
                 and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
             ):
-                candidates = [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY"]
+                candidates = [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY" and (item.get("type") != "INSTITUTIONAL_DETAIL" or item.get("service_signal") or item.get("document_signal") or item.get("citation_signal") or str(item.get("url") or "").casefold().split("?")[0].rstrip("/").endswith(("/detail", "/notice", "/report", "/decision", "/document")))]
                 for item in candidates:
                     item["url_safety"] = assess_source_url(str(item.get("url") or ""))
                 unsafe_candidates = [item for item in candidates if item.get("url_safety", {}).get("state") == "URL_UNSAFE"]
@@ -3973,6 +4002,7 @@ def execute_research_round(
                         "action_id": _stable_id("ACT", action["action_id"], "OFFICIAL_LINK", selected["url"]),
                         "action_type": "FETCH_URL", "target": selected["url"], "expected_result_type": "EXTRACTED_SOURCE",
                         "lead_followup": True, "provenance_followup": True, "outbound_link_type": selected.get("type"),
+                        "expected_artifact_family": action.get("artifact_family") or action.get("expected_artifact_family"),
                         "originating_observation_id": observation.get("observation_id"), "navigation_parent_url": observation.get("url"),
                         "discovery_channel": f"{action.get('discovery_channel') or 'FETCH'}-official-link",
                         "query_intent": "EXPLICIT_OFFICIAL_LINK_RECOVERY", "channel_fallback": None,
@@ -4055,11 +4085,13 @@ def execute_research_round(
                         if exact and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]):
                             actor_first_telemetry.append({"parent_observation_id": observation.get("observation_id"), "artifact_url": exact.get("url"), "status": "ARTIFACT_FETCH_DISPATCHED"})
                             run_action({**search_action, "action_id": _stable_id("ACT", search_action["action_id"], "FETCH", exact["url"]), "action_type": "FETCH_URL", "target": exact["url"], "lead_followup": True, "provenance_followup": True, "actor_first_fetch": True, "route_scoped": False, "route_search_objective": None, "originating_observation_id": observation.get("observation_id"), "expected_result_type": "EXTRACTED_SOURCE", "discovery_channel": "SEARXNG_GENERAL_SEARCH-actor-first", "query_intent": "ACTOR_FIRST_EXACT_ARTIFACT", "channel_fallback": None})
-            if observation.get("page_type") == "LISTING_PAGE":
+            if observation.get("navigation_type") in NAVIGATION_PAGE_TYPES or observation.get("page_type") == "LISTING_PAGE":
                 child = select_listing_child_link(
                     raw,
                     semantic_target=action.get("target_editorial_function") or action.get("candidate_event_theme"),
                     edition_date=action.get("event_context", {}).get("research_date") if isinstance(action.get("event_context"), dict) else None,
+                    expected_artifact_family=action.get("artifact_family") or action.get("expected_artifact_family"),
+                    anchors=(action.get("event_context") or {}).get("entities", []) + (action.get("event_context") or {}).get("event_terms", []) if isinstance(action.get("event_context"), dict) else None,
                 )
                 if child and int(action.get("navigation_depth", 0) or 0) < 2:
                     listing_children.append((observation, child))
@@ -4132,6 +4164,9 @@ def execute_research_round(
                 "discovery_only": False, "navigation_depth": 2,
                 "navigation_parent_url": listing_observation.get("url"),
                 "listing_temporal_context": deepcopy(listing_observation.get("temporal_relevance")),
+                "navigation_type": listing_observation.get("navigation_type"),
+                "expected_artifact_family": action.get("artifact_family") or action.get("expected_artifact_family"),
+                "selected_target_class": child.get("candidate_class"),
                 "listing_parent_observation_id": listing_observation.get("observation_id"),
                 "query_variant": f"{action.get('query_variant', 'LISTING')}_CHILD_DETAIL",
                 "query_intent": "LISTING_TO_DETAIL_EXACT_ARTIFACT",
@@ -4140,6 +4175,10 @@ def execute_research_round(
             }
             listing_observation["listing_resolution_state"] = "CHILD_DETAIL_SELECTED"
             listing_observation["selected_child_link"] = deepcopy(child)
+            listing_observation["selected_target"] = child.get("url")
+            listing_observation["selection_reason"] = child.get("candidate_class") or "RELEVANT_DETAIL_LINK"
+            listing_observation["followup_scheduled"] = True
+            listing_observation["followup_result"] = "SCHEDULED"
             lead_followup_selection.append({
                 "url": child["url"], "priority": "LISTING_CHILD_DETAIL",
                 "need_id": action.get("recovery_need_id"),

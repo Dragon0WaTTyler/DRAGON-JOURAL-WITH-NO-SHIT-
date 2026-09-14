@@ -4,7 +4,7 @@ from pathlib import Path
 from dragon.deep_research_executor import FixtureResearchAdapter, execute_research_round
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
 from dragon.institutional_navigation import (
-    classify_page_type, extract_listing_child_links, resolve_institution_identity,
+    classify_page_type, classify_navigation_type, extract_listing_child_links, resolve_institution_identity,
 )
 from dragon.deep_research_executor import extract_event_skeleton
 from dragon.structured_extraction import extract_structured_document
@@ -148,3 +148,53 @@ def test_listing_child_followup_uses_existing_bounded_slot() -> None:
     listing = next(item for item in result["observations"] if item.get("page_type") == "LISTING_PAGE")
     assert listing["listing_resolution_state"] == "CHILD_DETAIL_SELECTED"
     assert result["budget_consumed"]["lead_followups"] == 1
+
+
+def test_audit_index_prefers_report_artifact_over_recent_ceremony() -> None:
+    raw = {
+        "url": "https://audit.gov.ma/actualites/", "title": "Actualités", "links": [
+            {"url": "https://audit.gov.ma/avis/ceremony-2026-09-08", "text": "08 Sep. 2026 - Participation à une cérémonie"},
+            {"url": "https://audit.gov.ma/publications/rapport-controle-2026.pdf", "text": "Rapport d'audit et résultats du contrôle"},
+        ],
+    }
+    selected = extract_listing_child_links(raw, semantic_target="ACCOUNTABILITY", edition_date="2026-09-13", expected_artifact_family="AUDIT_REPORT", maximum=1)
+    assert selected[0]["candidate_class"] == "EXACT_ARTIFACT_MATCH"
+    assert selected[0]["possible_document_type"] == "AUDIT_REPORT"
+    assert selected[0]["url"].endswith("rapport-controle-2026.pdf")
+
+
+def test_procurement_listing_preserves_row_context_and_award_family() -> None:
+    raw = {
+        "url": "https://marches.gov.ma/results", "links": [{
+            "href": "https://marches.gov.ma/detail/award-77", "anchor_text": "Résultat définitif - marché 77",
+            "surrounding_text": "REF 77/2026 — fournisseur retenu", "section": "Résultats",
+        }],
+    }
+    selected = extract_listing_child_links(raw, semantic_target="ACCOUNTABILITY", edition_date="2026-09-13", expected_artifact_family="CONTRACT_AWARD", maximum=1)
+    assert selected[0]["candidate_class"] == "EXACT_ARTIFACT_MATCH"
+    assert selected[0]["possible_reference_number"] == "77/2026"
+    assert selected[0]["section"] == "Résultats"
+
+
+def test_service_target_without_index_date_remains_fetch_eligible() -> None:
+    raw = {
+        "url": "https://service.gov.ma/notices", "title": "Service notices", "links": [
+            {"url": "https://service.gov.ma/notices/registration", "text": "Inscription et procédure de dépôt"},
+        ],
+    }
+    candidate = extract_listing_child_links(raw, semantic_target="SERVICE", edition_date="2026-09-13", expected_artifact_family="SERVICE_NOTICE", maximum=1)[0]
+    assert candidate["candidate_class"] in {"EXACT_ARTIFACT_MATCH", "STRONG_ARTIFACT_CANDIDATE"}
+    assert candidate["current_window_signal"] == "UNKNOWN"
+
+
+def test_navigation_subtypes_preserve_route_shape() -> None:
+    assert classify_navigation_type({"url": "https://gov.ma/news", "links": ["https://gov.ma/news/1"]}, action={"source_route": {"route_type": "NEWS_LISTING"}}) == "NEWS_INDEX"
+    assert classify_navigation_type({"url": "https://gov.ma/reports", "links": ["https://gov.ma/reports/1"]}, action={"source_route": {"route_type": "AUDIT_PUBLICATIONS"}}) == "REPORT_INDEX"
+
+
+def test_procurement_advanced_search_is_navigation_not_exact_notice() -> None:
+    value = classify_page_type({
+        "url": "https://www.marchespublics.gov.ma/pmmp/EntrepriseAdvancedSearch/RechercheAvis",
+        "title": "Recherche avancée des avis", "text": "Résultats de recherche des avis d'attribution",
+    })
+    assert value == "SEARCH_RESULTS_PAGE"
