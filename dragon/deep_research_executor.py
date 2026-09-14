@@ -1869,15 +1869,15 @@ class RssSearchAdapter:
         try:
             response = self.transport(endpoint, self.timeout_seconds, self.maximum_bytes)
             if not 200 <= response.status < 300:
-                return [{"result_type": "DEAD_END", "reason": f"RSS_HTTP_{response.status}", "discovery_channel": self.adapter_id}]
+                return [{"result_type": "DEAD_END", "reason": f"RSS_HTTP_{response.status}", "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id}]
             candidates = discover_rss(
                 response.body, provider_id=self.adapter_id, endpoint=response.url
             )[: self.maximum_results]
         except (DiscoveryError, OSError, TimeoutError) as exc:
-            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", type(exc).__name__), "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": getattr(exc, "code", type(exc).__name__), "diagnostic": "BACKEND_UNAVAILABLE", "discovery_channel": self.adapter_id}]
         timestamp = datetime.now(timezone.utc).isoformat()
         if not candidates:
-            return [{"result_type": "DEAD_END", "reason": "RSS_NO_MATCHES", "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": "RSS_NO_MATCHES", "diagnostic": "BACKEND_EMPTY", "discovery_channel": self.adapter_id}]
         return [
             {
                 "result_type": "LEAD",
@@ -2046,12 +2046,12 @@ class SearxngSearchAdapter:
             payload = json.loads(response.body.decode("utf-8"))
         except (DiscoveryError, OSError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             return [{
-                "result_type": "DEAD_END", "reason": "SEARCH_BACKEND_UNAVAILABLE",
+                "result_type": "DEAD_END", "reason": "SEARCH_BACKEND_UNAVAILABLE", "diagnostic": "BACKEND_UNAVAILABLE",
                 "detail": getattr(exc, "code", type(exc).__name__), "discovery_channel": self.adapter_id,
             }]
         results = payload.get("results") if isinstance(payload, dict) else None
         if not isinstance(results, list):
-            return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "discovery_channel": self.adapter_id}]
+            return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "diagnostic": "BACKEND_SCHEMA_UNEXPECTED", "discovery_channel": self.adapter_id}]
         normalized = []
         timestamp = datetime.now(timezone.utc).isoformat()
         for rank, item in enumerate(results[: self.maximum_results], start=1):
@@ -2077,7 +2077,14 @@ class SearxngSearchAdapter:
                 },
                 "language": item.get("language") or action.get("search_language"),
             })
-        return normalized or [{"result_type": "DEAD_END", "reason": "SEARXNG_NO_MATCHES", "discovery_channel": self.adapter_id}]
+        if normalized:
+            return normalized
+        return [{
+            "result_type": "DEAD_END",
+            "reason": "SEARXNG_NO_MATCHES",
+            "diagnostic": "BACKEND_EMPTY" if not results else "RESULT_PARSE_EMPTY",
+            "discovery_channel": self.adapter_id,
+        }]
 
 
 class DiscoveryAdapterChain:
@@ -2592,6 +2599,9 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
         # A search result has a URL but has not retrieved that URL.  This is
         # intentionally distinct from a hash-bound exact-page fetch.
         "extraction_status": raw.get("fetch_status") or "NOT_RETRIEVED",
+        "discovery_reason": raw.get("reason"),
+        "discovery_diagnostic": raw.get("diagnostic"),
+        "discovery_detail": raw.get("detail"),
         "content_hash": raw.get("content_hash"),
         "extracted_text": raw.get("text") or raw.get("extracted_text") or raw.get("content"),
         "source_class": str((validation or {}).get("source_class") or source_class).lower(),
@@ -3049,6 +3059,8 @@ def build_research_yield_report(
             "urls": sorted({item["url"] for item in action_observations if item.get("url")}),
             "source_ids": sorted({item["source_id"] for item in action_observations if item.get("source_id")}),
             "observation_types": sorted({item["observation_class"] for item in action_observations}),
+            "discovery_diagnostics": sorted({str(item.get("discovery_diagnostic")) for item in action_observations if item.get("discovery_diagnostic")}),
+            "discovery_reasons": sorted({str(item.get("discovery_reason")) for item in action_observations if item.get("discovery_reason")}),
             "result_count": len(action_observations),
             "useful_leads": sum(item.get("observation_class") == "LEAD" and item.get("relevance_status") == "RETAINED" for item in action_observations),
             "fetched_pages": sum(item.get("extraction_status") in {"RETRIEVED", "FETCHED"} for item in action_observations),
@@ -3127,7 +3139,18 @@ def build_research_yield_report(
             "recovery_needs_closed": sum(item.get("recovery_need_closed") for item in backend_actions),
             "new_distinct_events": sum(item.get("introduced_new_distinct_event") for item in backend_actions),
             "dead_ends": sum(item.get("observation_class") == "DEAD_END" for item in backend_observations),
+            "discovery_diagnostics": sorted({str(item.get("discovery_diagnostic")) for item in backend_observations if item.get("discovery_diagnostic")}),
         })
+    discovery_diagnostics: dict[str, int] = {}
+    for item in observations:
+        diagnostic = str(item.get("discovery_diagnostic") or "")
+        if diagnostic:
+            discovery_diagnostics[diagnostic] = discovery_diagnostics.get(diagnostic, 0) + 1
+    direct_route_entries = [
+        entry for job in jobs if isinstance(job, dict)
+        for entry in (job.get("direct_route_selection") or [])
+        if isinstance(entry, dict)
+    ]
     function_metrics = {}
     for function in ("ACCOUNTABILITY", "SERVICE"):
         function_actions = [
@@ -3343,6 +3366,13 @@ def build_research_yield_report(
         "action_outcomes": action_outcomes,
         "strategy_channel_yield": strategy_channel_yield,
         "backend_yield": backend_yield,
+        "discovery_diagnostics": discovery_diagnostics,
+        "fetch_bridge": {
+            "direct_route_attempts": len(direct_route_entries),
+            "direct_route_selected": sum(item.get("status") == "DIRECT_SOURCE_ROUTE_SELECTED" for item in direct_route_entries),
+            "direct_route_skipped": sum(item.get("status") == "DIRECT_SOURCE_ROUTE_SKIPPED" for item in direct_route_entries),
+            "direct_route_reasons": sorted({str(item.get("reason")) for item in direct_route_entries if item.get("reason")}),
+        },
         "function_metrics": function_metrics,
         "institutional_identity": institutional_identity,
         "listing_resolution": listing_resolution,
@@ -3527,6 +3557,7 @@ def execute_research_round(
     lead_followup_selection: list[dict] = []
     lead_followup_candidates: list[dict] = []
     provenance_followup_selection: list[dict] = []
+    direct_route_selection: list[dict] = []
     actor_first_telemetry: list[dict] = []
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
@@ -3553,7 +3584,7 @@ def execute_research_round(
 
     def run_action(action: dict) -> None:
         """Execute one bounded action and retain its structured observations."""
-        nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, actor_first_telemetry
+        nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, direct_route_selection, actor_first_telemetry
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
         is_search = action["action_type"] in SEARCH_ACTIONS
@@ -3833,6 +3864,37 @@ def execute_research_round(
         # provider-neutral discovery fallback and retain its provenance.
         fallback = action.get("channel_fallback")
         yielded = any(str(item.get("result_type") or "").upper() not in {"DEAD_END", "IRRELEVANT", "DUPLICATE"} for item in raw_results)
+        # A verified route is a concrete, read-only discovery surface even
+        # when the configured search backend is empty or unavailable.  Fetch
+        # that route once within the existing follow-up cap; the resulting
+        # page remains discovery/navigation material until exact-page evidence
+        # validation runs.  This is deliberately before generic fallback so a
+        # known institution is not abandoned when search returns no target.
+        route = action.get("source_route") if isinstance(action.get("source_route"), dict) else None
+        route_url = str((route or {}).get("url") or (route or {}).get("route_url") or "").strip()
+        if (
+            is_search and not yielded and action.get("route_scoped") and route_url
+            and not action.get("direct_source_route")
+            and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
+        ):
+            safety = assess_source_url(route_url)
+            if safety.get("state") == "URL_UNSAFE":
+                direct_route_selection.append({"need_id": action.get("recovery_need_id"), "route_id": (route or {}).get("route_id"), "url": route_url, "status": "DIRECT_SOURCE_ROUTE_SKIPPED", "reason": safety.get("reason") or "URL_UNSAFE"})
+            elif normalize_url(route_url) in seen_urls:
+                direct_route_selection.append({"need_id": action.get("recovery_need_id"), "route_id": (route or {}).get("route_id"), "url": route_url, "status": "DIRECT_SOURCE_ROUTE_SKIPPED", "reason": "RESULT_FILTERED_DUPLICATE"})
+            else:
+                direct_route_selection.append({"need_id": action.get("recovery_need_id"), "route_id": (route or {}).get("route_id"), "url": route_url, "status": "DIRECT_SOURCE_ROUTE_SELECTED", "reason": "BACKEND_EMPTY_OR_UNAVAILABLE"})
+                run_action({
+                    **action,
+                    "action_id": _stable_id("ACT", action["action_id"], "DIRECT_SOURCE_ROUTE", route_url),
+                    "action_type": "FETCH_URL", "target": route_url,
+                    "lead_followup": True, "direct_source_route": True,
+                    "discovery_only": True, "provenance_followup": False,
+                    "expected_result_type": "EXTRACTED_SOURCE",
+                    "query_intent": "DIRECT_SOURCE_ROUTE_DISCOVERY",
+                    "navigation_parent_url": None, "channel_fallback": None,
+                    "discovery_channel": f"{action.get('discovery_channel') or 'SEARCH'}-direct-route",
+                })
         if fallback and not yielded:
             fallback_type = str(fallback.get("action_type") or "SEARCH_DISCOVERY")
             if fallback_type in SEARCH_ACTIONS and generic_search_budget_available(action):
@@ -4021,6 +4083,7 @@ def execute_research_round(
         "lead_followup_selection": lead_followup_selection,
         "lead_followup_candidates": lead_followup_candidates,
         "provenance_followup_selection": provenance_followup_selection,
+        "direct_route_selection": direct_route_selection,
         "actor_first_telemetry": actor_first_telemetry,
         "provenance_recovery": {
             "official_links_selected": len(provenance_followup_selection),
