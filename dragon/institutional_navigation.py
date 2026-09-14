@@ -509,7 +509,9 @@ def _service_target_type(label: str, url: str) -> str:
         return "GENERIC_CATEGORY"
     if any(marker in text for marker in ("access service", "start procedure", "apply", "application", "portal", "service", "prestation", "demande", "منصة", "خدمة", "طلب", "استفادة")):
         return "SERVICE_ENDPOINT" if urlsplit(url).hostname and "." in (urlsplit(url).hostname or "") else "APPLICATION_PORTAL"
-    return "SERVICE_DETAIL"
+    if any(marker in text for marker in ("notice", "procedure", "deadline", "registration", "inscription", "avis", "annonce", "إشعار", "مسطرة", "آخر أجل")):
+        return "SERVICE_DETAIL"
+    return "UNRELATED_LINK"
 
 
 def extract_listing_child_links(raw: dict, *, semantic_target: str | None, edition_date: str | None, maximum: int = 8, expected_artifact_family: str | None = None, anchors: object = None) -> list[dict]:
@@ -548,7 +550,7 @@ def extract_listing_child_links(raw: dict, *, semantic_target: str | None, editi
             score += 2; reasons.append("FIRST_PARTY_HOST")
         family, candidate_class = _artifact_family_for_link(f"{label} {record.get('surrounding_text') or ''}", url, expected_artifact_family)
         target_type = _service_target_type(label, url) if target == "SERVICE" else None
-        if target_type in {"LANGUAGE_VARIANT", "PAGINATION"}:
+        if target_type in {"LANGUAGE_VARIANT", "PAGINATION", "UNRELATED_LINK"}:
             continue
         if target_type == "GENERIC_CATEGORY":
             score -= 3
