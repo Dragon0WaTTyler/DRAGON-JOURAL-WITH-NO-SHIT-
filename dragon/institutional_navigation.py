@@ -287,6 +287,8 @@ def classify_page_type(raw: dict, *, action: dict | None = None) -> str:
         return "SEARCH_RESULTS_PAGE"
     if any(marker in path for marker in ("/category/", "/categories/", "/tag/", "/archive/", "/rubrique/")):
         return "CATEGORY_PAGE"
+    if int(action.get("navigation_depth", 0) or 0) > 0 and not action.get("discovery_only") and raw.get("title") and (raw.get("text") or raw.get("extracted_text")) and len(raw.get("links") or []) < 10:
+        return "ARTICLE_DETAIL"
     # Known public navigation surfaces are not article evidence, even when a
     # discovery adapter supplies a synthetic timestamp for the route.
     if any(marker in path for marker in ("/digital-services", "/services-numeriques", "/actualites", "/news", "/publications", "/downloads", "/press-releases", "/communique", "/rapports", "/reports")):
@@ -339,7 +341,13 @@ def classify_navigation_type(raw: dict, *, action: dict | None = None) -> str | 
     page_type = classify_page_type(raw, action=action)
     if page_type == "CATEGORY_PAGE":
         return "CATEGORY_PAGE"
-    if int(action.get("navigation_depth", 0) or 0) == 0 and not action.get("discovery_only") and raw.get("title") and (raw.get("text") or raw.get("extracted_text")) and page_type not in {"LISTING_PAGE", "PORTAL_HOME"}:
+    # A fetched child/detail page may retain the parent route metadata.  Its
+    # observed page shape, not navigation depth, decides whether it is still
+    # a navigation surface; otherwise exact artifacts are double-counted as
+    # indexes and recursively traversed.
+    if not action.get("discovery_only") and raw.get("title") and (raw.get("text") or raw.get("extracted_text")) and page_type not in NAVIGATION_PAGE_TYPES:
+        return None
+    if int(action.get("navigation_depth", 0) or 0) > 0 and not action.get("discovery_only") and page_type == "UNKNOWN_PAGE_TYPE" and raw.get("title") and (raw.get("text") or raw.get("extracted_text")) and len(raw.get("links") or []) < 10:
         return None
     route_map = {
         "NEWS_LISTING": "NEWS_INDEX", "PRESS_RELEASES": "PRESS_RELEASE_INDEX",

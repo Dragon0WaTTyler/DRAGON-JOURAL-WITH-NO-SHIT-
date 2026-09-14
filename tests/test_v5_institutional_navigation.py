@@ -190,6 +190,7 @@ def test_service_target_without_index_date_remains_fetch_eligible() -> None:
 def test_navigation_subtypes_preserve_route_shape() -> None:
     assert classify_navigation_type({"url": "https://gov.ma/news", "links": ["https://gov.ma/news/1"]}, action={"source_route": {"route_type": "NEWS_LISTING"}}) == "NEWS_INDEX"
     assert classify_navigation_type({"url": "https://gov.ma/reports", "links": ["https://gov.ma/reports/1"]}, action={"source_route": {"route_type": "AUDIT_PUBLICATIONS"}}) == "REPORT_INDEX"
+    assert classify_navigation_type({"url": "https://gov.ma/news/1", "title": "Directive", "text": "The authority issued a directive."}, action={"navigation_depth": 2, "source_route": {"route_type": "NEWS_LISTING"}}) is None
 
 
 def test_procurement_advanced_search_is_navigation_not_exact_notice() -> None:
