@@ -59,6 +59,11 @@ def test_modified_only_date_is_weak_not_publication_evidence():
     assert result["publication_date"]["state"] == "UNRESOLVED"
     assert result["modified_date"] == "2026-09-13"
     assert result["first_blocking_reason"] == "PUBLICATION_DATE_WEAK"
+    serialized = qualify_fetched_artifact(
+        _base(published_at=None, article_metadata={"publication_date": {"normalized": "2026-06-29", "source": "MODIFIED_DATE_ONLY"}}),
+        page_type="ARTICLE_DETAIL",
+    )
+    assert serialized["first_blocking_reason"] == "PUBLICATION_DATE_WEAK"
 
 
 def test_navigation_page_is_navigation_only_even_with_text_and_date():

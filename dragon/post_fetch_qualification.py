@@ -30,6 +30,17 @@ def _date_value(value: Any) -> str | None:
 def _date_resolution(raw: dict) -> dict:
     metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
     publication = metadata.get("publication_date")
+    # Some extractors serialize a modified timestamp in the publication-date
+    # slot while preserving its provenance.  Never promote that timestamp to
+    # publication time; retain it as weak/modified-only metadata.
+    if isinstance(publication, dict) and str(publication.get("source") or "").upper() in {"MODIFIED_DATE_ONLY", "MODIFIED", "LAST_MODIFIED"}:
+        modified = _date_value(publication)
+        return {
+            "value": None,
+            "provenance": "UNRESOLVED",
+            "modified_date": modified,
+            "state": "UNRESOLVED",
+        }
     value = _date_value(publication) or _date_value(raw.get("published_at")) or _date_value(raw.get("publication_date"))
     if value:
         source = (
