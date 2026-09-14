@@ -16,6 +16,8 @@ from urllib.request import Request, urlopen
 
 import yaml
 
+from dragon.authority_routing import artifact_family_for_route
+
 
 class SourceCoverageError(RuntimeError):
     pass
@@ -144,6 +146,10 @@ def validate_source_registry(coverage: dict) -> dict:
         source.setdefault("publisher", profile.get("publisher", source.get("name")))
         source.setdefault("languages", profile.get("languages", ["ar", "fr", "en"]))
         source.setdefault("routes", profile.get("routes", {"homepage": source.get("url")}))
+        source.setdefault("authority_id", profile.get("authority_id", source.get("source_id")))
+        source.setdefault("authority_type", profile.get("authority_type"))
+        source.setdefault("functions", list(profile.get("functions") or []))
+        source.setdefault("artifact_families", list(profile.get("artifact_families") or []))
     normalized["source_profiles"] = profiles
     return normalized
 
@@ -402,6 +408,18 @@ def desk_recovery_context(coverage: dict, section_id: str, *, capability: str | 
                 "authority_scope": item.get("authority_scope", "unspecified"),
                 "publisher": item.get("publisher", item.get("name")),
                 "route_languages": list(item.get("languages", ["ar", "fr", "en"])),
+                "authority_id": item.get("authority_id", item.get("source_id")),
+                "authority_type": item.get("authority_type"),
+                "authority_functions": list(item.get("functions") or []),
+                "artifact_families": list(item.get("artifact_families") or []),
+                # Generic listings are not themselves artifact classes; let
+                # the semantic need choose SERVICE_NOTICE/AUDIT_REPORT/etc.
+                # Specific document routes retain their deterministic family.
+                "artifact_family": (
+                    artifact_family_for_route({**item, **(variant or {})})
+                    if (variant or {}).get("route_type") not in {"NEWS_LISTING", "OTHER_PUBLIC_INDEX"}
+                    else None
+                ),
                 "source_class": "OFFICIAL_INSTITUTION" if item["role"] == "PRIMARY" else "INDEPENDENT_NEWSROOM",
                 "discovery_only": item["discovery_only"],
                 "route_id": variant.get("route_id") if variant else f"{item['source_id']}-canonical",

@@ -7,6 +7,7 @@ from copy import deepcopy
 import re
 
 from dragon.source_coverage import desk_recovery_context, need_source_family_policy, route_source_family
+from dragon.authority_routing import authority_artifact_preferences
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import validated_function_names
 
@@ -346,6 +347,7 @@ def build_recovery_plan(
             for family in need_source_family_policy(target_function):
                 if any(route_source_family(route) == family for route in candidate_routes):
                     candidate_families.append(family)
+            authority_preferences = authority_artifact_preferences(target_function)
             needs.append({
                 "need_id": need_id,
                 "kind": f"NEED_{rule['id'].upper()}",
@@ -370,10 +372,14 @@ def build_recovery_plan(
                     "configured_discovery_routes": route_context.get("configured_discovery_routes", []),
                     "candidate_source_families": candidate_families,
                     "source_family_policy": need_source_family_policy(target_function),
+                    "candidate_authority_capabilities": [item["authority_capability"] for item in authority_preferences],
+                    "candidate_artifact_families": sorted({artifact for item in authority_preferences for artifact in item.get("artifact_families", [])}),
                 },
                 "candidate_source_families": candidate_families,
                 "source_family_policy": need_source_family_policy(target_function),
                 "families_already_attempted": [],
+                "candidate_authority_capabilities": [item["authority_capability"] for item in authority_preferences],
+                "candidate_artifact_families": sorted({artifact for item in authority_preferences for artifact in item.get("artifact_families", [])}),
                 # Normal breadth owns its own geography policy.  This is
                 # intentionally separate from the Super Investigation scope
                 # guard and prevents that subsystem's metadata from leaking

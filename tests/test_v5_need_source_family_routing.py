@@ -35,15 +35,15 @@ def test_accountability_routes_diversify_across_relevant_families():
     assert len({item["source_family"] for item in strategies}) == 4
 
 
-def test_service_routes_prefer_official_then_statistics_without_repeating_family():
+def test_service_routes_do_not_use_statistics_without_a_matching_subject():
     routes = [
         {"route_id": "news", "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "route_type": "NEWS_LISTING", "source_family": "OFFICIAL_GOVERNMENT", "semantic_capabilities": ["SERVICE"]},
         {"route_id": "hcp", "url": "https://hcp.example/data", "origin": "hcp.example", "route_type": "PUBLICATIONS", "source_family": "PUBLIC_STATISTICS", "semantic_capabilities": ["SERVICE"]},
         {"route_id": "bam", "url": "https://bam.example/notices", "origin": "bam.example", "route_type": "PRESS_RELEASES", "source_family": "PUBLIC_FINANCE", "semantic_capabilities": ["SERVICE"]},
     ]
     strategies = _breadth_event_queries({}, _need("SERVICE", routes), month="2026-09", primary_language="en", alternate_language="fr", route=None)
-    assert [item["source_route"]["route_id"] for item in strategies[:3]] == ["news", "hcp", "bam"]
-    assert [item["source_family"] for item in strategies[:3]] == ["OFFICIAL_GOVERNMENT", "PUBLIC_STATISTICS", "PUBLIC_FINANCE"]
+    assert strategies[0]["source_route"]["route_id"] == "news"
+    assert all((item.get("source_route") or {}).get("route_id") not in {"hcp", "bam"} for item in strategies)
 
 
 def test_action_persists_need_family_routing_telemetry():

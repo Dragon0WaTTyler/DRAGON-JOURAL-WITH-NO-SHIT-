@@ -27,6 +27,7 @@ from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 from dragon.source_coverage import need_source_family_policy, route_source_family
+from dragon.authority_routing import authority_artifact_preferences, authority_route_metadata, authority_capability_from_text
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import classify_event_functions, validated_function_names
@@ -1236,6 +1237,17 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             alternate_terms = f"{alternate_terms} {pivot_terms}"
         base = " ".join(item for item in (geography, current_process, base_terms, month) if item)
         alternate = " ".join(item for item in (geography, current_process, alternate_terms, month) if item)
+        query_context_values = [
+            *(context.get("entities") or []), *(context.get("aliases") or []),
+            *(context.get("event_terms") or []),
+        ]
+        actor_hint = " ".join(str(item) for item in query_context_values if item)
+        explicit_authority = authority_capability_from_text(actor_hint)
+        authority_preferences = authority_artifact_preferences(
+            target_function, actor=actor_hint, event_terms=" ".join(str(item) for item in (plan.get("candidate_event_themes") or [])),
+        )
+        authority_order = [str(item.get("authority_capability")) for item in authority_preferences]
+        authority_rank = {value: index for index, value in enumerate(authority_order)}
         route_candidates = [
             item for item in [
                 *need.get("search_constraints", {}).get("configured_source_routes", []),
@@ -1274,7 +1286,46 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             0 if any(marker in str(item.get("authority_class") or "").upper() for marker in markers) else 1,
             str(item.get("origin") or ""), str(item.get("url") or ""),
         )
-        route_candidates.sort(key=legacy_route_sort)
+        has_normalized_families = any(route_source_family(item) != "UNKNOWN" for item in route_candidates)
+        if has_normalized_families:
+            route_candidates.sort(key=lambda item: (
+                authority_rank.get(authority_route_metadata(item, target_function, actor=actor_hint).get("authority_capability"), 99),
+                legacy_route_sort(item),
+            ))
+        else:
+            route_candidates.sort(key=legacy_route_sort)
+        if explicit_authority:
+            # An explicitly attributed actor narrows authority routing.  A
+            # national portal or independent newsroom may remain as a
+            # documented fallback, but unrelated official institutions do
+            # not get selected merely because their family is nearby.
+            fallback_capabilities = {"OFFICIAL_NATIONAL_PORTAL", "INDEPENDENT_NEWSROOM"}
+            relevant = [
+                item for item in route_candidates
+                if authority_route_metadata(item, target_function, actor=actor_hint).get("authority_capability") in {explicit_authority, *fallback_capabilities}
+            ]
+            route_candidates = relevant
+        elif has_normalized_families:
+            # Statistics and central-bank routes answer narrow indicators,
+            # rates, and financial-stability questions. They are not generic
+            # accountability or public-service authorities; keep them out of
+            # those lanes unless the need explicitly names that subject.
+            subject_text = " ".join(str(item) for item in query_context_values).casefold()
+            financial_or_stats = any(marker in subject_text for marker in (
+                "rate", "monetary", "banking", "inflation", "statistics", "indicator", "finance",
+                "سعر", "نقد", "بنك", "إحصاء", "مؤشر", "مالية",
+            ))
+            if not financial_or_stats:
+                route_candidates = [
+                    item for item in route_candidates
+                    if authority_route_metadata(item, target_function, actor=actor_hint).get("authority_capability") not in {"CENTRAL_BANK", "FINANCE_AUTHORITY", "STATISTICS_AUTHORITY"}
+                ]
+            if target_function == "SERVICE":
+                service_capabilities = {"PUBLIC_SERVICE_OPERATOR", "EXECUTIVE_MINISTRY", "LOCAL_AUTHORITY", "PUBLIC_AGENCY", "OFFICIAL_NATIONAL_PORTAL"}
+                route_candidates = [
+                    item for item in route_candidates
+                    if authority_route_metadata(item, target_function, actor=actor_hint).get("authority_capability") in service_capabilities
+                ]
         recognized_families = {
             route_source_family(item) for item in route_candidates
             if route_source_family(item) != "UNKNOWN"
@@ -1285,11 +1336,6 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             for family in family_order:
                 candidate = next((item for item in route_candidates if route_source_family(item) == family), None)
                 if candidate:
-                    family_routes.append(candidate)
-            # Preserve deterministic fallback coverage after the preferred
-            # families, without repeating a family in the bounded ladder.
-            for candidate in route_candidates:
-                if candidate not in family_routes and route_source_family(candidate) not in {route_source_family(item) for item in family_routes}:
                     family_routes.append(candidate)
         # Legacy fixtures without normalized family metadata retain their
         # historical route choice; production routes carry source_family and
@@ -1358,6 +1404,14 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 selected_route = family_routes[strategy_index % len(family_routes)]
                 strategy["source_route"] = selected_route
                 strategy["source_family"] = route_source_family(selected_route)
+                authority_meta = authority_route_metadata(selected_route, target_function, actor=actor_hint)
+                strategy.update({
+                    "authority_capability": authority_meta["authority_capability"],
+                    "selected_authority_id": authority_meta["authority_id"],
+                    "artifact_family": authority_meta["artifact_family"],
+                    "authority_selection_reason": authority_meta["authority_selection_reason"],
+                    "artifact_selection_reason": authority_meta["artifact_selection_reason"],
+                })
                 strategy["source_family_selection_reason"] = "NEED_SOURCE_FAMILY_POLICY" if strategy_index < len(family_order) else "UNTRIED_RELEVANT_FAMILY"
                 strategy["expected_information_gain"] = "NEW_SOURCE_FAMILY" if strategy_index else "EXACT_AUTHORITY_ROUTE"
                 strategy["route_scoped"] = bool(selected_route and strategy_index in {0, 1})
@@ -1373,6 +1427,14 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         else:
             for strategy in strategies:
                 strategy.setdefault("source_family", route_source_family(strategy.get("source_route")))
+                authority_meta = authority_route_metadata(strategy.get("source_route"), target_function, actor=actor_hint)
+                strategy.update({
+                    "authority_capability": authority_meta["authority_capability"],
+                    "selected_authority_id": authority_meta["authority_id"],
+                    "artifact_family": authority_meta["artifact_family"],
+                    "authority_selection_reason": authority_meta["authority_selection_reason"],
+                    "artifact_selection_reason": authority_meta["artifact_selection_reason"],
+                })
         source_class_priorities = (
             ["AUDIT_INSTITUTION", "REGULATOR", "COURT_OR_PROSECUTION", "ELECTION_INTEGRITY", "PROCUREMENT_OVERSIGHT", "INDEPENDENT_ACCOUNTABILITY_REPORTING"]
             if target_function == "ACCOUNTABILITY" else
@@ -1676,7 +1738,14 @@ def create_research_action(
         "source_route": deepcopy(strategy.get("source_route")) if isinstance(strategy.get("source_route"), dict) else None,
         "source_family": strategy.get("source_family") or route_source_family(strategy.get("source_route")),
         "candidate_source_families": list((recovery_need or {}).get("candidate_source_families") or (recovery_need or {}).get("search_constraints", {}).get("candidate_source_families", [])),
+        "candidate_authority_capabilities": list((recovery_need or {}).get("candidate_authority_capabilities") or (recovery_need or {}).get("search_constraints", {}).get("candidate_authority_capabilities", [])),
+        "candidate_artifact_families": list((recovery_need or {}).get("candidate_artifact_families") or (recovery_need or {}).get("search_constraints", {}).get("candidate_artifact_families", [])),
         "selected_source_family": strategy.get("source_family") or route_source_family(strategy.get("source_route")),
+        "authority_capability": strategy.get("authority_capability") or authority_route_metadata(strategy.get("source_route"), (recovery_need or {}).get("target_editorial_function")).get("authority_capability"),
+        "selected_authority_id": strategy.get("selected_authority_id") or authority_route_metadata(strategy.get("source_route"), (recovery_need or {}).get("target_editorial_function")).get("authority_id"),
+        "artifact_family": strategy.get("artifact_family") or authority_route_metadata(strategy.get("source_route"), (recovery_need or {}).get("target_editorial_function")).get("artifact_family"),
+        "authority_selection_reason": strategy.get("authority_selection_reason"),
+        "artifact_selection_reason": strategy.get("artifact_selection_reason"),
         "candidate_routes": [
             {"route_id": item.get("route_id"), "source_id": item.get("source_id"), "source_family": route_source_family(item), "url": item.get("url")}
             for item in ((recovery_need or {}).get("search_constraints", {}).get("configured_source_routes", []) or [])
@@ -3354,6 +3423,12 @@ def build_research_yield_report(
             "candidate_source_families": sorted({str(family) for action in function_actions for family in action.get("candidate_source_families", []) if family}),
             "selected_source_families": sorted({str(action.get("selected_source_family")) for action in function_actions if action.get("selected_source_family") and action.get("selected_source_family") != "UNKNOWN"}),
             "selected_source_routes": sorted({str((action.get("source_route") or {}).get("route_id")) for action in function_actions if isinstance(action.get("source_route"), dict) and (action.get("source_route") or {}).get("route_id")}),
+            "candidate_authority_capabilities": sorted({str(capability) for action in function_actions for capability in action.get("candidate_authority_capabilities", []) if capability}),
+            "selected_authorities": sorted({str(action.get("selected_authority_id")) for action in function_actions if action.get("selected_authority_id")}),
+            "selected_authority_capabilities": sorted({str(action.get("authority_capability")) for action in function_actions if action.get("authority_capability") and action.get("authority_capability") != "AUTHORITY_UNRESOLVED"}),
+            "target_artifact_families": sorted({str(action.get("artifact_family")) for action in function_actions if action.get("artifact_family")}),
+            "authority_selection_reasons": sorted({str(action.get("authority_selection_reason")) for action in function_actions if action.get("authority_selection_reason")}),
+            "artifact_selection_reasons": sorted({str(action.get("artifact_selection_reason")) for action in function_actions if action.get("artifact_selection_reason")}),
             "family_selection_reasons": sorted({str(action.get("selection_reason")) for action in function_actions if action.get("selection_reason")}),
             "source_classes_queried": sorted({item for action in function_actions for item in action.get("source_class_priorities", [])}),
             "source_class_branches_attempted": sorted({str(action.get("target_source_class")) for action in function_actions if action.get("target_source_class")}),
