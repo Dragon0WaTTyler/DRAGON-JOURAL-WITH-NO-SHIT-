@@ -26,6 +26,7 @@ from dragon.discovery import assess_source_url
 from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
+from dragon.source_coverage import need_source_family_policy, route_source_family
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import classify_event_functions, validated_function_names
@@ -1242,6 +1243,16 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 *plan.get("canonical_source_routes", []),
             ] if item.get("url")
         ]
+        # De-duplicate route aliases before applying family diversification.
+        deduped_routes = []
+        seen_route_keys = set()
+        for item in route_candidates:
+            key = str(item.get("route_id") or item.get("url"))
+            if key in seen_route_keys:
+                continue
+            seen_route_keys.add(key)
+            deduped_routes.append(item)
+        route_candidates = deduped_routes
         if target_function == "ACCOUNTABILITY":
             markers = ("AUDIT", "REGULATOR", "COURT", "OVERSIGHT", "PROCUREMENT", "PRIMARY")
         else:
@@ -1252,7 +1263,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             {"SERVICE_PORTAL", "NOTICES", "CONSULTATIONS", "PROCUREMENT_RESULTS", "NEWS_LISTING", "PUBLICATIONS"}
         )
         status_order = {"VERIFIED_WORKING": 0, "VERIFIED_DISCOVERY_ONLY": 1, "UNKNOWN": 2, "STALE": 3, "TRANSIENT_FAILURE": 4, "CURRENTLY_UNUSABLE": 5}
-        route_candidates.sort(key=lambda item: (
+        legacy_route_sort = lambda item: (
             # A verified cross-function national/public portal is a useful
             # process hub for both missing families.  This is capability
             # routing, not a source-quality or evidence decision.
@@ -1262,11 +1273,29 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             0 if any(marker in str(item.get("name") or "").upper() for marker in markers) else 1,
             0 if any(marker in str(item.get("authority_class") or "").upper() for marker in markers) else 1,
             str(item.get("origin") or ""), str(item.get("url") or ""),
-        ))
-        # Keep one deterministic, high-fit route in the bounded ladder.  The
-        # route is a retrieval seed only; it cannot populate observed facts or
-        # confer an evidence role on any returned page.
-        canonical_route = route_candidates[0] if route_candidates else None
+        )
+        route_candidates.sort(key=legacy_route_sort)
+        recognized_families = {
+            route_source_family(item) for item in route_candidates
+            if route_source_family(item) != "UNKNOWN"
+        }
+        family_order = [family for family in need_source_family_policy(target_function) if family in recognized_families]
+        family_routes = []
+        if family_order:
+            for family in family_order:
+                candidate = next((item for item in route_candidates if route_source_family(item) == family), None)
+                if candidate:
+                    family_routes.append(candidate)
+            # Preserve deterministic fallback coverage after the preferred
+            # families, without repeating a family in the bounded ladder.
+            for candidate in route_candidates:
+                if candidate not in family_routes and route_source_family(candidate) not in {route_source_family(item) for item in family_routes}:
+                    family_routes.append(candidate)
+        # Legacy fixtures without normalized family metadata retain their
+        # historical route choice; production routes carry source_family and
+        # therefore use need-scoped family diversification.
+        selected_routes = family_routes or route_candidates[:1]
+        canonical_route = selected_routes[0] if selected_routes else None
         route_origin = _route_search_origin(canonical_route)
         route_languages = set(canonical_route.get("supported_languages") or []) if canonical_route else set()
         route_language = next((lang for lang in (primary_language, alternate_language, "en") if lang and lang in route_languages), primary_language)
@@ -1321,6 +1350,29 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 "current_process_context": current_process or None,
             },
         ]
+        # Give each bounded semantic strategy a distinct relevant family when
+        # the registry exposes one. This is retrieval fairness only; role and
+        # claim validation still happen on the exact fetched artifact.
+        if family_routes:
+            for strategy_index, strategy in enumerate(strategies):
+                selected_route = family_routes[strategy_index % len(family_routes)]
+                strategy["source_route"] = selected_route
+                strategy["source_family"] = route_source_family(selected_route)
+                strategy["source_family_selection_reason"] = "NEED_SOURCE_FAMILY_POLICY" if strategy_index < len(family_order) else "UNTRIED_RELEVANT_FAMILY"
+                strategy["expected_information_gain"] = "NEW_SOURCE_FAMILY" if strategy_index else "EXACT_AUTHORITY_ROUTE"
+                strategy["route_scoped"] = bool(selected_route and strategy_index in {0, 1})
+                if strategy.get("route_scoped"):
+                    selected_origin = _route_search_origin(selected_route)
+                    selected_languages = set(selected_route.get("supported_languages") or [])
+                    selected_language = next((lang for lang in (primary_language, alternate_language, "en") if lang and lang in selected_languages), primary_language)
+                    selected_terms = language_terms.get(selected_language, base_terms)
+                    strategy["query"] = " ".join(item for item in (f"site:{selected_origin}" if selected_origin else "", current_process, selected_terms, route_temporal) if item)
+                elif strategy_index == 2:
+                    strategy["target"] = selected_route.get("url") if selected_route else None
+                    strategy["action_type"] = "FETCH_CONFIGURED_SOURCE" if selected_route else "SEARCH_DISCOVERY"
+        else:
+            for strategy in strategies:
+                strategy.setdefault("source_family", route_source_family(strategy.get("source_route")))
         source_class_priorities = (
             ["AUDIT_INSTITUTION", "REGULATOR", "COURT_OR_PROSECUTION", "ELECTION_INTEGRITY", "PROCUREMENT_OVERSIGHT", "INDEPENDENT_ACCOUNTABILITY_REPORTING"]
             if target_function == "ACCOUNTABILITY" else
@@ -1622,6 +1674,18 @@ def create_research_action(
         "target": target,
         "discovery_only": bool(strategy.get("discovery_only")),
         "source_route": deepcopy(strategy.get("source_route")) if isinstance(strategy.get("source_route"), dict) else None,
+        "source_family": strategy.get("source_family") or route_source_family(strategy.get("source_route")),
+        "candidate_source_families": list((recovery_need or {}).get("candidate_source_families") or (recovery_need or {}).get("search_constraints", {}).get("candidate_source_families", [])),
+        "selected_source_family": strategy.get("source_family") or route_source_family(strategy.get("source_route")),
+        "candidate_routes": [
+            {"route_id": item.get("route_id"), "source_id": item.get("source_id"), "source_family": route_source_family(item), "url": item.get("url")}
+            for item in ((recovery_need or {}).get("search_constraints", {}).get("configured_source_routes", []) or [])
+            if isinstance(item, dict) and item.get("url")
+        ],
+        "selection_reason": strategy.get("source_family_selection_reason") or ("NEED_SOURCE_FAMILY_POLICY" if strategy.get("source_family") else "LEGACY_ROUTE_ORDER"),
+        "families_already_attempted": list((recovery_need or {}).get("families_already_attempted") or []),
+        "expected_information_gain": strategy.get("expected_information_gain") or ("NEW_SOURCE_FAMILY" if strategy.get("source_family") else "ROUTE_ARTIFACT"),
+        "actual_information_gain": None,
         "route_scoped": bool(strategy.get("route_scoped")),
         "route_search_objective": strategy.get("route_search_objective"),
         "navigation_depth": int(strategy.get("navigation_depth", 0) or 0),
@@ -1764,6 +1828,31 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
         if candidate is not None and len(selected) < cap:
             selected.append(candidate)
+    # Mandatory semantic breadth needs receive one additional family branch
+    # when available.  This uses the existing round cap; it only prevents a
+    # generic first-wave action from consuming every opportunity for a
+    # second, relevant source family.
+    semantic_first_wave = [
+        item for item in first_wave
+        if item.get("priority_class") == "P1_BREADTH"
+        and str(item.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+    ]
+    for branch in sorted(semantic_first_wave, key=lambda item: str(item.get("recovery_need_id") or item["action_id"])):
+        if len(selected) >= cap:
+            break
+        if branch["action_id"] not in {item["action_id"] for item in selected}:
+            selected.append(branch)
+    semantic_need_ids = {
+        item.get("recovery_need_id") for item in selected
+        if item.get("priority_class") == "P1_BREADTH"
+        and str(item.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+    }
+    for need_id in sorted(item for item in semantic_need_ids if item):
+        if len(selected) >= cap:
+            break
+        branch = next((item for item in eligible_actions if item.get("recovery_need_id") == need_id and int(item.get("strategy_index", 0)) == 1), None)
+        if branch is not None:
+            selected.append(branch)
     for strategy_index in sorted({int(item.get("strategy_index", 0)) for item in eligible_actions}):
         for priority in sorted(PRIORITY_ORDER, key=PRIORITY_ORDER.get):
             pool = [item for item in eligible_actions if item["priority_class"] == priority]
@@ -3262,6 +3351,10 @@ def build_research_yield_report(
             if item.get("provenance", {}).get("action_id") in function_action_ids
         ]
         function_metrics[function] = {
+            "candidate_source_families": sorted({str(family) for action in function_actions for family in action.get("candidate_source_families", []) if family}),
+            "selected_source_families": sorted({str(action.get("selected_source_family")) for action in function_actions if action.get("selected_source_family") and action.get("selected_source_family") != "UNKNOWN"}),
+            "selected_source_routes": sorted({str((action.get("source_route") or {}).get("route_id")) for action in function_actions if isinstance(action.get("source_route"), dict) and (action.get("source_route") or {}).get("route_id")}),
+            "family_selection_reasons": sorted({str(action.get("selection_reason")) for action in function_actions if action.get("selection_reason")}),
             "source_classes_queried": sorted({item for action in function_actions for item in action.get("source_class_priorities", [])}),
             "source_class_branches_attempted": sorted({str(action.get("target_source_class")) for action in function_actions if action.get("target_source_class")}),
             "source_class_memory": sorted({str(item) for action in function_actions for item in action.get("source_class_memory_before", [])}),
@@ -3754,6 +3847,14 @@ def execute_research_round(
             raw_results = [{"result_type": "DEAD_END", "reason": str(exc)}]
         if not isinstance(raw_results, list):
             raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
+        # Keep retrieval telemetry separate from evidence semantics.  This
+        # records whether the action produced any bounded material; it never
+        # treats a result as trusted or publication-eligible.
+        action["actual_information_gain"] = (
+            "NEW_RETRIEVAL_MATERIAL"
+            if any(str(item.get("result_type") or "").upper() not in {"DEAD_END", "IRRELEVANT", "DUPLICATE"} for item in raw_results if isinstance(item, dict))
+            else "NO_NEW_INFORMATION"
+        )
         feedback_leads: list[dict] = []
         listing_children: list[tuple[dict, dict]] = []
         for raw in raw_results:

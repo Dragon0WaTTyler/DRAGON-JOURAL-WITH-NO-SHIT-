@@ -6,7 +6,7 @@ from collections import defaultdict
 from copy import deepcopy
 import re
 
-from dragon.source_coverage import desk_recovery_context
+from dragon.source_coverage import desk_recovery_context, need_source_family_policy, route_source_family
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import validated_function_names
 
@@ -341,6 +341,11 @@ def build_recovery_plan(
                 target_function = ordered[index % len(ordered)]
                 route_section = "investigations" if target_function == "ACCOUNTABILITY" else "service"
             route_context = desk_recovery_context(coverage, route_section, capability=target_function)
+            candidate_routes = route_context.get("configured_source_routes", [])
+            candidate_families = []
+            for family in need_source_family_policy(target_function):
+                if any(route_source_family(route) == family for route in candidate_routes):
+                    candidate_families.append(family)
             needs.append({
                 "need_id": need_id,
                 "kind": f"NEED_{rule['id'].upper()}",
@@ -363,7 +368,12 @@ def build_recovery_plan(
                     "must_satisfy_primary_and_independent_evidence": True,
                     "configured_source_routes": route_context["configured_source_routes"],
                     "configured_discovery_routes": route_context.get("configured_discovery_routes", []),
+                    "candidate_source_families": candidate_families,
+                    "source_family_policy": need_source_family_policy(target_function),
                 },
+                "candidate_source_families": candidate_families,
+                "source_family_policy": need_source_family_policy(target_function),
+                "families_already_attempted": [],
                 # Normal breadth owns its own geography policy.  This is
                 # intentionally separate from the Super Investigation scope
                 # guard and prevents that subsystem's metadata from leaking

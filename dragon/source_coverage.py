@@ -49,6 +49,35 @@ VALID_SOURCE_FAMILIES = {
     "SOCIAL_OFFICIAL", "SOCIAL_NONOFFICIAL", "DISCOVERY_ONLY",
 }
 
+# Need-scoped routing is execution metadata only.  It determines which
+# configured families get an opportunity inside the unchanged action budget;
+# it never confers an evidence role on a fetched artifact.
+NEED_SOURCE_FAMILY_ORDER = {
+    "ACCOUNTABILITY": (
+        "JUDICIAL_PROSECUTORIAL", "REGULATORY", "PUBLIC_FINANCE",
+        "PUBLIC_PROCUREMENT", "PARLIAMENTARY", "MOROCCAN_CIVIL_SOCIETY",
+        "INDEPENDENT_MEDIA", "OFFICIAL_GOVERNMENT",
+    ),
+    "SERVICE": (
+        "OFFICIAL_GOVERNMENT", "PUBLIC_OPERATOR", "PUBLIC_STATISTICS",
+        "LOCAL_GOVERNMENT", "PUBLIC_FINANCE", "MOROCCAN_UNION",
+        "MOROCCAN_CIVIL_SOCIETY", "INDEPENDENT_MEDIA",
+    ),
+}
+
+
+def need_source_family_policy(function: str | None) -> list[str]:
+    """Return deterministic family priority for a semantic recovery need."""
+    return list(NEED_SOURCE_FAMILY_ORDER.get(str(function or "").upper(), ()))
+
+
+def route_source_family(route: dict | None) -> str:
+    """Read a route's normalized family without treating it as trust."""
+    if not isinstance(route, dict):
+        return "UNKNOWN"
+    family = str(route.get("source_family") or "").upper().strip()
+    return family if family in VALID_SOURCE_FAMILIES else "UNKNOWN"
+
 
 def _default_source_family(source: dict) -> str:
     """Derive a conservative family for legacy entries without changing roles."""
@@ -344,11 +373,12 @@ def load_source_coverage(path: Path, expected_sections: set[str]) -> dict:
 def desk_recovery_context(coverage: dict, section_id: str, *, capability: str | None = None) -> dict:
     """Return only bounded configured routing hints for one recovery need."""
     desk = next(item for item in coverage["desks"] if item["section_id"] == section_id)
-    sources = {item["source_id"]: item for item in coverage["sources"]}
+    normalized = validate_source_registry(coverage)
+    sources = {item["source_id"]: item for item in normalized["sources"]}
     routes = [sources[source_id] for source_id in desk["source_ids"]]
     route_source_ids = {route["source_id"] for route in routes}
     registry = [
-        item for item in coverage.get("institution_routes", [])
+        item for item in normalized.get("institution_routes", [])
         if item.get("status") in {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY"}
         and (item.get("source_id") in route_source_ids or (capability and capability in (item.get("semantic_capabilities") or [])))
     ]
@@ -368,6 +398,10 @@ def desk_recovery_context(coverage: dict, section_id: str, *, capability: str | 
                 "url": variant.get("route_url") if variant else item["url"],
                 "origin": item["origin"], "role": item["role"], "enabled": item["enabled"],
                 "authority_class": item["authority_class"],
+                "source_family": item.get("source_family", _default_source_family(item)),
+                "authority_scope": item.get("authority_scope", "unspecified"),
+                "publisher": item.get("publisher", item.get("name")),
+                "route_languages": list(item.get("languages", ["ar", "fr", "en"])),
                 "source_class": "OFFICIAL_INSTITUTION" if item["role"] == "PRIMARY" else "INDEPENDENT_NEWSROOM",
                 "discovery_only": item["discovery_only"],
                 "route_id": variant.get("route_id") if variant else f"{item['source_id']}-canonical",
