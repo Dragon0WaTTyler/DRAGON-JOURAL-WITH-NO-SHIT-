@@ -340,6 +340,15 @@ def select_leads_for_followup(observations: list[dict], actions_by_id: dict[str,
             if item.get("_followup_need"):
                 continue
             item_parent = actions_by_id[item["provenance"]["action_id"]]
+            # Discovery eligibility is a network-safety check, not an
+            # evidence-role check.  Reject unsafe targets before they enter
+            # the bounded fetch queue, while retaining an auditable reason.
+            lead_safety = assess_source_url(str(item.get("url") or ""))
+            if lead_safety.get("state") == "URL_UNSAFE":
+                item["lead_attrition_state"] = "DISCOVERED_NOT_SELECTED"
+                item["lead_attrition_reason"] = "RESULT_FILTERED_SECURITY"
+                item["discovery_filter_reason"] = lead_safety.get("reason") or "URL_UNSAFE"
+                continue
             require_event_diversity = (
                 str(item_parent.get("priority_class") or "") == "P1_DISTINCT_EVENT"
                 and not item_parent.get("event_lead_feedback")
@@ -2053,12 +2062,16 @@ class SearxngSearchAdapter:
         if not isinstance(results, list):
             return [{"result_type": "DEAD_END", "reason": "SEARXNG_RESPONSE_INVALID", "diagnostic": "BACKEND_SCHEMA_UNEXPECTED", "discovery_channel": self.adapter_id}]
         normalized = []
+        missing_url_results = 0
+        invalid_url_results = 0
         timestamp = datetime.now(timezone.utc).isoformat()
         for rank, item in enumerate(results[: self.maximum_results], start=1):
-            if not isinstance(item, dict) or not isinstance(item.get("url"), str):
+            if not isinstance(item, dict) or not isinstance(item.get("url"), str) or not item.get("url", "").strip():
+                missing_url_results += 1
                 continue
             url = item["url"].strip()
             if not url.startswith(("https://", "http://")):
+                invalid_url_results += 1
                 continue
             normalized.append({
                 "result_type": "LEAD", "canonical_url": url,
@@ -2082,7 +2095,12 @@ class SearxngSearchAdapter:
         return [{
             "result_type": "DEAD_END",
             "reason": "SEARXNG_NO_MATCHES",
-            "diagnostic": "BACKEND_EMPTY" if not results else "RESULT_PARSE_EMPTY",
+            "diagnostic": (
+                "BACKEND_EMPTY" if not results else
+                "RESULT_URL_MISSING" if missing_url_results and not invalid_url_results else
+                "RESULT_URL_INVALID" if invalid_url_results and not missing_url_results else
+                "RESULT_PARSE_EMPTY"
+            ),
             "discovery_channel": self.adapter_id,
         }]
 

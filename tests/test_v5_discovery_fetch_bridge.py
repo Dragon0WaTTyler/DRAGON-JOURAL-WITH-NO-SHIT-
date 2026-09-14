@@ -88,7 +88,24 @@ def test_empty_and_parse_empty_are_distinct_backend_diagnostics():
         transport=lambda url, *_: FetchResponse(url, 200, "application/json", b'{"results": [{"title": "missing url"}]}'),
     ).execute({"action_type": "SEARCH_DISCOVERY", "query": "parse"})[0]
     assert empty["diagnostic"] == "BACKEND_EMPTY"
-    assert malformed_items["diagnostic"] == "RESULT_PARSE_EMPTY"
+    assert malformed_items["diagnostic"] == "RESULT_URL_MISSING"
+
+
+def test_unsafe_discovery_target_is_filtered_before_fetch():
+    job = _job()
+    action = plan_research_actions(job, CONFIG)[0]
+    adapter = FixtureResearchAdapter({
+        action["action_type"]: [{
+            "result_type": "LEAD", "canonical_url": "http://127.0.0.1/private",
+            "title": "Unsafe result", "claim": "service",
+        }],
+        "FETCH_URL": [{"result_type": "LEAD", "canonical_url": "http://127.0.0.1/private", "fetch_status": "FETCHED", "text": "should not fetch", "content_hash": "c" * 64}],
+    })
+    adapter.follow_discovery_leads = True
+    execution = execute_research_round(job, adapter, CONFIG, actions=[action])
+    assert not any(item["action_type"] == "FETCH_URL" for item in execution["actions"])
+    lead = execution["observations"][0]
+    assert lead["lead_attrition_reason"] == "RESULT_FILTERED_SECURITY"
 
 
 def test_rss_empty_is_backend_empty_not_a_generic_no_matches_state():
