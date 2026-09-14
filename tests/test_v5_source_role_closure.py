@@ -16,6 +16,7 @@ def test_direct_support_republication_survives_as_observation_without_primary():
     observation = {
         "observation_id": "OBS-1", "source_id": "SRC-1", "origin": "maroc.ma",
         "source_class": "unknown", "verification_status": "EXTRACTED_NOT_VERIFIED",
+        "page_publisher": "Maroc.ma", "stated_issuing_authority": "Public Prosecution", "content_origin": "MAP",
         "event_skeleton": {
             "state": "CONCRETE_EVENT", "event_fingerprint": "EVENT-1", "title": "Monitoring directive",
             "actor": "Public Prosecution", "action": "orders monitoring", "object": "election complaints",
@@ -42,6 +43,9 @@ def test_direct_support_republication_survives_as_observation_without_primary():
     bundles, _ = build_event_bundles([observation], [], [], [action])
     assert bundles[0]["observations"] == ["OBS-1"]
     assert bundles[0]["support_observations"][0]["role"] == "REPUBLICATION"
+    assert bundles[0]["support_observations"][0]["publisher"] == "Maroc.ma"
+    assert bundles[0]["support_observations"][0]["origin"] == "MAP"
+    assert bundles[0]["support_observations"][0]["issuer"] == "Public Prosecution"
     assert bundles[0]["support_observations"][0]["primary_requirement_satisfied"] is False
     assert bundles[0]["state"] in {"EVENT_LEAD_DISCOVERY_ONLY", "EVENT_EVIDENCE_BLOCKED", "EVENT_EVIDENCE_PARTIAL"}
     assert bundles[0]["candidate_discovery"] is None

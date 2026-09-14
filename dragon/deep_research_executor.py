@@ -2615,6 +2615,11 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "state": "OBSERVATION_CREATED",
             "claim_support": deepcopy(support),
             "role": observed_role,
+            "publisher": post_fetch_qualification.get("publisher"),
+            "issuer": post_fetch_qualification.get("issuer"),
+            "origin": post_fetch_qualification.get("origin"),
+            "original_artifact_state": origin_detail.get("original_artifact_state"),
+            "lineage_edges": deepcopy(origin_detail.get("provenance_edges") or []),
             "primary_requirement_satisfied": observed_role == "PRIMARY",
             "requirement_state": "MET" if observed_role == "PRIMARY" else "NOT_MET",
             "observation_id": None,
@@ -2866,7 +2871,13 @@ def build_event_bundles(
             continue
         bundle["observations"].append(observation.get("observation_id"))
         if isinstance(observation.get("support_observation"), dict):
-            bundle["support_observations"].append(deepcopy(observation["support_observation"]))
+            support_record = deepcopy(observation["support_observation"])
+            support_record.setdefault("publisher", observation.get("page_publisher") or observation.get("origin"))
+            support_record.setdefault("issuer", observation.get("stated_issuing_authority"))
+            support_record.setdefault("origin", observation.get("content_origin"))
+            support_record.setdefault("original_artifact_state", observation.get("original_artifact_state"))
+            support_record.setdefault("lineage_edges", deepcopy(observation.get("provenance_edges") or []))
+            bundle["support_observations"].append(support_record)
         parent_id = provenance.get("originating_observation_id")
         if parent_id:
             bundle["provenance_edges"].append({"from_observation_id": parent_id, "relation": "CITES_OR_POINTS_TO", "to_source_id": observation.get("source_id"), "to_observation_id": observation.get("observation_id")})
@@ -3657,6 +3668,11 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
             "state": "OBSERVATION_CREATED",
             "claim_support": deepcopy(support),
             "role": observed_role,
+            "publisher": observation.get("page_publisher") or observation.get("origin"),
+            "issuer": observation.get("stated_issuing_authority"),
+            "origin": observation.get("content_origin"),
+            "original_artifact_state": observation.get("original_artifact_state"),
+            "lineage_edges": deepcopy(observation.get("provenance_edges") or []),
             "primary_requirement_satisfied": observed_role == "PRIMARY",
             "requirement_state": "MET" if observed_role == "PRIMARY" else "NOT_MET",
             "observation_id": observation.get("observation_id"),
