@@ -10,6 +10,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from urllib.parse import urlparse
+from datetime import datetime, timezone
+from copy import deepcopy
+from urllib.request import Request, urlopen
 
 import yaml
 
@@ -37,6 +40,200 @@ VALID_ROUTE_TYPES = {
     "AUDIT_PUBLICATIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS", "OTHER_PUBLIC_INDEX",
 }
 VALID_ROUTE_STATUS = {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY", "TRANSIENT_FAILURE", "STALE", "CURRENTLY_UNUSABLE", "UNKNOWN"}
+VALID_SOURCE_FAMILIES = {
+    "OFFICIAL_GOVERNMENT", "PARLIAMENTARY", "JUDICIAL_PROSECUTORIAL", "REGULATORY",
+    "PUBLIC_STATISTICS", "PUBLIC_FINANCE", "PUBLIC_PROCUREMENT", "LOCAL_GOVERNMENT",
+    "PUBLIC_OPERATOR", "MOROCCAN_CIVIL_SOCIETY", "MOROCCAN_UNION",
+    "MOROCCAN_PROFESSIONAL_BODY", "MOROCCAN_THINK_TANK", "INTERNATIONAL_ORGANIZATION",
+    "ACADEMIC_RESEARCH", "INDEPENDENT_MEDIA", "WIRE_NEWS_AGENCY", "ARCHIVE_PUBLIC_RECORD",
+    "SOCIAL_OFFICIAL", "SOCIAL_NONOFFICIAL", "DISCOVERY_ONLY",
+}
+
+
+def _default_source_family(source: dict) -> str:
+    """Derive a conservative family for legacy entries without changing roles."""
+    if source.get("discovery_only"):
+        return "DISCOVERY_ONLY"
+    if source.get("role") == "INDEPENDENT":
+        return "INDEPENDENT_MEDIA"
+    authority = str(source.get("authority_class") or "").upper()
+    if "STAT" in authority or source.get("source_id") == "hcp":
+        return "PUBLIC_STATISTICS"
+    if "PROCURE" in authority or source.get("source_id") == "public-procurement":
+        return "PUBLIC_PROCUREMENT"
+    if source.get("source_id") in {"un-news", "un-ocha-opt", "who-news", "unesco-culture", "world-bank-morocco"}:
+        return "INTERNATIONAL_ORGANIZATION"
+    if source.get("source_id") in {"nature-research", "imist-journals"}:
+        return "ACADEMIC_RESEARCH"
+    if source.get("source_id") in {"archives-maroc", "bnrm"}:
+        return "ARCHIVE_PUBLIC_RECORD"
+    return "OFFICIAL_GOVERNMENT"
+
+
+def validate_source_registry(coverage: dict) -> dict:
+    """Validate/normalize source-intelligence metadata without granting evidence."""
+    if not isinstance(coverage, dict):
+        raise SourceCoverageError("SOURCE_REGISTRY_ROOT_INVALID")
+    sources = coverage.get("sources")
+    if not isinstance(sources, list):
+        raise SourceCoverageError("SOURCE_REGISTRY_SOURCES_INVALID")
+    normalized = deepcopy(coverage)
+    profiles = normalized.get("source_profiles") or []
+    if not isinstance(profiles, list):
+        raise SourceCoverageError("SOURCE_REGISTRY_PROFILES_INVALID")
+    source_ids = {item.get("source_id") for item in sources if isinstance(item, dict)}
+    seen: set[str] = set()
+    for profile in profiles:
+        if not isinstance(profile, dict):
+            raise SourceCoverageError("SOURCE_REGISTRY_PROFILE_INVALID")
+        identifier = profile.get("source_id")
+        if not isinstance(identifier, str) or not identifier or identifier in seen:
+            raise SourceCoverageError("SOURCE_REGISTRY_PROFILE_ID_INVALID")
+        if identifier not in source_ids:
+            raise SourceCoverageError("SOURCE_REGISTRY_PROFILE_SOURCE_UNKNOWN")
+        family = profile.get("source_family")
+        if family not in VALID_SOURCE_FAMILIES:
+            raise SourceCoverageError("SOURCE_REGISTRY_FAMILY_INVALID")
+        if not isinstance(profile.get("authority_scope"), str) or not profile["authority_scope"].strip():
+            raise SourceCoverageError("SOURCE_REGISTRY_AUTHORITY_SCOPE_INVALID")
+        if not isinstance(profile.get("languages"), list) or not profile["languages"]:
+            raise SourceCoverageError("SOURCE_REGISTRY_LANGUAGES_INVALID")
+        routes = profile.get("routes") or {}
+        if not isinstance(routes, dict):
+            raise SourceCoverageError("SOURCE_REGISTRY_ROUTES_INVALID")
+        for route_name, route_url in routes.items():
+            if not isinstance(route_name, str) or not route_name or not _https(route_url):
+                raise SourceCoverageError("SOURCE_REGISTRY_ROUTE_INVALID")
+        seen.add(identifier)
+    # Legacy entries are intentionally normalized in-memory only.  This gives
+    # callers a complete inventory while preserving the committed schema.
+    profile_by_id = {item["source_id"]: item for item in profiles}
+    for source in normalized["sources"]:
+        profile = profile_by_id.get(source.get("source_id"), {})
+        source.setdefault("source_family", profile.get("source_family", _default_source_family(source)))
+        source.setdefault("authority_scope", profile.get("authority_scope", "unspecified"))
+        source.setdefault("publisher", profile.get("publisher", source.get("name")))
+        source.setdefault("languages", profile.get("languages", ["ar", "fr", "en"]))
+        source.setdefault("routes", profile.get("routes", {"homepage": source.get("url")}))
+    normalized["source_profiles"] = profiles
+    return normalized
+
+
+def build_source_coverage_report(
+    coverage: dict,
+    *,
+    edition_date: str | None = None,
+    run_id: str | None = None,
+    route_health: list[dict] | None = None,
+) -> dict:
+    """Build a deterministic coverage inventory; route metadata is not evidence."""
+    normalized = validate_source_registry(coverage)
+    sources = normalized["sources"]
+    routes = normalized.get("institution_routes", [])
+    enabled = [item for item in sources if item.get("enabled") is True]
+    active_route_ids = {item.get("route_id") for item in routes if item.get("status") in {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY"}}
+    health = [deepcopy(item) for item in (route_health or []) if isinstance(item, dict)]
+    working_ids = {item.get("source_id") for item in health if item.get("status") == "VERIFIED_WORKING"}
+    family_counts: dict[str, int] = {}
+    for source in sources:
+        family = source.get("source_family", _default_source_family(source))
+        family_counts[family] = family_counts.get(family, 0) + 1
+    profiles_by_id = {item.get("source_id"): item for item in normalized.get("source_profiles", []) if isinstance(item, dict)}
+    health_by_route = {item.get("route_id"): item for item in health}
+    usability = []
+    for source in sources:
+        source_routes = [item for item in routes if item.get("source_id") == source.get("source_id")]
+        route_health_states = [health_by_route.get(item.get("route_id"), {}).get("status") for item in source_routes]
+        if any(state == "VERIFIED_WORKING" for state in route_health_states):
+            route_types = {item.get("route_type") for item in source_routes}
+            state = "DOCUMENT_USABLE" if route_types & {"PUBLICATIONS", "REPORTS", "DECISIONS", "AUDIT_PUBLICATIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS"} else "DETAIL_USABLE"
+        elif any(state in {"TRANSIENT_FAILURE", "STALE", "CURRENTLY_UNUSABLE"} for state in route_health_states):
+            state = "DEGRADED"
+        elif source.get("discovery_only"):
+            state = "DISCOVERY_ONLY"
+        else:
+            state = "DISCOVERY_ONLY" if not source_routes else "DEGRADED"
+        usability.append({"source_id": source.get("source_id"), "name": source.get("name"), "state": state, "active": source.get("enabled") is True})
+    route_counts = {
+        "with_feed": sum(bool(profiles_by_id.get(item.get("source_id"), {}).get("routes", {}).get("rss")) for item in sources),
+        "with_detail_route": sum(item.get("route_type") not in {"NEWS_LISTING", "OTHER_PUBLIC_INDEX"} for item in routes),
+        "with_document_route": sum(item.get("route_type") in {"PUBLICATIONS", "REPORTS", "DECISIONS", "AUDIT_PUBLICATIONS", "COURT_DECISIONS", "REGULATORY_ACTIONS"} for item in routes),
+        "with_dataset_route": sum("DATASET" in (item.get("semantic_capabilities") or []) for item in routes),
+    }
+    return {
+        "schema_version": 1,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "edition_date": edition_date,
+        "run_id": run_id,
+        "configured_source_count": len(sources),
+        "active_source_count": len(enabled),
+        "reachable_source_count": len(working_ids) if health else None,
+        "active_route_count": len(active_route_ids),
+        "route_counts": route_counts,
+        "source_families": dict(sorted(family_counts.items())),
+        "sources": [
+            {
+                "source_id": item.get("source_id"), "name": item.get("name"),
+                "publisher": item.get("publisher", item.get("name")),
+                "source_family": item.get("source_family", _default_source_family(item)),
+                "authority_scope": item.get("authority_scope", "unspecified"),
+                "role": item.get("role"), "enabled": item.get("enabled"),
+                "routes": [deepcopy(route) for route in routes if route.get("source_id") == item.get("source_id")],
+            }
+            for item in sources
+        ],
+        "route_health": health,
+        "source_usability": usability,
+        "unreachable_sources": sorted({item.get("route_id") for item in health if item.get("status") in {"TRANSIENT_FAILURE", "CURRENTLY_UNUSABLE", "UNREACHABLE"}}),
+        "discovery_only_sources": sorted(item.get("source_id") for item in sources if item.get("discovery_only")),
+        "research_semantics": deepcopy(normalized.get("research_semantics", {})),
+    }
+
+
+def probe_source_routes(
+    coverage: dict,
+    *,
+    transport=None,
+    timeout_seconds: int = 8,
+    max_routes: int = 32,
+) -> list[dict]:
+    """Perform a bounded, read-only health probe of configured public routes.
+
+    The result is execution telemetry only.  A working route is never treated
+    as an evidence role or a source-credibility score.
+    """
+    normalized = validate_source_registry(coverage)
+    routes = [
+        item for item in normalized.get("institution_routes", [])
+        if item.get("status") in {"VERIFIED_WORKING", "VERIFIED_DISCOVERY_ONLY"}
+    ][:max(0, int(max_routes))]
+    if transport is None:
+        def transport(url: str, timeout: int):
+            request = Request(url, headers={"User-Agent": "DRAGON-source-health/1.0"}, method="HEAD")
+            with urlopen(request, timeout=timeout) as response:  # nosec B310 - URLs are validated HTTPS routes
+                return int(getattr(response, "status", 200)), str(response.geturl())
+    results = []
+    for route in routes:
+        url = route["route_url"]
+        started = datetime.now(timezone.utc)
+        try:
+            outcome = transport(url, timeout_seconds)
+            if isinstance(outcome, tuple):
+                status_code, final_url = outcome[0], outcome[1] if len(outcome) > 1 else url
+            else:
+                status_code, final_url = getattr(outcome, "status", 200), getattr(outcome, "url", url)
+            ok = 200 <= int(status_code) < 400
+            status = "VERIFIED_WORKING" if ok else "TRANSIENT_FAILURE"
+            reason = None if ok else f"HTTP_{status_code}"
+        except Exception as exc:  # telemetry must classify failures, not abort the run
+            status, reason, status_code, final_url = "TRANSIENT_FAILURE", type(exc).__name__, None, url
+        results.append({
+            "route_id": route["route_id"], "source_id": route["source_id"],
+            "url": url, "status": status, "http_status": status_code,
+            "final_url": str(final_url), "reason": reason,
+            "checked_at": started.isoformat(),
+        })
+    return results
 
 
 def _https(value: object) -> bool:
