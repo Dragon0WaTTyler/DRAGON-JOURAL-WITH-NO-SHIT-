@@ -591,7 +591,7 @@ _EDITORIAL_VALUE_MARKERS = (
 
 _EVENT_ACTION_MARKERS = (
     "sign", "signs", "signed", "ban", "bans", "banned", "announce", "announces", "announced", "launch", "launches", "launched", "approve", "approves", "approved", "adopt", "adopts", "adopted", "report", "reports", "reported", "sanction", "sanctions", "agree", "agrees", "agreed", "open", "opens", "opened", "close", "closes", "closed", "arrest", "arrests", "arrested", "appoint", "appoints", "appointed", "elect", "elects", "elected", "register", "registers", "registered", "registration", "inspect", "inspects", "inspected", "monitor", "monitors", "monitored", "enforce", "enforces", "enforced", "deadline", "expires", "expire", "change", "changes", "changed", "suspend", "suspends", "suspended",
-    "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "orders", "order", "directive", "circular", "monitoring", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
+    "inscription", "inscrit", "ouvre", "ouvert", "ferme", "fermeture", "contrôle", "contrôler", "surveille", "surveillance", "publie", "publié", "publiée", "publier", "orders", "order", "directive", "circular", "monitoring", "تنفيذ", "يفتش", "يفتح", "يغلق", "يسجل", "مراقبة", "يراقب", "مهلة", "ينتهي", "تغيير", "يوقف",
     "يفتح", "يوقع", "توقع", "يعلن", "أعلن", "يعتمد", "يحظر", "يفرض", "ينشر", "تقرير", "انتخاب", "اتفاق",
     "دعا", "دعت", "يدعو", "تدعو", "توجيهات", "التصدي", "تتبع", "مواكبة", "بلاغ",
 )
@@ -761,7 +761,7 @@ def _canonical_event_action(value: object) -> str:
         "ban": {"ban", "bans", "banned", "sanction", "sanctions", "يحظر", "يفرض"},
         "announce": {"announce", "announced", "launch", "launched", "يعلن", "أعلن", "اعلنت"},
         "approve": {"approve", "approved", "adopt", "adopted", "يعتمد"},
-        "report": {"report", "reported", "تقرير", "ينشر"},
+        "report": {"report", "reported", "publish", "published", "publie", "publié", "publiée", "تقرير", "ينشر"},
     }
     return next((name for name, aliases in groups.items() if action in aliases), action)
 
@@ -965,6 +965,19 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
             "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": "SYNDICATION_UNRESOLVED",
             "independence_state": "INDEPENDENCE_UNRESOLVED", "shared_organization_aliases": shared_aliases,
             "reason": "EVENT_MATCH_UNRESOLVED",
+        }
+    # A hostname-shaped title supplies no page-derived assertion that the
+    # publisher performed the extracted action.  In particular, it must not
+    # turn a host-label actor inferred from the same title into a circular
+    # primary-source identity match.
+    host_label = re.sub(r"[^a-z0-9\u0600-\u06ff]+", "", (urlsplit(url).hostname or "").casefold())
+    title_label = re.sub(r"[^a-z0-9\u0600-\u06ff]+", "", title.casefold())
+    if shared_aliases and host_label and title_label == host_label:
+        return {
+            "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
+            "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": "SYNDICATION_UNRESOLVED",
+            "independence_state": "INDEPENDENCE_UNRESOLVED", "shared_organization_aliases": shared_aliases,
+            "reason": "PUBLISHER_EVENT_RELATION_TITLE_IS_HOST_LABEL",
         }
     if origin_detail.get("article_origin_state") == "OFFICIAL_PORTAL_REPUBLICATION":
         # A portal page can report an issuer's action, but republication is

@@ -106,7 +106,12 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
         "مستجد", "تحديث", "قرار", "إجراء", "شكوى", "نتيجة",
         "nouveau", "mise à jour", "décision", "plainte", "résultat",
     )
-    if start and end and start <= edition <= end:
+    # A page published after the edition cutoff was unavailable to that
+    # edition. Its inferred operational dates cannot make it retroactively
+    # eligible.
+    if publication and publication > edition:
+        kind, active, reason = "TEMPORAL_RELEVANCE_UNRESOLVED", False, "PUBLICATION_AFTER_EDITION_DATE"
+    elif start and end and start <= edition <= end:
         kind, active, reason = "ACTIVE_OPERATIONAL_WINDOW", True, "EXPLICIT_EFFECTIVE_INTERVAL_INCLUDES_EDITION_DATE"
     elif deadline:
         kind, active, reason = ("ACTIVE_DEADLINE_WINDOW", True, "EXPLICIT_DEADLINE_REMAINS_OPEN_ON_EDITION_DATE") if deadline >= edition else ("EVENT_EXPIRED", False, "EXPLICIT_DEADLINE_PRECEDES_EDITION_DATE")
@@ -116,8 +121,6 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
         kind, active, reason = "CONTINUING_EVENT_NEW_DEVELOPMENT", True, "DATED_MATERIAL_DEVELOPMENT_ON_CONTINUING_EVENT"
     elif publication and publication[:7] == edition[:7]:
         kind, active, reason = "PUBLICATION_WINDOW", True, "PUBLICATION_TIME_IN_EDITION_MONTH"
-    elif publication and publication > edition:
-        kind, active, reason = "TEMPORAL_RELEVANCE_UNRESOLVED", False, "PUBLICATION_AFTER_EDITION_DATE"
     elif publication:
         kind, active, reason = "TEMPORAL_RELEVANCE_UNRESOLVED", False, "NO_EXPLICIT_ACTIVE_WINDOW"
     else:

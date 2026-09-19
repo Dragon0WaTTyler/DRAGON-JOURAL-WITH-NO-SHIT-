@@ -26,6 +26,7 @@ from dragon.deep_research_executor import (
     build_research_yield_report,
     create_research_action,
     execute_research_round,
+    extract_event_skeleton,
     match_event_skeletons,
     plan_research_actions,
     rank_discovery_leads,
@@ -1047,6 +1048,39 @@ def test_profile_aliases_support_cross_language_organization_identity_without_fu
     assert matched["source_class"] == "primary"
     ambiguous = resolve_exact_source_role(raw, action, {"state": "CONCRETE_EVENT", "actor": "هيئة وطنية أخرى", "action": "sign"})
     assert ambiguous["source_class"] == "unknown"
+
+
+def test_hostname_only_title_cannot_establish_publisher_as_event_actor() -> None:
+    """Preserved 906bbb17 regression: a site label is not an issuer byline."""
+    action = _job().get("branches")[0]
+    raw = {
+        "url": "https://lemaroc35.ma/134254",
+        "title": "lemaroc35.ma",
+        "text": "lemaroc35.ma announced an official statement on election oversight. " * 12,
+        "article_metadata": {"publisher": {"name": "LE MAROC 35"}, "jsonld_article_types": []},
+        "publisher_profile": {"canonical_domain": "lemaroc35.ma", "canonical_publisher_name": "LE MAROC 35"},
+    }
+    skeleton = {"state": "CONCRETE_EVENT", "actor": "lemaroc35ma", "action": "announce"}
+
+    resolved = resolve_exact_source_role(raw, action, skeleton)
+
+    assert resolved["source_class"] == "unknown"
+    assert resolved["evidence_role"] == "UNRESOLVED"
+    assert resolved["reason"] == "PUBLISHER_EVENT_RELATION_TITLE_IS_HOST_LABEL"
+
+
+def test_french_publie_is_a_concrete_report_publication_action() -> None:
+    """Preserved Court-of-Auditors wording must not lose its event action."""
+    raw = {
+        "title": "La Cour des Comptes publie son rapport annuel au titre de 2024-2025",
+        "published_at": "2026-01-28T12:55:48+00:00",
+        "text": "La Cour des Comptes publie son rapport annuel au titre de 2024-2025. " * 12,
+    }
+
+    skeleton = extract_event_skeleton(raw, {})
+
+    assert skeleton["state"] == "CONCRETE_EVENT"
+    assert skeleton["action"] == "publie"
 
 
 def test_primary_status_does_not_convert_prediction_or_audit_finding_into_broader_claim_support() -> None:

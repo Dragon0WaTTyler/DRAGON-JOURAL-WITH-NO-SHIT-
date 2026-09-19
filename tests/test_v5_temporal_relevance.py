@@ -53,6 +53,15 @@ def test_old_regulation_without_new_action_is_not_current_news() -> None:
     assert value["rejection_reason"] == "NO_EXPLICIT_ACTIVE_WINDOW"
 
 
+def test_future_publication_cannot_qualify_retroactively_in_edition_month() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-18",
+        text="The regulator published a finding on 2026-09-18.",
+    ), EDITION)
+    assert value["active_on_edition_date"] is False
+    assert value["rejection_reason"] == "PUBLICATION_AFTER_EDITION_DATE"
+
+
 def test_continuing_event_requires_dated_material_development() -> None:
     value = evaluate_temporal_relevance(_page(
         published_at="2026-05-01", new_development_date="2026-09-12",
