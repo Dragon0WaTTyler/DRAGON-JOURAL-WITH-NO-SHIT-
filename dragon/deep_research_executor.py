@@ -243,12 +243,19 @@ def _lead_priority(observation: dict, action: dict) -> tuple[str, list[str], tup
         # above publication recency for SERVICE.
         url_path = str(observation.get("url") or "").casefold()
         artifact_markers = {
-            "ACCOUNTABILITY": ("decision", "directive", "report", "audit", "oversight", "monitor", "complaint", "enforcement", "prosecution", "mobilisation", "electoral", "communique", "arrêt", "rapport", "رقابة", "شكايات", "مراقبة", "النيابة", "تعبئة", "مخالفات", "انتخابات"),
-            "SERVICE": ("notice", "registration", "deadline", "procedure", "polling", "proxy", "voting", "election", "eligibility", "service", "avis", "inscription", "échéance", "bureau", "تسجيل", "أجل", "إشعار", "منصة", "إجراء", "التصويت", "الانتخابات", "الوكالة"),
+            "ACCOUNTABILITY": ("decision", "directive", "report", "audit", "oversight", "monitor", "complaint", "enforcement", "prosecution", "mobilisation", "electoral", "communique", "arrêt", "rapport", "رقابة", "شكايات", "مراقبة", "النيابة", "تعبئة", "مخالفات", "انتخابات", "انتخاب", "نزاهة", "تتبع", "متابعة", "دورية", "بلاغ"),
+            "SERVICE": ("notice", "registration", "deadline", "procedure", "polling", "proxy", "voting", "election", "eligibility", "service", "avis", "inscription", "échéance", "bureau", "تسجيل", "أجل", "إشعار", "إشعارات", "منصة", "إجراء", "التصويت", "الاقتراع", "الانتخابات", "الوكالة", "مكاتب", "الناخب", "الناخبات", "تسليم", "الموعد", "إلكترونية"),
         }.get(target, ())
         action_hits = sum(marker in haystack for marker in artifact_markers)
         url_hits = sum(marker in url_path for marker in ("notice", "decision", "directive", "report", "publication", "communique", "avis", "inscription", "procedure", "service", "/news/", "الأخبار", "بلاغ", "مذكرة"))
-        active_markers = ("active", "ongoing", "deadline", "until", "through", "en cours", "date limite", "jusqu", "مستمر", "نشط", "آخر أجل")
+        # Percent-encoded Arabic detail URLs are still exact-artifact
+        # signals.  This is retrieval triage only; it never changes the
+        # observed title/text or evidence role.
+        path = urlsplit(str(observation.get("url") or "")).path
+        path_depth = len([part for part in path.split("/") if part])
+        if path_depth >= 3 and ("%" in path or "/news/" in path or "/actualites/" in path):
+            url_hits += 2
+        active_markers = ("active", "ongoing", "deadline", "until", "through", "en cours", "date limite", "jusqu", "مستمر", "نشط", "آخر أجل", "شتنبر", "غشت", "2026", "مفتوح", "مستمرة")
         active_hits = sum(marker in haystack for marker in active_markers)
         route_name = str((action.get("source_route") or {}).get("name") or "").casefold() if isinstance(action.get("source_route"), dict) else ""
         route_name_hits = sum(marker in haystack for marker in re.findall(r"[\w\u0600-\u06ff]+", route_name) if len(marker) > 3)
@@ -4172,7 +4179,30 @@ def execute_research_round(
                     and observation.get("page_type") == "CATEGORY_PAGE"
                     and child.get("candidate_type") in {"SERVICE_ENDPOINT", "APPLICATION_PORTAL", "SERVICE_DETAIL"}
                 )
-                if child and (int(action.get("navigation_depth", 0) or 0) < 2 or service_endpoint_followup):
+                # A route-scoped semantic search may already expose a strong
+                # exact artifact lead in the same result set.  Preserve the
+                # existing follow-up cap for that lead instead of spending it
+                # on a generic listing child first.  This is retrieval order
+                # only; the child remains navigation material and may still be
+                # used when no exact route lead is available.
+                route_exact_lead = False
+                if (
+                    child
+                    and getattr(adapter, "follow_discovery_leads", False)
+                    and action.get("route_scoped")
+                    and str(action.get("target_editorial_function") or action.get("candidate_event_theme") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+                ):
+                    for candidate in observations:
+                        if candidate.get("observation_class") != "LEAD" or candidate.get("provenance", {}).get("action_id") != action.get("action_id"):
+                            continue
+                        priority, reasons, _ = _lead_priority(candidate, action)
+                        if priority in {"HIGH", "MEDIUM"} and any(reason in reasons for reason in {"SEMANTIC_ACTION_SIGNAL", "ACTIVE_WINDOW_SIGNAL", "EXACT_ARTIFACT_PATH_SIGNAL"}):
+                            route_exact_lead = True
+                            break
+                if route_exact_lead:
+                    observation["listing_resolution_state"] = "DEFERRED_FOR_ROUTE_EXACT_LEAD"
+                    observation["listing_resolution_reason"] = "ROUTE_EXACT_ARTIFACT_PRIORITY"
+                elif child and (int(action.get("navigation_depth", 0) or 0) < 2 or service_endpoint_followup):
                     observation["service_endpoint_followup"] = service_endpoint_followup
                     listing_children.append((observation, child))
                 elif not child:

@@ -190,6 +190,71 @@ def test_route_scoped_ranking_prefers_active_exact_service_artifact() -> None:
     assert "ACTIVE_WINDOW_SIGNAL" in ranked[0]["lead_priority_reasons"]
 
 
+def test_route_scoped_ranking_recognizes_arabic_active_service_detail() -> None:
+    action = {
+        "action_id": "RANK-AR", "action_type": "SEARCH_DISCOVERY", "route_scoped": True,
+        "target_editorial_function": "SERVICE", "candidate_event_theme": "SERVICE",
+        "query": "site:maroc.ma إشعارات مكاتب التصويت 22 شتنبر 2026",
+        "source_route": {"origin": "www.maroc.ma", "route_id": "maroc", "route_type": "NEWS_LISTING"},
+        "known_event_fingerprints": [],
+    }
+    observations = [
+        {"observation_id": "hub", "observation_class": "LEAD", "url": "https://www.maroc.ma/ar/elections-legislatives-2026", "title": "الانتخابات التشريعية 2026", "claim": "Election hub", "search_result": {"rank": 1, "snippet": "الحملة الانتخابية جارية."}, "provenance": {"action_id": "RANK-AR"}},
+        {"observation_id": "notice", "observation_class": "LEAD", "url": "https://www.maroc.ma/ar/%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/%D8%A7%D9%84%D8%A7%D9%86%D8%AA%D8%AE%D8%A7%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AA%D8%B4%D8%B1%D9%8A%D8%B9%D9%8A%D8%A9-2026-%D8%AA%D8%B3%D9%84%D9%8A%D9%85-%D8%A5%D8%B4%D8%B9%D8%A7%D8%B1%D8%A7%D8%AA-%D9%84%D9%84%D9%86%D8%A7%D8%AE%D8%A8%D9%8A%D9%86-%Dب%D8%B4%D8%A3%D9%86-%D8%A3%D9%85%D8%A7%D9%83%D9%86-%D8%A7%D9%84%D8%AA%D8%B5%D9%88%D9%8A%D8%AA-%D9%85%D9%86-24-%D8%BA%D8%B4%D8%AA-%D8%A5%D9%84%D9%89-22-%D8%B4%D8%AA%D9%86%D8%A8%D8%B1", "title": "الانتخابات التشريعية 2026: تسليم إشعارات للناخبين بشأن أماكن مكاتب التصويت من 24 غشت إلى 22 شتنبر", "claim": "Polling notice", "search_result": {"rank": 5, "snippet": "إشعار للناخبين بشأن أماكن مكاتب التصويت والموعد يمتد إلى 22 شتنبر 2026."}, "provenance": {"action_id": "RANK-AR"}},
+    ]
+    ranked = sorted(rank_discovery_leads(observations, {"RANK-AR": action}), key=lambda item: item["_lead_sort_key"])
+    assert ranked[0]["observation_id"] == "notice"
+    assert ranked[0]["lead_priority"] == "HIGH"
+    assert "EXACT_ARTIFACT_PATH_SIGNAL" in ranked[0]["lead_priority_reasons"]
+
+
+def test_route_exact_lead_is_not_starved_by_listing_child_followup() -> None:
+    need = {
+        "need_id": "BREADTH:accountability_and_service:service-route",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "election"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    job = _job(desk="service", needs=[need])
+    branch = job["branches"][0]
+    strategy = {
+        "action_type": "SEARCH_DISCOVERY", "query": "site:maroc.ma polling notice 22 September 2026",
+        "intent": "FUNCTION_SERVICE", "variant": "ROUTE_AR", "channel": "fixture",
+        "backends": ["fixture"], "language": "ar", "route_scoped": True,
+        "route_search_objective": "ACTIVE_WINDOW_ARTIFACT", "discovery_only": True,
+        "target_editorial_function": "SERVICE", "candidate_event_theme": "SERVICE",
+        "source_route": {"route_id": "maroc-news", "url": "https://maroc.ma/en/news", "origin": "www.maroc.ma", "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY"},
+    }
+    action = create_research_action(job, branch, recovery_need=job["recovery_needs"][0], query_strategy=strategy)
+
+    class Adapter(FixtureResearchAdapter):
+        follow_discovery_leads = True
+        def __init__(self, responses):
+            super().__init__(responses)
+            self.targets = []
+        def execute(self, value):
+            self.targets.append(value.get("target"))
+            return super().execute(value)
+
+    exact_url = "https://maroc.ma/ar/%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/%D8%A7%D9%84%D8%A7%D9%86%D8%AA%D8%AE%D8%A7%D8%A8%D8%A7%D8%AA-%D8%A7%D9%84%D8%AA%D8%B4%D8%B1%D9%8A%D8%B9%D9%8A%D8%A9-2026-%D8%AA%D8%B3%D9%84%D9%8A%D9%85-%D8%A5%D8%B4%D8%B9%D8%A7%D8%B1%D8%A7%D8%AA-%D9%84%D9%84%D9%86%D8%A7%D8%AE%D8%A8%D9%8A%D9%86"
+    listing_url = "https://maroc.ma/ar/elections-legislatives-2026"
+    adapter = Adapter({
+        action["action_id"]: [
+            {"url": exact_url, "title": "الانتخابات التشريعية 2026: تسليم إشعارات للناخبين بشأن أماكن مكاتب التصويت من 24 غشت إلى 22 شتنبر", "text": "إشعار للناخبين بشأن أماكن مكاتب التصويت والموعد يمتد إلى 22 شتنبر 2026."},
+            {"url": listing_url, "title": "الانتخابات التشريعية 2026", "text": "Current election notices.", "links": [{"url": "https://maroc.ma/en/digital-services", "text": "Digital services"}]},
+        ],
+        "FETCH_URL": [{"url": exact_url, "title": "Polling notice", "text": "The operational notice remains available through 22 September 2026.", "source_class": "official", "fetch_status": "FETCHED", "published_at": "2026-08-24", "content_hash": "b" * 64}],
+    })
+    result = execute_research_round(job, adapter, CONFIG, actions=[action])
+    assert exact_url in adapter.targets
+    assert "https://maroc.ma/en/digital-services" not in adapter.targets
+    assert adapter.targets[1] == exact_url
+    assert result["budget_consumed"]["lead_followups"] <= CONFIG["executor"]["lead_followup_limits"]["STANDARD"]["total"]
+
+
 def test_followup_selection_reserves_one_slot_per_need() -> None:
     def lead(action_id, need, url, title):
         return {"observation_id": url, "observation_class": "LEAD", "url": url, "title": title, "claim": title, "search_result": {"rank": 1, "snippet": title}, "provenance": {"action_id": action_id}}
