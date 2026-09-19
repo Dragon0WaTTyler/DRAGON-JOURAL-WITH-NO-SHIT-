@@ -1707,6 +1707,7 @@ def create_research_action(
         ),
         "job_id": job["job_id"],
         "branch_id": branch["branch_id"],
+        "research_lane": job.get("research_lane") or ("HARD_BREADTH" if recovery_need and str(recovery_need.get("need_id") or "").startswith("BREADTH:") else "GENERAL_DISCOVERY"),
         "question_id": question_id,
         "desk": str(strategy.get("target_desk") or job["lead"]["desk"]),
         "research_regime": job["regime"],
@@ -1894,6 +1895,27 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     # This is the anti-starvation rule: a large set of P0 candidate repairs
     # still cannot leave World/breadth/distinct-event research at zero.
     first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
+    first_wave_all = [item for item in all_actions if int(item.get("strategy_index", 0)) == 0]
+    hard_lane_present = any(
+        str(item.get("research_lane") or "").startswith("HARD")
+        or str(item.get("recovery_need_id") or "").startswith("BREADTH:")
+        for item in all_actions
+    )
+    # Preserve one existing round slot for ordinary desk discovery whenever
+    # hard-breadth lanes are active.  This is a reservation inside the fixed
+    # round cap, not an additional request budget; it prevents mandatory
+    # semantic work from starving the newspaper's general discovery lanes.
+    if hard_lane_present:
+        general = sorted(
+            (
+                item for item in first_wave_all
+                if item.get("research_lane") == "GENERAL_DISCOVERY"
+                and not item.get("recovery_need_id")
+            ),
+            key=lambda item: (str(item.get("job_id") or ""), item.get("action_id", "")),
+        )
+        if general and len(selected) < cap:
+            selected.append(general[0])
     for priority in ("P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION"):
         candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
         if candidate is not None and len(selected) < cap:
@@ -1947,6 +1969,11 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
             {**item, "deferred_reason": "ROUND_BUDGET_PRIORITY_AND_FAIRNESS"}
             for item in all_actions if item["action_id"] not in selected_ids
         ],
+        "budget_allocation": {
+            "round_cap": cap,
+            "hard_breadth_reserved_slots": int(bool(hard_lane_present and any(item.get("research_lane") == "GENERAL_DISCOVERY" and not item.get("recovery_need_id") for item in first_wave_all))),
+            "budget_increased": False,
+        },
     }
 
 
@@ -3340,6 +3367,7 @@ def build_research_yield_report(
             "query_variant": action.get("query_variant"),
             "planned_channel": action.get("discovery_channel"),
             "desk": action["desk"],
+            "research_lane": action.get("research_lane"),
             "target_editorial_function": action.get("target_editorial_function"),
             "target_source_class": action.get("target_source_class"),
             "first_party_discovery_objective": action.get("first_party_discovery_objective"),
@@ -3596,6 +3624,26 @@ def build_research_yield_report(
     for item in observations:
         if item.get("verification_status") == "VALIDATED_EVIDENCE" and not any(item.get("observation_id") in bundle.get("observations", []) for bundle in event_bundles):
             semantic_closure["failure_stages"]["EVENT_MATCH"] = semantic_closure["failure_stages"].get("EVENT_MATCH", 0) + 1
+    hard_lane_actions = [
+        item for item in actions
+        if str(item.get("research_lane") or "").startswith(("ACCOUNTABILITY", "SERVICE", "BREADTH:"))
+        or str(item.get("recovery_need_id") or "").startswith("BREADTH:")
+    ]
+    hard_lane_names = sorted({
+        str(item.get("research_lane")) for item in hard_lane_actions
+        if item.get("research_lane")
+    })
+    hard_breadth_planning = {
+        "lanes_attempted": hard_lane_names,
+        "planned_actions": sum(
+            str(item.get("research_lane") or "").startswith(("ACCOUNTABILITY", "SERVICE", "BREADTH:"))
+            or str(item.get("recovery_need_id") or "").startswith("BREADTH:")
+            for job in jobs for item in job.get("actions", []) if isinstance(item, dict)
+        ),
+        "executed_actions": len(hard_lane_actions),
+        "general_discovery_actions": sum(item.get("research_lane") == "GENERAL_DISCOVERY" for item in actions),
+        "budget_increased": False,
+    }
     return {
         "schema_version": 1,
         "actions_executed": len(actions),
@@ -3728,6 +3776,7 @@ def build_research_yield_report(
         },
         "route_scoped_retrieval": route_scoped_retrieval,
         "semantic_closure": semantic_closure,
+        "hard_breadth_planning": hard_breadth_planning,
         "hidden_budget_expansion": "NONE",
         "budget_allocation": execution.get("budget_allocation") or {
             "jobs": [item.get("budget_allocation", {}) for item in jobs if item.get("budget_allocation")],

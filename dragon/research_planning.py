@@ -179,6 +179,107 @@ def _semantic_acquisition_objectives(
     }]
 
 
+def _selected_event_map(packet: dict, intelligence: dict) -> dict[str, str]:
+    """Return the run's existing candidate-to-event identities."""
+    return {
+        key: str(event.get("event_id"))
+        for event in intelligence.get("event_clusters", [])
+        if isinstance(event, dict) and event.get("event_id")
+        for key in event.get("candidate_keys", [])
+    }
+
+
+def build_hard_coverage_plan(
+    packet: dict, intelligence: dict, readiness: dict | None,
+) -> dict:
+    """Materialize edition hard-breadth intent before generic discovery.
+
+    This is planning metadata only.  It never marks a candidate eligible and
+    never changes the evidence or semantic-function gates.  The readiness
+    configuration remains the sole source of minima and eligible sections.
+    """
+    readiness = readiness or {}
+    event_by_candidate = _selected_event_map(packet, intelligence)
+    selected: list[tuple[str, str, dict, str]] = []
+    for section in packet.get("sections", []):
+        if section.get("status") != "ACTIVE":
+            continue
+        candidate_id = section.get("selected_candidate_id")
+        candidate = next(
+            (item for item in section.get("candidates", []) if item.get("id") == candidate_id),
+            None,
+        )
+        if not isinstance(candidate, dict) or not candidate_id:
+            continue
+        key = f"{section.get('section_id')}:{candidate_id}"
+        selected.append((str(section.get("section_id")), str(candidate_id), candidate, event_by_candidate.get(key, f"UNCLUSTERED:{key}")))
+
+    function_events = {"ACCOUNTABILITY": set(), "SERVICE": set()}
+    for _section_id, _candidate_id, candidate, event_id in selected:
+        for function in validated_function_names(candidate):
+            if function in function_events:
+                function_events[function].add(event_id)
+
+    requirements: list[dict] = []
+    for rule in readiness.get("coverage_rules", []):
+        rule_id = str(rule.get("id"))
+        sections = [str(item) for item in rule.get("sections", [])]
+        required = int(rule.get("minimum_active", 0))
+        if rule_id == "accountability_and_service":
+            current = function_events["ACCOUNTABILITY"] | function_events["SERVICE"]
+            current_by_function = {
+                name: sorted(values) for name, values in function_events.items()
+            }
+            lane_functions = []
+            counts = {name: len(values) for name, values in function_events.items()}
+            for index in range(max(0, required - len(current))):
+                lane_functions.append(sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda name: (counts[name], name))[index % 2])
+            lane_kind = "SEMANTIC_FUNCTION"
+        else:
+            current = {
+                event_id for section_id, _candidate_id, _candidate, event_id in selected
+                if section_id in sections
+            }
+            current_by_function = {}
+            lane_functions = [None] * max(0, required - len(current))
+            lane_kind = "SECTION_BREADTH"
+        deficit = max(0, required - len(current))
+        lanes = [
+            {
+                "lane_id": f"HARD:{rule_id}:{index + 1}",
+                "research_lane": lane_functions[index] or f"BREADTH:{rule_id}",
+                "hard_requirement": rule_id,
+                "target_editorial_function": lane_functions[index],
+                "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+                "planned_attempts": 1,
+                "budget_allocation": "BOUNDED_EXISTING_CAPACITY",
+            }
+            for index in range(deficit)
+        ]
+        requirements.append({
+            "hard_requirement": rule_id,
+            "eligible_sections": sections,
+            "required_count": required,
+            "current_count": len(current),
+            "deficit": deficit,
+            "distinct_event_rule": True,
+            "lane_kind": lane_kind,
+            "function_coverage": current_by_function,
+            "research_lanes": lanes,
+        })
+    return {
+        "schema_version": 1,
+        "source": "EDITORIAL_READINESS_CONFIG",
+        "requirements": requirements,
+        "known_at_research_start": True,
+        "budget_policy": {
+            "mode": "REUSE_EXISTING_BOUNDED_CAPACITY",
+            "total_limits_changed": False,
+            "reservation_scope": "HARD_BREADTH_LANES_WITH_GENERAL_DISCOVERY_SLOT",
+        },
+    }
+
+
 def build_research_plan(
     packet: dict, intelligence: dict, budget_config: dict | None = None,
     readiness: dict | None = None,
@@ -307,6 +408,7 @@ def build_research_plan(
         "status": "PASS",
         "edition_date": packet.get("edition_date"),
         "plans": plans,
+        "hard_coverage_plan": build_hard_coverage_plan(packet, intelligence, readiness),
         "semantic_acquisition_objectives": _semantic_acquisition_objectives(packet, events_by_candidate, readiness),
     }
 
@@ -363,6 +465,25 @@ def validate_research_plan(value: dict, expected_sections: set[str]) -> list[str
     objectives = value.get("semantic_acquisition_objectives", [])
     if not isinstance(objectives, list):
         issues.append("RESEARCH_PLAN_SEMANTIC_OBJECTIVES_INVALID")
+    hard_plan = value.get("hard_coverage_plan")
+    if not isinstance(hard_plan, dict) or hard_plan.get("schema_version") != 1 or hard_plan.get("known_at_research_start") is not True:
+        issues.append("RESEARCH_PLAN_HARD_COVERAGE_PLAN_INVALID")
+    elif not isinstance(hard_plan.get("budget_policy"), dict):
+        issues.append("RESEARCH_PLAN_HARD_COVERAGE_BUDGET_POLICY_INVALID")
+    elif hard_plan["budget_policy"].get("total_limits_changed") is not False:
+        issues.append("RESEARCH_PLAN_HARD_COVERAGE_BUDGET_CHANGED")
+    else:
+        for requirement in hard_plan.get("requirements", []):
+            if (
+                not isinstance(requirement, dict)
+                or not isinstance(requirement.get("hard_requirement"), str)
+                or not isinstance(requirement.get("required_count"), int)
+                or not isinstance(requirement.get("current_count"), int)
+                or requirement.get("deficit") != max(0, requirement["required_count"] - requirement["current_count"])
+                or requirement.get("distinct_event_rule") is not True
+                or not isinstance(requirement.get("research_lanes"), list)
+            ):
+                issues.append("RESEARCH_PLAN_HARD_REQUIREMENT_INVALID")
     for objective in objectives:
         if (
             not isinstance(objective, dict)

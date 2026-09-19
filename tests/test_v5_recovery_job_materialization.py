@@ -141,6 +141,20 @@ def test_all_executable_need_kinds_materialize_to_one_visible_job() -> None:
     assert validate_deep_research_state(state) == []
 
 
+def test_semantic_need_materializes_hard_lane_and_bounded_reservation() -> None:
+    need = _need("BREADTH:accountability_and_service:1", None, "NEED_ACCOUNTABILITY_AND_SERVICE")
+    need["target_editorial_function"] = "ACCOUNTABILITY"
+    state = _state([need])
+    assert state["hard_breadth_lanes"]
+    lane = state["hard_breadth_lanes"][0]
+    assert lane["target_editorial_function"] == "ACCOUNTABILITY"
+    assert lane["status"] == "PLANNED"
+    assert lane["budget_reserved"]["mode"] == "REUSE_EXISTING_BOUNDED_CAPACITY"
+    job = _job_for(state, "BREADTH:accountability_and_service:1")
+    assert job["research_lane"] == "ACCOUNTABILITY"
+    assert state["budget_allocation"]["budget_increased"] is False
+
+
 def test_no_news_candidate_p0_context_and_priority_reach_query_generation() -> None:
     need = _need("p0-independent", "sport", "FIND_INDEPENDENT_CORROBORATION", role="INDEPENDENT")
     job = _job_for(_state([need]), need["need_id"])

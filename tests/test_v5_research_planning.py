@@ -4,6 +4,7 @@ import pytest
 
 from dragon.research_planning import (
     ResearchPlanningError,
+    build_hard_coverage_plan,
     build_research_plan,
     load_research_budget_config,
     validate_research_plan,
@@ -140,3 +141,55 @@ def test_initial_plan_exposes_semantic_acquisition_before_recovery() -> None:
     assert objective["proposed_editorial_functions"] == ["ACCOUNTABILITY", "SERVICE"]
     assert objective["classification_requirement"] == "VALIDATED_EXACT_PAGE_EVIDENCE"
     assert validate_research_plan(value, {"front"}) == []
+
+
+def test_hard_coverage_plan_is_known_at_start_and_targets_missing_functions() -> None:
+    packet = {"edition_date": "2026-09-13", "sections": []}
+    intelligence = {"event_clusters": []}
+    readiness = {"coverage_rules": [{
+        "id": "accountability_and_service",
+        "sections": ["investigations", "service"],
+        "minimum_active": 2,
+    }]}
+    plan = build_hard_coverage_plan(packet, intelligence, readiness)
+    requirement = plan["requirements"][0]
+    assert plan["known_at_research_start"] is True
+    assert requirement["deficit"] == 2
+    assert [lane["target_editorial_function"] for lane in requirement["research_lanes"]] == [
+        "ACCOUNTABILITY", "SERVICE",
+    ]
+    assert all(lane["planned_attempts"] == 1 for lane in requirement["research_lanes"])
+    assert plan["budget_policy"]["total_limits_changed"] is False
+
+
+def test_combined_semantic_minimum_does_not_force_one_of_each_function() -> None:
+    packet = {"edition_date": "2026-09-13", "sections": [{
+        "section_id": "investigations", "status": "ACTIVE",
+        "selected_candidate_id": "a", "candidates": [{
+            "id": "a", "editorial_functions": [{
+                "function": "ACCOUNTABILITY", "status": "VALIDATED",
+                "classifier_version": "editorial-functions-v1", "reason": "supported",
+                "supporting_event_facts": ["fact"], "evidence_source_ids": ["s1"],
+            }],
+        }],
+    }, {
+        "section_id": "service", "status": "ACTIVE",
+        "selected_candidate_id": "b", "candidates": [{
+            "id": "b", "editorial_functions": [{
+                "function": "ACCOUNTABILITY", "status": "VALIDATED",
+                "classifier_version": "editorial-functions-v1", "reason": "supported",
+                "supporting_event_facts": ["fact"], "evidence_source_ids": ["s2"],
+            }],
+        }],
+    }]}
+    intelligence = {"event_clusters": [{
+        "event_id": "E1", "candidate_keys": ["investigations:a"],
+    }, {"event_id": "E2", "candidate_keys": ["service:b"]}]}
+    readiness = {"coverage_rules": [{
+        "id": "accountability_and_service", "sections": ["investigations", "service"],
+        "minimum_active": 2,
+    }]}
+    plan = build_hard_coverage_plan(packet, intelligence, readiness)
+    assert plan["requirements"][0]["current_count"] == 2
+    assert plan["requirements"][0]["deficit"] == 0
+    assert plan["requirements"][0]["research_lanes"] == []

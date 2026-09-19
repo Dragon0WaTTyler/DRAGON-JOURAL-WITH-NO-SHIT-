@@ -590,6 +590,7 @@ def build_deep_research_state(
 
     source_by_id = {str(item.get("id")): item for item in packet.get("sources", []) if item.get("id")}
     jobs = []
+    hard_breadth_lanes = []
     for section in ([] if recovery_only else packet.get("sections", [])):
         # Only the selected publication candidate can change an active desk's
         # readiness.  Running a full question tree for every lower-ranked
@@ -622,7 +623,9 @@ def build_deep_research_state(
             )
             existing = plan_by_section.get(section["section_id"], {}).get("research_budget", {}) or {}
             budget_class = {"brief": "QUICK", "normal": "STANDARD", "major": "DEEP", "investigation": "INVESTIGATIVE_LEAD"}.get(existing.get("level"), "STANDARD")
-            jobs.append(start_research_job(lead, config, budget_class=budget_class, run_scope_id=run_scope_id))
+            job = start_research_job(lead, config, budget_class=budget_class, run_scope_id=run_scope_id)
+            job["research_lane"] = "GENERAL_DISCOVERY"
+            jobs.append(job)
 
     # Every executable recovery need gets exactly one visible recovery job.
     # This is deliberately independent of a section's ACTIVE/NO_NEWS status:
@@ -682,6 +685,30 @@ def build_deep_research_state(
             run_scope_id=run_scope_id,
             recovery_identity=f"EPOCH:{recovery_epoch}:{need['need_id']}",
         )
+        if str(need.get("need_id") or "").startswith("BREADTH:"):
+            target_function = str(need.get("target_editorial_function") or "") or None
+            lane = target_function or f"BREADTH:{str(need.get('kind') or '').removeprefix('NEED_').lower()}"
+            limits = config["executor"]["budget_action_limits"][budget_class]
+            job.update({
+                "research_lane": lane,
+                "hard_requirement": str(need.get("kind") or "").removeprefix("NEED_").lower(),
+                "budget_reservation": {
+                    "mode": "REUSE_EXISTING_BOUNDED_CAPACITY",
+                    "search_actions": int(limits.get("search_actions", 0)),
+                    "fetches": int(limits.get("fetches", 0)),
+                },
+            })
+            hard_breadth_lanes.append({
+                "lane_id": f"HARD:{need['need_id']}",
+                "need_id": need["need_id"],
+                "hard_requirement": job["hard_requirement"],
+                "target_editorial_function": target_function,
+                "job_id": job["job_id"],
+                "status": "PLANNED",
+                "budget_reserved": job["budget_reservation"],
+            })
+        else:
+            job["research_lane"] = "RECOVERY"
         jobs.append(job)
         recovery_job_mappings.append({
             "recovery_need_id": need["need_id"],
@@ -710,7 +737,9 @@ def build_deep_research_state(
             observed_at=str(signal.get("observed_at") or packet.get("edition_date")),
             reason_interesting=str(signal.get("change_status") or "DISCOVERY_SIGNAL"),
         )
-        jobs.append(start_research_job(lead, config, budget_class="QUICK", run_scope_id=run_scope_id))
+        job = start_research_job(lead, config, budget_class="QUICK", run_scope_id=run_scope_id)
+        job["research_lane"] = "GENERAL_DISCOVERY"
+        jobs.append(job)
     return {
         "schema_version": 1,
         "status": "PLANNED",
@@ -718,6 +747,14 @@ def build_deep_research_state(
         "philosophy": config["philosophy"],
         "open_discovery": config["open_discovery"],
         "jobs": jobs,
+        "hard_breadth_lanes": hard_breadth_lanes,
+        "general_discovery_job_count": sum(job.get("research_lane") == "GENERAL_DISCOVERY" for job in jobs),
+        "budget_allocation": {
+            "mode": "REUSE_EXISTING_BOUNDED_CAPACITY",
+            "budget_increased": False,
+            "hard_breadth_lane_count": len(hard_breadth_lanes),
+            "general_discovery_job_count": sum(job.get("research_lane") == "GENERAL_DISCOVERY" for job in jobs),
+        },
         "executable_recovery_need_ids": sorted(executable_need_ids),
         "recovery_job_mappings": recovery_job_mappings,
         "recovery_plan_status": recovery_plan.get("status"),
@@ -733,6 +770,12 @@ def validate_deep_research_state(value: dict) -> list[str]:
     if not isinstance(value, dict) or value.get("schema_version") != 1 or value.get("status") not in {"PLANNED", "RESEARCHING", "STOPPED"}:
         return ["DEEP_RESEARCH_ROOT_INVALID"]
     issues = []
+    hard_lanes = value.get("hard_breadth_lanes", [])
+    if "hard_breadth_lanes" in value and not isinstance(hard_lanes, list):
+        issues.append("DEEP_RESEARCH_HARD_BREADTH_LANES_INVALID")
+    allocation = value.get("budget_allocation", {})
+    if "budget_allocation" in value and (not isinstance(allocation, dict) or allocation.get("budget_increased") is not False):
+        issues.append("DEEP_RESEARCH_BUDGET_ALLOCATION_INVALID")
     for job in value.get("jobs", []):
         budget = job.get("budget", {})
         if (
@@ -744,6 +787,21 @@ def validate_deep_research_state(value: dict) -> list[str]:
             or set(job.get("context", {})) != {"KNOWN", "SUPPORTED", "DISPUTED", "UNKNOWN", "NEXT_QUESTIONS", "SOURCE_GAPS", "CONTRADICTIONS", "DEAD_ENDS"}
         ):
             issues.append(f"DEEP_RESEARCH_JOB_INVALID:{job.get('job_id')}")
+        if "research_lane" in job and (not isinstance(job.get("research_lane"), str) or not job.get("research_lane")):
+            issues.append(f"DEEP_RESEARCH_RESEARCH_LANE_INVALID:{job.get('job_id')}")
+    if isinstance(hard_lanes, list):
+        job_ids = {str(job.get("job_id")) for job in value.get("jobs", []) if job.get("job_id")}
+        for lane in hard_lanes:
+            if (
+                not isinstance(lane, dict)
+                or not lane.get("lane_id")
+                or not lane.get("need_id")
+                or str(lane.get("job_id")) not in job_ids
+                or lane.get("status") not in {"PLANNED", "EXECUTED", "DEFERRED"}
+                or not isinstance(lane.get("budget_reserved"), dict)
+                or lane["budget_reserved"].get("mode") != "REUSE_EXISTING_BOUNDED_CAPACITY"
+            ):
+                issues.append("DEEP_RESEARCH_HARD_BREADTH_LANE_INVALID")
     expected_need_ids = value.get("executable_recovery_need_ids")
     mappings = value.get("recovery_job_mappings")
     if expected_need_ids is not None or mappings is not None:

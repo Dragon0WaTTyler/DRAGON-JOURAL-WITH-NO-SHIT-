@@ -569,6 +569,23 @@ def test_p3_context_defers_when_round_has_higher_priority_work() -> None:
     assert all(item["priority_class"] != "P3_CONTEXT" for item in schedule["actions"])
 
 
+def test_hard_breadth_round_preserves_one_general_discovery_slot_without_budget_growth() -> None:
+    breadth = _job(needs=[{
+        "need_id": "BREADTH:accountability_and_service:1",
+        "candidate_id": None,
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "max_attempts": 1,
+    }])
+    breadth["research_lane"] = "ACCOUNTABILITY"
+    generic = _job()
+    generic["research_lane"] = "GENERAL_DISCOVERY"
+    schedule = schedule_research_actions([breadth, generic], CONFIG)
+    assert any(item.get("research_lane") == "GENERAL_DISCOVERY" for item in schedule["actions"])
+    assert schedule["budget_allocation"]["budget_increased"] is False
+    assert schedule["budget_allocation"]["round_cap"] == CONFIG["executor"]["maximum_actions_per_round"]
+
+
 @pytest.mark.parametrize("kind", ["NEED_WORLD_BREADTH", "NEED_ACCOUNTABILITY_AND_SERVICE"])
 def test_breadth_needs_execute_targeted_discovery(kind: str) -> None:
     need = {"need_id": kind, "candidate_id": None, "kind": kind, "max_attempts": 1, "topic_identifiers": ["world"]}
