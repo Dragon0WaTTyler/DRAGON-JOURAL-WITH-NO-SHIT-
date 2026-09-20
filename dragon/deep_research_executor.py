@@ -28,7 +28,7 @@ from dragon.evidence_validation import validate_exact_page
 from dragon.research_recovery import build_recovery_plan
 from dragon.source_intelligence import build_source_intelligence, normalize_url
 from dragon.source_coverage import need_source_family_policy, route_source_family
-from dragon.authority_routing import authority_artifact_preferences, authority_route_metadata, authority_capability_from_text
+from dragon.authority_routing import authority_artifact_preferences, authority_route_metadata, authority_capability_from_text, configured_artifact_family_for_route
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.editorial_functions import classify_event_functions, validated_function_names
@@ -1291,6 +1291,15 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         )
         authority_order = [str(item.get("authority_capability")) for item in authority_preferences]
         authority_rank = {value: index for index, value in enumerate(authority_order)}
+        requested_artifact_families = {
+            str(value).upper()
+            for value in (
+                plan.get("expected_artifact_family"),
+                need.get("expected_artifact_family"),
+                need.get("search_constraints", {}).get("expected_artifact_family"),
+            )
+            if isinstance(value, str) and value.strip()
+        }
         route_candidates = [
             item for item in [
                 *need.get("search_constraints", {}).get("configured_source_routes", []),
@@ -1318,6 +1327,26 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
             {"SERVICE_PORTAL", "NOTICES", "CONSULTATIONS", "PROCUREMENT_RESULTS", "NEWS_LISTING", "PUBLICATIONS"}
         )
         status_order = {"VERIFIED_WORKING": 0, "VERIFIED_DISCOVERY_ONLY": 1, "UNKNOWN": 2, "STALE": 3, "TRANSIENT_FAILURE": 4, "CURRENTLY_UNUSABLE": 5}
+
+        def artifact_variant_priority(item: dict) -> int:
+            """Prefer a verified document surface only when it matches the need.
+
+            This affects discovery order only: it neither grants evidence nor
+            removes generic route variants from later bounded strategies.
+            """
+            metadata = authority_route_metadata(item, target_function, actor=actor_hint)
+            configured_family = configured_artifact_family_for_route(
+                item, metadata.get("authority_capability"),
+            )
+            expected = requested_artifact_families or {
+                str(artifact).upper()
+                for preference in authority_preferences
+                if str(preference.get("authority_capability")) == metadata.get("authority_capability")
+                for artifact in preference.get("artifact_families", [])
+            }
+            verified = str(item.get("route_status") or item.get("status") or "").upper().startswith("VERIFIED_")
+            return 0 if verified and configured_family and configured_family in expected else 1
+
         legacy_route_sort = lambda item: (
             # A verified cross-function national/public portal is a useful
             # process hub for both missing families.  This is capability
@@ -1333,6 +1362,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         if has_normalized_families:
             route_candidates.sort(key=lambda item: (
                 authority_rank.get(authority_route_metadata(item, target_function, actor=actor_hint).get("authority_capability"), 99),
+                artifact_variant_priority(item),
                 legacy_route_sort(item),
             ))
         else:
@@ -1375,11 +1405,16 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         }
         family_order = [family for family in need_source_family_policy(target_function) if family in recognized_families]
         family_routes = []
+        same_family_fallback_routes = []
         if family_order:
             for family in family_order:
-                candidate = next((item for item in route_candidates if route_source_family(item) == family), None)
-                if candidate:
-                    family_routes.append(candidate)
+                candidates = [item for item in route_candidates if route_source_family(item) == family]
+                if candidates:
+                    family_routes.append(candidates[0])
+                    # Retain generic/other variants without creating new
+                    # actions when a specific artifact route displaced them.
+                    if artifact_variant_priority(candidates[0]) == 0:
+                        same_family_fallback_routes.extend(candidates[1:])
         # Legacy fixtures without normalized family metadata retain their
         # historical route choice; production routes carry source_family and
         # therefore use need-scoped family diversification.
@@ -1442,9 +1477,10 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         # Give each bounded semantic strategy a distinct relevant family when
         # the registry exposes one. This is retrieval fairness only; role and
         # claim validation still happen on the exact fetched artifact.
-        if family_routes:
+        strategy_routes = [*family_routes, *same_family_fallback_routes]
+        if strategy_routes:
             for strategy_index, strategy in enumerate(strategies):
-                selected_route = family_routes[strategy_index % len(family_routes)]
+                selected_route = strategy_routes[strategy_index % len(strategy_routes)]
                 strategy["source_route"] = selected_route
                 strategy["source_family"] = route_source_family(selected_route)
                 authority_meta = authority_route_metadata(selected_route, target_function, actor=actor_hint)

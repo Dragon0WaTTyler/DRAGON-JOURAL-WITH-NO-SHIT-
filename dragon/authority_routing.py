@@ -29,6 +29,15 @@ ARTIFACT_FAMILIES = {
     "BUDGET", "PUBLICATION", "OFFICIAL_PDF", "NEWS_ARTICLE",
 }
 
+_ROUTE_TYPE_ARTIFACT_FAMILIES = {
+    "AUDIT_PUBLICATIONS": "AUDIT_REPORT", "REPORTS": "REPORT",
+    "PRESS_RELEASES": "PRESS_RELEASE", "DECISIONS": "DECISION",
+    "COURT_DECISIONS": "JUDGMENT", "REGULATORY_ACTIONS": "DECISION",
+    "NOTICES": "SERVICE_NOTICE", "SERVICE_PORTAL": "SERVICE_NOTICE",
+    "PROCUREMENT_RESULTS": "CONTRACT_AWARD", "CONSULTATIONS": "PROCUREMENT_NOTICE",
+    "PUBLICATIONS": "PUBLICATION",
+}
+
 AUTHORITY_ALIASES = {
     "public prosecution": "PUBLIC_PROSECUTION",
     "presidency of the public prosecution": "PUBLIC_PROSECUTION",
@@ -74,26 +83,30 @@ def authority_capability_from_text(*values: object) -> str | None:
     return None
 
 
-def artifact_family_for_route(route: dict | None, function: str | None = None, authority_capability: str | None = None) -> str:
-    """Map route type/authority metadata to an expected artifact family."""
+def configured_artifact_family_for_route(route: dict | None, authority_capability: str | None = None) -> str | None:
+    """Return an artifact family only when the configured route declares one.
+
+    Generic listings deliberately return ``None``. A route's institutional
+    ownership must not make it look like a matching document surface.
+    """
     route = route if isinstance(route, dict) else {}
     explicit = str(route.get("artifact_family") or "").upper().strip()
     if explicit in ARTIFACT_FAMILIES:
         return explicit
     route_type = str(route.get("route_type") or "").upper()
     capability = authority_capability or str(route.get("authority_type") or "").upper()
-    mapping = {
-        "AUDIT_PUBLICATIONS": "AUDIT_REPORT", "REPORTS": "REPORT",
-        "PRESS_RELEASES": "PRESS_RELEASE", "DECISIONS": "DECISION",
-        "COURT_DECISIONS": "JUDGMENT", "REGULATORY_ACTIONS": "DECISION",
-        "NOTICES": "SERVICE_NOTICE", "SERVICE_PORTAL": "SERVICE_NOTICE",
-        "PROCUREMENT_RESULTS": "CONTRACT_AWARD", "CONSULTATIONS": "PROCUREMENT_NOTICE",
-        "PUBLICATIONS": "PUBLICATION",
-    }
     if route_type == "PUBLICATIONS" and capability == "STATISTICS_AUTHORITY":
         return "STATISTICAL_RELEASE"
-    if route_type in mapping:
-        return mapping[route_type]
+    return _ROUTE_TYPE_ARTIFACT_FAMILIES.get(route_type)
+
+
+def artifact_family_for_route(route: dict | None, function: str | None = None, authority_capability: str | None = None) -> str:
+    """Map route type/authority metadata to an expected artifact family."""
+    route = route if isinstance(route, dict) else {}
+    capability = authority_capability or str(route.get("authority_type") or "").upper()
+    configured = configured_artifact_family_for_route(route, capability)
+    if configured:
+        return configured
     authority_defaults = {
         "PUBLIC_PROSECUTION": "DIRECTIVE", "AUDIT_INSTITUTION": "AUDIT_REPORT",
         "STATISTICS_AUTHORITY": "STATISTICAL_RELEASE", "CENTRAL_BANK": "DECISION",

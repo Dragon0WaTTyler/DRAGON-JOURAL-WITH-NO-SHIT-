@@ -7,6 +7,27 @@ from dragon.authority_routing import (
 from dragon.deep_research_executor import _breadth_event_queries, create_research_action
 
 
+def _court_routes():
+    return [
+        {"route_id": "cdc-actualites", "url": "https://www.courdescomptes.ma/autres-acces/actualites/", "origin": "courdescomptes.ma", "route_type": "NEWS_LISTING", "source_family": "JUDICIAL_PROSECUTORIAL", "authority_type": "AUDIT_INSTITUTION", "semantic_capabilities": ["ACCOUNTABILITY"], "route_status": "VERIFIED_WORKING", "supported_languages": ["fr", "ar"]},
+        {"route_id": "cdc-communiques", "url": "https://www.courdescomptes.ma/espace-medias/communiques-de-presse/", "origin": "courdescomptes.ma", "route_type": "PRESS_RELEASES", "source_family": "JUDICIAL_PROSECUTORIAL", "authority_type": "AUDIT_INSTITUTION", "semantic_capabilities": ["ACCOUNTABILITY"], "route_status": "VERIFIED_WORKING", "supported_languages": ["fr", "ar"]},
+        {"route_id": "cdc-publications", "url": "https://www.courdescomptes.ma/publications/", "origin": "courdescomptes.ma", "route_type": "AUDIT_PUBLICATIONS", "source_family": "JUDICIAL_PROSECUTORIAL", "authority_type": "AUDIT_INSTITUTION", "semantic_capabilities": ["ACCOUNTABILITY"], "route_status": "VERIFIED_WORKING", "supported_languages": ["fr"]},
+    ]
+
+
+def _court_need(*, expected_artifact_family=None):
+    plan = {"target_editorial_function": "ACCOUNTABILITY", "candidate_event_themes": ["audit finding"]}
+    if expected_artifact_family:
+        plan["expected_artifact_family"] = expected_artifact_family
+    return {
+        "need_id": "BREADTH:accountability:1", "kind": "NEED_ACCOUNTABILITY",
+        "target_editorial_function": "ACCOUNTABILITY", "query_context": {"research_date": "2026-09-20"},
+        "search_constraints": {"configured_source_routes": _court_routes()},
+        "event_acquisition_plan": plan,
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+    }
+
+
 def test_prosecution_claim_targets_public_prosecution_artifacts():
     assert authority_capability_from_text("Presidency of the Public Prosecution") == "PUBLIC_PROSECUTION"
     branches = authority_artifact_preferences("ACCOUNTABILITY", actor="Public Prosecution")
@@ -42,3 +63,19 @@ def test_authority_and_artifact_metadata_survives_action_materialization():
     assert action["authority_capability"] == "AUDIT_INSTITUTION"
     assert action["selected_authority_id"] == "audit"
     assert action["artifact_family"] == "AUDIT_REPORT"
+
+
+def test_audit_publication_route_precedes_generic_court_listing_and_keeps_fallback():
+    strategies = _breadth_event_queries({}, _court_need(), month="2026-09", primary_language="fr", alternate_language="ar", route=None)
+    selected = [item["source_route"]["route_id"] for item in strategies]
+    assert len(strategies) == 4
+    assert selected[0] == "cdc-publications"
+    assert "cdc-actualites" in selected[1:]
+
+
+def test_known_press_release_need_selects_matching_court_variant_not_audit_publications():
+    strategies = _breadth_event_queries(
+        {}, _court_need(expected_artifact_family="PRESS_RELEASE"),
+        month="2026-09", primary_language="fr", alternate_language="ar", route=None,
+    )
+    assert strategies[0]["source_route"]["route_id"] == "cdc-communiques"
