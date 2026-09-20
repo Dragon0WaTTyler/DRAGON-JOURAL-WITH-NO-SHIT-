@@ -30,6 +30,11 @@ _MONTHS = {
 }
 
 _TEXT_DATE = r"(\d{4}-\d{2}-\d{2}|\d{1,2}\s+[A-Za-zÀ-ÿ\u0600-\u06ff]+\s+\d{4})"
+_ARABIC_MONTH_PATTERN = "|".join(sorted((re.escape(name) for name in _MONTHS if re.search(r"[\u0600-\u06ff]", name)), key=len, reverse=True))
+_ARABIC_DEADLINE_PATTERN = re.compile(
+    rf"(?:آخر\s+أجل|إلى\s+غاية|تنتهي[\s\S]{{0,120}}?)\s*(?P<day>\d{{1,2}})\s+(?P<month>{_ARABIC_MONTH_PATTERN})\s+(?P<year>\d{{4}}|الجاري)",
+    re.IGNORECASE,
+)
 
 
 def _date_value(value: object) -> str | None:
@@ -60,6 +65,36 @@ def _first_date(parts: Iterable[object]) -> str | None:
     return next((parsed for item in parts if (parsed := _date_value(item))), None)
 
 
+def _arabic_deadline_from_text(text: str, publication: str | None) -> str | None:
+    """Resolve only labelled Arabic deadline forms with trusted year context.
+
+    ``الجاري`` is document-relative, never execution-relative: its year is
+    available only when the exact page has a publication date in the same
+    named month.  This prevents a retrieval date from silently manufacturing
+    a deadline for an otherwise undated historical page.
+    """
+    for match in _ARABIC_DEADLINE_PATTERN.finditer(text):
+        month = _MONTHS.get(match.group("month").casefold())
+        if month is None:
+            continue
+        year_token = match.group("year")
+        if year_token == "الجاري":
+            reference = _date_value(publication)
+            if not reference:
+                continue
+            reference_date = date.fromisoformat(reference)
+            if reference_date.month != month:
+                continue
+            year = reference_date.year
+        else:
+            year = int(year_token)
+        try:
+            return date(year, month, int(match.group("day"))).isoformat()
+        except ValueError:
+            continue
+    return None
+
+
 def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str | None = None) -> dict:
     """Classify currentness without inventing dates or treating guidance as news."""
     edition = _date_value(edition_date)
@@ -82,6 +117,9 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
             structured.get("new_development_date"), structured.get("material_development_date"),
         )),
     }
+    arabic_deadline = _arabic_deadline_from_text(text, publication)
+    if not values["DEADLINE"] and arabic_deadline:
+        values["DEADLINE"] = arabic_deadline
     # Explicit labelled dates in exact text are admissible source evidence.
     labelled = {
         "EFFECTIVE_START": rf"(?:effective|from|starts?|open(?:s)?|ابتداء|من)\D{{0,30}}{_TEXT_DATE}",
@@ -89,6 +127,10 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
         "DEADLINE": rf"(?:deadline|last date|date limite|آخر أجل|أجل)\D{{0,30}}{_TEXT_DATE}",
     }
     for key, pattern in labelled.items():
+        # ``إلى غاية`` and ``تنتهي`` are the demonstrated Arabic deadline
+        # forms.  Do not also record their date as a generic effective end.
+        if key == "EFFECTIVE_END" and arabic_deadline:
+            continue
         if not values[key]:
             match = re.search(pattern, text, re.I)
             values[key] = _date_value(match.group(1)) if match else None

@@ -49,6 +49,52 @@ def test_arabic_month_deadline_is_active_before_its_cutoff() -> None:
     assert value["temporal_eligibility_type"] == "ACTIVE_DEADLINE_WINDOW"
 
 
+def test_arabic_until_deadline_with_explicit_year_overrides_publication_month() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-04T12:00:00+00:00",
+        text="يستمر إيداع الطلبات إلى غاية 9 شتنبر 2026.",
+    ), "2026-09-20T21:51:15.581830+00:00")
+    assert value["deadline"] == "2026-09-09"
+    assert value["effective_end"] is None
+    assert value["active_on_edition_date"] is False
+    assert value["temporal_eligibility_type"] == "EVENT_EXPIRED"
+    assert value["rejection_reason"] == "EXPLICIT_DEADLINE_PRECEDES_EDITION_DATE"
+
+
+def test_arabic_current_month_deadline_uses_trusted_same_month_publication_context() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-04T12:00:00+00:00",
+        text="تنتهي فترة إيداع التصريحات يوم الأربعاء 9 شتنبر الجاري.",
+    ), "2026-09-20T21:51:15.581830+00:00")
+    assert value["deadline"] == "2026-09-09"
+    assert value["active_on_edition_date"] is False
+    assert value["temporal_eligibility_type"] == "EVENT_EXPIRED"
+
+
+def test_arabic_current_month_deadline_stays_unresolved_without_matching_trusted_context() -> None:
+    missing = evaluate_temporal_relevance(_page(
+        published_at=None,
+        text="تنتهي فترة إيداع التصريحات يوم الأربعاء 9 شتنبر الجاري.",
+    ), "2026-09-20T21:51:15.581830+00:00")
+    mismatched = evaluate_temporal_relevance(_page(
+        published_at="2026-08-31T12:00:00+00:00",
+        text="تنتهي فترة إيداع التصريحات يوم الأربعاء 9 شتنبر الجاري.",
+    ), "2026-09-20T21:51:15.581830+00:00")
+    assert missing["deadline"] is None
+    assert missing["temporal_eligibility_type"] == "TEMPORAL_RELEVANCE_UNRESOLVED"
+    assert mismatched["deadline"] is None
+
+
+def test_arabic_deadline_does_not_use_an_unrelated_date_in_the_same_document() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-04",
+        text="صدر التوجيه في 1 غشت 2026، ويستمر الإيداع إلى غاية 22 شتنبر 2026.",
+    ), "2026-09-13")
+    assert value["deadline"] == "2026-09-22"
+    assert value["active_on_edition_date"] is True
+    assert value["temporal_eligibility_type"] == "ACTIVE_DEADLINE_WINDOW"
+
+
 def test_arabic_date_without_a_deadline_label_remains_unresolved() -> None:
     value = evaluate_temporal_relevance(_page(
         published_at="2026-08-24",
