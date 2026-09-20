@@ -42,6 +42,13 @@ class V5RecoveryTests(unittest.TestCase):
             ErrorCategory.CODE_DEFECT,
         )
 
+    def test_research_recovery_required_is_content_but_remains_an_incident(self):
+        decision = RecoveryEngine(POLICY).decide("RESEARCH_RECOVERY_REQUIRED", 1)
+        self.assertEqual(decision.category, ErrorCategory.CONTENT)
+        self.assertEqual(decision.action, "INCIDENT")
+        self.assertEqual(decision.max_attempts, 1)
+        self.assertEqual(decision.delay_seconds, 0)
+
     def test_unsafe_source_targets_are_validation_blocks_without_retry(self):
         engine = RecoveryEngine(POLICY)
         for code in (

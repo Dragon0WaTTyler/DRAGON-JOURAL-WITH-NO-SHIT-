@@ -125,6 +125,10 @@ error_codes:
     category: CONTENT
     action: BLOCK
     max_attempts: 1
+  RESEARCH_RECOVERY_REQUIRED:
+    category: CONTENT
+    action: INCIDENT
+    max_attempts: 1
   SOURCE_INTELLIGENCE_INVALID:
     category: VALIDATION
     action: BLOCK
