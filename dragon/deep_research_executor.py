@@ -4266,6 +4266,18 @@ def execute_research_round(
                     for candidate in observations:
                         if candidate.get("observation_class") != "LEAD" or candidate.get("provenance", {}).get("action_id") != action.get("action_id"):
                             continue
+                        # The just-fetched route index can score highly from
+                        # its own route URL and title.  It is navigation
+                        # material, however, not the competing exact lead
+                        # that may justify deferring its selected child.
+                        if (
+                            candidate.get("url") == action.get("target")
+                            and (
+                                candidate.get("page_type") in NAVIGATION_PAGE_TYPES
+                                or candidate.get("navigation_type") in NAVIGATION_PAGE_TYPES
+                            )
+                        ):
+                            continue
                         priority, reasons, _ = _lead_priority(candidate, action)
                         if priority in {"HIGH", "MEDIUM"} and any(reason in reasons for reason in {"SEMANTIC_ACTION_SIGNAL", "ACTIVE_WINDOW_SIGNAL", "EXACT_ARTIFACT_PATH_SIGNAL"}):
                             route_exact_lead = True

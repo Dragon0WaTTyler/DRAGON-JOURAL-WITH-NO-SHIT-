@@ -150,6 +150,59 @@ def test_listing_child_followup_uses_existing_bounded_slot() -> None:
     assert result["budget_consumed"]["lead_followups"] == 1
 
 
+def test_route_index_does_not_defer_its_own_exact_report_child() -> None:
+    """A navigation URL must not outrank the report link it exposes."""
+    lead = create_lead(
+        desk="investigations", topic="audit report", discovery_source={"url": "https://signal.example/lead"},
+        observed_at="2026-09-13T07:00:00Z", reason_interesting="fixture", geography=["Morocco"],
+    )
+    job = start_research_job(lead, CONFIG, budget_class="STANDARD")
+    branch = job["branches"][0]
+    action = {
+        "job_id": job["job_id"], "branch_id": branch["branch_id"], "question_id": branch["question_ids"][0],
+        "action_id": "AUDIT-INDEX", "desk": "investigations", "research_regime": "GENERAL",
+        "action_type": "FETCH_CONFIGURED_SOURCE", "target": "https://audit.gov.ma/publications/",
+        "query": "audit report", "query_intent": "DIRECT_SOURCE_ROUTE_DISCOVERY", "query_variant": "EXACT", "query_fingerprint": "AUDIT-INDEX",
+        "priority_class": "P1_BREADTH", "discovery_channel": "fixture", "known_entities": [],
+        "known_event_ids": [], "already_seen_urls": [], "already_seen_origins": [],
+        "budget": {"class": "STANDARD", "round": 0, "max_rounds": 2}, "timeout_seconds": 5,
+        "expected_result_type": "EXTRACTED_SOURCE", "recovery_need_id": "accountability", "recovery_candidate_id": None,
+        "provenance_requirements": {"required_role": None, "must_be_distinct_event": False, "science_strict": False},
+        "event_context": {"entities": [], "event_terms": [], "topic_terms": [], "aliases": [], "geography": ["Morocco"], "research_date": "2026-09-13"},
+        "channel_fallback": None, "target_editorial_function": "ACCOUNTABILITY", "discovery_only": True,
+        "navigation_depth": 0, "route_scoped": True, "artifact_family": "AUDIT_REPORT",
+        "source_route": {"route_id": "audit-publications", "url": "https://audit.gov.ma/publications/", "route_type": "AUDIT_PUBLICATIONS", "name": "Audit Court"},
+    }
+
+    class Adapter:
+        follow_discovery_leads = True
+
+        def __init__(self):
+            self.actions = []
+
+        def execute(self, value):
+            self.actions.append(value)
+            if value["target"].endswith("/publications/"):
+                return [{
+                    "url": value["target"], "canonical_url": value["target"], "title": "Publications - Audit Court",
+                    "text": "Browse the institution's publications catalogue.",
+                    "links": [{"url": "https://audit.gov.ma/publication/report-2026", "text": "28 Jan. 2026 - Rapport annuel d'audit 2025"}],
+                    "source_class": "unknown", "publisher": "Audit Court", "fetch_status": "FETCHED", "content_hash": "a" * 64,
+                }]
+            return [{
+                "url": value["target"], "canonical_url": value["target"], "title": "Rapport annuel d'audit 2025",
+                "text": "The Audit Court published the annual audit report with findings and recommendations. " * 8,
+                "source_class": "official", "publisher": "Audit Court", "fetch_status": "FETCHED", "content_hash": "b" * 64,
+            }]
+
+    adapter = Adapter()
+    result = execute_research_round(job, adapter, CONFIG, actions=[action])
+
+    assert any(item["target"].endswith("/publication/report-2026") for item in adapter.actions)
+    listing = next(item for item in result["observations"] if item.get("page_type") == "LISTING_PAGE")
+    assert listing["listing_resolution_state"] == "CHILD_DETAIL_SELECTED"
+
+
 def test_audit_index_prefers_report_artifact_over_recent_ceremony() -> None:
     raw = {
         "url": "https://audit.gov.ma/actualites/", "title": "Actualités", "links": [
