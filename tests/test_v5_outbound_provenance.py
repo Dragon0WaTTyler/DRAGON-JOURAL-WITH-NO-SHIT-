@@ -3,6 +3,7 @@ from pathlib import Path
 from dragon.deep_research import create_lead, load_deep_research_config, start_research_job
 from dragon.deep_research_executor import _actor_first_query, _select_actor_first_candidate, execute_research_round
 from dragon.discovery import assess_source_url
+from dragon.original_source_resolution import build_original_source_resolution
 from dragon.institutional_navigation import (
     classify_outbound_link, detect_official_portal_republication,
     extract_actor_attributions, extract_document_references, extract_outbound_link_candidates,
@@ -39,6 +40,29 @@ def test_actor_first_candidate_can_fetch_unresolved_concrete_result_without_upgr
         {"target_editorial_function": "ACCOUNTABILITY"},
     )
     assert selected and selected["url"].endswith("/item")
+    assert selected["source_class"] == "unknown"
+
+
+def test_actor_first_candidate_can_fetch_a_configured_issuer_route_without_role_upgrade() -> None:
+    """Preserved live-run regression: route identity is acquisition-only."""
+    selected = _select_actor_first_candidate(
+        [{
+            "url": "https://www.courdescomptes.ma/en/news/",
+            "title": "News - Cour des comptes",
+            "snippet": "Council of the Arab Organization of Supreme Audit Institutions.",
+            "source_class": "unknown",
+        }],
+        "Supreme Audit Council",
+        {
+            "target_editorial_function": "ACCOUNTABILITY",
+            "source_route": {
+                "origin": "www.courdescomptes.ma",
+                "url": "https://www.courdescomptes.ma/autres-acces/actualites/",
+            },
+        },
+    )
+
+    assert selected and selected["url"] == "https://www.courdescomptes.ma/en/news/"
     assert selected["source_class"] == "unknown"
 
 
@@ -87,6 +111,46 @@ def test_official_portal_republication_keeps_publisher_and_issuer_distinct() -> 
     assert detail["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
     assert detail["portal_publisher"] == "National Portal"
     assert detail["issuing_institution"] == "Ministry of Interior"
+
+
+def test_attribution_prepositions_do_not_turn_service_or_analysis_text_into_issuers() -> None:
+    """Preserved live-run regression: attribution grammar is not identity proof."""
+    cases = (
+        {
+            "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseHome",
+            "publisher": "www.marchespublics.gov.ma",
+            "title": "Marchés publics électroniques",
+            "text": "Un service d'alerte quotidien ou hebdomadaire, selon les critères que vous définissez.",
+        },
+        {
+            "url": "https://atlaslimits.example/articles/morocco-platforms",
+            "publisher": "Atlas Limits",
+            "title": "Morocco platforms",
+            "text": "Its platform should be assessed according to the same criteria: employment, taxation and public services.",
+        },
+    )
+
+    for raw in cases:
+        detail = detect_official_portal_republication(raw)
+        assert detail["issuing_institution"] is None
+        assert detail["issuer_identity_state"] == "UNRESOLVED"
+        assert detail["issuer_identity_reason"] == "ATTRIBUTION_TEXT_NOT_IDENTIFIABLE"
+        assert detail["origin_relationship"] != "PORTAL_REPUBLISHES_ISSUER"
+        resolution = build_original_source_resolution({**raw, **detail}, {"target_editorial_function": "SERVICE"})
+        assert resolution["observed"]["actor"] is None
+        assert resolution["failure_category"] == "ORIGINAL_ACTOR_UNKNOWN"
+
+
+def test_identifiable_page_text_attribution_remains_usable_as_an_issuer() -> None:
+    detail = detect_official_portal_republication({
+        "url": "https://www.maroc.ma/en/news/prosecution-notice",
+        "publisher": "Maroc.ma",
+        "title": "Statement",
+        "text": "According to the Supreme Audit Council, the review remains under way.",
+    })
+
+    assert detail["issuing_institution"] == "Supreme Audit Council"
+    assert detail["issuer_identity_reason"] == "PAGE_TEXT_IDENTIFIABLE_ATTRIBUTION"
 
 
 def test_third_party_page_cannot_claim_portal_identity_from_text_alone() -> None:

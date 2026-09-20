@@ -215,12 +215,29 @@ def detect_official_portal_republication(raw: dict) -> dict:
     route = raw.get("source_route") if isinstance(raw.get("source_route"), dict) else {}
     profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
     issuer = raw.get("issuing_institution") or raw.get("stated_issuing_institution") or metadata.get("issuing_institution")
+    issuer_identity_reason = "PAGE_STRUCTURED_ISSUER" if issuer else None
     references = extract_document_references(raw)
     if not issuer:
-        issuer = next((item.get("issuer") for item in references if item.get("issuer")), None)
+        reference = next((item for item in references if item.get("issuer")), None)
+        issuer = reference.get("issuer") if reference else None
+        issuer_identity_reason = "PAGE_TEXT_DOCUMENT_ISSUER" if issuer else None
     if not issuer:
+        # An attribution preposition alone is not identity evidence: it also
+        # appears in ordinary prose such as "selon les critères" and
+        # "according to the same criteria".  It can confirm only an already
+        # identifiable page-observed institution, never turn the following
+        # source-text fragment into an issuer.
         match = re.search(r"(?:according to|announced by|selon|وفق(?:ا لـ)?|حسب)\s+([^.;\n]{3,120})", text, flags=re.I)
-        issuer = match.group(1).strip() if match else None
+        if match:
+            attributed_text = match.group(1).strip()
+            for actor in extract_actor_attributions(raw).get("actors", []):
+                aliases = (actor.get("name"), *(actor.get("aliases") or [])) if isinstance(actor, dict) else ()
+                if any(str(alias or "").casefold() in attributed_text.casefold() for alias in aliases):
+                    issuer = str(actor.get("name") or "").strip()
+                    issuer_identity_reason = "PAGE_TEXT_IDENTIFIABLE_ATTRIBUTION"
+                    break
+            if not issuer:
+                issuer_identity_reason = "ATTRIBUTION_TEXT_NOT_IDENTIFIABLE"
     route_provenance = str(route.get("verification_provenance") or "").casefold()
     canonical_profile_domain = str(profile.get("canonical_domain") or "").casefold().strip(".")
     official_portal = (
@@ -242,6 +259,8 @@ def detect_official_portal_republication(raw: dict) -> dict:
         "portal_owner": publisher_name if official_portal else None,
         "content_origin": content_origin,
         "issuing_institution": str(issuer).strip() if issuer else None,
+        "issuer_identity_state": "IDENTIFIABLE" if issuer else "UNRESOLVED",
+        "issuer_identity_reason": issuer_identity_reason or "ISSUER_NOT_OBSERVED",
         "document_references": references,
         "original_artifact_state": "ORIGINAL_ARTIFACT_NOT_FOUND" if republished else "ORIGINAL_ARTIFACT_NOT_REQUIRED_FOR_NARROW_CLAIM" if official_portal else "ORIGINAL_ARTIFACT_NOT_FOUND",
         "origin_relationship": "PORTAL_REPUBLISHES_ISSUER" if republished else "PORTAL_ORIGIN_UNRESOLVED" if official_portal else "UNRESOLVED",

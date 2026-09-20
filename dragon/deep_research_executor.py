@@ -220,7 +220,12 @@ def _select_actor_first_candidate(items: list[dict], actor: str, action: dict) -
         supplied = str(item.get("source_class") or item.get("source_type") or "").casefold()
         official_hint = supplied in {"official", "primary", "paper"} or host.endswith(".gov") or host.endswith(".gov.ma")
         route_hint = bool(route_origin and (host == route_origin or host.endswith(f".{route_origin}")))
-        if not (official_hint or (actor_hit and action_hits >= 1)):
+        # A result on the explicitly configured issuer route is a bounded
+        # acquisition candidate even when the search adapter has not assigned
+        # it a source class and its listing title omits the canonical actor.
+        # Route identity only permits a fetch; normal role and evidence gates
+        # still decide whether the fetched page is usable.
+        if not (official_hint or route_hint or (actor_hit and action_hits >= 1)):
             continue
         score = (100 if official_hint else 0) + (25 if route_hint else 0) + (20 if actor_hit else 0) + min(action_hits, 4) * 8
         scored.append((score, url, item))
