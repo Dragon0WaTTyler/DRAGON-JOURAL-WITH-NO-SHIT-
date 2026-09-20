@@ -20,7 +20,16 @@ _MONTHS = {
     "janvier": 1, "février": 2, "fevrier": 2, "mars": 3, "avril": 4, "mai": 5,
     "juin": 6, "juillet": 7, "août": 8, "aout": 8, "septembre": 9, "octobre": 10,
     "novembre": 11, "décembre": 12, "decembre": 12,
+    # Arabic publication dates in the source corpus use both Maghrebi and
+    # pan-Arabic month spellings. These are unambiguous calendar tokens.
+    "يناير": 1, "فبراير": 2, "مارس": 3, "أبريل": 4, "ابريل": 4,
+    "ماي": 5, "يونيو": 6, "يوليو": 7, "يوليوز": 7, "غشت": 8,
+    "أغسطس": 8, "اغسطس": 8, "شتنبر": 9, "سبتمبر": 9,
+    "أكتوبر": 10, "اكتوبر": 10, "نونبر": 11, "نوفمبر": 11,
+    "دجنبر": 12, "ديسمبر": 12,
 }
+
+_TEXT_DATE = r"(\d{4}-\d{2}-\d{2}|\d{1,2}\s+[A-Za-zÀ-ÿ\u0600-\u06ff]+\s+\d{4})"
 
 
 def _date_value(value: object) -> str | None:
@@ -38,7 +47,7 @@ def _date_value(value: object) -> str | None:
             return date(int(match.group(3)), int(match.group(2)), int(match.group(1))).isoformat()
         except ValueError:
             return None
-    match = re.search(r"\b(\d{1,2})\s+([A-Za-zÀ-ÿ]+)\s+(\d{4})\b", text)
+    match = re.search(r"\b(\d{1,2})\s+([A-Za-zÀ-ÿ\u0600-\u06ff]+)\s+(\d{4})\b", text)
     if match and match.group(2).casefold() in _MONTHS:
         try:
             return date(int(match.group(3)), _MONTHS[match.group(2).casefold()], int(match.group(1))).isoformat()
@@ -75,9 +84,9 @@ def evaluate_temporal_relevance(raw: dict, edition_date: str, *, exact_text: str
     }
     # Explicit labelled dates in exact text are admissible source evidence.
     labelled = {
-        "EFFECTIVE_START": r"(?:effective|from|starts?|open(?:s)?|ابتداء|من)\D{0,30}([0-9]{4}-[0-9]{2}-[0-9]{2})",
-        "EFFECTIVE_END": r"(?:effective until|through|until|ends?|to|إلى|حتى)\D{0,30}([0-9]{4}-[0-9]{2}-[0-9]{2})",
-        "DEADLINE": r"(?:deadline|last date|date limite|آخر أجل|أجل)\D{0,30}([0-9]{4}-[0-9]{2}-[0-9]{2})",
+        "EFFECTIVE_START": rf"(?:effective|from|starts?|open(?:s)?|ابتداء|من)\D{{0,30}}{_TEXT_DATE}",
+        "EFFECTIVE_END": rf"(?:effective until|through|until|ends?|to|إلى|حتى)\D{{0,30}}{_TEXT_DATE}",
+        "DEADLINE": rf"(?:deadline|last date|date limite|آخر أجل|أجل)\D{{0,30}}{_TEXT_DATE}",
     }
     for key, pattern in labelled.items():
         if not values[key]:

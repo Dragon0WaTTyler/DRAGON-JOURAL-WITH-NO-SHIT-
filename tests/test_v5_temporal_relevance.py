@@ -28,6 +28,37 @@ def test_expired_service_deadline_is_not_current() -> None:
     assert value["rejection_reason"] == "EXPLICIT_DEADLINE_PRECEDES_EDITION_DATE"
 
 
+def test_arabic_month_deadline_is_expired_after_its_cutoff_not_active_by_publication_month() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-04",
+        text="آخر أجل 9 شتنبر 2026 لإيداع الطلبات.",
+    ), "2026-09-20")
+    assert value["deadline"] == "2026-09-09"
+    assert value["active_on_edition_date"] is False
+    assert value["temporal_eligibility_type"] == "EVENT_EXPIRED"
+    assert value["rejection_reason"] == "EXPLICIT_DEADLINE_PRECEDES_EDITION_DATE"
+
+
+def test_arabic_month_deadline_is_active_before_its_cutoff() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-09-04",
+        text="آخر أجل 9 شتنبر 2026 لإيداع الطلبات.",
+    ), "2026-09-08")
+    assert value["deadline"] == "2026-09-09"
+    assert value["active_on_edition_date"] is True
+    assert value["temporal_eligibility_type"] == "ACTIVE_DEADLINE_WINDOW"
+
+
+def test_arabic_date_without_a_deadline_label_remains_unresolved() -> None:
+    value = evaluate_temporal_relevance(_page(
+        published_at="2026-08-24",
+        text="يتوفر الدليل الإجرائي المؤرخ في 9 شتنبر 2026.",
+    ), EDITION)
+    assert value["deadline"] is None
+    assert value["active_on_edition_date"] is False
+    assert value["temporal_eligibility_type"] == "TEMPORAL_RELEVANCE_UNRESOLVED"
+
+
 def test_evergreen_guidance_without_operational_dates_is_unresolved() -> None:
     value = evaluate_temporal_relevance(_page(
         published_at="2025-01-01", text="This guide explains how the service generally works.",
