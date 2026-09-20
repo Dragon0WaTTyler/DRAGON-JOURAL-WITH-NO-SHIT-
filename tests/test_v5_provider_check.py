@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 import json
 import sys
+from zoneinfo import ZoneInfo
 
 import dragon_provider_check
 
@@ -112,7 +114,13 @@ def test_full_trial_persists_reviewable_evidence_without_promoting_config(
     assert value["editorial_generation_tested"] is True
     assert value["research_counts"]["provider_selected_sections"] == 0
     assert len(value["runtime_fingerprint"]) == 64
-    assert value["created_at"].endswith("+01:00")
+    assert value["edition_date"] == "2099-01-02"
+    created_at = datetime.fromisoformat(value["created_at"])
+    assert created_at.tzinfo is not None
+    expected_offset = datetime.fromtimestamp(
+        created_at.timestamp(), ZoneInfo("Africa/Casablanca")
+    ).utcoffset()
+    assert created_at.utcoffset() == expected_offset
     trial = tmp_path / "acceptance" / "provider-trials" / "2099-01-02"
     assert (trial / "research.json").is_file()
     assert (trial / "articles.json").is_file()

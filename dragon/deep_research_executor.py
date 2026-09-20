@@ -175,6 +175,23 @@ def _actor_first_query(observation: dict, action: dict, skeleton: dict) -> str:
     return " ".join(dict.fromkeys(item for item in parts if item)).strip()
 
 
+def _recovery_actor(observation: dict) -> dict | None:
+    """Return a page-observed actor eligible for bounded source recovery."""
+    candidates = observation.get("event_actor_candidates") or []
+    if isinstance(candidates, list):
+        for candidate in candidates:
+            if isinstance(candidate, dict) and str(candidate.get("name") or "").strip():
+                return candidate
+    resolution = observation.get("original_source_resolution")
+    observed = resolution.get("observed") if isinstance(resolution, dict) else {}
+    actor = str(observed.get("actor") or "").strip() if isinstance(observed, dict) else ""
+    provenance = str(observed.get("actor_provenance") or "") if isinstance(observed, dict) else ""
+    # This fallback is reserved for an explicit issuer/document attribution.
+    # Inferred page actors remain useful discovery metadata, but are not
+    # enough to open an additional recovery branch from a generic listing.
+    return {"name": actor} if actor and provenance == "PAGE_TEXT_EXPLICIT" else None
+
+
 def _select_actor_first_candidate(items: list[dict], actor: str, action: dict) -> dict | None:
     """Choose one bounded actor/action result for exact-page retrieval.
 
@@ -4115,13 +4132,14 @@ def execute_research_round(
                         and str(item.get("source_class") or "").casefold() in {"primary", "official", "independent", "paper"}
                         for item in child_items
                     )
+                    recovery_actor = _recovery_actor(observation)
                     if (
                         not child_validated
-                        and observation.get("event_actor_candidates")
+                        and recovery_actor
                         and state["search_actions"] < limits["search_actions"]
                         and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
                     ):
-                        actor = observation["event_actor_candidates"][0]
+                        actor = recovery_actor
                         skeleton = observation.get("event_skeleton") or {}
                         query = preferred_resolution_query(observation.get("original_source_resolution")) or _actor_first_query(observation, action, skeleton)
                         if query:
@@ -4154,8 +4172,7 @@ def execute_research_round(
                 elif unsafe_candidates:
                     observation["provenance_recovery_reason"] = "OFFICIAL_LINK_REJECTED"
                     observation["provenance_recovery_detail"] = [{"url": item.get("url"), "reason": item.get("url_safety", {}).get("reason")} for item in unsafe_candidates]
-                elif observation.get("event_actor_candidates") and state["search_actions"] < limits["search_actions"] and target_function:
-                    actor = observation["event_actor_candidates"][0]
+                elif (actor := _recovery_actor(observation)) and state["search_actions"] < limits["search_actions"] and target_function:
                     skeleton = observation.get("event_skeleton") or {}
                     query = preferred_resolution_query(observation.get("original_source_resolution")) or _actor_first_query(observation, action, skeleton)
                     if query:

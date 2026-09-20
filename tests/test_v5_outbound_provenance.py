@@ -254,3 +254,58 @@ def test_navigation_link_failure_opens_bounded_actor_first_discovery() -> None:
     exact = [item for item in result["observations"] if item.get("url") == "https://prosecution.gov.ma/directive-2026" and item.get("extraction_status") == "FETCHED"]
     assert exact and exact[0]["source_class"] == "primary", exact
     assert exact[0]["verification_status"] == "VALIDATED_EVIDENCE"
+
+
+def test_resolution_actor_dispatches_recovery_when_text_actor_extraction_is_empty() -> None:
+    lead = create_lead(
+        desk="service", topic="candidate filing deadline", discovery_source={"url": "https://signal.example/lead"},
+        observed_at="2026-09-20T10:10:21Z", reason_interesting="fixture", geography=["Morocco"],
+    )
+    job = start_research_job(lead, CONFIG, budget_class="STANDARD")
+    branch = job["branches"][0]
+    action = {
+        "job_id": job["job_id"], "branch_id": branch["branch_id"], "question_id": branch["question_ids"][0],
+        "action_id": "PORTAL-ISSUER-ACTION", "desk": "service", "research_regime": "GENERAL",
+        "action_type": "FETCH_URL", "target": "https://maroc.ma/ar/news/filing", "query": "candidate filing",
+        "query_intent": "FUNCTION_SERVICE_PRIMARY_WINDOW", "query_variant": "EXACT", "query_fingerprint": "PORTAL-ISSUER",
+        "priority_class": "P1_BREADTH", "discovery_channel": "fixture", "known_entities": [],
+        "known_event_ids": [], "already_seen_urls": [], "already_seen_origins": [], "budget": {"class": "STANDARD"},
+        "timeout_seconds": 5, "expected_result_type": "EXTRACTED_SOURCE", "recovery_need_id": "service",
+        "recovery_candidate_id": None, "provenance_requirements": {"required_role": None, "must_be_distinct_event": False, "science_strict": False},
+        "event_context": {"entities": [], "event_terms": ["filing"], "topic_terms": [], "aliases": [], "geography": ["Morocco"], "research_date": "2026-09-20"},
+        "channel_fallback": None, "target_editorial_function": "SERVICE", "discovery_only": False, "navigation_depth": 0,
+        "source_route": {"route_id": "maroc-news", "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "name": "Maroc.ma", "route_type": "NEWS_LISTING"},
+    }
+
+    class Adapter:
+        follow_discovery_leads = False
+
+        def __init__(self):
+            self.actions = []
+
+        def execute(self, value):
+            self.actions.append(value)
+            if value.get("target") == "https://maroc.ma/ar/news/filing":
+                return [{
+                    "url": value["target"], "canonical_url": value["target"],
+                    "title": "Candidate filing remains open", "text": "The filing procedure remains open through 9 September 2026. " * 8,
+                    "stated_issuing_authority": "Ministry of Interior",
+                    "document_references": [{"document_type": "COMMUNIQUE", "issuer": "Ministry of Interior", "issuer_provenance": "PAGE_TEXT_EXPLICIT"}],
+                    "published_at": "2026-09-04", "fetch_status": "FETCHED", "content_hash": "f" * 64,
+                    "source_class": "unknown", "publisher": "Maroc.ma",
+                    "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "maroc.ma"}},
+                }]
+            if value.get("action_type") == "SEARCH_OFFICIAL_SOURCE":
+                return [{"url": "https://interior.example/notice", "title": "Ministry of Interior filing notice", "snippet": "candidate filing procedure", "source_class": "unknown"}]
+            return [{"result_type": "DEAD_END", "reason": "fixture-no-fetch-needed"}]
+
+    adapter = Adapter()
+    result = execute_research_round(job, adapter, CONFIG, actions=[action])
+    parent = next(item for item in result["observations"] if item.get("url") == action["target"])
+    assert parent["event_actor_candidates"] == []
+    assert parent["original_source_resolution"]["observed"]["actor"] == "Ministry of Interior"
+    searches = [item for item in adapter.actions if item.get("query_intent") == "ACTOR_FIRST_CANONICAL_ARTIFACT"]
+    assert searches and searches[0]["query"].startswith("Ministry of Interior")
+    assert 0 < result["budget_consumed"]["search_actions"] <= CONFIG["executor"]["budget_action_limits"]["STANDARD"]["search_actions"]
+    assert all(item["publication_evidence"] is False for item in result["observations"])
+    assert not result["source_packet_patch"].get("candidate_discoveries")

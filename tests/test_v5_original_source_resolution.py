@@ -55,6 +55,41 @@ def test_missing_route_is_diagnostic_not_a_guessed_url():
     assert preferred_resolution_query(plan) == "Public Prosecution OFFICIAL_CIRCULAR DIRECTIVES 2026-09-01"
 
 
+def test_portal_surface_does_not_take_precedence_over_observed_issuer_discovery():
+    page = _page("The filing procedure remains open through 9 September 2026.")
+    page["stated_issuing_authority"] = "Ministry of Interior"
+    page["document_references"] = [{
+        "document_type": "COMMUNIQUE", "issuer": "Ministry of Interior",
+        "issuer_provenance": "PAGE_TEXT_EXPLICIT",
+    }]
+    plan = build_original_source_resolution(page, {
+        "target_editorial_function": "SERVICE",
+        "source_route": {
+            "route_id": "maroc-news", "url": "https://maroc.ma/en/news",
+            "origin": "maroc.ma", "name": "Maroc.ma", "route_type": "NEWS_LISTING",
+        },
+    })
+
+    assert plan["candidate_targets"][0]["ownership"] == "PORTAL_SURFACE_ONLY"
+    assert preferred_resolution_query(plan).startswith("Ministry of Interior")
+    assert not preferred_resolution_query(plan).startswith("site:maroc.ma")
+
+
+def test_unattributed_or_circular_portal_text_cannot_create_an_issuer():
+    for text in (
+        "The filing procedure remains open through 9 September 2026.",
+        "The ministry says the filing procedure remains open.",
+        "According to this portal, the portal notice remains active.",
+    ):
+        page = _page(text, url="https://maroc.ma/news/unattributed")
+        page.pop("stated_issuing_authority", None)
+        page["document_references"] = []
+        plan = build_original_source_resolution(page, {"target_editorial_function": "SERVICE"})
+        assert plan["observed"]["actor"] is None
+        assert plan["failure_category"] == "ORIGINAL_ACTOR_UNKNOWN"
+        assert plan["original_artifact_state"] == "ORIGINAL_ARTIFACT_NOT_FOUND"
+
+
 def test_service_artifact_family_and_chain_are_observed_only():
     page = _page(
         "The Ministry issued a service notice with a registration procedure and deadline through 22 September.",

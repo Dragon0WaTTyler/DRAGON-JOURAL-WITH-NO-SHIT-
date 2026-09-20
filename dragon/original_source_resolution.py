@@ -190,6 +190,11 @@ def build_original_source_resolution(raw: dict, action: dict | None = None, *, r
     for target in targets[:2]:
         prefix = f"site:{target['origin']} " if target.get("origin") else ""
         query_variants.append({"query": f"{prefix}{base}".strip(), "route_id": target.get("route_id"), "language": action.get("search_language") or "auto", "purpose": "ORIGINAL_ARTIFACT_DISCOVERY"})
+    # A national portal can be a useful discovery surface without owning the
+    # attributed source.  Do not let its domain restriction hide an observed
+    # issuer's original artifact when no actor-owned route is configured.
+    if base and targets and all(item.get("ownership") == "PORTAL_SURFACE_ONLY" for item in targets):
+        query_variants.insert(0, {"query": base, "route_id": None, "language": action.get("search_language") or "auto", "purpose": "ORIGINAL_ARTIFACT_DISCOVERY"})
     if base and not query_variants:
         query_variants.append({"query": base, "route_id": None, "language": action.get("search_language") or "auto", "purpose": "ORIGINAL_ARTIFACT_DISCOVERY"})
     if not actor:
