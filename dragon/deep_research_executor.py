@@ -684,6 +684,9 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     research_month = str(action.get("event_context", {}).get("research_date") or "")[:7]
     edition_date = str(action.get("event_context", {}).get("research_date") or "")
     temporal = evaluate_temporal_relevance(raw, edition_date, exact_text=text) if edition_date else None
+    # Event time is a separate observed field.  It must not be silently
+    # replaced with page-publication time when a source supplies both.
+    event_date = (temporal or {}).get("event_time") or raw.get("event_date") or raw.get("event_time")
     if not published_at and temporal and not temporal.get("active_on_edition_date"):
         return {"state": "EVENT_UNRESOLVED", "reason": "NO_PUBLICATION_DATE", "temporal_relevance": temporal}
     if not published_at and not temporal:
@@ -720,10 +723,11 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
     geography = [place for place in _EVENT_GEOGRAPHIES if place in lowered]
     geography = sorted(set(geography))
     identifiers = re.findall(r"\b(?:[A-Z]{2,}[\-\d]{2,}|\d{3,})\b", subject)
-    fingerprint_parts = [actor or "", action_marker, object_terms or "", (published_at or temporal.get("event_time") or temporal.get("deadline") or temporal.get("effective_start") or "")[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
+    fingerprint_parts = [actor or "", action_marker, object_terms or "", (event_date or published_at or temporal.get("deadline") or temporal.get("effective_start") or "")[:10], " ".join(geography), " ".join(sorted(set(identifiers))[:3])]
     fingerprint = _stable_id("EVENT", *fingerprint_parts)
     return {
         "state": "CONCRETE_EVENT", "title": title, "published_at": published_at or None,
+        "event_date": str(event_date).strip() if event_date else None,
         "page_type": page_type, "structured_fields": deepcopy(structured),
         "temporal_relevance": temporal,
         "actor": actor, "action": action_marker, "object": object_terms,
@@ -734,7 +738,7 @@ def extract_event_skeleton(raw: dict, action: dict) -> dict:
             "action": "PAGE_TEXT_INFERRED" if action_marker else "OTHER_DERIVED",
             "object": "PAGE_TEXT_INFERRED" if object_terms else "OTHER_DERIVED",
             "geography": "PAGE_TEXT_INFERRED" if geography else "GEOGRAPHY_UNRESOLVED",
-            "event_date": "PAGE_STRUCTURED_METADATA" if published_at else "OTHER_DERIVED",
+            "event_date": "PAGE_STRUCTURED_METADATA" if event_date else "OTHER_DERIVED",
             "institution": "PAGE_STRUCTURED_METADATA" if (metadata.get("publisher") or raw.get("publisher")) else "OTHER_DERIVED",
         },
         "event_fingerprint": fingerprint,
@@ -933,7 +937,7 @@ def classify_document_type(raw: dict) -> str:
         return "STATISTICAL_RELEASE"
     if any(marker in text for marker in ("regulation", "decree", "gazette", "مرسوم", "قانون تنظيمي")):
         return "REGULATION"
-    if "report" in text and not types:
+    if any(marker in text for marker in ("report", "rapport", "تقرير")) and not types:
         return "REPORT"
     if types & {"newsarticle", "article", "reportagenewsarticle", "analysisnewsarticle", "liveblogposting"}:
         return "NEWS_ARTICLE"
@@ -949,6 +953,61 @@ def classify_document_type(raw: dict) -> str:
     if attribution.get("article_origin_state") in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}:
         return "NEWS_ARTICLE"
     return "OTHER"
+
+
+def _route_first_party_document_publication(raw: dict, action: dict, document_type: str) -> dict | None:
+    """Recognize the issuer's own, explicitly published document page.
+
+    A configured route is only an ownership constraint here; it does not
+    supply claim content, a publication date, or temporal relevance.  The
+    exact page must independently expose a resolved publisher, a matching
+    route host, an institutional document type, and language showing that the
+    publisher made that document public.  This creates a source-role finding
+    for that narrow document-publication claim only.
+    """
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
+    metadata = raw.get("article_metadata") if isinstance(raw.get("article_metadata"), dict) else {}
+    publisher = metadata.get("publisher") if isinstance(metadata.get("publisher"), dict) else {}
+    url = str(raw.get("canonical_url") or raw.get("url") or "")
+    page_host = (urlsplit(url).hostname or "").casefold().strip(".")
+    route_host = str(route.get("origin") or "").casefold().strip(".")
+    if not route_host:
+        route_host = (urlsplit(str(route.get("url") or "")).hostname or "").casefold().strip(".")
+    route_is_primary = (
+        str(route.get("role") or "").upper() == "PRIMARY"
+        and str(route.get("authority_class") or "").upper() == "PRIMARY_ORIGINAL"
+        and route.get("discovery_only") is False
+    )
+    if not route_is_primary or not page_host or page_host != route_host:
+        return None
+    if document_type not in {"REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
+        return None
+    publisher_name = publisher.get("name") or raw.get("publisher")
+    publisher_aliases = _organization_aliases(publisher_name)
+    route_aliases = _organization_aliases(
+        route.get("publisher"), route.get("name"), route.get("institution"), route.get("authority_id"),
+    )
+    shared_aliases = sorted(alias for alias in publisher_aliases & route_aliases if len(alias) >= 4)
+    if not publisher_name or not shared_aliases:
+        return None
+    text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim")).casefold()
+    publication_markers = (
+        "rend public", "rendre public", "publie", "publié", "publication", "made public",
+        "published", "publish", "ينشر", "نشر", "ينشر التقرير", "نشر التقرير",
+    )
+    if not any(marker in text for marker in publication_markers):
+        return None
+    return {
+        "source_class": "primary",
+        "evidence_role": "PRIMARY",
+        "document_type": document_type,
+        "publisher_event_relation": "PUBLISHER_IS_DOCUMENT_ISSUER",
+        "article_origin_state": "FIRST_PARTY_ARTIFACT",
+        "independence_state": "NOT_APPLICABLE_PRIMARY",
+        "shared_organization_aliases": shared_aliases,
+        "claim_scope": "NARROW_DOCUMENT_PUBLICATION",
+        "reason": "PRIMARY_CONFIGURED_ROUTE_PAGE_PUBLISHER_AND_DOCUMENT_PUBLICATION_MATCH",
+    }
 
 
 def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) -> dict:
@@ -982,6 +1041,9 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     event_aliases = _organization_aliases((skeleton or {}).get("actor"))
     shared_aliases = sorted(alias for alias in publisher_aliases & event_aliases if len(alias) >= 4)
     if (skeleton or {}).get("state") != "CONCRETE_EVENT":
+        document_publication = _route_first_party_document_publication(raw, action, document_type)
+        if document_publication and origin_detail.get("article_origin_state") != "OFFICIAL_PORTAL_REPUBLICATION":
+            return document_publication
         return {
             "source_class": "unknown", "evidence_role": "UNRESOLVED", "document_type": document_type,
             "publisher_event_relation": "RELATION_UNRESOLVED", "article_origin_state": "SYNDICATION_UNRESOLVED",

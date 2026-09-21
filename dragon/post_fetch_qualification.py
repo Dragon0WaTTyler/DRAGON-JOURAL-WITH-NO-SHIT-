@@ -145,7 +145,10 @@ def qualify_fetched_artifact(
         "origin": origin,
         "publication_date": dates,
         "modified_date": dates.get("modified_date"),
-        "event_date": event_skeleton.get("event_date") or event_skeleton.get("published_at"),
+        # Publication time and the event time may both be available, and are
+        # different facts.  Preserve an explicit event date rather than
+        # falling back to publication time merely because it is convenient.
+        "event_date": event_skeleton.get("event_date") or raw.get("event_date") or raw.get("event_time"),
         "retrieved_at": raw.get("retrieved_at") or raw.get("observed_at"),
         "temporal": {
             "active_on_edition_date": temporal.get("active_on_edition_date"),
