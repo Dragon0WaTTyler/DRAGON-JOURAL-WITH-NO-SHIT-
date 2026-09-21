@@ -1307,7 +1307,11 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         terms = (
             ("مراقبة مخالفات شكايات متابعة نزاهة رقابة", "oversight violations complaints monitoring enforcement integrity prosecution audit finding", "surveillance infractions plaintes suivi intégrité contrôle poursuite constat audit")
             if target_function == "ACCOUNTABILITY" else
-            ("مكتب التصويت إشعار تسجيل وكالة منصة آخر أجل موعد إجراء أهلية", "polling station notice registration proxy platform deadline procedure eligibility access", "bureau de vote avis inscription procuration plateforme date limite procédure éligibilité accès")
+            # Service discovery must cover operational public-service changes,
+            # not only election-administration notices.  These are retrieval
+            # terms; the exact fetched page still has to establish function,
+            # freshness, ownership, claim support, and evidence roles.
+            ("خدمة عمومية نقل صحة تعليم ماء كهرباء منصة تشغيل استئناف انقطاع ولوج إجراء مهلة تسجيل", "public transport health education water electricity operational platform restoration interruption access procedure deadline registration", "transport santé éducation eau électricité plateforme opérationnelle reprise interruption accès procédure délai inscription")
         )
         geography = "Morocco" if target_function in {"ACCOUNTABILITY", "SERVICE"} else ""
         # Current-process context is retrieval guidance only.  It is copied
@@ -1491,11 +1495,24 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
         route_base_terms = language_terms.get(route_language, base_terms)
         if pivot_mode:
             route_base_terms = f"{route_base_terms} {pivot_terms}"
+        # A discovery run must not carry a historic hard-coded current window.
+        # ``month`` is the run's bounded temporal context (YYYY-MM), not an
+        # observed publication date or an evidence fact.
+        try:
+            window_year, window_number = (int(part) for part in month.split("-", 1))
+        except (TypeError, ValueError):
+            window_year, window_number = 0, 0
+        month_names = {
+            "ar": ("يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"),
+            "fr": ("janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"),
+            "en": ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+        }
+        month_name = month_names.get(route_language, month_names["en"])[window_number - 1] if 1 <= window_number <= 12 else month
         route_temporal = {
-            "ar": "نشط مستمر سبتمبر 2026",
-            "fr": "actif en cours septembre 2026",
-            "en": "active ongoing September 2026",
-        }.get(route_language, "active ongoing September 2026")
+            "ar": f"نشط مستمر {month_name} {window_year}".strip(),
+            "fr": f"actif en cours {month_name} {window_year}".strip(),
+            "en": f"active ongoing {month_name} {window_year}".strip(),
+        }.get(route_language, f"active ongoing {month}".strip())
         route_terms = " ".join(item for item in (current_process, route_base_terms, route_temporal) if item)
         route_query = " ".join(item for item in (f"site:{route_origin}" if route_origin else "", route_terms) if item)
         strategies = [
@@ -1555,7 +1572,12 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 })
                 strategy["source_family_selection_reason"] = "NEED_SOURCE_FAMILY_POLICY" if strategy_index < len(family_order) else "UNTRIED_RELEVANT_FAMILY"
                 strategy["expected_information_gain"] = "NEW_SOURCE_FAMILY" if strategy_index else "EXACT_AUTHORITY_ROUTE"
-                strategy["route_scoped"] = bool(selected_route and strategy_index in {0, 1})
+                # With one configured route, scoping the first two search
+                # strategies produces the same physical request.  Keep the
+                # first exact-route lookup, then preserve a genuinely broad
+                # discovery pass.  Where multiple family routes exist, the
+                # second route remains independently scoped.
+                strategy["route_scoped"] = bool(selected_route and (strategy_index == 0 or len(strategy_routes) > 1))
                 if strategy.get("route_scoped"):
                     selected_origin = _route_search_origin(selected_route)
                     selected_languages = set(selected_route.get("supported_languages") or [])
@@ -1599,7 +1621,7 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
                 # This is discovery context only; observed facts remain
                 # derived exclusively from fetched pages.
                 if branch_contextual:
-                    branch_temporal = "active deadline September 2026" if target_function == "SERVICE" else "active September 2026"
+                    branch_temporal = (f"active deadline {month}" if target_function == "SERVICE" else f"active {month}")
                     # Three branch tokens retain the class signal while keeping
                     # Google News/RSS and similar bounded indexes usable.
                     compact_branch_terms = " ".join(branch_terms.split()[:3])
@@ -1979,7 +2001,10 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
     else:
         pairs = [(branch, None) for branch in branches]
     actions = []
-    seen_fingerprints: set[tuple[str, str]] = set()
+    # ``query_fingerprint`` deliberately retains the strategy intent for
+    # telemetry.  It is therefore not a physical-request identity: two
+    # labels can otherwise dispatch the same query to the same backend.
+    seen_requests: set[tuple[str, str, str, str]] = set()
     for branch, need in pairs:
         strategies = [
             item for item in query_ladder(job, need)
@@ -1992,10 +2017,16 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
             )
             action["strategy_index"] = strategy_index
             action["strategy_count"] = len(strategies)
-            fingerprint = (action["action_type"], action["query_fingerprint"])
-            if fingerprint in seen_fingerprints:
+            request_value = action.get("target") if action.get("target") else action.get("query")
+            physical_request = (
+                str(action["action_type"]),
+                str(action.get("discovery_channel") or ""),
+                str(action.get("search_language") or ""),
+                " ".join(str(request_value or "").casefold().split()),
+            )
+            if physical_request in seen_requests:
                 continue
-            seen_fingerprints.add(fingerprint)
+            seen_requests.add(physical_request)
             action["timeout_seconds"] = config["executor"]["action_timeout_seconds"]
             actions.append(action)
     # A duplicate strategy was intentionally not emitted; it cannot keep a

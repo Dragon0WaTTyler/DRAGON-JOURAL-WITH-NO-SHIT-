@@ -41,11 +41,14 @@ _PUBLIC_POWER = (
 _SERVICE_ACTIONS = (
     "registration", "register", "deadline", "eligibility", "eligible", "apply",
     "application", "schedule", "timetable", "opening hours", "opens", "closes",
-    "procedure", "appointment", "service interruption", "warning", "admission",
+    "procedure", "appointment", "service interruption", "service restoration",
+    "water supply", "electricity supply", "outage", "disruption", "resumed",
+    "restoration", "warning", "admission",
     "inscription", "date limite", "éligibilité", "horaire", "procédure",
     "candidature", "alerte", "ouverture", "fermeture", "rendez-vous",
+    "rétablissement", "interruption", "reprise de service",
     "تسجيل", "آخر أجل", "اجل", "أهلية", "طلب", "جدول", "موعد", "إجراء",
-    "فتح", "إغلاق", "انقطاع", "تحذير", "ولوج", "مباراة",
+    "فتح", "إغلاق", "انقطاع", "استئناف", "استعادة", "تحذير", "ولوج", "مباراة",
 )
 
 
