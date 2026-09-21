@@ -152,6 +152,7 @@ def build_stage_definitions(
     research_adapter=None,
     seed_research_packet: dict | None = None,
     offline_replay: bool = False,
+    continuity_context: dict | None = None,
 ) -> list[StageDefinition]:
     """Build V5 stages.
 
@@ -205,7 +206,12 @@ def build_stage_definitions(
         return StageResult((path,), inputs=inputs)
 
     def research(context: StageContext) -> StageResult:
-        continuity = prior_context(context.root, context.edition_date)
+        # Fresh acceptance may supply an explicit empty continuity boundary.
+        # Production keeps its established historical continuity lookup unless
+        # that opt-in argument is provided.
+        continuity = deepcopy(continuity_context) if continuity_context is not None else prior_context(
+            context.root, context.edition_date
+        )
         continuity_path = context.run_dir / "research" / "continuity-context.json"
         atomic_write_json(continuity_path, continuity)
         seed_path = context.run_dir / "research" / "initial-research-packet.json"

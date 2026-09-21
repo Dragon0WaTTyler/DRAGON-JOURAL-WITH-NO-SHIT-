@@ -8,6 +8,9 @@ infra/searxng/.env
 # Provider trial evidence remains local and hash-bound for human review; it is
 # deliberately not a substitute for an archived production edition.
 acceptance/
+# Explicit provider-free research acceptance attempts are local evidence only.
+# Keep this narrow so ordinary V5 and preserved historical runs stay visible.
+daily-runs/*/runs/research-acceptance-*/
 daily-runs/2099-*/
 # Hash-bound offline replay of an immutable provider trial; local review evidence,
 # never a production or historical edition to commit.
