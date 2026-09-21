@@ -10,7 +10,7 @@ publication, archive, or delivery capability.
 from __future__ import annotations
 
 from copy import deepcopy
-from datetime import date, datetime
+from datetime import date, datetime, time
 import hashlib
 import json
 from pathlib import Path
@@ -246,11 +246,32 @@ def audit_acceptance_environment(
     edition_date: str,
     run_id: str,
     service_probe: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    now: datetime | None = None,
 ) -> dict[str, Any]:
     """Acceptance-specific preflight.  It deliberately never checks AI providers."""
     root = root.resolve()
-    date.fromisoformat(edition_date)
+    requested_date = date.fromisoformat(edition_date)
     config = load_local_config(root)
+    timezone = str(config["timezone"])
+    current = now or datetime.now(ZoneInfo(timezone))
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ZoneInfo(timezone))
+    else:
+        current = current.astimezone(ZoneInfo(timezone))
+    try:
+        deadline = time.fromisoformat(str(config["scheduler"]["target_deadline"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ResearchAcceptanceError("ACCEPTANCE_DEADLINE_CONFIG_INVALID", "scheduler target deadline is invalid") from exc
+    if requested_date < current.date():
+        raise ResearchAcceptanceError(
+            "ACCEPTANCE_EDITION_DATE_PAST",
+            f"requested {requested_date.isoformat()} but local acceptance date is {current.date().isoformat()}",
+        )
+    if requested_date == current.date() and current.timetz().replace(tzinfo=None) > deadline:
+        raise ResearchAcceptanceError(
+            "ACCEPTANCE_DEADLINE_PASSED",
+            f"current local time {current.isoformat()} is after configured deadline {deadline.isoformat(timespec='minutes')} {timezone}",
+        )
     branch = _git_output(root, ["branch", "--show-current"])
     if not branch.startswith("codex/"):
         raise ResearchAcceptanceError("ACCEPTANCE_BRANCH_UNAUTHORIZED", f"expected a codex development branch, got {branch or 'DETACHED'}")
@@ -276,6 +297,8 @@ def audit_acceptance_environment(
         "status": "PASS",
         "mode": RESEARCH_ACCEPTANCE_MODE,
         "edition_date": edition_date,
+        "checked_at": current.isoformat(),
+        "target_deadline": f"{deadline.isoformat(timespec='minutes')} {timezone}",
         "branch": branch,
         "workspace_clean_before_run": True,
         "provider_requirement": "NOT_APPLICABLE_PROVIDER_FREE_ACCEPTANCE",

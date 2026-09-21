@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -77,6 +78,20 @@ def test_acceptance_preflight_is_clean_development_only_and_provider_free(tmp_pa
     with pytest.raises(ResearchAcceptanceError, match="unrelated") as caught:
         audit_acceptance_environment(root, edition_date=DATE, run_id=RUN_ID, service_probe=_passing_probe)
     assert caught.value.code == "ACCEPTANCE_WORKTREE_DIRTY"
+
+
+def test_acceptance_preflight_refuses_a_late_current_edition_without_creating_a_run(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path)
+    with pytest.raises(ResearchAcceptanceError) as caught:
+        audit_acceptance_environment(
+            root,
+            edition_date="2026-09-21",
+            run_id=RUN_ID,
+            service_probe=_passing_probe,
+            now=datetime.fromisoformat("2026-09-21T12:30:01+00:00"),
+        )
+    assert caught.value.code == "ACCEPTANCE_DEADLINE_PASSED"
+    assert not (root / "daily-runs" / "2026-09-21").exists()
 
 
 def test_harness_runs_real_research_path_offline_and_stops_before_editorial(tmp_path: Path) -> None:

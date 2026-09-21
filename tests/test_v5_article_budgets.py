@@ -45,6 +45,72 @@ def _articles(research: dict, words: int) -> list[dict]:
     return value
 
 
+def _undercovered_provider_research_packet() -> dict:
+    """Portable raw provider response with active candidates lacking evidence roles.
+
+    This is deliberately not a copy of an ignored provider trial.  It models
+    the same contract the regression protects: normalization must demote a
+    provider-selected story when no primary or independent evidence role is
+    present, and article generation must then fail before provider invocation.
+    """
+    sources = [
+        {
+            "id": "discovery-only-1",
+            "url": "https://example.invalid/discovery/one",
+            "publisher": "Deterministic discovery fixture",
+            "publication_date": "2026-09-10",
+            "accessed_at": "2026-09-11T07:00:00+01:00",
+            "source_type": "secondary",
+            "claim_supported": "A discovery result that cannot satisfy a primary or independent evidence role.",
+            "doi": None,
+            "publication_status": "news",
+            "full_text_status": "FULL_TEXT_VERIFIED",
+            "methods_read": False,
+            "limitations_read": False,
+            "science_metadata": None,
+        }
+    ]
+    sections = []
+    for index, (section_id, _heading) in enumerate(SECTION_HEADINGS):
+        if index:
+            sections.append({
+                "section_id": section_id,
+                "status": "NO_NEWS",
+                "candidates": [],
+                "selected_candidate_id": None,
+                "selection_reason": None,
+                "no_news_reason": "لا توجد مادة مكتملة الأدلة صالحة للنشر في هذا القسم التجريبي.",
+                "fallback_action": "DOSSIER_FOLLOW_UP",
+            })
+            continue
+        candidates = [
+            {
+                "id": f"{section_id}-undercovered-{rank}",
+                "rank": rank,
+                "title": f"Under-covered provider candidate {rank}",
+                "discovery_source_ids": ["discovery-only-1"],
+                "verification_source_ids": ["discovery-only-1"],
+                "primary_evidence_source_ids": [],
+                "independent_evidence_source_ids": [],
+                "facts": ["The provider returned only a secondary discovery result."],
+                "claims": [],
+                "unknowns": ["Primary and independent verification are absent."],
+                "disputed_points": [],
+            }
+            for rank in (1, 2)
+        ]
+        sections.append({
+            "section_id": section_id,
+            "status": "ACTIVE",
+            "candidates": candidates,
+            "selected_candidate_id": candidates[0]["id"],
+            "selection_reason": "Provider selection is intentionally under-covered for this regression.",
+            "no_news_reason": None,
+            "fallback_action": None,
+        })
+    return {"edition_date": "2026-09-11", "sources": sources, "sections": sections}
+
+
 class _RecordingProvider(LocalCommandEditorialProvider):
     def __init__(self, initial: list[dict], repaired: list[dict] | None = None, **kwargs):
         super().__init__(("offline",), **kwargs)
@@ -179,18 +245,24 @@ def test_impossible_word_floor_or_unsupported_budget_blocks_before_provider_invo
 
 
 def test_failed_live_research_packet_now_blocks_before_article_invocation() -> None:
-    historical = json.loads((ROOT / "acceptance/provider-trials/2026-09-11/attempts/attempt-6d24f562361843da939d2116cb92680e/research.raw.json").read_text(encoding="utf-8"))
+    undercovered = _undercovered_provider_research_packet()
     calls: list[str] = []
 
     class ResearchOnlyProvider(LocalCommandEditorialProvider):
         def _invoke(self, operation: str, payload: dict):
             calls.append(operation)
             if operation == "research":
-                return historical
+                return copy.deepcopy(undercovered)
             raise AssertionError("under-covered research must not invoke articles")
 
     replay = ResearchOnlyProvider(("offline",)).research("2026-09-11")
     assert not [section for section in replay["sections"] if section["status"] == "ACTIVE"]
+    assert replay["evidence_normalization"]["demotions"] == [{
+        "section_id": "front",
+        "candidate_id": "front-undercovered-1",
+        "outcome": "RESEARCH_INCOMPLETE",
+        "reason": "No candidate has distinct primary and independent evidence.",
+    }]
     with pytest.raises(ProviderError) as replay_blocked:
         ResearchOnlyProvider(("offline",)).articles(replay)
     assert replay_blocked.value.code == "RESEARCH_INSUFFICIENT"
