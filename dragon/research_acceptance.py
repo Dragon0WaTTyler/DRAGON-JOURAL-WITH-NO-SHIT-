@@ -425,6 +425,22 @@ def run_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[str, Any]
     """Run exactly one fresh attempt; callers receive no resume or retry path."""
     if {"resume", "retry_stage", "from_stage"} & set(kwargs):
         raise ResearchAcceptanceError("FRESH_RUN_RESUME_OR_RETRY_UNSUPPORTED", "research acceptance only creates new run identities")
+    root = Path(kwargs["root"]).resolve()
+    edition_date = str(kwargs["edition_date"])
+    run_id = str(kwargs.get("run_id") or f"research-acceptance-{uuid4()}")
+    preflight_now = kwargs.pop("preflight_now", None)
+    # Check the authorized execution window before StateStore can create a
+    # fresh run identity.  The stage repeats this audit after initialization
+    # so its persisted preflight report remains hash-bound to the run.
+    audit_acceptance_environment(
+        root,
+        edition_date=edition_date,
+        run_id=run_id,
+        service_probe=kwargs.get("service_probe"),
+        now=preflight_now,
+    )
+    kwargs["root"] = root
+    kwargs["run_id"] = run_id
     orchestrator = build_research_acceptance_orchestrator(**kwargs)
     state = orchestrator.run()
     return orchestrator, state, write_research_acceptance_report(orchestrator, state)

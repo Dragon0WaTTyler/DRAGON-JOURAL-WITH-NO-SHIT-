@@ -83,12 +83,12 @@ def test_acceptance_preflight_is_clean_development_only_and_provider_free(tmp_pa
 def test_acceptance_preflight_refuses_a_late_current_edition_without_creating_a_run(tmp_path: Path) -> None:
     root = _fixture_root(tmp_path)
     with pytest.raises(ResearchAcceptanceError) as caught:
-        audit_acceptance_environment(
-            root,
+        run_research_acceptance(
+            root=root,
             edition_date="2026-09-21",
             run_id=RUN_ID,
             service_probe=_passing_probe,
-            now=datetime.fromisoformat("2026-09-21T12:30:01+00:00"),
+            preflight_now=datetime.fromisoformat("2026-09-21T12:30:01+00:00"),
         )
     assert caught.value.code == "ACCEPTANCE_DEADLINE_PASSED"
     assert not (root / "daily-runs" / "2026-09-21").exists()
