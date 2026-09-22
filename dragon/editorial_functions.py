@@ -38,6 +38,17 @@ _PUBLIC_POWER = (
     "administration", "official", "institution", "parliament",
     "حكومة", "وزارة", "جماعة", "سلطة", "إدارة", "مؤسسة", "برلمان",
 )
+_PARTICIPATION_MARKERS = (
+    "participation", "participated", "participate", "took part", "attended",
+    "participe", "participé", "participer", "مشاركة", "يشارك", "شاركت",
+)
+_ACCOUNTABILITY_ACTION_MARKERS = (
+    "audit report", "audit finding", "audit findings", "inspection report", "inspection finding",
+    "enforcement", "sanction", "procurement", "ombudsman", "prosecution", "prosecutor",
+    "monitoring", "directive", "circular", "complaint", "investigation", "court ruling",
+    "rapport d'audit", "rapport d'inspection", "constat d'audit", "sanction", "marché public",
+    "poursuite", "parquet", "dورية", "شكاية", "تحقيق", "صفقة عمومية", "افتحاص",
+)
 _SERVICE_ACTIONS = (
     "registration", "register", "deadline", "eligibility", "eligible", "apply",
     "application", "schedule", "timetable", "opening hours", "opens", "closes",
@@ -78,7 +89,8 @@ def classify_event_functions(
     records: list[dict] = []
     accountability = _contains(text, _ACCOUNTABILITY_MECHANISMS)
     power = _contains(text, _PUBLIC_POWER)
-    if accountability and power:
+    participation_only = _contains(text, _PARTICIPATION_MARKERS) and not _contains(text, _ACCOUNTABILITY_ACTION_MARKERS)
+    if accountability and power and not participation_only:
         records.append({
             "function": "ACCOUNTABILITY", "status": VALIDATED,
             "reason": "Concrete oversight/enforcement mechanism tied to public or institutional power.",

@@ -192,6 +192,123 @@ def _recovery_actor(observation: dict) -> dict | None:
     return {"name": actor} if actor and provenance == "PAGE_TEXT_EXPLICIT" else None
 
 
+def _observed_issuer_for_official_link(raw: dict, observation: dict) -> str | None:
+    """Return a page-observed issuer for one outbound-link ownership check."""
+    for value in (
+        raw.get("stated_issuing_institution"), raw.get("issuing_institution"),
+        observation.get("stated_issuing_authority"),
+    ):
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    for reference in observation.get("document_references") or []:
+        if isinstance(reference, dict) and str(reference.get("issuer_provenance") or "").startswith("PAGE_"):
+            value = str(reference.get("issuer") or "").strip()
+            if value:
+                return value
+    resolution = observation.get("original_source_resolution") if isinstance(observation.get("original_source_resolution"), dict) else {}
+    observed = resolution.get("observed") if isinstance(resolution.get("observed"), dict) else {}
+    if str(observed.get("actor_provenance") or "").startswith("PAGE_"):
+        value = str(observed.get("actor") or "").strip()
+        if value:
+            return value
+    # This is bounded entity extraction, not a claim: it only permits a
+    # hostname ownership comparison when the page explicitly names a public
+    # issuer.  A bare word such as "ministry" is intentionally insufficient.
+    text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim"))
+    patterns = (
+        r"\b(?:ministry|department|authority|agency|office)\s+(?:of\s+)?[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ &'’\-]{3,70}",
+        r"وزارة\s+[\u0600-\u06ff][\u0600-\u06ff\s]{3,70}",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.I)
+        if match:
+            return match.group(0).strip()
+    return None
+
+
+def _issuer_matches_official_link(issuer: str, url: str) -> bool:
+    """Verify a public issuer/link relationship without trusting a TLD alone."""
+    host = (urlsplit(str(url or "")).hostname or "").casefold()
+    domain_terms = {
+        term for term in re.findall(r"[a-z0-9]+", host)
+        if len(term) >= 4 and term not in {"www", "gov", "government", "service"}
+    }
+    issuer_terms = {term.casefold() for term in _query_words([issuer]) if len(term) >= 4}
+    return bool(domain_terms & issuer_terms)
+
+
+def _targeted_official_homepage_candidate(
+    candidate: dict,
+    observation: dict,
+    raw: dict,
+    action: dict,
+    seen_urls: set[str],
+) -> dict | None:
+    """Permit one issuer-matched homepage follow-up under existing limits.
+
+    A homepage is acquisition material only.  The result records why this
+    exception was allowed, but does not assign a source role, retrieve a child
+    page, or relax temporal/semantic/event-bundle validation.
+    """
+    if candidate.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY":
+        return None
+    url = normalize_url(str(candidate.get("url") or ""))
+    if not url or url in seen_urls:
+        return None
+    target_function = str(action.get("target_editorial_function") or "").upper()
+    skeleton = observation.get("event_skeleton") if isinstance(observation.get("event_skeleton"), dict) else {}
+    support = observation.get("claim_support") if isinstance(observation.get("claim_support"), dict) else {}
+    temporal = observation.get("temporal_relevance") if isinstance(observation.get("temporal_relevance"), dict) else {}
+    if (
+        target_function not in {"ACCOUNTABILITY", "SERVICE"}
+        or skeleton.get("state") != "CONCRETE_EVENT"
+        or support.get("support_type") != "DIRECT_SUPPORT"
+        or temporal.get("temporal_eligibility_type") in {"EVENT_EXPIRED", "TEMPORAL_RELEVANCE_UNRESOLVED"}
+    ):
+        return None
+    issuer = _observed_issuer_for_official_link(raw, observation)
+    if not issuer or not _issuer_matches_official_link(issuer, url):
+        return None
+    return {
+        **candidate,
+        "url": url,
+        "followup_mode": "TARGETED_OFFICIAL_HOMEPAGE",
+        "issuer": issuer,
+        "issuer_host_match": "PAGE_OBSERVED_ISSUER_DOMAIN_TERM_MATCH",
+        "temporal_note": "FUTURE_CONTEXT_ONLY" if temporal.get("effective_start") and not temporal.get("active_on_edition_date") else "NORMAL_QUALIFICATION_REQUIRED",
+    }
+
+
+def _provenance_followup_candidates(observation: dict, raw: dict, action: dict, seen_urls: set[str]) -> list[dict]:
+    """Select one bounded official-source route without generic homepage crawl."""
+    direct: list[dict] = []
+    homepages: list[dict] = []
+    for candidate in observation.get("official_link_candidates", []):
+        if not isinstance(candidate, dict):
+            continue
+        url = normalize_url(str(candidate.get("url") or ""))
+        if not url or url in seen_urls:
+            continue
+        item = {**candidate, "url": url}
+        if candidate.get("reason") == "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY":
+            homepage = _targeted_official_homepage_candidate(item, observation, raw, action, seen_urls)
+            if homepage:
+                homepages.append(homepage)
+            continue
+        if (
+            item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"}
+            and (item.get("type") != "INSTITUTIONAL_DETAIL" or item.get("service_signal") or item.get("document_signal") or item.get("citation_signal") or url.casefold().split("?")[0].rstrip("/").endswith(("/detail", "/notice", "/report", "/decision", "/document")))
+        ):
+            direct.append({**item, "followup_mode": "EXACT_OR_NAMED_OFFICIAL_LINK"})
+    ordered_direct = sorted(
+        direct,
+        key=lambda item: ({"CITED_PRIMARY_SOURCE": 0, "OFFICIAL_SERVICE_DESTINATION": 1, "OFFICIAL_DOCUMENT": 2, "INSTITUTIONAL_DETAIL": 3}.get(item.get("type"), 9), item.get("url", "")),
+    )
+    # Exact/named artifacts retain priority.  A homepage is an intentionally
+    # last-resort ownership/discovery probe, never a replacement for them.
+    return ordered_direct or sorted(homepages, key=lambda item: item.get("url", ""))[:1]
+
+
 def _select_actor_first_candidate(items: list[dict], actor: str, action: dict) -> dict | None:
     """Choose one bounded actor/action result for exact-page retrieval.
 
@@ -788,6 +905,7 @@ def _canonical_event_action(value: object) -> str:
         "announce": {"announce", "announced", "launch", "launched", "يعلن", "أعلن", "اعلنت"},
         "approve": {"approve", "approved", "adopt", "adopted", "يعتمد"},
         "report": {"report", "reported", "publish", "published", "publie", "publié", "publiée", "تقرير", "ينشر"},
+        "participate": {"participate", "participated", "participation", "participe", "participé", "participation", "يشارك", "شاركت", "مشاركة"},
     }
     return next((name for name, aliases in groups.items() if action in aliases), action)
 
@@ -1010,6 +1128,118 @@ def _route_first_party_document_publication(raw: dict, action: dict, document_ty
     }
 
 
+def _same_institution_domain(page_host: str, verified_host: str) -> bool:
+    """Match one page to a configured/verified institutional domain only."""
+    page = str(page_host or "").casefold().strip(".")
+    verified = str(verified_host or "").casefold().strip(".")
+    if not page or not verified:
+        return False
+    return page == verified or page.endswith("." + verified) or verified.endswith("." + page)
+
+
+def _verified_first_party_identity(raw: dict, action: dict) -> dict | None:
+    """Return a narrow ownership finding without supplying claim content.
+
+    A domain-looking URL is deliberately insufficient.  The identity must be
+    backed by either an explicitly PRIMARY configured route or an already
+    resolved publisher-profile identity.  This is source provenance only;
+    callers still require page-derived actor/action facts before assigning a
+    source role.
+    """
+    url = str(raw.get("canonical_url") or raw.get("url") or "")
+    page_host = (urlsplit(url).hostname or "").casefold()
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
+    route_host = str(route.get("origin") or "").casefold().strip(".")
+    if not route_host:
+        route_host = (urlsplit(str(route.get("url") or "")).hostname or "").casefold()
+    route_verified = (
+        str(route.get("role") or "").upper() == "PRIMARY"
+        and str(route.get("authority_class") or "").upper() == "PRIMARY_ORIGINAL"
+        and route.get("discovery_only") is False
+        and _same_institution_domain(page_host, route_host)
+    )
+    if route_verified:
+        return {
+            "state": "VERIFIED_CONFIGURED_PRIMARY_DOMAIN",
+            "publisher_values": [route.get("publisher"), route.get("name"), route.get("institution"), route.get("authority_id")],
+        }
+    profile = raw.get("publisher_profile") if isinstance(raw.get("publisher_profile"), dict) else {}
+    profile_host = str(profile.get("canonical_domain") or "").casefold().strip(".")
+    # A profile derived from page metadata only establishes a publisher label,
+    # not institutional ownership.  Reserve this alternative for an explicit
+    # authority-resolution result; today configured source routes provide the
+    # verified production path.  This prevents a normal newsroom profile from
+    # self-upgrading merely because it has a canonical domain.
+    profile_verified = (
+        profile.get("identity_state") == "PUBLISHER_PROFILE_RESOLVED"
+        and str(profile.get("identity_provenance") or "") in {"CONFIGURED_AUTHORITY_RESOLUTION", "VERIFIED_AUTHORITY_RESOLUTION"}
+        and _same_institution_domain(page_host, profile_host)
+    )
+    if profile_verified:
+        return {
+            "state": "VERIFIED_PUBLISHER_PROFILE_DOMAIN",
+            "publisher_values": [profile.get("canonical_publisher_name"), *(profile.get("known_aliases") or [])],
+        }
+    return None
+
+
+def _first_party_self_attestation(
+    raw: dict,
+    action: dict,
+    skeleton: dict | None,
+    *,
+    document_type: str,
+    origin_detail: dict,
+    shared_aliases: list[str],
+    direct_action: bool,
+) -> dict | None:
+    """Recognize a page's own limited institutional action statement.
+
+    This intentionally excludes navigation, syndication, and broad document
+    claims.  It supplies primary provenance for only the page-derived event
+    assertion and leaves claim support, semantics, dates, and bundle closure
+    to their existing independent gates.
+    """
+    if document_type != "NEWS_ARTICLE":
+        return None
+    if classify_page_type(raw, action=action) in NAVIGATION_PAGE_TYPES:
+        return None
+    attribution = raw.get("article_attribution") if isinstance(raw.get("article_attribution"), dict) else {}
+    if (
+        origin_detail.get("article_origin_state") == "OFFICIAL_PORTAL_REPUBLICATION"
+        or str(attribution.get("article_origin_state") or "") in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}
+        or attribution.get("wire_credit")
+        or attribution.get("partner_credit")
+    ):
+        return None
+    identity = _verified_first_party_identity(raw, action)
+    if not identity:
+        return None
+    page_text = " ".join(str(raw.get(key) or "") for key in ("title", "text", "extracted_text", "claim")).casefold()
+    # The page's direct self-action wording is the claim-specific fact.  An
+    # event extractor can preserve a less useful verb from a long title, so
+    # do not let that lossy extraction erase an otherwise explicit statement
+    # such as "the Court ... took part".  This path still requires verified
+    # first-party ownership, a detail page, and no external lineage.
+    direct_page_action = direct_action or any(marker in page_text for marker in (
+        "took part", "participated", "participate", "participation", "participe", "participé",
+        "مشاركة", "يشارك", "شاركت",
+    ))
+    if not direct_page_action:
+        return None
+    return {
+        "source_class": "primary", "evidence_role": "PRIMARY", "document_type": document_type,
+        "publisher_event_relation": "PUBLISHER_IS_EVENT_ACTOR",
+        "article_origin_state": "FIRST_PARTY_SELF_ATTESTATION",
+        "independence_state": "NOT_APPLICABLE_PRIMARY",
+        "shared_organization_aliases": shared_aliases,
+        "actor_confirmation": "EVENT_ALIAS_MATCH" if shared_aliases else "VERIFIED_DOMAIN_DIRECT_PAGE_ACTION",
+        "claim_scope": "NARROW_SELF_ATTESTED_EVENT",
+        "identity_state": identity["state"],
+        "reason": "FIRST_PARTY_SELF_ATTESTATION_VERIFIED_DOMAIN_DIRECT_SELF_ACTION",
+    }
+
+
 def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) -> dict:
     """Resolve a narrow source role from exact-page and event relationship facts.
 
@@ -1031,10 +1261,12 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
     title = str(raw.get("title") or metadata.get("title") or "")
     text = str(raw.get("text") or raw.get("extracted_text") or "")
     document_type = classify_document_type(raw)
+    route = action.get("source_route") if isinstance(action.get("source_route"), dict) else {}
     publisher_aliases = _organization_aliases(
         publisher.get("name"), profile.get("canonical_publisher_name"), profile.get("canonical_domain"),
         url, raw.get("publisher"),
         *(profile.get("known_aliases") or []),
+        route.get("publisher"), route.get("name"), route.get("institution"), route.get("authority_id"),
     )
     # Query entities/targets are retrieval context only.  They must never
     # manufacture a publisher/event relationship on the fetched page.
@@ -1085,6 +1317,7 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
         "announce": {"announce", "announces", "announced", "announcing", "launch", "launched"},
         "approve": {"approve", "approves", "approved", "adopt", "adopts", "adopted"},
         "report": {"report", "reports", "reported", "publish", "published"},
+        "participate": {"participate", "participated", "participation", "participe", "participé", "يشارك", "شاركت", "مشاركة"},
     }
     direct_action = bool(action_value and action_terms & action_forms.get(action_value, {action_value}))
     if shared_aliases and document_type in {"PRESS_RELEASE", "OFFICIAL_STATEMENT", "SIGNED_DOCUMENT", "REPORT", "AUDIT_REPORT", "STATISTICAL_RELEASE", "COURT_DECISION", "REGULATION"}:
@@ -1110,6 +1343,12 @@ def resolve_exact_source_role(raw: dict, action: dict, skeleton: dict | None) ->
         }
     detected_origin = str(origin_detail.get("article_origin_state") or "")
     origin_state = detected_origin if detected_origin in {"OFFICIAL_PORTAL_REPUBLICATION", "PRIMARY_ORIGINAL_ARTIFACT"} else str(attribution.get("article_origin_state") or "SYNDICATION_UNRESOLVED")
+    self_attestation = _first_party_self_attestation(
+        raw, action, skeleton, document_type=document_type, origin_detail=origin_detail,
+        shared_aliases=shared_aliases, direct_action=direct_action,
+    )
+    if self_attestation:
+        return self_attestation
     if document_type == "NEWS_ARTICLE":
         if origin_state in {"WIRE_REPUBLICATION", "PARTNER_REPUBLICATION"}:
             return {
@@ -4228,7 +4467,7 @@ def execute_research_round(
                 and observation.get("extraction_status") == "FETCHED"
                 and state["lead_followups"] < int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"])
             ):
-                candidates = [item for item in observation.get("official_link_candidates", []) if item.get("type") in {"CITED_PRIMARY_SOURCE", "OFFICIAL_SERVICE_DESTINATION", "OFFICIAL_DOCUMENT", "INSTITUTIONAL_DETAIL"} and item.get("reason") != "OFFICIAL_HOMEPAGE_NAVIGATION_ONLY" and (item.get("type") != "INSTITUTIONAL_DETAIL" or item.get("service_signal") or item.get("document_signal") or item.get("citation_signal") or str(item.get("url") or "").casefold().split("?")[0].rstrip("/").endswith(("/detail", "/notice", "/report", "/decision", "/document")))]
+                candidates = _provenance_followup_candidates(observation, raw, action, seen_urls)
                 for item in candidates:
                     item["url_safety"] = assess_source_url(str(item.get("url") or ""))
                 unsafe_candidates = [item for item in candidates if item.get("url_safety", {}).get("state") == "URL_UNSAFE"]
@@ -4240,13 +4479,15 @@ def execute_research_round(
                 if candidates:
                     selected = candidates[0]
                     observation["provenance_recovery_state"] = "OFFICIAL_LINK_SELECTED"
-                    observation["provenance_recovery_reason"] = selected.get("type")
-                    provenance_followup_selection.append({"parent_observation_id": observation.get("observation_id"), "url": selected.get("url"), "link_type": selected.get("type"), "need_id": action.get("recovery_need_id")})
+                    observation["provenance_recovery_reason"] = selected.get("followup_mode") or selected.get("type")
+                    provenance_followup_selection.append({"parent_observation_id": observation.get("observation_id"), "url": selected.get("url"), "link_type": selected.get("type"), "followup_mode": selected.get("followup_mode"), "need_id": action.get("recovery_need_id")})
                     child_action = {
                         **action,
                         "action_id": _stable_id("ACT", action["action_id"], "OFFICIAL_LINK", selected["url"]),
                         "action_type": "FETCH_URL", "target": selected["url"], "expected_result_type": "EXTRACTED_SOURCE",
                         "lead_followup": True, "provenance_followup": True, "outbound_link_type": selected.get("type"),
+                        "official_homepage_followup": selected.get("followup_mode") == "TARGETED_OFFICIAL_HOMEPAGE",
+                        "official_link_issuer": selected.get("issuer"),
                         "expected_artifact_family": action.get("artifact_family") or action.get("expected_artifact_family"),
                         "originating_observation_id": observation.get("observation_id"), "navigation_parent_url": observation.get("url"),
                         "discovery_channel": f"{action.get('discovery_channel') or 'FETCH'}-official-link",
