@@ -37,6 +37,8 @@ from dragon.state import EXECUTION_MODE_FRESH, atomic_write_json, sha256_file
 
 RESEARCH_ACCEPTANCE_MODE = "RESEARCH_ACCEPTANCE_PROVIDER_FREE"
 TECHNICAL_RESEARCH_ACCEPTANCE_MODE = "TECHNICAL_RESEARCH_ACCEPTANCE_PROVIDER_FREE"
+PROVIDER_RESEARCH_ACCEPTANCE_MODE = "RESEARCH_ACCEPTANCE_PROVIDER_BACKED"
+TECHNICAL_PROVIDER_RESEARCH_ACCEPTANCE_MODE = "TECHNICAL_RESEARCH_ACCEPTANCE_PROVIDER_BACKED"
 RESEARCH_ACCEPTANCE_STAGES = (
     "preflight",
     "source_monitoring",
@@ -126,7 +128,12 @@ def build_fresh_research_seed(
     needs.  It contains no source, event, candidate, action, or evidence from
     a prior run, so it cannot inherit historical research readiness.
     """
-    if acceptance_mode not in {RESEARCH_ACCEPTANCE_MODE, TECHNICAL_RESEARCH_ACCEPTANCE_MODE}:
+    if acceptance_mode not in {
+        RESEARCH_ACCEPTANCE_MODE,
+        TECHNICAL_RESEARCH_ACCEPTANCE_MODE,
+        PROVIDER_RESEARCH_ACCEPTANCE_MODE,
+        TECHNICAL_PROVIDER_RESEARCH_ACCEPTANCE_MODE,
+    }:
         raise ResearchAcceptanceError("ACCEPTANCE_MODE_INVALID", str(acceptance_mode))
     parsed_date = date.fromisoformat(edition_date).isoformat()
     general = yaml.safe_load((root / "config" / "general-search.yaml").read_text(encoding="utf-8"))
