@@ -36,6 +36,7 @@ from dragon.state import EXECUTION_MODE_FRESH, atomic_write_json, sha256_file
 
 
 RESEARCH_ACCEPTANCE_MODE = "RESEARCH_ACCEPTANCE_PROVIDER_FREE"
+TECHNICAL_RESEARCH_ACCEPTANCE_MODE = "TECHNICAL_RESEARCH_ACCEPTANCE_PROVIDER_FREE"
 RESEARCH_ACCEPTANCE_STAGES = (
     "preflight",
     "source_monitoring",
@@ -117,6 +118,7 @@ def build_fresh_research_seed(
     timezone: str,
     run_id: str,
     created_at: str | None = None,
+    acceptance_mode: str = RESEARCH_ACCEPTANCE_MODE,
 ) -> dict[str, Any]:
     """Make a new, evidence-empty packet for the requested edition only.
 
@@ -124,6 +126,8 @@ def build_fresh_research_seed(
     needs.  It contains no source, event, candidate, action, or evidence from
     a prior run, so it cannot inherit historical research readiness.
     """
+    if acceptance_mode not in {RESEARCH_ACCEPTANCE_MODE, TECHNICAL_RESEARCH_ACCEPTANCE_MODE}:
+        raise ResearchAcceptanceError("ACCEPTANCE_MODE_INVALID", str(acceptance_mode))
     parsed_date = date.fromisoformat(edition_date).isoformat()
     general = yaml.safe_load((root / "config" / "general-search.yaml").read_text(encoding="utf-8"))
     if not isinstance(general, dict) or not isinstance(general.get("time_range"), str):
@@ -146,7 +150,7 @@ def build_fresh_research_seed(
         ],
         "research_acceptance_seed": {
             "schema_version": 1,
-            "mode": RESEARCH_ACCEPTANCE_MODE,
+            "mode": acceptance_mode,
             "run_id": run_id,
             "edition_date": parsed_date,
             "timezone": timezone,
@@ -159,12 +163,23 @@ def build_fresh_research_seed(
             "provenance": "FRESH_EMPTY_SEED_NO_HISTORICAL_EVIDENCE",
         },
     }
-    validate_fresh_research_seed(packet, edition_date=parsed_date, timezone=timezone, run_id=run_id)
+    validate_fresh_research_seed(
+        packet,
+        edition_date=parsed_date,
+        timezone=timezone,
+        run_id=run_id,
+        acceptance_mode=acceptance_mode,
+    )
     return packet
 
 
 def validate_fresh_research_seed(
-    packet: dict[str, Any], *, edition_date: str, timezone: str, run_id: str
+    packet: dict[str, Any],
+    *,
+    edition_date: str,
+    timezone: str,
+    run_id: str,
+    acceptance_mode: str = RESEARCH_ACCEPTANCE_MODE,
 ) -> None:
     """Validate the acceptance seed without weakening provider packet rules."""
     if not isinstance(packet, dict) or packet.get("edition_date") != edition_date:
@@ -188,7 +203,7 @@ def validate_fresh_research_seed(
     if not isinstance(metadata, dict) or any(
         metadata.get(field) != value
         for field, value in (
-            ("mode", RESEARCH_ACCEPTANCE_MODE), ("edition_date", edition_date),
+            ("mode", acceptance_mode), ("edition_date", edition_date),
             ("timezone", timezone), ("run_id", run_id),
         )
     ):
@@ -247,6 +262,7 @@ def audit_acceptance_environment(
     run_id: str,
     service_probe: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     now: datetime | None = None,
+    technical_validation: bool = False,
 ) -> dict[str, Any]:
     """Acceptance-specific preflight.  It deliberately never checks AI providers."""
     root = root.resolve()
@@ -262,12 +278,21 @@ def audit_acceptance_environment(
         deadline = time.fromisoformat(str(config["scheduler"]["target_deadline"]))
     except (KeyError, TypeError, ValueError) as exc:
         raise ResearchAcceptanceError("ACCEPTANCE_DEADLINE_CONFIG_INVALID", "scheduler target deadline is invalid") from exc
+    acceptance_mode = (
+        TECHNICAL_RESEARCH_ACCEPTANCE_MODE if technical_validation else RESEARCH_ACCEPTANCE_MODE
+    )
     if requested_date < current.date():
         raise ResearchAcceptanceError(
             "ACCEPTANCE_EDITION_DATE_PAST",
             f"requested {requested_date.isoformat()} but local acceptance date is {current.date().isoformat()}",
         )
-    if requested_date == current.date() and current.timetz().replace(tzinfo=None) > deadline:
+    if technical_validation and requested_date != current.date():
+        raise ResearchAcceptanceError(
+            "TECHNICAL_ACCEPTANCE_DATE_NOT_CURRENT",
+            f"technical acceptance requires the actual local date {current.date().isoformat()}, got {requested_date.isoformat()}",
+        )
+    deadline_missed = current.timetz().replace(tzinfo=None) > deadline
+    if not technical_validation and requested_date == current.date() and deadline_missed:
         raise ResearchAcceptanceError(
             "ACCEPTANCE_DEADLINE_PASSED",
             f"current local time {current.isoformat()} is after configured deadline {deadline.isoformat(timespec='minutes')} {timezone}",
@@ -295,10 +320,13 @@ def audit_acceptance_environment(
         raise ResearchAcceptanceError("RESEARCH_ADAPTER_UNAVAILABLE", "no configured local discovery adapter")
     return {
         "status": "PASS",
-        "mode": RESEARCH_ACCEPTANCE_MODE,
+        "mode": acceptance_mode,
         "edition_date": edition_date,
         "checked_at": current.isoformat(),
         "target_deadline": f"{deadline.isoformat(timespec='minutes')} {timezone}",
+        "production_deadline_status": "PRODUCTION_DEADLINE_MISSED" if deadline_missed else "PRODUCTION_DEADLINE_NOT_MISSED",
+        "technical_validation": technical_validation,
+        "on_time_production_readiness": "NOT_APPLICABLE_TECHNICAL_VALIDATION" if technical_validation else "NOT_EVALUATED",
         "branch": branch,
         "workspace_clean_before_run": True,
         "provider_requirement": "NOT_APPLICABLE_PROVIDER_FREE_ACCEPTANCE",
@@ -310,17 +338,42 @@ def audit_acceptance_environment(
 
 
 def _acceptance_preflight_stage(
-    *, root: Path, seed: dict[str, Any], run_id: str, service_probe: Callable[[dict[str, Any]], dict[str, Any]] | None
+    *,
+    root: Path,
+    seed: dict[str, Any],
+    run_id: str,
+    service_probe: Callable[[dict[str, Any]], dict[str, Any]] | None,
+    technical_validation: bool,
+    preflight_now: datetime | None,
 ) -> StageDefinition:
     def run(context: StageContext) -> StageResult:
         path = context.run_dir / "preflight.json"
         try:
             audit = audit_acceptance_environment(
-                root, edition_date=context.edition_date, run_id=run_id, service_probe=service_probe
+                root,
+                edition_date=context.edition_date,
+                run_id=run_id,
+                service_probe=service_probe,
+                technical_validation=technical_validation,
+                now=preflight_now,
             )
-            validate_fresh_research_seed(seed, edition_date=context.edition_date, timezone=seed["research_acceptance_seed"]["timezone"], run_id=run_id)
+            validate_fresh_research_seed(
+                seed,
+                edition_date=context.edition_date,
+                timezone=seed["research_acceptance_seed"]["timezone"],
+                run_id=run_id,
+                acceptance_mode=seed["research_acceptance_seed"]["mode"],
+            )
         except ResearchAcceptanceError as exc:
-            atomic_write_json(path, {"status": "FAIL", "mode": RESEARCH_ACCEPTANCE_MODE, "code": exc.code, "detail": exc.detail})
+            atomic_write_json(
+                path,
+                {
+                    "status": "FAIL",
+                    "mode": seed["research_acceptance_seed"]["mode"],
+                    "code": exc.code,
+                    "detail": exc.detail,
+                },
+            )
             raise StageFailure(exc.code, exc.detail, outputs=(path,)) from exc
         snapshot_path = context.run_dir / "research" / "acceptance-seed.json"
         snapshot = {"seed": seed, "sha256": hashlib.sha256(_canonical_json(seed)).hexdigest(), "immutable": True}
@@ -341,17 +394,32 @@ def build_research_acceptance_orchestrator(
     service_probe: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
     created_at: str | None = None,
     use_lock: bool = True,
+    technical_validation: bool = False,
+    preflight_now: datetime | None = None,
 ) -> Orchestrator:
     """Build a new, non-resumable research-only V5 orchestrator."""
     root = root.resolve()
     config = load_local_config(root)
     timezone = str(config["timezone"])
     normalized_date = date.fromisoformat(edition_date).isoformat()
+    acceptance_mode = (
+        TECHNICAL_RESEARCH_ACCEPTANCE_MODE if technical_validation else RESEARCH_ACCEPTANCE_MODE
+    )
+    if technical_validation and created_at is not None:
+        raise ResearchAcceptanceError(
+            "TECHNICAL_ACCEPTANCE_TIMESTAMP_OVERRIDE_FORBIDDEN",
+            "technical acceptance records its actual execution time and cannot accept a created_at override",
+        )
+    if technical_validation and preflight_now is not None:
+        raise ResearchAcceptanceError(
+            "TECHNICAL_ACCEPTANCE_TIME_OVERRIDE_FORBIDDEN",
+            "technical acceptance uses the actual local execution time and cannot accept a preflight_now override",
+        )
     identifier = run_id or f"research-acceptance-{uuid4()}"
     run_dir = root / "daily-runs" / normalized_date / "runs" / identifier
     if run_dir.exists():
         raise ResearchAcceptanceError("FRESH_ACCEPTANCE_RUN_EXISTS", str(run_dir))
-    seed = build_fresh_research_seed(root=root, edition_date=normalized_date, timezone=timezone, run_id=identifier, created_at=created_at)
+    seed = build_fresh_research_seed(root=root, edition_date=normalized_date, timezone=timezone, run_id=identifier, created_at=created_at, acceptance_mode=acceptance_mode)
     adapter = research_adapter if research_adapter is not None else discovery_adapter_from_config(root)
     definitions = build_stage_definitions(
         ProviderFreeAcceptanceProvider(),
@@ -369,8 +437,15 @@ def build_research_acceptance_orchestrator(
     selected = [definition for definition in definitions if definition.name in RESEARCH_ACCEPTANCE_STAGES]
     if tuple(definition.name for definition in selected) != RESEARCH_ACCEPTANCE_STAGES:
         raise ResearchAcceptanceError("ACCEPTANCE_STAGE_BOUNDARY_INVALID", "production research stage registry changed")
-    selected[0] = _acceptance_preflight_stage(root=root, seed=seed, run_id=identifier, service_probe=service_probe)
-    return Orchestrator(
+    selected[0] = _acceptance_preflight_stage(
+        root=root,
+        seed=seed,
+        run_id=identifier,
+        service_probe=service_probe,
+        technical_validation=technical_validation,
+        preflight_now=preflight_now,
+    )
+    orchestrator = Orchestrator(
         root=root,
         edition_date=normalized_date,
         timezone=timezone,
@@ -381,6 +456,9 @@ def build_research_acceptance_orchestrator(
         use_lock=use_lock,
         target_deadline=None,
     )
+    orchestrator.acceptance_mode = acceptance_mode
+    orchestrator.technical_validation = technical_validation
+    return orchestrator
 
 
 def write_research_acceptance_report(orchestrator: Orchestrator, state: dict[str, Any]) -> Path:
@@ -396,11 +474,18 @@ def write_research_acceptance_report(orchestrator: Orchestrator, state: dict[str
         verdict = "RESEARCH_ACCEPTANCE_BLOCKED"
     preflight_path = run_dir / "preflight.json"
     snapshot_path = run_dir / "research" / "acceptance-seed.json"
+    preflight = json.loads(preflight_path.read_text(encoding="utf-8")) if preflight_path.is_file() else None
     report = {
         "schema_version": 1,
-        "mode": RESEARCH_ACCEPTANCE_MODE,
+        "mode": getattr(orchestrator, "acceptance_mode", RESEARCH_ACCEPTANCE_MODE),
         "verdict": verdict,
         "not_production_readiness": True,
+        "on_time_production_readiness": (
+            "NOT_APPLICABLE_TECHNICAL_VALIDATION"
+            if getattr(orchestrator, "technical_validation", False)
+            else "NOT_EVALUATED"
+        ),
+        "production_deadline_status": (preflight or {}).get("production_deadline_status", "NOT_EVALUATED"),
         "edition_date": orchestrator.edition_date,
         "timezone": orchestrator.timezone,
         "run_id": orchestrator.store.run_id,
@@ -412,7 +497,7 @@ def write_research_acceptance_report(orchestrator: Orchestrator, state: dict[str
         "allowed_stages": list(RESEARCH_ACCEPTANCE_STAGES),
         "forbidden_stages_absent": sorted(FORBIDDEN_STAGES - set(stage_records)),
         "stage_statuses": {name: record.get("status") for name, record in stage_records.items()},
-        "preflight": json.loads(preflight_path.read_text(encoding="utf-8")) if preflight_path.is_file() else None,
+        "preflight": preflight,
         "seed_snapshot_sha256": sha256_file(snapshot_path) if snapshot_path.is_file() else None,
         "recovery_error_code": recovery.get("error_code"),
     }
@@ -428,7 +513,12 @@ def run_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[str, Any]
     root = Path(kwargs["root"]).resolve()
     edition_date = str(kwargs["edition_date"])
     run_id = str(kwargs.get("run_id") or f"research-acceptance-{uuid4()}")
-    preflight_now = kwargs.pop("preflight_now", None)
+    preflight_now = kwargs.get("preflight_now")
+    if kwargs.get("technical_validation") and preflight_now is not None:
+        raise ResearchAcceptanceError(
+            "TECHNICAL_ACCEPTANCE_TIME_OVERRIDE_FORBIDDEN",
+            "technical acceptance uses the actual local execution time and cannot accept a preflight_now override",
+        )
     # Check the authorized execution window before StateStore can create a
     # fresh run identity.  The stage repeats this audit after initialization
     # so its persisted preflight report remains hash-bound to the run.
@@ -438,6 +528,7 @@ def run_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[str, Any]
         run_id=run_id,
         service_probe=kwargs.get("service_probe"),
         now=preflight_now,
+        technical_validation=bool(kwargs.get("technical_validation")),
     )
     kwargs["root"] = root
     kwargs["run_id"] = run_id

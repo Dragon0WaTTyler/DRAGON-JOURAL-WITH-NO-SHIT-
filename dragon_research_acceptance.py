@@ -12,9 +12,17 @@ from dragon.research_acceptance import ResearchAcceptanceError, run_research_acc
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run one fresh DRAGON V5 research-only acceptance attempt.")
     parser.add_argument("--date", required=True, help="Explicit edition date in YYYY-MM-DD; no implicit current-date reuse.")
+    parser.add_argument(
+        "--technical-validation", action="store_true",
+        help="Explicit provider-free technical validation; records any missed production deadline and never grants production readiness.",
+    )
     args = parser.parse_args()
     try:
-        orchestrator, state, report = run_research_acceptance(root=Path(__file__).resolve().parent, edition_date=args.date)
+        orchestrator, state, report = run_research_acceptance(
+            root=Path(__file__).resolve().parent,
+            edition_date=args.date,
+            technical_validation=args.technical_validation,
+        )
     except (ResearchAcceptanceError, ValueError) as exc:
         print(json.dumps({"status": "ERROR", "code": getattr(exc, "code", "INVALID_ARGUMENT"), "detail": str(exc)}, ensure_ascii=False))
         return 2

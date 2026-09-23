@@ -17,11 +17,13 @@ from dragon.research_acceptance import (
     FORBIDDEN_STAGES,
     RESEARCH_ACCEPTANCE_MODE,
     RESEARCH_ACCEPTANCE_STAGES,
+    TECHNICAL_RESEARCH_ACCEPTANCE_MODE,
     ResearchAcceptanceError,
     audit_acceptance_environment,
     build_fresh_research_seed,
     build_research_acceptance_orchestrator,
     run_research_acceptance,
+    validate_fresh_research_seed,
 )
 
 
@@ -92,6 +94,95 @@ def test_acceptance_preflight_refuses_a_late_current_edition_without_creating_a_
         )
     assert caught.value.code == "ACCEPTANCE_DEADLINE_PASSED"
     assert not (root / "daily-runs" / "2026-09-21").exists()
+
+
+def test_technical_mode_is_explicit_current_date_only_and_records_a_missed_production_deadline(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path)
+    late = datetime.fromisoformat("2026-09-21T12:30:01+00:00")
+
+    report = audit_acceptance_environment(
+        root,
+        edition_date="2026-09-21",
+        run_id=RUN_ID,
+        service_probe=_passing_probe,
+        now=late,
+        technical_validation=True,
+    )
+
+    assert report["mode"] == TECHNICAL_RESEARCH_ACCEPTANCE_MODE
+    assert report["production_deadline_status"] == "PRODUCTION_DEADLINE_MISSED"
+    assert report["on_time_production_readiness"] == "NOT_APPLICABLE_TECHNICAL_VALIDATION"
+    with pytest.raises(ResearchAcceptanceError) as caught:
+        audit_acceptance_environment(
+            root,
+            edition_date="2026-09-22",
+            run_id=RUN_ID,
+            service_probe=_passing_probe,
+            now=late,
+            technical_validation=True,
+        )
+    assert caught.value.code == "TECHNICAL_ACCEPTANCE_DATE_NOT_CURRENT"
+
+
+def test_technical_mode_uses_actual_execution_time_without_production_readiness(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path)
+    with pytest.raises(ResearchAcceptanceError) as caught:
+        run_research_acceptance(
+            root=root,
+            edition_date="2026-09-21",
+            run_id=RUN_ID,
+            research_adapter=FixtureResearchAdapter({}),
+            service_probe=_passing_probe,
+            preflight_now=datetime.fromisoformat("2026-09-21T12:30:01+00:00"),
+            technical_validation=True,
+            use_lock=False,
+        )
+
+    assert caught.value.code == "TECHNICAL_ACCEPTANCE_TIME_OVERRIDE_FORBIDDEN"
+    orchestrator = build_research_acceptance_orchestrator(
+        root=root,
+        edition_date=DATE,
+        run_id=RUN_ID,
+        research_adapter=FixtureResearchAdapter({}),
+        service_probe=_passing_probe,
+        technical_validation=True,
+        use_lock=False,
+    )
+    assert tuple(orchestrator.stage_names) == RESEARCH_ACCEPTANCE_STAGES
+    assert orchestrator.acceptance_mode == TECHNICAL_RESEARCH_ACCEPTANCE_MODE
+    assert orchestrator.technical_validation is True
+    assert not (set(orchestrator.stage_names) & FORBIDDEN_STAGES)
+
+
+def test_technical_mode_forbids_timestamp_override_and_historical_seed_reuse(tmp_path: Path) -> None:
+    root = _fixture_root(tmp_path)
+    with pytest.raises(ResearchAcceptanceError) as caught:
+        build_research_acceptance_orchestrator(
+            root=root,
+            edition_date=DATE,
+            run_id=RUN_ID,
+            technical_validation=True,
+            created_at="2000-01-01T00:00:00+00:00",
+        )
+    assert caught.value.code == "TECHNICAL_ACCEPTANCE_TIMESTAMP_OVERRIDE_FORBIDDEN"
+
+    seed = build_fresh_research_seed(
+        root=root,
+        edition_date=DATE,
+        timezone="Africa/Casablanca",
+        run_id=RUN_ID,
+        acceptance_mode=TECHNICAL_RESEARCH_ACCEPTANCE_MODE,
+    )
+    seed["sources"] = [{"source_id": "historical"}]
+    with pytest.raises(ResearchAcceptanceError) as caught:
+        validate_fresh_research_seed(
+            seed,
+            edition_date=DATE,
+            timezone="Africa/Casablanca",
+            run_id=RUN_ID,
+            acceptance_mode=TECHNICAL_RESEARCH_ACCEPTANCE_MODE,
+        )
+    assert caught.value.code == "FRESH_SEED_HISTORY_FORBIDDEN"
 
 
 def test_harness_runs_real_research_path_offline_and_stops_before_editorial(tmp_path: Path) -> None:
