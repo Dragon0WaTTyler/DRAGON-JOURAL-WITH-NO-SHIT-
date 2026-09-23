@@ -9,6 +9,28 @@ from pathlib import Path
 from dragon.research_acceptance import ResearchAcceptanceError, run_research_acceptance
 
 
+_RUN_RESULTS = frozenset({"ALREADY_PUBLISHED", "BLOCKED", "COMPLETE", "DEGRADED", "FAILED", "INCOMPLETE"})
+
+
+def _emit_error(code: str, detail: str) -> int:
+    print(json.dumps({"status": "ERROR", "code": code, "detail": detail}, ensure_ascii=False))
+    return 2
+
+
+def _report_result(orchestrator, state: object, report: object) -> int:
+    """Render the persisted execution result without changing run state."""
+    result = state.get("run_result") if isinstance(state, dict) else None
+    run_id = getattr(getattr(orchestrator, "store", None), "run_id", None)
+    if not isinstance(result, str) or result not in _RUN_RESULTS:
+        return _emit_error("ACCEPTANCE_RESULT_INVALID", "persisted run_result is missing or invalid")
+    if not isinstance(run_id, str) or not run_id:
+        return _emit_error("ACCEPTANCE_RESULT_INVALID", "orchestrator run_id is missing or invalid")
+    if not isinstance(report, Path):
+        return _emit_error("ACCEPTANCE_RESULT_INVALID", "acceptance report path is missing or invalid")
+    print(json.dumps({"status": result, "run_id": run_id, "report": str(report)}, ensure_ascii=False))
+    return 0 if result == "COMPLETE" else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run one fresh DRAGON V5 research-only acceptance attempt.")
     parser.add_argument("--date", required=True, help="Explicit edition date in YYYY-MM-DD; no implicit current-date reuse.")
@@ -24,10 +46,10 @@ def main() -> int:
             technical_validation=args.technical_validation,
         )
     except (ResearchAcceptanceError, ValueError) as exc:
-        print(json.dumps({"status": "ERROR", "code": getattr(exc, "code", "INVALID_ARGUMENT"), "detail": str(exc)}, ensure_ascii=False))
-        return 2
-    print(json.dumps({"status": state["run_status"], "run_id": orchestrator.store.run_id, "report": str(report)}, ensure_ascii=False))
-    return 0 if state["run_status"] == "COMPLETE" else 1
+        return _emit_error(getattr(exc, "code", "INVALID_ARGUMENT"), str(exc))
+    except Exception as exc:
+        return _emit_error("ACCEPTANCE_EXECUTION_FAILED", f"{type(exc).__name__}: {exc}")
+    return _report_result(orchestrator, state, report)
 
 
 if __name__ == "__main__":
