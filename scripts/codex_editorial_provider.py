@@ -376,6 +376,18 @@ def _prompt(operation: str, payload: dict) -> str:
 Edition input: {source}
 Fixed sections: {sections}
 Edition readiness: {json.dumps(payload.get("edition_readiness", {}), ensure_ascii=False)}
+Research targeting: {json.dumps(payload.get("continuity", {}).get("research_targeting", {}), ensure_ascii=False)}
+Follow research_targeting in its deterministic order: first attempt each unresolved hard target,
+then remaining breadth targets. This is discovery targeting only; it does not create a scheduler
+priority, execution action, evidence role, or coverage closure. If a hard target has no qualifying
+lead, return honest NO_NEWS rather than filler. All returned material is DISCOVERY INTELLIGENCE ONLY:
+every URL, source type, semantic label, and claim will be independently fetched and qualified by the
+local deterministic pipeline. Do not emit executor actions, scheduler instructions, or claims that a
+research need is closed. Prefer exact issuer artifacts over homepages; provide distinct independent
+corroboration only where the stated existing evidence contract requires it. Use claim_supported to
+state precisely which candidate claim each exact source is intended to support, including a material
+event or effective date where relevant. Context-only and provider-reported source roles remain
+unverified suggestions and cannot substitute for required evidence.
 Do not call a packet edition-ready unless it satisfies minimum_active_sections and every
 listed coverage rule. Continue evidence-led research where support exists; where it does not,
 record honest NO_NEWS decisions rather than manufacturing a story. The local runtime will block

@@ -55,6 +55,7 @@ from dragon.investigations import InvestigationError, update_investigation_dossi
 from dragon.layout_doctor import apply_layout_doctor
 from dragon.media_critic import build_media_critic, validate_media_critic
 from dragon.providers import EditorialProvider, ProviderError, SECTION_HEADINGS
+from dragon.provider_targeting import build_research_targeting
 from dragon.research_planning import (
     DEFAULT_BUDGET_CONFIG,
     ResearchPlanningError,
@@ -233,6 +234,14 @@ def build_stage_definitions(
             return StageResult((continuity_path, seed_path, path))
         registry_path = context.root / "config" / "provider-registry.yaml"
         provider_input = dict(continuity)
+        if not synthetic:
+            try:
+                readiness = load_local_config(context.root)["editorial_readiness"]
+                provider_input["research_targeting"] = build_research_targeting(
+                    context.edition_date, readiness,
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                raise StageFailure("PROVIDER_RESEARCH_TARGETING_INVALID", str(exc)) from exc
         monitoring_path = context.run_dir / "source-monitoring" / "report.json"
         provider_input["source_change_monitoring"] = _load(monitoring_path)
         inputs: tuple[Path, ...] = (monitoring_path,)

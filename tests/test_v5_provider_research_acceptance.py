@@ -221,7 +221,14 @@ def test_authorized_undercovered_provider_packet_is_raw_captured_and_stops_befor
     assert invocation["raw_response"]["sha256"]
     assert invocation["normalized_packet"]["sha256"]
     provider_input = json.loads((run_dir / "provider-research" / "request.json").read_text(encoding="utf-8"))["provider_input"]
-    assert {"source_change_monitoring", "source_discovery", "research_semantics"} <= set(provider_input)
+    assert {"source_change_monitoring", "source_discovery", "research_semantics", "research_targeting"} <= set(provider_input)
+    targeting = provider_input["research_targeting"]
+    assert targeting["as_of_date"] == DATE
+    assert [item["target_id"] for item in targeting["unresolved_targets"][:2]] == [
+        "HARD:ACCOUNTABILITY", "HARD:SERVICE",
+    ]
+    assert targeting["provider_output"]["can_close_research_need"] is False
+    assert targeting["provider_output"]["can_emit_executor_actions"] is False
     persisted_packet = json.loads((run_dir / "research" / "research-packet.json").read_text(encoding="utf-8"))
     assert persisted_packet["provider_research_acceptance_provenance"]["raw_response_sha256"] == invocation["raw_response"]["sha256"]
     assert source_intelligence["source_records"][0]["fetch_status"] == "PROVIDER_REPORTED"

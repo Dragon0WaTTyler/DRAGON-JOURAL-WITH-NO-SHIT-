@@ -147,6 +147,41 @@ def test_research_prompt_explains_inherited_edition_readiness() -> None:
     assert "morocco_breadth" in prompt
 
 
+def test_research_prompt_explains_hard_deficit_targeting_and_unverified_status() -> None:
+    from dragon.provider_targeting import build_research_targeting
+    from scripts.codex_editorial_provider import _prompt
+
+    prompt = _prompt(
+        "research",
+        {
+            "continuity": {
+                "research_targeting": build_research_targeting(
+                    "2099-01-02",
+                    {"coverage_rules": [
+                        {"id": "morocco_breadth", "sections": ["siyasa_dawla"], "minimum_active": 3},
+                        {"id": "accountability_and_service", "sections": ["investigations", "service"], "minimum_active": 2},
+                    ]},
+                ),
+            },
+        },
+    )
+
+    for required in (
+        "HARD:ACCOUNTABILITY",
+        "HARD:SERVICE",
+        "BREADTH:morocco_breadth",
+        "formal audit or inspection action or finding",
+        "institutional participation without a concrete accountability action",
+        "future-only announcement when current operation is required",
+        "DISCOVERY_INTELLIGENCE_ONLY",
+        "claim_supported",
+        "event or effective date",
+        "does not create a scheduler",
+        "executor actions",
+    ):
+        assert required in prompt
+
+
 def test_structured_output_schemas_are_strict_and_complete() -> None:
     assert SECTION_HEADINGS == RUNTIME_SECTION_HEADINGS
     for operation in ("research", "articles"):
