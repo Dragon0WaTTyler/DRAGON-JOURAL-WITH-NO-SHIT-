@@ -11,7 +11,7 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "science_metadata", "verification_status", "evidence_relation", "directness", "provenance", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
+        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "science_metadata", "verification_status", "evidence_relation", "directness", "provenance", "provider_lead_id", "provider_supplied_url", "lead_origin", "provider_candidate_ids", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
         "properties": {
           "source_id": {"type": "string", "minLength": 1},
           "canonical_url": {"type": "string", "pattern": "^https://"},
@@ -74,6 +74,10 @@
           "evidence_relation": {"enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT_ONLY", "DOES_NOT_ADDRESS", null]},
           "directness": {"enum": ["DIRECT_STATEMENT", "DIRECT_MEASUREMENT", "DERIVED_CALCULATION", "INFERENCE_REQUIRED", null]},
           "provenance": {"type": ["object", "null"]},
+          "provider_lead_id": {"type": ["string", "null"]},
+          "provider_supplied_url": {"type": ["string", "null"]},
+          "lead_origin": {"enum": ["PROVIDER_EXACT", "PROVIDER_CONTEXT", "DETERMINISTIC_DISCOVERY"]},
+          "provider_candidate_ids": {"type": "array", "items": {"type": "string"}},
           "uncertainty": {"type": "array", "items": {"type": "string"}},
           "event_ids": {"type": "array", "items": {"type": "string", "pattern": "^EVT-[A-F0-9]{12}$"}},
           "claims_supported": {"type": "array", "items": {"type": ["string", "null"]}},

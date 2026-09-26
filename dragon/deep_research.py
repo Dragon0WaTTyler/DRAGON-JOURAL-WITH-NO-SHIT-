@@ -612,9 +612,30 @@ def build_deep_research_state(
             if candidate.get("id") in needs_by_candidate:
                 continue
             source_ids = sorted(set(candidate.get("discovery_source_ids", [])))
+            provider_candidate_id = f"{section['section_id']}:{candidate['id']}"
+            exact_provider_sources = [
+                {
+                    "source_id": source_id,
+                    "url": str(source.get("url") or ""),
+                    "provider_supplied_url": str(source.get("provider_supplied_url") or source.get("url") or ""),
+                    "provider_lead_id": source.get("provider_lead_id"),
+                    "provider_candidate_id": provider_candidate_id,
+                    "lead_origin": source.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
+                }
+                for source_id in source_ids
+                if (source := source_by_id.get(source_id))
+                and source.get("provider_lead_id")
+                and (source.get("lead_origin") or "PROVIDER_EXACT") == "PROVIDER_EXACT"
+                and source.get("url")
+            ]
             lead = create_lead(
                 desk=section["section_id"], topic=str(candidate.get("title") or candidate["id"]),
-                discovery_source={"source_ids": source_ids, "known_seed": bool(source_ids)},
+                discovery_source={
+                    "source_ids": source_ids,
+                    "known_seed": bool(source_ids),
+                    "provider_candidate_id": provider_candidate_id,
+                    "exact_provider_sources": exact_provider_sources,
+                },
                 observed_at=str(packet.get("edition_date")), reason_interesting="RESEARCH_CANDIDATE",
                 event_entities=list(candidate.get("entities", [])),
                 geography=list(candidate.get("geography", [])),

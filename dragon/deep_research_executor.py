@@ -1938,7 +1938,42 @@ def _breadth_event_queries(job: dict, need: dict, *, month: str, primary_languag
 def query_ladder(job: dict, need: dict | None) -> list[dict]:
     """Build a bounded, date-aware strategy ladder from structured context."""
     if not need:
-        return [{"intent": "CONTEXT", "variant": "CONTEXT", "query": str(job["lead"].get("topic") or "")}]
+        discovery_source = job["lead"].get("discovery_source") if isinstance(job["lead"].get("discovery_source"), dict) else {}
+        seen_urls = {
+            normalize_url(str(url))
+            for url in job.get("executor_state", {}).get("seen_urls", [])
+            if isinstance(url, str) and url
+        }
+        exact: list[dict] = []
+        seen_exact: set[str] = set()
+        for source in discovery_source.get("exact_provider_sources", []):
+            if not isinstance(source, dict):
+                continue
+            target = str(source.get("url") or "").strip()
+            if not target:
+                continue
+            canonical_target = normalize_url(target)
+            if canonical_target in seen_exact or canonical_target in seen_urls:
+                continue
+            if assess_source_url(target).get("state") == "URL_UNSAFE":
+                continue
+            seen_exact.add(canonical_target)
+            exact.append({
+                "intent": "PROVIDER_EXACT_ARTIFACT",
+                "variant": "EXACT_PROVIDER_URL",
+                "query": str(job["lead"].get("topic") or ""),
+                "action_type": "FETCH_URL",
+                "target": target,
+                "channel": "PROVIDER_EXACT_SOURCE",
+                "provider_lead_id": source.get("provider_lead_id"),
+                "provider_candidate_id": source.get("provider_candidate_id") or discovery_source.get("provider_candidate_id"),
+                "provider_supplied_url": source.get("provider_supplied_url") or target,
+                "lead_origin": "PROVIDER_EXACT",
+            })
+        # Exact provider artifacts are untrusted leads, not evidence.  They
+        # take only the candidate-local first strategy; ordinary topic
+        # discovery remains the later fallback under the existing scheduler.
+        return [*exact, {"intent": "CONTEXT", "variant": "CONTEXT", "query": str(job["lead"].get("topic") or "")}]
     context = need.get("query_context", {})
     event_words = _query_words([
         *context.get("entities", []), *context.get("geography", []),
@@ -2213,6 +2248,12 @@ def create_research_action(
         "recovery_candidate_id": recovery_need.get("candidate_id") if recovery_need else None,
         "channel_fallback": deepcopy(strategy.get("fallback")) if strategy.get("fallback") else None,
         "channel_fallback_query": strategy.get("fallback_query"),
+        # Provider lineage is provenance only.  It must not participate in
+        # role resolution, evidence scoring, or publication eligibility.
+        "provider_lead_id": strategy.get("provider_lead_id"),
+        "provider_candidate_id": strategy.get("provider_candidate_id"),
+        "provider_supplied_url": strategy.get("provider_supplied_url"),
+        "lead_origin": strategy.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
     }
 
 
@@ -3392,6 +3433,10 @@ def _observation(action: dict, raw: dict, seen_urls: set[str]) -> dict:
             "outbound_link_type": action.get("outbound_link_type"),
             "actor_first": bool(action.get("actor_first_search") or action.get("actor_first_fetch")),
             "route_id": route.get("route_id") if route else None,
+            "provider_lead_id": action.get("provider_lead_id"),
+            "provider_candidate_id": action.get("provider_candidate_id"),
+            "provider_supplied_url": action.get("provider_supplied_url"),
+            "lead_origin": action.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
         },
         "publication_evidence": False,
         "supporting_evidence_ids": list(raw.get("supporting_evidence_ids") or []),
@@ -3451,6 +3496,7 @@ def build_event_bundles(
             "publisher_families": [], "evidence_ids": [], "claims": [], "contradictions": [],
             "unresolved_origin_issues": [], "matches": [], "candidate_discovery": None,
         "provenance_edges": [], "attempted_source_routes": [], "blocked_event_memory": None,
+            "provider_lead_ids": [], "provider_candidate_ids": [], "lead_origins": [],
             "recovery_mode": lead.get("recovery_mode"), "target_editorial_function": lead.get("target_editorial_function"),
             "new_recovery_event": semantic_mode,
         }
@@ -3504,6 +3550,7 @@ def build_event_bundles(
                 "claims": [], "contradictions": [], "unresolved_origin_issues": [],
                 "matches": [], "candidate_discovery": None, "provenance_edges": [], "attempted_source_routes": [],
                 "new_recovery_event": True, "blocked_event_memory": None,
+                "provider_lead_ids": [], "provider_candidate_ids": [], "lead_origins": [],
             }
             bundles.append(bundle)
             match = {"state": "DIFFERENT_EVENT", "reasons": ["NEW_NEED_SCOPED_EVENT"]}
@@ -3513,6 +3560,12 @@ def build_event_bundles(
             bundle["matches"].append({"observation_id": observation.get("observation_id"), **match})
             continue
         bundle["observations"].append(observation.get("observation_id"))
+        if provenance.get("provider_lead_id"):
+            bundle["provider_lead_ids"].append(provenance["provider_lead_id"])
+        if provenance.get("provider_candidate_id"):
+            bundle["provider_candidate_ids"].append(provenance["provider_candidate_id"])
+        if provenance.get("lead_origin"):
+            bundle["lead_origins"].append(provenance["lead_origin"])
         if isinstance(observation.get("support_observation"), dict):
             support_record = deepcopy(observation["support_observation"])
             support_record.setdefault("publisher", observation.get("page_publisher") or observation.get("origin"))
@@ -3565,7 +3618,7 @@ def build_event_bundles(
 
     discoveries = []
     for bundle in bundles:
-        for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues"):
+        for key in ("observations", "sources", "publisher_families", "evidence_ids", "contradictions", "unresolved_origin_issues", "provider_lead_ids", "provider_candidate_ids", "lead_origins"):
             bundle[key] = list(dict.fromkeys(item for item in bundle[key] if item))
         support_items = {str(item.get("observation_id")): item for item in bundle.get("support_observations", []) if isinstance(item, dict) and item.get("observation_id")}
         bundle["support_observations"] = [support_items[key] for key in sorted(support_items)]

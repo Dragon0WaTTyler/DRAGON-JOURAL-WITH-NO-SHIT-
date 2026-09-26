@@ -122,6 +122,12 @@ def build_source_intelligence(packet: dict) -> dict:
             "evidence_relation": source.get("evidence_relation"),
             "directness": source.get("directness"),
             "provenance": source.get("provenance"),
+            # Provider provenance is append-only routing telemetry.  It does
+            # not alter source role, independent-origin, or evidence status.
+            "provider_lead_id": source.get("provider_lead_id"),
+            "provider_supplied_url": source.get("provider_supplied_url"),
+            "lead_origin": source.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
+            "provider_candidate_ids": [],
             "uncertainty": (
                 [] if source.get("verification_status") == "VALIDATED_EVIDENCE"
                 else ["FULL_TEXT_NOT_CAPTURED", "FETCH_NOT_INDEPENDENTLY_VERIFIED"]
@@ -155,6 +161,11 @@ def build_source_intelligence(packet: dict) -> dict:
                 "title": candidate.get("title", ""),
                 "source_ids": source_ids,
             })
+            candidate_key = f"{section['section_id']}:{candidate['id']}"
+            for source_id in source_ids:
+                record = source_by_id.get(source_id)
+                if record and record.get("provider_lead_id"):
+                    record["provider_candidate_ids"].append(candidate_key)
 
     parent = list(range(len(candidates)))
 
@@ -272,6 +283,7 @@ def build_source_intelligence(packet: dict) -> dict:
             records[index]["duplicate_group_ids"].append(group_id)
     duplicates.sort(key=lambda item: item["duplicate_group_id"])
     for record in records:
+        record["provider_candidate_ids"] = list(dict.fromkeys(record["provider_candidate_ids"]))
         record.pop("_comparison_text", None)
     return {
         "schema_version": 1,

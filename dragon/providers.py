@@ -6,6 +6,7 @@ from collections import Counter
 from math import ceil
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -445,6 +446,17 @@ class LocalCommandEditorialProvider:
         return declared or host
 
     @staticmethod
+    def _provider_lead_id(edition_date: str, source: dict) -> str:
+        """Return immutable provenance for one provider-supplied exact URL.
+
+        This is routing telemetry only.  It deliberately derives from the
+        provider packet identity and supplied URL, rather than any later
+        canonical or redirect target.
+        """
+        material = "\0".join((edition_date, str(source.get("id") or ""), str(source.get("url") or "")))
+        return f"PROVIDER-LEAD-{hashlib.sha256(material.encode('utf-8')).hexdigest()[:16].upper()}"
+
+    @staticmethod
     def _deduplicate_ids(items: object) -> list[str]:
         if not isinstance(items, list):
             return []
@@ -736,6 +748,12 @@ class LocalCommandEditorialProvider:
                 )
             if source["id"] in identifiers:
                 raise ProviderError("RESEARCH_PACKET_INVALID", "source ids must be unique")
+            # The provider's URL remains an untrusted discovery lead, but its
+            # original identity must survive deterministic normalization and
+            # any subsequent canonical/redirect resolution.
+            source["provider_lead_id"] = self._provider_lead_id(edition_date, source)
+            source["provider_supplied_url"] = str(source["url"])
+            source["lead_origin"] = "PROVIDER_EXACT"
             identifiers.add(source["id"])
         sources_by_id = {source["id"]: source for source in sources}
         if value.get("mode") != "synthetic" and self.normalize_evidence_links:
