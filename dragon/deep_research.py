@@ -34,6 +34,11 @@ SECTION_PERSPECTIVES = {
     "history": ["المصدر الأولي", "المؤرخون المختلفون", "السياق الزمني", "الذاكرة العامة"],
     "technology": ["المطور أو الشركة", "التقييم المستقل", "المستخدم", "المنظم", "الأثر الاجتماعي"],
 }
+HARD_DEFICIT_SECTION_FUNCTIONS = {
+    "investigations": "ACCOUNTABILITY",
+    "opinion": "ACCOUNTABILITY",
+    "service": "SERVICE",
+}
 DEFAULT_PERSPECTIVES = ["المؤسسة أو صاحب الادعاء", "المتأثرون", "الخبير المستقل", "الدليل والبيانات"]
 
 
@@ -589,6 +594,12 @@ def build_deep_research_state(
             candidate_records[candidate_id] = (section, candidate)
 
     source_by_id = {str(item.get("id")): item for item in packet.get("sources", []) if item.get("id")}
+    hard_needs_by_function = {
+        str(need.get("target_editorial_function") or "").upper(): need
+        for need in executable_needs
+        if str(need.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
+        and str(need.get("need_id") or "").startswith("BREADTH:")
+    }
     jobs = []
     hard_breadth_lanes = []
     for section in ([] if recovery_only else packet.get("sections", [])):
@@ -613,6 +624,16 @@ def build_deep_research_state(
                 continue
             source_ids = sorted(set(candidate.get("discovery_source_ids", [])))
             provider_candidate_id = f"{section['section_id']}:{candidate['id']}"
+            hard_function = HARD_DEFICIT_SECTION_FUNCTIONS.get(str(section.get("section_id") or ""))
+            hard_need = hard_needs_by_function.get(hard_function or "")
+            hard_deficit = (
+                {
+                    "need_id": str(hard_need.get("need_id")),
+                    "target_editorial_function": hard_function,
+                }
+                if hard_need and hard_function
+                else None
+            )
             exact_provider_sources = [
                 {
                     "source_id": source_id,
@@ -621,6 +642,7 @@ def build_deep_research_state(
                     "provider_lead_id": source.get("provider_lead_id"),
                     "provider_candidate_id": provider_candidate_id,
                     "lead_origin": source.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
+                    **({"hard_deficit": deepcopy(hard_deficit)} if hard_deficit else {}),
                 }
                 for source_id in source_ids
                 if (source := source_by_id.get(source_id))

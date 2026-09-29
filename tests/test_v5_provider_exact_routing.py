@@ -85,6 +85,36 @@ def _job(urls: list[str], *, selected: bool = True) -> dict:
     return state["jobs"][0]
 
 
+def _hard_candidate_state() -> dict:
+    source = _source("s1", "https://fixture.example/accountability-report")
+    candidate = _candidate("selected", [source["id"]])
+    packet = {
+        "edition_date": DATE,
+        "sources": [source],
+        "sections": [{
+            "section_id": "investigations", "status": "ACTIVE",
+            "candidates": [candidate, dict(candidate, id="alternate", rank=2)],
+            "selected_candidate_id": "selected",
+        }],
+    }
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "attempt_count": 0,
+        "max_attempts": 1,
+        "search_constraints": {"eligible_section_ids": ["investigations"]},
+        "topic_identifiers": ["investigations"],
+        "query_context": {},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    return build_deep_research_state(
+        packet, {"event_clusters": []},
+        {"plans": [{"section_id": "investigations", "research_budget": {"level": "investigation"}}]},
+        {"needs": [need]}, CONFIG, run_scope_id="provider-exact-hard-fixture",
+    )
+
+
 def _exact_actions(job: dict) -> list[dict]:
     return [item for item in plan_research_actions(job, CONFIG) if item.get("lead_origin") == "PROVIDER_EXACT"]
 
@@ -167,6 +197,24 @@ def test_exact_provider_actions_remain_subject_to_fixed_round_cap_and_global_fai
     deferred = next(item for item in schedule["deferred_actions"] if item.get("lead_origin") == "PROVIDER_EXACT")
     assert deferred["deferred_reason"] == "ROUND_BUDGET_PRIORITY_AND_FAIRNESS"
     assert deferred["provider_lead_id"] and deferred["target"].startswith("https://fixture.example/")
+    assert schedule["budget_allocation"]["budget_increased"] is False
+
+
+def test_selected_provider_exact_route_for_unresolved_hard_lane_gets_hard_opportunity() -> None:
+    state = _hard_candidate_state()
+    candidate_job = next(job for job in state["jobs"] if not job.get("recovery_needs"))
+    exact = next(item for item in plan_research_actions(candidate_job, CONFIG) if item.get("lead_origin") == "PROVIDER_EXACT")
+
+    assert exact["target_editorial_function"] == "ACCOUNTABILITY"
+    assert exact["research_lane"] == "HARD:ACCOUNTABILITY"
+    assert exact["priority_class"] == "P1_BREADTH"
+    assert exact["hard_deficit"] == {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+    }
+
+    schedule = schedule_research_actions(state["jobs"], CONFIG)
+    assert exact["action_id"] in {item["action_id"] for item in schedule["actions"]}
     assert schedule["budget_allocation"]["budget_increased"] is False
 
 

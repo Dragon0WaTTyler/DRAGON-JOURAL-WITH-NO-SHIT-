@@ -183,6 +183,55 @@ def test_provider_backed_boundary_requires_explicit_authorization():
     assert caught.value.code == "PROVIDER_RESEARCH_AUTHORIZATION_REQUIRED"
 
 
+def test_provider_accountability_without_service_candidate_preserves_no_news_truth() -> None:
+    packet = _undercovered_packet()
+    packet["sources"].append(_source("accountability-independent", "independent", "news.example"))
+    packet["sections"] = [
+        {
+            "section_id": section_id,
+            "status": "ACTIVE",
+            "candidates": [
+                {
+                    "id": "accountability-1", "rank": 1,
+                    "title": "A current accountability action",
+                    "discovery_source_ids": ["provider-lead"],
+                    "verification_source_ids": ["provider-lead", "accountability-independent"],
+                    "primary_evidence_source_ids": ["provider-lead"],
+                    "independent_evidence_source_ids": ["accountability-independent"],
+                    "facts": ["A current oversight action was announced."],
+                    "claims": [], "unknowns": [], "disputed_points": [],
+                },
+                {
+                    "id": "accountability-2", "rank": 2,
+                    "title": "An alternate accountability action",
+                    "discovery_source_ids": ["provider-lead"],
+                    "verification_source_ids": ["provider-lead", "accountability-independent"],
+                    "primary_evidence_source_ids": ["provider-lead"],
+                    "independent_evidence_source_ids": ["accountability-independent"],
+                    "facts": ["An alternate current oversight action was announced."],
+                    "claims": [], "unknowns": [], "disputed_points": [],
+                },
+            ],
+            "selected_candidate_id": "accountability-1",
+            "selection_reason": "The selected action has distinct source roles.",
+            "no_news_reason": None,
+            "fallback_action": None,
+        }
+        if section_id == "investigations"
+        else section
+        for section in packet["sections"]
+        for section_id in [section["section_id"]]
+    ]
+
+    normalized = _provider(packet).normalize_research_packet(DATE, packet)
+    accountability = next(item for item in normalized["sections"] if item["section_id"] == "investigations")
+    service = next(item for item in normalized["sections"] if item["section_id"] == "service")
+    assert len(accountability["candidates"]) == 2
+    assert service["status"] == "NO_NEWS"
+    assert service["candidates"] == []
+    assert service["selected_candidate_id"] is None
+
+
 def test_technical_provider_mode_records_actual_time_and_rejects_overrides():
     with pytest.raises(ResearchAcceptanceError) as caught:
         build_provider_research_acceptance_orchestrator(

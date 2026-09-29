@@ -1969,6 +1969,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "provider_candidate_id": source.get("provider_candidate_id") or discovery_source.get("provider_candidate_id"),
                 "provider_supplied_url": source.get("provider_supplied_url") or target,
                 "lead_origin": "PROVIDER_EXACT",
+                "hard_deficit": deepcopy(source.get("hard_deficit")) if isinstance(source.get("hard_deficit"), dict) else None,
             })
         # Exact provider artifacts are untrusted leads, not evidence.  They
         # take only the candidate-local first strategy; ordinary topic
@@ -2121,6 +2122,12 @@ def create_research_action(
     excluded_origins, excluded_families = _route_exclusions(job, recovery_need)
     known_events = sorted(set(known_event_ids or []) | ({job["lead"].get("related_event_cluster")} - {None}))
     strategy = query_strategy or query_ladder(job, recovery_need)[0]
+    hard_deficit = strategy.get("hard_deficit") if isinstance(strategy.get("hard_deficit"), dict) else {}
+    hard_target = str(hard_deficit.get("target_editorial_function") or "").upper()
+    provider_exact_hard = (
+        strategy.get("intent") == "PROVIDER_EXACT_ARTIFACT"
+        and hard_target in {"ACCOUNTABILITY", "SERVICE"}
+    )
     query = str(strategy.get("query") or job["lead"].get("topic") or "")
     target = target or strategy.get("target")
     recovery_mode = (
@@ -2143,7 +2150,12 @@ def create_research_action(
         ),
         "job_id": job["job_id"],
         "branch_id": branch["branch_id"],
-        "research_lane": job.get("research_lane") or ("HARD_BREADTH" if recovery_need and str(recovery_need.get("need_id") or "").startswith("BREADTH:") else "GENERAL_DISCOVERY"),
+        # A provider exact URL attached to the selected candidate for an
+        # unresolved semantic deficit is still untrusted discovery input,
+        # but it must receive the hard lane's existing opportunity.  This
+        # changes neither the cap nor the evidence gate; it only prevents
+        # the route from being mislabeled P3 context work.
+        "research_lane": f"HARD:{hard_target}" if provider_exact_hard else job.get("research_lane") or ("HARD_BREADTH" if recovery_need and str(recovery_need.get("need_id") or "").startswith("BREADTH:") else "GENERAL_DISCOVERY"),
         "question_id": question_id,
         "desk": str(strategy.get("target_desk") or job["lead"]["desk"]),
         "research_regime": job["regime"],
@@ -2152,7 +2164,7 @@ def create_research_action(
         "query_intent": str(strategy.get("intent") or "CONTEXT"),
         "query_variant": str(strategy.get("variant") or "CONTEXT"),
         "query_fingerprint": query_fingerprint(query, intent=str(strategy.get("intent") or "CONTEXT"), language=strategy.get("language")),
-        "priority_class": recovery_priority(recovery_need),
+        "priority_class": "P1_BREADTH" if provider_exact_hard else recovery_priority(recovery_need),
         "discovery_channel": str(strategy.get("channel") or "GOOGLE_NEWS_RSS"),
         "discovery_backends": list(strategy.get("backends") or []),
         "search_language": strategy.get("language"),
@@ -2160,7 +2172,7 @@ def create_research_action(
         "search_time_range": strategy.get("time_range"),
         "search_page": strategy.get("page"),
         "candidate_event_theme": strategy.get("candidate_event_theme"),
-        "target_editorial_function": (recovery_need or {}).get("target_editorial_function") or (recovery_need or {}).get("event_acquisition_plan", {}).get("target_editorial_function"),
+        "target_editorial_function": (recovery_need or {}).get("target_editorial_function") or (recovery_need or {}).get("event_acquisition_plan", {}).get("target_editorial_function") or (hard_target if provider_exact_hard else None),
         "source_class_priorities": list(strategy.get("source_class_priorities") or []),
         "target_source_class": strategy.get("target_source_class"),
         "source_class_branch": strategy.get("source_class_branch"),
@@ -2254,6 +2266,7 @@ def create_research_action(
         "provider_candidate_id": strategy.get("provider_candidate_id"),
         "provider_supplied_url": strategy.get("provider_supplied_url"),
         "lead_origin": strategy.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
+        "hard_deficit": deepcopy(hard_deficit) if provider_exact_hard else None,
     }
 
 
