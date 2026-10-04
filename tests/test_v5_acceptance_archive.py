@@ -28,7 +28,11 @@ def test_storage_proof_survives_source_deletion_and_detects_all_failure_cases(tm
     assert result["tamper"] == "ACCEPTANCE_HASH_MISMATCH"
     assert result["overwrite"] == "ACCEPTANCE_BUNDLE_EXISTS"
     assert result["missing_required"] == "ACCEPTANCE_BUNDLE_INCOMPLETE"
-    assert verify_acceptance_bundle(Path(result["bundle"]))["completion_state"] == "COMPLETE"
+    manifest = verify_acceptance_bundle(Path(result["bundle"]))
+    assert manifest["completion_state"] == "COMPLETE"
+    assert manifest["SEP27_PRIMARY_ARTIFACTS"] == "UNAVAILABLE"
+    assert manifest["SEP27_EXACT_REPLAY"] == "NOT_POSSIBLE"
+    assert manifest["historical_replay_requirement"] == "HISTORICAL_REPLAY_WAIVED_DUE_TO_MISSING_PRIMARY_ARTIFACTS"
 
 
 def test_manifest_tamper_and_missing_archived_file_fail_verification(tmp_path):

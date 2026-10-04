@@ -1,6 +1,15 @@
 # Durable research acceptance evidence
 
-`SEP27_EXACT_REPLAY = UNAVAILABLE_MISSING_PRIMARY_ARTIFACTS`
+`SEP27_PRIMARY_ARTIFACTS = UNAVAILABLE`
+
+`SEP27_EXACT_REPLAY = NOT_POSSIBLE`
+
+`HISTORICAL_REPLAY_WAIVED_DUE_TO_MISSING_PRIMARY_ARTIFACTS`
+
+See the permanent [historical artifact status](HISTORICAL-ARTIFACT-STATUS.md).
+Do not request or reconstruct the missing artifacts. Acceptance now requires a
+properly authorized and durably preserved fresh trial and its deterministic
+replay instead of an exact September 27 replay.
 
 The September 27, 2026 trial's original raw packet and run tree are missing.
 Archived transcript excerpts are partial evidence and cannot replace those

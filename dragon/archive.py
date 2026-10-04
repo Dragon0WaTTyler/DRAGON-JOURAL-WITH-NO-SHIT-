@@ -262,7 +262,9 @@ class LocalAcceptanceArchive:
             "acceptance_bundle_completeness": "INITIALIZED",
             "required_artifacts": [], "artifacts": {}, "configuration_hashes": {},
             "implementation_hashes": {},
-            "SEP27_EXACT_REPLAY": "UNAVAILABLE_MISSING_PRIMARY_ARTIFACTS",
+            "SEP27_PRIMARY_ARTIFACTS": "UNAVAILABLE",
+            "SEP27_EXACT_REPLAY": "NOT_POSSIBLE",
+            "historical_replay_requirement": "HISTORICAL_REPLAY_WAIVED_DUE_TO_MISSING_PRIMARY_ARTIFACTS",
         }
         for relative in str(_git(self.root, "ls-files", "--", "config")).splitlines():
             source = self.root / relative
