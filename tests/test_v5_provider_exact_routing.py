@@ -6,6 +6,7 @@ executor without invoking a provider or performing network retrieval.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 
 from dragon.deep_research import build_deep_research_state, load_deep_research_config
@@ -85,7 +86,7 @@ def _job(urls: list[str], *, selected: bool = True) -> dict:
     return state["jobs"][0]
 
 
-def _hard_candidate_state(lane: str = "ACCOUNTABILITY", *, pair: bool = False) -> dict:
+def _hard_candidate_state(lane: str = "ACCOUNTABILITY", *, pair: bool = False, recovery_needs: list[dict] | None = None) -> dict:
     section_id = "investigations" if lane == "ACCOUNTABILITY" else "service"
     source = _source("s1", "https://fixture.example/accountability-report")
     sources = [source]
@@ -121,7 +122,7 @@ def _hard_candidate_state(lane: str = "ACCOUNTABILITY", *, pair: bool = False) -
     return build_deep_research_state(
         packet, {"event_clusters": []},
         {"plans": [{"section_id": section_id, "research_budget": {"level": "investigation"}}]},
-        {"needs": [need]}, CONFIG, run_scope_id="provider-exact-hard-fixture",
+        {"needs": [need] if recovery_needs is None else recovery_needs}, CONFIG, run_scope_id="provider-exact-hard-fixture",
     )
 
 
@@ -275,6 +276,66 @@ def test_hard_candidate_primary_and_independent_exact_pair_are_selected_together
     ]
     assert {action.get("provider_source_role") for action in candidate_actions} >= {"PRIMARY", "INDEPENDENT"}
     assert len(schedule["actions"]) <= CONFIG["executor"]["maximum_actions_per_round"]
+    telemetry = schedule["budget_allocation"]["hard_lane_reservation"]
+    assert telemetry["hard_lane_reserved_capacity"] == 2
+    assert set(telemetry["hard_lane_reserved_action_ids"]) == {action["action_id"] for action in candidate_actions}
+    assert telemetry["remaining_general_capacity"] == CONFIG["executor"]["maximum_actions_per_round"] - 2
+
+
+def test_closed_hard_lane_loses_reservation_in_next_materialization() -> None:
+    before = schedule_research_actions(_hard_candidate_state()["jobs"], CONFIG)
+    after = schedule_research_actions(_hard_candidate_state(recovery_needs=[])["jobs"], CONFIG)
+    assert before["budget_allocation"]["hard_lane_reservation"]["hard_lane_reserved_capacity"] == 1
+    assert after["budget_allocation"]["hard_lane_reservation"]["active_hard_lanes"] == []
+    assert after["budget_allocation"]["hard_lane_reservation"]["hard_lane_reserved_capacity"] == 0
+    assert all(not action.get("hard_deficit") for action in after["actions"])
+
+
+def test_exhausted_hard_need_does_not_receive_new_materialized_reservation() -> None:
+    state = _hard_candidate_state("SERVICE")
+    need = deepcopy(next(job for job in state["jobs"] if job.get("recovery_needs"))["recovery_needs"][0])
+    need["attempt_count"] = need["max_attempts"]
+    next_state = _hard_candidate_state("SERVICE", recovery_needs=[need])
+    schedule = schedule_research_actions(next_state["jobs"], CONFIG)
+    assert not next_state["recovery_job_mappings"]
+    assert schedule["budget_allocation"]["hard_lane_reservation"]["hard_lane_reserved_capacity"] == 0
+
+
+def test_exhausted_recovery_job_does_not_fall_back_to_generic_hard_search() -> None:
+    job = next(job for job in _hard_candidate_state("SERVICE")["jobs"] if job.get("recovery_needs"))
+    job["recovery_needs"][0]["attempt_count"] = job["recovery_needs"][0]["max_attempts"]
+    assert plan_research_actions(job, CONFIG) == []
+
+
+def test_unavailable_hard_fetch_allowance_returns_capacity_to_other_lanes() -> None:
+    state = _hard_candidate_state("SERVICE")
+    candidate_job = next(job for job in state["jobs"] if not job.get("recovery_needs"))
+    candidate_job["executor_state"] = {"fetches": CONFIG["executor"]["budget_action_limits"][candidate_job["budget_class"]]["fetches"]}
+    for job in state["jobs"]:
+        if job.get("recovery_needs"):
+            job["status"] = "STOPPED"
+    generic = _job([f"https://fixture.example/breadth-{index}" for index in range(12)])
+    schedule = schedule_research_actions([*state["jobs"], generic], CONFIG)
+    telemetry = schedule["budget_allocation"]["hard_lane_reservation"]
+    assert telemetry["hard_lane_reserved_capacity"] == 0
+    assert telemetry["hard_lane_no_candidate_reason"]["SERVICE"] == "NO_VALID_EXECUTABLE_ACTION"
+    assert all(not (action["job_id"] == candidate_job["job_id"] and action["action_type"] == "FETCH_URL") for action in schedule["actions"])
+    assert len(schedule["actions"]) == CONFIG["executor"]["maximum_actions_per_round"]
+
+
+def test_failed_hard_exact_fetch_keeps_lineage_and_does_not_expand_budget() -> None:
+    state = _hard_candidate_state("SERVICE")
+    job = next(job for job in state["jobs"] if not job.get("recovery_needs"))
+    schedule = schedule_research_actions(state["jobs"], CONFIG)
+    exact = next(action for action in schedule["actions"] if action.get("provider_candidate_id") == "service:selected")
+    adapter = FixtureResearchAdapter({exact["action_id"]: [{"result_type": "DEAD_END", "reason": "HTTP_503"}]})
+    execution = execute_research_round(job, adapter, CONFIG, actions=[exact])
+    assert len(adapter.executed_actions) == 1
+    assert execution["observations"][0]["observation_class"] == "DEAD_END"
+    assert execution["observations"][0]["provenance"]["provider_candidate_id"] == "service:selected"
+    assert execution["budget_consumed"]["fetches"] == 1
+    assert not execution["source_packet_patch"]["sources"]
+    assert schedule["budget_allocation"]["budget_increased"] is False
 
 
 def test_exact_fetch_directness_does_not_grant_primary_evidence_or_bypass_qualification() -> None:

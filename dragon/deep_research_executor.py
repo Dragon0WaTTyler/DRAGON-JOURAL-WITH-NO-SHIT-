@@ -2288,6 +2288,10 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
         ),
         key=lambda item: (PRIORITY_ORDER[recovery_priority(item)], str(item.get("need_id"))),
     )
+    if job.get("recovery_needs") and not needs:
+        # An exhausted recovery allowance cannot reopen through the ordinary
+        # candidate/context ladder while retaining the hard lane's label.
+        return []
     if needs and branches:
         pairs = [
             (branches[index % len(branches)], need)
@@ -2350,18 +2354,27 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         for action in plan_research_actions(job, config, known_event_ids=known_event_ids)
     ]
     cap = int(config["executor"]["maximum_actions_per_round"])
+    jobs_by_id = {job["job_id"]: job for job in jobs}
+    available_actions = []
+    for action in all_actions:
+        job = jobs_by_id[action["job_id"]]
+        counter = "search_actions" if action["action_type"] in SEARCH_ACTIONS else "fetches"
+        limit = config["executor"]["budget_action_limits"][job["budget_class"]][counter]
+        if int(job.get("executor_state", {}).get(counter, 0)) < int(limit):
+            available_actions.append(action)
+    available_ids = {action["action_id"] for action in available_actions}
     # Context is deliberately not allowed to consume a scarce recovery round.
     # P0/P1/P2 remain eligible together; only P3 is deferred under pressure.
-    if any(item["priority_class"] != "P3_CONTEXT" for item in all_actions):
-        eligible_actions = [item for item in all_actions if item["priority_class"] != "P3_CONTEXT"]
+    if any(item["priority_class"] != "P3_CONTEXT" for item in available_actions):
+        eligible_actions = [item for item in available_actions if item["priority_class"] != "P3_CONTEXT"]
     else:
-        eligible_actions = all_actions
+        eligible_actions = available_actions
     selected: list[dict] = []
     # Reserve one first-wave slot for each non-context edition-wide gap class.
     # This is the anti-starvation rule: a large set of P0 candidate repairs
     # still cannot leave World/breadth/distinct-event research at zero.
     first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
-    first_wave_all = [item for item in all_actions if int(item.get("strategy_index", 0)) == 0]
+    first_wave_all = [item for item in available_actions if int(item.get("strategy_index", 0)) == 0]
     def hard_lane(item: dict) -> str | None:
         hard_deficit = item.get("hard_deficit") if isinstance(item.get("hard_deficit"), dict) else {}
         target = str(item.get("target_editorial_function") or hard_deficit.get("target_editorial_function") or "").upper()
@@ -2426,6 +2439,7 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
 
     # If an exact provider candidate supplied both expected roles, reserve its
     # complementary original/corroborating page next when capacity permits.
+    hard_reserved_ids = {action["action_id"] for action in hard_reserved.values()}
     for lane, chosen in list(hard_reserved.items()):
         role = chosen.get("provider_source_role")
         complement = "INDEPENDENT" if role == "PRIMARY" else "PRIMARY" if role == "INDEPENDENT" else None
@@ -2437,6 +2451,7 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
                      and item["action_id"] not in {selected_item["action_id"] for selected_item in selected}), None)
         if pair is not None:
             selected.append(pair)
+            hard_reserved_ids.add(pair["action_id"])
     for priority in ("P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION"):
         candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
         if candidate is not None and len(selected) < cap and candidate["action_id"] not in {item["action_id"] for item in selected}:
@@ -2470,18 +2485,19 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     hard_lane_telemetry = {
         "active_hard_lanes": sorted(active_hard_lanes),
         "hard_lane_candidates": {lane: sorted({str(item.get("provider_candidate_id") or item.get("recovery_need_id") or item.get("job_id")) for item in hard_lane_actions.get(lane, [])}) for lane in sorted(active_hard_lanes)},
-        "hard_lane_reserved_capacity": len(hard_reserved),
+        "hard_lane_reserved_capacity": len(hard_reserved_ids),
+        "hard_lane_reserved_action_ids": sorted(hard_reserved_ids),
         "hard_lane_actions_selected": selected_by_lane,
         "hard_lane_actions_executed": {lane: 0 for lane in sorted(active_hard_lanes)},
         "hard_lane_actions_deferred": deferred_by_lane,
         "hard_lane_no_candidate_reason": {lane: "NO_VALID_EXECUTABLE_ACTION" for lane in sorted(active_hard_lanes) if not hard_lane_actions.get(lane)},
         "hard_lane_closure_state": {lane: "OPEN_AT_SCHEDULING" for lane in sorted(active_hard_lanes)},
-        "remaining_general_capacity": max(0, cap - len(hard_reserved)),
+        "remaining_general_capacity": max(0, cap - len(hard_reserved_ids)),
     }
     return {
         "actions": selected,
         "deferred_actions": [
-            {**item, "deferred_reason": "ROUND_BUDGET_PRIORITY_AND_FAIRNESS"}
+            {**item, "deferred_reason": "ROUND_BUDGET_PRIORITY_AND_FAIRNESS" if item["action_id"] in available_ids else "JOB_ACTION_ALLOWANCE_EXHAUSTED"}
             for item in all_actions if item["action_id"] not in selected_ids
         ],
         "budget_allocation": {
