@@ -9,6 +9,11 @@ from dragon.providers import SECTION_HEADINGS as RUNTIME_SECTION_HEADINGS
 from scripts.codex_editorial_provider import SECTION_HEADINGS, _probe, _run_codex, _schema
 
 
+def _research_payload():
+    from dragon.providers import LocalCommandEditorialProvider
+    return LocalCommandEditorialProvider(("fixture",)).research_payload("2099-01-02")
+
+
 def test_adapter_supports_direct_script_execution() -> None:
     script = Path(__file__).resolve().parents[1] / "scripts" / "codex_editorial_provider.py"
     result = subprocess.run(
@@ -61,7 +66,7 @@ def test_editorial_exec_is_ephemeral_read_only_and_structured() -> None:
 
     value = _run_codex(
         "research",
-        {"edition_date": "2099-01-02"},
+        _research_payload(),
         binary="codex",
         runner=runner,
     )
@@ -86,7 +91,7 @@ def test_editorial_exec_reports_redacted_stderr_on_failure() -> None:
         )
 
     try:
-        _run_codex("research", {"edition_date": "2099-01-02"}, binary="codex", runner=runner)
+        _run_codex("research", _research_payload(), binary="codex", runner=runner)
     except RuntimeError as exc:
         detail = str(exc)
     else:

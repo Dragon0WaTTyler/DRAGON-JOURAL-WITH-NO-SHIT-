@@ -103,11 +103,25 @@ class OneShotProviderResearch:
         request_path = self.artifact_dir / "request.json"
         atomic_write_json(request_path, request)
         self._write_invocation({**request, "status": "ARMED", "provider_calls": 0})
+        prepare = getattr(self.delegate, "prepare_research_request", None)
+        if callable(prepare):
+            try:
+                prepared = prepare(edition_date, continuity)
+            except Exception as exc:
+                self._write_invocation({**request, "status": "BLOCKED_PRE_PROVIDER", "provider_calls": 0,
+                    "error_code": getattr(exc, "code", type(exc).__name__),
+                    "error_detail": redact_text(str(exc)), "diagnostics": getattr(exc, "diagnostics", {})})
+                raise
+            if prepared is not None:
+                self._write_invocation({**request, "status": "ARMED", "provider_calls": 0,
+                    "schema_preflight": prepared["schema_preflight"], "payload_preflight": prepared["payload_preflight"]})
         raw_path = self.artifact_dir / "research.raw.json"
         self.calls += 1
         try:
             packet = self.delegate.research(edition_date, continuity)
         except Exception as exc:
+            client_error_path = self.artifact_dir / "research.client-error.json"
+            client_error = json.loads(client_error_path.read_text(encoding="utf-8")) if client_error_path.is_file() else {}
             self._write_invocation(
                 {
                     "schema_version": 1,
@@ -124,6 +138,9 @@ class OneShotProviderResearch:
                         else None
                     ),
                     "error_code": getattr(exc, "code", type(exc).__name__),
+                    "failure_classification": client_error.get("classification") or (
+                        "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL"
+                        if "invalid_json_schema" in str(exc) else "PROVIDER_EXECUTION_OR_RESPONSE_FAILURE"),
                     "error_detail": redact_text(str(exc)),
                     "diagnostics": getattr(exc, "diagnostics", {}),
                 }
@@ -408,6 +425,16 @@ def audit_live_provider_gates(root: Path, provider: ResearchProvider) -> dict:
         parsed = [item for item in results if item.get("result_type") == "LEAD"]
         if not parsed:
             raise ValueError("DRAGON adapter parsed no bounded real search result")
+        config = load_local_config(root)
+        from dragon.provider_targeting import build_research_targeting
+        edition_date = datetime.now(ZoneInfo(config["timezone"])).date().isoformat()
+        prepare = getattr(provider, "prepare_research_request", None)
+        if not callable(prepare):
+            raise ValueError("provider exposes no schema/payload preflight interface")
+        prepared = prepare(edition_date, {"edition_count": 0, "editions": [],
+            "research_targeting": build_research_targeting(edition_date, config["editorial_readiness"])})
+        if prepared is None or prepared["status"] != "PASS":
+            raise ValueError("production schema/payload preflight did not pass")
         provider_health = provider.healthcheck()
     except Exception as exc:
         raise ResearchAcceptanceError("BLOCKED_PRE_PROVIDER", redact_text(str(exc))) from exc
@@ -416,6 +443,7 @@ def audit_live_provider_gates(root: Path, provider: ResearchProvider) -> dict:
         "searxng": {"status": "PASS", "container_id": runtime["Id"], "container": runtime["Name"], "health": health or "RUNNING_AND_HTTP_VERIFIED"},
         "search_adapter": {"status": "PASS", "query": query, "parsed_results": len(parsed), "maximum_results": adapter.maximum_results, "results": results},
         "provider_auth": provider_health, "provider_calls": 0,
+        "provider_schema": prepared["schema_preflight"], "provider_payload": prepared["payload_preflight"],
         "one_call_limit": 1, "provider_retries": 0,
         "research_only": True, "editorial_enabled": False, "publication_enabled": False,
     }
@@ -428,6 +456,13 @@ def required_acceptance_artifacts(run_dir: Path, state: dict, calls: int) -> lis
             "provider-research/invocation.json", "provider-research/research.raw.json"])
     invocation_path = run_dir / "provider-research" / "invocation.json"
     invocation = json.loads(invocation_path.read_text(encoding="utf-8")) if invocation_path.is_file() else {}
+    if (run_dir / "provider-research/research.schema-preflight.json").is_file():
+        required.extend(["provider-research/research.schema.json", "provider-research/research.schema-preflight.json",
+            "provider-research/research.prepared-request.json", "provider-research/research.prompt.txt"])
+        if calls:
+            required.append("provider-research/research.client-invocation.json")
+        if invocation.get("failure_classification") == "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL":
+            required.append("provider-research/research.client-error.json")
     if invocation.get("status") == "NORMALIZED":
         required.append("provider-research/normalized-research-packet.json")
     stage_outputs = {
@@ -481,13 +516,22 @@ def run_provider_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[
                 raise ValueError("rerun archival proof for the current implementation commit")
         except (OSError, KeyError, ValueError, ArchiveError) as exc:
             raise ResearchAcceptanceError("BLOCKED_PRE_PROVIDER", f"durable archive readiness: {exc}") from exc
+    kwargs["root"] = root
+    kwargs["run_id"] = run_id
+    if archive is not None:
+        kwargs["artifact_checkpoint"] = archive.snapshot
+    # Allocate the fresh state identity before schema diagnostics create files
+    # in its run directory. Construction cannot invoke any stage/provider.
+    orchestrator = build_provider_research_acceptance_orchestrator(**kwargs)
     live_gates = None
     try:
         audit_acceptance_environment(root, edition_date=edition_date, run_id=run_id,
             service_probe=kwargs.get("service_probe"), now=preflight_now,
             technical_validation=bool(kwargs.get("technical_validation")))
         if archive is not None:
-            live_gates = audit_live_provider_gates(root, kwargs["provider"])
+            preflight_provider = (replace(kwargs["provider"], capture_directory=archive.run_dir / "provider-preflight")
+                if isinstance(kwargs["provider"], LocalCommandEditorialProvider) else kwargs["provider"])
+            live_gates = audit_live_provider_gates(root, preflight_provider)
             live_gates["durable_archive"] = {"status": "PASS", "bundle": str(archive.bundle), "manifest_initialized": True}
     except Exception as exc:
         if archive is not None:
@@ -496,11 +540,6 @@ def run_provider_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[
             archive.finalize(required=["live-preflight.json"], provider_calls=0, run_result="BLOCKED_PRE_PROVIDER")
             raise ResearchAcceptanceError("BLOCKED_PRE_PROVIDER", f"{exc}; preserved at {archive.bundle}") from exc
         raise
-    kwargs["root"] = root
-    kwargs["run_id"] = run_id
-    if archive is not None:
-        kwargs["artifact_checkpoint"] = archive.snapshot
-    orchestrator = build_provider_research_acceptance_orchestrator(**kwargs)
     if archive is not None:
         atomic_write_json(archive.run_dir / "live-preflight.json", live_gates)
         archive.snapshot()
@@ -508,8 +547,20 @@ def run_provider_research_acceptance(**kwargs: Any) -> tuple[Orchestrator, dict[
         state = orchestrator.run()
         report = write_provider_research_acceptance_report(orchestrator, state)
         if archive is not None:
-            archive.finalize(required=required_acceptance_artifacts(archive.run_dir, state, orchestrator.provider_research.calls),
-                provider_calls=orchestrator.provider_research.calls, run_result=state.get("run_result", "UNKNOWN"))
+            invocation_path = archive.run_dir / "provider-research/invocation.json"
+            invocation = json.loads(invocation_path.read_text(encoding="utf-8")) if invocation_path.is_file() else {}
+            completeness = ("INCOMPLETE_PROVIDER_REJECTED_REQUEST"
+                if invocation.get("failure_classification") == "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL" else None)
+            try:
+                archive.finalize(required=required_acceptance_artifacts(archive.run_dir, state, orchestrator.provider_research.calls),
+                    provider_calls=orchestrator.provider_research.calls, run_result=state.get("run_result", "UNKNOWN"),
+                    incompleteness_reason=completeness)
+            except ArchiveError as exc:
+                if exc.code != "ACCEPTANCE_BUNDLE_INCOMPLETE" or completeness is None:
+                    raise
+            verified = verify_acceptance_bundle(archive.bundle, require_complete=False)
+            orchestrator.acceptance_artifact_durability = "PASS"
+            orchestrator.acceptance_bundle_completeness = verified.get("acceptance_bundle_completeness", verified["completion_state"])
             orchestrator.acceptance_archive = archive.bundle
         return orchestrator, state, report
     except Exception:

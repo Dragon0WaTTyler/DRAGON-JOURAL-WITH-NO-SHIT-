@@ -67,3 +67,18 @@ The subsequent schema correction removes unsupported composition and retains
 conditional disposition checks in the runtime normalizer. It has offline coverage;
 this does not turn the failed trial into a successful live test. No second provider
 invocation was authorized or made.
+
+## Derived reporting for missing provider packets
+
+Current reporting separates preserved-byte durability from response completeness.
+After verifying the earlier trial's existing bytes, its derived status is
+`ACCEPTANCE_ARTIFACT_DURABILITY = PASS`,
+`ACCEPTANCE_BUNDLE_COMPLETENESS = INCOMPLETE_PROVIDER_REJECTED_REQUEST`, and
+`FRESH_LIVE_REPLAY = NOT_APPLICABLE_NO_PROVIDER_PACKET`. The original incomplete
+manifest is unchanged. A replay cannot run without a provider packet; this is
+distinct from failed preservation or a replay mismatch.
+
+The Codex adapter now validates and captures its exact serialized schema, payload,
+and prompt before the one-shot invocation counter advances. See
+[provider schema preflight](PROVIDER-SCHEMA-PREFLIGHT.md) for the offline proof and
+client-boundary checks. This documentation does not authorize a live invocation.

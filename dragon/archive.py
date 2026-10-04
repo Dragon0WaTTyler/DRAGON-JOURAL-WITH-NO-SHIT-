@@ -258,6 +258,8 @@ class LocalAcceptanceArchive:
             "source_worktree": str(self.root), "source_run_directory": str(self.run_dir),
             "synthetic": synthetic, "provider_call_limit": 1, "provider_calls": 0,
             "completion_state": "INITIALIZED", "run_result": "NOT_STARTED",
+            "acceptance_artifact_durability": "NOT_PROVEN",
+            "acceptance_bundle_completeness": "INITIALIZED",
             "required_artifacts": [], "artifacts": {}, "configuration_hashes": {},
             "implementation_hashes": {},
             "SEP27_EXACT_REPLAY": "UNAVAILABLE_MISSING_PRIMARY_ARTIFACTS",
@@ -311,7 +313,8 @@ class LocalAcceptanceArchive:
         self._write_manifest()
         verify_acceptance_bundle(self.bundle, require_complete=False)
 
-    def finalize(self, *, required: list[str], provider_calls: int, run_result: str) -> dict:
+    def finalize(self, *, required: list[str], provider_calls: int, run_result: str,
+                 incompleteness_reason: str | None = None) -> dict:
         self.snapshot()
         self.manifest.update({
             "required_artifacts": sorted("artifacts/" + relative for relative in required),
@@ -321,16 +324,23 @@ class LocalAcceptanceArchive:
         missing = [name for name in self.manifest["required_artifacts"] if name not in self.manifest["artifacts"]]
         self.manifest["completion_state"] = "INCOMPLETE" if missing else "VERIFYING"
         self.manifest["missing_required_artifacts"] = missing
+        self.manifest["acceptance_bundle_completeness"] = (
+            incompleteness_reason or "INCOMPLETE_REQUIRED_ARTIFACTS" if missing else "VERIFYING")
         self._write_manifest()
-        if missing:
-            raise ArchiveError("ACCEPTANCE_BUNDLE_INCOMPLETE", ", ".join(missing))
         try:
             verify_acceptance_bundle(self.bundle, require_complete=False)
+            self.manifest["acceptance_artifact_durability"] = "PASS"
+            if missing:
+                self._write_manifest()
+                raise ArchiveError("ACCEPTANCE_BUNDLE_INCOMPLETE", ", ".join(missing))
             self.manifest["completion_state"] = "COMPLETE"
+            self.manifest["acceptance_bundle_completeness"] = "COMPLETE"
             self._write_manifest()
             return verify_acceptance_bundle(self.bundle)
         except ArchiveError as exc:
             self.manifest["completion_state"] = "INCOMPLETE"
+            if exc.code != "ACCEPTANCE_BUNDLE_INCOMPLETE":
+                self.manifest["acceptance_artifact_durability"] = "FAIL"
             self.manifest["verification_error"] = exc.code
             self._write_manifest()
             raise

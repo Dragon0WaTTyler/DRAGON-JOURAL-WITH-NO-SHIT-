@@ -18,6 +18,16 @@ from dragon.state import sha256_file
 
 
 def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
+    manifest = verify_acceptance_bundle(bundle, require_complete=False)
+    raw_path = bundle / "artifacts/provider-research/research.raw.json"
+    invocation_path = bundle / "artifacts/provider-research/invocation.json"
+    if not raw_path.is_file() and invocation_path.is_file():
+        invocation = json.loads(invocation_path.read_text(encoding="utf-8"))
+        if (invocation.get("failure_classification") == "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL"
+            or "invalid_json_schema" in invocation.get("error_detail", "")):
+            return {"schema_version": 1, "run_id": manifest["run_id"],
+                "provider_calls": 0, "network_calls": 0, "checks": {"failure_classification": "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL"},
+                "FRESH_LIVE_REPLAY": "NOT_APPLICABLE_NO_PROVIDER_PACKET"}
     manifest = verify_acceptance_bundle(bundle)
     revision = subprocess.run(["git", "rev-parse", "HEAD"], cwd=code_root,
         capture_output=True, text=True, timeout=10, check=True).stdout.strip()

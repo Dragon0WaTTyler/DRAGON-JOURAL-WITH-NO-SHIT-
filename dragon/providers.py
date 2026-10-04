@@ -15,6 +15,7 @@ from string import Formatter
 import subprocess
 import sys
 import re
+import tempfile
 from typing import Protocol
 from urllib.parse import urlparse
 
@@ -627,8 +628,20 @@ class LocalCommandEditorialProvider:
         environment["PYTHONUTF8"] = "1"
         environment["PYTHONIOENCODING"] = "utf-8"
         request_text = json.dumps(payload, ensure_ascii=False)
+        prepared_directory = None
         if operation == "research":
             self._capture("research.request.json", request_text, serialized=True)
+            prepared = self._prepare_codex_research_payload(payload)
+            if prepared is not None:
+                from dragon.provider_schema import serialized_json, text_hash
+                prepared_directory = tempfile.TemporaryDirectory(prefix="dragon-provider-prepared-")
+                prepared_path = Path(prepared_directory.name) / "request.json"
+                encoded = serialized_json(prepared)
+                prepared_path.write_bytes(encoded.encode("utf-8"))
+                environment["DRAGON_CODEX_PREPARED_REQUEST_PATH"] = str(prepared_path)
+                environment["DRAGON_CODEX_PREPARED_REQUEST_SHA256"] = text_hash(encoded)
+                if self.capture_directory is not None:
+                    environment["DRAGON_CODEX_CAPTURE_DIRECTORY"] = str(self.capture_directory.resolve())
         try:
             result = subprocess.run(
                 [*self.command, "--operation", operation],
@@ -641,10 +654,15 @@ class LocalCommandEditorialProvider:
             )
         except (OSError, subprocess.SubprocessError) as exc:
             raise ProviderError("AI_PROVIDER_EXECUTION_FAILED", str(exc)) from exc
+        finally:
+            if prepared_directory is not None:
+                prepared_directory.cleanup()
         if operation in {"research", "articles"} and result.stdout:
             # Preserve the returned bytes before parsing or normalization,
             # including an invalid response needed to diagnose a failed run.
-            self._capture(f"{operation}.raw.json", result.stdout, serialized=True)
+            raw_path = self.capture_directory / f"{operation}.raw.json" if self.capture_directory else None
+            if operation != "research" or raw_path is None or not raw_path.is_file():
+                self._capture(f"{operation}.raw.json", result.stdout, serialized=True)
         if result.returncode:
             # Preserve the terminal diagnostic. A large generated prompt can
             # otherwise obscure the actual provider error (for example, an
@@ -663,18 +681,45 @@ class LocalCommandEditorialProvider:
             raise ProviderError("AI_PROVIDER_HEALTHCHECK_FAILED", "provider did not prove unattended capability")
         return value
 
+    def research_payload(self, edition_date: str, continuity: dict | None = None) -> dict:
+        return {"schema_version": 5, "edition_date": edition_date, "language": "ar",
+                "continuity": continuity or {"edition_count": 0, "editions": []},
+                "edition_readiness": self._edition_readiness_context()}
+
+    def _prepare_codex_research_payload(self, payload: dict) -> dict | None:
+        # Other configured local providers own their interfaces; this policy is
+        # specific to the installed Codex adapter, not imposed on arbitrary commands.
+        if not any(Path(part).name == "codex_editorial_provider.py" for part in self.command):
+            return None
+        from scripts.codex_editorial_provider import prepare_codex_request, validate_prepared_request
+        prepared_path = self.capture_directory / "research.prepared-request.json" if self.capture_directory else None
+        prepared = (json.loads(prepared_path.read_text(encoding="utf-8"))
+                    if prepared_path is not None and prepared_path.is_file()
+                    else prepare_codex_request("research", payload))
+        self._capture("research.request.json", prepared["payload_text"], serialized=True)
+        self._capture("research.schema.json", prepared["schema_text"], serialized=True)
+        self._capture("research.prompt.txt", prepared["prompt_text"], serialized=True)
+        self._capture("research.schema-preflight.json", {
+            "status": prepared["status"], "schema": prepared["schema_preflight"],
+            "payload": prepared["payload_preflight"], "prompt_sha256": prepared["prompt_sha256"],
+        })
+        self._capture("research.prepared-request.json", prepared)
+        try:
+            validate_prepared_request(prepared, "research", payload)
+        except RuntimeError as exc:
+            raise ProviderError("BLOCKED_PRE_PROVIDER", str(exc), diagnostics={
+                "schema_preflight": prepared["schema_preflight"],
+                "payload_preflight": prepared["payload_preflight"],
+            }) from exc
+        return prepared
+
+    def prepare_research_request(self, edition_date: str, continuity: dict | None = None) -> dict | None:
+        """Validate/capture the production request before a one-shot counter is spent."""
+        return self._prepare_codex_research_payload(self.research_payload(edition_date, continuity))
+
     def research(self, edition_date: str, continuity: dict | None = None) -> dict:
         provider_continuity = continuity or {"edition_count": 0, "editions": []}
-        raw_value = self._invoke(
-            "research",
-            {
-                "schema_version": 5,
-                "edition_date": edition_date,
-                "language": "ar",
-                "continuity": provider_continuity,
-                "edition_readiness": self._edition_readiness_context(),
-            },
-        )
+        raw_value = self._invoke("research", self.research_payload(edition_date, provider_continuity))
         targeting = provider_continuity.get("research_targeting") if isinstance(provider_continuity, dict) else None
         return self.normalize_research_packet(edition_date, raw_value, research_targeting=targeting)
 

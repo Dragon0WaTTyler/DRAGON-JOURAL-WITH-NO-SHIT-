@@ -28,6 +28,8 @@ def _report(orchestrator, state: object, report: object) -> int:
     value = {"status": result, "run_id": run_id, "report": str(report)}
     if getattr(orchestrator, "acceptance_archive", None) is not None:
         value["durable_bundle"] = str(orchestrator.acceptance_archive)
+        value["ACCEPTANCE_ARTIFACT_DURABILITY"] = orchestrator.acceptance_artifact_durability
+        value["ACCEPTANCE_BUNDLE_COMPLETENESS"] = orchestrator.acceptance_bundle_completeness
     print(json.dumps(value, ensure_ascii=False))
     return 0 if result == "COMPLETE" else 1
 

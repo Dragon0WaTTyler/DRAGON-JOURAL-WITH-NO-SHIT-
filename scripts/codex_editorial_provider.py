@@ -19,6 +19,8 @@ if str(REPOSITORY_ROOT) not in sys.path:
 
 from dragon.providers import REPAIR_SKIP_REASON_CODES, SECTION_HEADINGS, STORY_TYPES
 from dragon.redaction import redact_text
+from dragon.provider_schema import payload_preflight, schema_preflight, serialized_json, text_hash
+from dragon.state import atomic_write_json
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
 
@@ -548,18 +550,56 @@ Write real newspaper prose, not repeating digest cards. Expand only with support
 uncertainty, consequences, and next steps; never manufacture text to reach length."""
 
 
+def prepare_codex_request(operation: str, payload: dict) -> dict:
+    """The sole serializer for the schema and prompt handed to Codex exec."""
+    schema_text = serialized_json(_schema(operation))
+    payload_text = serialized_json(payload)
+    prompt_text = _prompt(operation, json.loads(payload_text))
+    schema_check = schema_preflight(schema_text, model=os.environ.get("DRAGON_CODEX_MODEL", ""))
+    payload_check = payload_preflight(operation, payload_text)
+    return {"operation": operation, "schema_text": schema_text, "payload_text": payload_text,
+            "prompt_text": prompt_text, "schema_preflight": schema_check,
+            "payload_preflight": payload_check, "prompt_sha256": text_hash(prompt_text),
+            "status": "PASS" if schema_check["status"] == payload_check["status"] == "PASS" else "FAIL"}
+
+
+def validate_prepared_request(prepared: dict, operation: str, payload: dict) -> None:
+    # Recheck the serialized bytes, never regenerate/transform an accepted schema.
+    schema_check = schema_preflight(prepared["schema_text"], model=os.environ.get("DRAGON_CODEX_MODEL", ""))
+    payload_check = payload_preflight(operation, prepared["payload_text"])
+    if (prepared.get("operation") != operation or schema_check["status"] != "PASS"
+        or payload_check["status"] != "PASS" or prepared["payload_text"] != serialized_json(payload)
+        or prepared.get("schema_preflight", {}).get("schema_sha256") != schema_check["schema_sha256"]
+        or prepared.get("payload_preflight", {}).get("payload_sha256") != payload_check["payload_sha256"]
+        or prepared.get("prompt_sha256") != text_hash(prepared["prompt_text"])
+        or prepared["prompt_text"] != _prompt(operation, payload)):
+        raise RuntimeError("PROVIDER_SCHEMA_PREFLIGHT_FAILED: serialized schema/payload/prompt is incompatible or changed")
+
+
 def _run_codex(
     operation: str,
     payload: dict,
     *,
     binary: str,
     runner: Runner = subprocess.run,
+    prepared: dict | None = None,
 ) -> dict | list:
+    prepared_path = os.environ.get("DRAGON_CODEX_PREPARED_REQUEST_PATH")
+    if prepared is None and prepared_path:
+        encoded = Path(prepared_path).read_text(encoding="utf-8")
+        if text_hash(encoded) != os.environ.get("DRAGON_CODEX_PREPARED_REQUEST_SHA256"):
+            raise RuntimeError("PROVIDER_SCHEMA_PREFLIGHT_FAILED: prepared request file identity changed")
+        prepared = json.loads(encoded)
+    if prepared is None:
+        prepared = prepare_codex_request(operation, payload)
+    validate_prepared_request(prepared, operation, payload)
     with tempfile.TemporaryDirectory(prefix="dragon-codex-editorial-") as directory:
         temporary = Path(directory)
         schema_path = temporary / "schema.json"
         output_path = temporary / "response.json"
-        schema_path.write_text(json.dumps(_schema(operation)), encoding="utf-8")
+        schema_path.write_bytes(prepared["schema_text"].encode("utf-8"))
+        if text_hash(schema_path.read_text(encoding="utf-8")) != prepared["schema_preflight"]["schema_sha256"]:
+            raise RuntimeError("PROVIDER_SCHEMA_PREFLIGHT_FAILED: outgoing schema file changed")
         command = [
             binary, "--search", "--ask-for-approval", "never", "exec", "-",
             "--ephemeral", "--skip-git-repo-check", "--ignore-rules",
@@ -570,9 +610,17 @@ def _run_codex(
         model = os.environ.get("DRAGON_CODEX_MODEL", "").strip()
         if model:
             command.extend(["--model", model])
+        capture = os.environ.get("DRAGON_CODEX_CAPTURE_DIRECTORY")
+        if capture:
+            atomic_write_json(Path(capture) / f"{operation}.client-invocation.json", {
+                "status": "CLIENT_INVOCATION_START", "operation": operation,
+                "schema_sha256": prepared["schema_preflight"]["schema_sha256"],
+                "payload_sha256": prepared["payload_preflight"]["payload_sha256"],
+                "prompt_sha256": prepared["prompt_sha256"], "command": command,
+            })
         result = runner(
             command,
-            input=_prompt(operation, payload),
+            input=prepared["prompt_text"],
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -582,10 +630,20 @@ def _run_codex(
         if result.returncode:
             diagnostic = redact_text(result.stderr.strip())[-4000:]
             suffix = f": {diagnostic}" if diagnostic else ""
+            if capture:
+                atomic_write_json(Path(capture) / f"{operation}.client-error.json", {
+                    "status": "FAILED", "returncode": result.returncode,
+                    "detail": redact_text(result.stderr.strip()), "stdout": redact_text(result.stdout),
+                    "classification": "PROVIDER_REQUEST_SCHEMA_REJECTED_PRE_MODEL"
+                    if "invalid_json_schema" in result.stderr else "PROVIDER_CLIENT_EXECUTION_FAILED",
+                })
             raise RuntimeError(
                 f"Codex editorial execution failed with exit code {result.returncode}{suffix}"
             )
         try:
+            if capture and output_path.is_file():
+                # Preserve model bytes before JSON parsing or stdout reserialization.
+                (Path(capture) / f"{operation}.raw.json").write_bytes(output_path.read_bytes())
             value = json.loads(output_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
             raise RuntimeError("Codex did not produce one valid structured JSON response") from exc
@@ -597,16 +655,23 @@ def _run_codex(
 
 
 def main() -> int:
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--operation", required=True, choices=("healthcheck", "research", "articles"))
+    parser.add_argument("--operation", required=True, choices=("healthcheck", "schema-preflight", "research", "articles"))
     args = parser.parse_args()
     try:
-        binary = _binary()
-        if args.operation == "healthcheck":
-            value = _probe(binary)
+        if args.operation == "schema-preflight":
+            value = prepare_codex_request("research", json.load(sys.stdin))
+            if value["status"] != "PASS":
+                print(json.dumps(value, ensure_ascii=False))
+                return 1
+        elif args.operation == "healthcheck":
+            value = _probe(_binary())
         else:
             payload = json.load(sys.stdin)
-            value = _run_codex(args.operation, payload, binary=binary)
+            value = _run_codex(args.operation, payload, binary=_binary())
     except Exception as exc:
         print(str(exc), file=sys.stderr)
         return 1
