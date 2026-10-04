@@ -125,12 +125,12 @@ def _valid_source_time(value: object, *, retrieval: bool = False) -> bool:
     return not retrieval or ("T" in candidate and parsed.tzinfo is not None)
 
 
-def _stamp_retrieval_times(value: dict) -> dict:
+def _stamp_retrieval_times(value: dict, retrieved_at: str | None = None) -> dict:
     """The local provider, not the model, owns the evidence retrieval instant."""
     sources = value.get("sources")
     if not isinstance(sources, list):
         return value
-    retrieved_at = datetime.now(timezone.utc).isoformat()
+    retrieved_at = retrieved_at or datetime.now(timezone.utc).isoformat()
     normalized = dict(value)
     normalized["sources"] = [
         {**source, "accessed_at": retrieved_at} if isinstance(source, dict) else source
@@ -606,7 +606,7 @@ class LocalCommandEditorialProvider:
             "demotions": demotions,
         }
 
-    def _capture(self, filename: str, value: object) -> None:
+    def _capture(self, filename: str, value: object, *, serialized: bool = False) -> None:
         if self.capture_directory is None:
             return
         self.capture_directory.mkdir(parents=True, exist_ok=True)
@@ -614,7 +614,7 @@ class LocalCommandEditorialProvider:
         temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
         try:
             temporary.write_text(
-                json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+                str(value) if serialized else json.dumps(value, ensure_ascii=False, indent=2) + "\n",
                 encoding="utf-8",
                 newline="\n",
             )
@@ -626,10 +626,13 @@ class LocalCommandEditorialProvider:
         environment = os.environ.copy()
         environment["PYTHONUTF8"] = "1"
         environment["PYTHONIOENCODING"] = "utf-8"
+        request_text = json.dumps(payload, ensure_ascii=False)
+        if operation == "research":
+            self._capture("research.request.json", request_text, serialized=True)
         try:
             result = subprocess.run(
                 [*self.command, "--operation", operation],
-                input=json.dumps(payload, ensure_ascii=False),
+                input=request_text,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
@@ -638,6 +641,10 @@ class LocalCommandEditorialProvider:
             )
         except (OSError, subprocess.SubprocessError) as exc:
             raise ProviderError("AI_PROVIDER_EXECUTION_FAILED", str(exc)) from exc
+        if operation in {"research", "articles"} and result.stdout:
+            # Preserve the returned bytes before parsing or normalization,
+            # including an invalid response needed to diagnose a failed run.
+            self._capture(f"{operation}.raw.json", result.stdout, serialized=True)
         if result.returncode:
             # Preserve the terminal diagnostic. A large generated prompt can
             # otherwise obscure the actual provider error (for example, an
@@ -648,8 +655,6 @@ class LocalCommandEditorialProvider:
             value = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
             raise ProviderError("AI_PROVIDER_RESPONSE_INVALID", "provider stdout is not one JSON value") from exc
-        if operation in {"research", "articles"}:
-            self._capture(f"{operation}.raw.json", value)
         return value
 
     def healthcheck(self) -> dict:
@@ -675,6 +680,7 @@ class LocalCommandEditorialProvider:
 
     def normalize_research_packet(
         self, edition_date: str, raw_value: object, *, research_targeting: dict | None = None,
+        retrieved_at: str | None = None,
     ) -> dict:
         """Validate and normalize a captured provider research seed.
 
@@ -684,7 +690,7 @@ class LocalCommandEditorialProvider:
         already preserved a raw packet (notably offline replay) may therefore
         use this method without invoking the editorial provider again.
         """
-        value = _stamp_retrieval_times(raw_value) if isinstance(raw_value, dict) else raw_value
+        value = _stamp_retrieval_times(raw_value, retrieved_at) if isinstance(raw_value, dict) else raw_value
         if not isinstance(value, dict) or value.get("edition_date") != edition_date:
             raise ProviderError("RESEARCH_PACKET_INVALID", "date or root object is invalid")
         sources = value.get("sources")

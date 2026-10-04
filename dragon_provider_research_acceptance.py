@@ -25,7 +25,10 @@ def _report(orchestrator, state: object, report: object) -> int:
     run_id = getattr(getattr(orchestrator, "store", None), "run_id", None)
     if not isinstance(result, str) or result not in _RUN_RESULTS or not isinstance(run_id, str) or not isinstance(report, Path):
         return _error("ACCEPTANCE_RESULT_INVALID", "persisted run_result, run identity, or report is missing or invalid")
-    print(json.dumps({"status": result, "run_id": run_id, "report": str(report)}, ensure_ascii=False))
+    value = {"status": result, "run_id": run_id, "report": str(report)}
+    if getattr(orchestrator, "acceptance_archive", None) is not None:
+        value["durable_bundle"] = str(orchestrator.acceptance_archive)
+    print(json.dumps(value, ensure_ascii=False))
     return 0 if result == "COMPLETE" else 1
 
 
@@ -33,6 +36,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", required=True)
     parser.add_argument("--technical-validation", action="store_true")
+    parser.add_argument("--archive-root", type=Path, help="Durable acceptance storage outside this worktree; default shared Git directory or DRAGON_ACCEPTANCE_ARCHIVE_ROOT.")
     parser.add_argument("--authorize-provider-research", action="store_true", help="Required: permits one research() call only; never article generation.")
     args = parser.parse_args()
     if not args.authorize_provider_research:
@@ -49,6 +53,8 @@ def main() -> int:
             provider=provider,
             provider_authorized=True,
             technical_validation=args.technical_validation,
+            require_durable_archive=True,
+            durable_archive_root=args.archive_root,
         )
     except (ResearchAcceptanceError, ValueError) as exc:
         return _error(getattr(exc, "code", "INVALID_ARGUMENT"), str(exc))

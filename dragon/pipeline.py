@@ -406,6 +406,7 @@ def build_stage_definitions(
         state_path = context.run_dir / "deep-research" / "state.json"
         path = context.run_dir / "deep-research" / "execution-report.json"
         state = _load(state_path)
+        schedule_outputs: tuple[Path, ...] = ()
         if synthetic:
             report = {
                 "schema_version": 1, "status": "NOT_APPLICABLE", "jobs": [],
@@ -436,6 +437,9 @@ def build_stage_definitions(
             )
             all_jobs = list(state.get("jobs", []))
             schedule = schedule_research_actions(all_jobs, config)
+            schedule_path = context.run_dir / "deep-research" / "scheduler-allocation.json"
+            atomic_write_json(schedule_path, schedule)
+            schedule_outputs = (schedule_path,)
             actions_by_job: dict[str, list[dict]] = {}
             for action in schedule["actions"]:
                 actions_by_job.setdefault(action["job_id"], []).append(action)
@@ -485,7 +489,7 @@ def build_stage_definitions(
         report["yield"] = build_research_yield_report(report)
         atomic_write_json(path, report)
         return StageResult(
-            (path,), inputs=(
+            (path, *schedule_outputs), inputs=(
                 state_path, context.root / "config" / "deep-research.yaml",
                 context.root / "config" / "deep-research-schema.json",
             ),
@@ -618,10 +622,20 @@ def build_stage_definitions(
             if materialization_issues:
                 raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", "; ".join(materialization_issues))
             epoch1_state_path = context.run_dir / "deep-research" / "epoch-1-state.json"
+            epoch1_inputs_path = context.run_dir / "deep-research" / "epoch-1-inputs.json"
+            # The recovered packet is updated again after execution. Preserve
+            # the exact intermediate inputs used for this delta materialization.
+            atomic_write_json(epoch1_inputs_path, {
+                "packet": packet, "intelligence": intelligence,
+                "recovery_plan": {"needs": delta_needs, "status": report["status"]},
+            })
             atomic_write_json(epoch1_state_path, epoch1_state)
-            outputs = (*outputs, epoch1_state_path)
+            outputs = (*outputs, epoch1_state_path, epoch1_inputs_path)
             if research_adapter is not None:
                 schedule = schedule_research_actions(epoch1_state["jobs"], config)
+                epoch1_schedule_path = context.run_dir / "deep-research" / "epoch-1-scheduler-allocation.json"
+                atomic_write_json(epoch1_schedule_path, schedule)
+                outputs = (*outputs, epoch1_schedule_path)
                 by_job: dict[str, list[dict]] = {}
                 for action in schedule["actions"]:
                     by_job.setdefault(action["job_id"], []).append(action)
