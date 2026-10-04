@@ -16,6 +16,7 @@ from jsonschema import Draft202012Validator
 import yaml
 
 from dragon.investigation_scope import evaluate_super_investigation_scope
+from dragon.provider_targeting import HARD_TARGET_SECTIONS
 
 
 LEAD_STATES = {"NEW", "RESEARCHING", "SUPPORTED", "DISPUTED", "UNRESOLVED", "REJECTED", "PROMOTED_TO_CANDIDATE"}
@@ -35,9 +36,9 @@ SECTION_PERSPECTIVES = {
     "technology": ["المطور أو الشركة", "التقييم المستقل", "المستخدم", "المنظم", "الأثر الاجتماعي"],
 }
 HARD_DEFICIT_SECTION_FUNCTIONS = {
-    "investigations": "ACCOUNTABILITY",
-    "opinion": "ACCOUNTABILITY",
-    "service": "SERVICE",
+    section_id: lane
+    for lane, section_ids in HARD_TARGET_SECTIONS.items()
+    for section_id in section_ids
 }
 DEFAULT_PERSPECTIVES = ["المؤسسة أو صاحب الادعاء", "المتأثرون", "الخبير المستقل", "الدليل والبيانات"]
 
@@ -642,6 +643,11 @@ def build_deep_research_state(
                     "provider_lead_id": source.get("provider_lead_id"),
                     "provider_candidate_id": provider_candidate_id,
                     "lead_origin": source.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
+                    "provider_source_role": (
+                        "PRIMARY" if source_id in set(candidate.get("primary_evidence_source_ids", []))
+                        else "INDEPENDENT" if source_id in set(candidate.get("independent_evidence_source_ids", []))
+                        else "CONTEXT"
+                    ),
                     **({"hard_deficit": deepcopy(hard_deficit)} if hard_deficit else {}),
                 }
                 for source_id in source_ids

@@ -181,11 +181,69 @@ def _schema(operation: str) -> dict:
             ],
             "additionalProperties": False,
         }
+        hard_target_result = {
+            "type": "object",
+            "properties": {
+                "target_id": {"type": "string", "enum": ["HARD:ACCOUNTABILITY", "HARD:SERVICE"]},
+                "status": {"type": "string", "enum": ["CANDIDATES_PRODUCED", "NO_QUALIFYING_CANDIDATE_FOUND"]},
+                "search_intent": {"type": "string", "minLength": 1},
+                "search_attempts": {
+                    "type": "array", "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "minLength": 1},
+                            "purpose": {"type": "string", "minLength": 1},
+                        },
+                        "required": ["query", "purpose"],
+                        "additionalProperties": False,
+                    },
+                },
+                "candidate_matches": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "candidate_id": {"type": "string", "minLength": 1},
+                            "semantic_match_rationale": {"type": "string", "minLength": 1},
+                            "current_event_rationale": {"type": "string", "minLength": 1},
+                            "expected_source_roles": {
+                                "type": "array", "minItems": 1,
+                                "items": {"type": "string", "enum": ["PRIMARY", "INDEPENDENT", "CONTEXT"]},
+                            },
+                            "exact_artifact_source_ids": string_array,
+                        },
+                        "required": [
+                            "candidate_id", "semantic_match_rationale", "current_event_rationale",
+                            "expected_source_roles", "exact_artifact_source_ids",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
+                "no_qualifying_reason": nullable_string,
+            },
+            "required": [
+                "target_id", "status", "search_intent", "search_attempts",
+                "candidate_matches", "no_qualifying_reason",
+            ],
+            "allOf": [
+                {
+                    "if": {"properties": {"status": {"const": "CANDIDATES_PRODUCED"}}},
+                    "then": {"properties": {"candidate_matches": {"minItems": 1}, "no_qualifying_reason": {"const": None}}},
+                },
+                {
+                    "if": {"properties": {"status": {"const": "NO_QUALIFYING_CANDIDATE_FOUND"}}},
+                    "then": {"properties": {"candidate_matches": {"maxItems": 0}, "no_qualifying_reason": {"type": "string", "minLength": 1}}},
+                },
+            ],
+            "additionalProperties": False,
+        }
         return {
             "type": "object",
             "properties": {
                 "edition_date": {"type": "string"},
                 "sources": {"type": "array", "items": source, "minItems": 1},
+                "hard_target_results": {"type": "array", "minItems": 2, "maxItems": 2, "items": hard_target_result},
                 "sections": {
                     "type": "array",
                     "items": section,
@@ -193,7 +251,7 @@ def _schema(operation: str) -> dict:
                     "maxItems": len(section_ids),
                 },
             },
-            "required": ["edition_date", "sources", "sections"],
+            "required": ["edition_date", "sources", "hard_target_results", "sections"],
             "additionalProperties": False,
         }
     if operation != "articles":
@@ -388,6 +446,16 @@ corroboration only where the stated existing evidence contract requires it. Use 
 state precisely which candidate claim each exact source is intended to support, including a material
 event or effective date where relevant. Context-only and provider-reported source roles remain
 unverified suggestions and cannot substitute for required evidence.
+For every unresolved hard target, return exactly one matching hard_target_results record. Each record
+must include its target_id, concrete search_intent, at least one query and purpose in search_attempts,
+and either CANDIDATES_PRODUCED with candidate_matches or NO_QUALIFYING_CANDIDATE_FOUND with a reason.
+For each candidate match, link an existing candidate_id and explain its semantic fit and why the event
+is current; identify expected evidence roles and exact original-artifact source IDs when available.
+For SERVICE, strongly prefer a current first-party operational artifact as PRIMARY where the existing
+evidence contract requires it; independent reporting may corroborate but cannot replace required PRIMARY evidence.
+The title, exact URL, publisher/source type, and source claims remain in the linked candidate and source
+records. Search attempts and dispositions are auditable provider reports, not proof of retrieval or
+evidence. Generic country, world, policy, or context breadth cannot count as ACCOUNTABILITY or SERVICE.
 Do not call a packet edition-ready unless it satisfies minimum_active_sections and every
 listed coverage rule. Continue evidence-led research where support exists; where it does not,
 record honest NO_NEWS decisions rather than manufacturing a story. The local runtime will block

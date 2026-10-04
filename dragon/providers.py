@@ -19,6 +19,7 @@ from typing import Protocol
 from urllib.parse import urlparse
 
 from dragon.evidence_policy import candidate_evidence_policy
+from dragon.provider_targeting import HARD_TARGET_SECTIONS
 
 
 class EditorialProvider(Protocol):
@@ -658,19 +659,23 @@ class LocalCommandEditorialProvider:
         return value
 
     def research(self, edition_date: str, continuity: dict | None = None) -> dict:
+        provider_continuity = continuity or {"edition_count": 0, "editions": []}
         raw_value = self._invoke(
             "research",
             {
                 "schema_version": 5,
                 "edition_date": edition_date,
                 "language": "ar",
-                "continuity": continuity or {"edition_count": 0, "editions": []},
+                "continuity": provider_continuity,
                 "edition_readiness": self._edition_readiness_context(),
             },
         )
-        return self.normalize_research_packet(edition_date, raw_value)
+        targeting = provider_continuity.get("research_targeting") if isinstance(provider_continuity, dict) else None
+        return self.normalize_research_packet(edition_date, raw_value, research_targeting=targeting)
 
-    def normalize_research_packet(self, edition_date: str, raw_value: object) -> dict:
+    def normalize_research_packet(
+        self, edition_date: str, raw_value: object, *, research_targeting: dict | None = None,
+    ) -> dict:
         """Validate and normalize a captured provider research seed.
 
         This is deliberately separate from :meth:`articles`.  A research
@@ -785,6 +790,8 @@ class LocalCommandEditorialProvider:
                 f"missing={missing}; unknown={unknown}; duplicates={duplicates}; "
                 f"invalid_entries={invalid_entries}",
             )
+        candidate_sections: dict[str, set[str]] = {}
+        candidates_by_id: dict[str, dict] = {}
         for section in sections:
             section_status = section.get("status")
             if section_status not in {"ACTIVE", "NO_NEWS"}:
@@ -847,6 +854,8 @@ class LocalCommandEditorialProvider:
                         f"candidate types or identity are invalid in {section.get('section_id')}",
                     )
                 candidate_ids.add(candidate["id"])
+                candidate_sections.setdefault(candidate["id"], set()).add(str(section.get("section_id") or ""))
+                candidates_by_id[candidate["id"]] = candidate
                 referenced = set(candidate["discovery_source_ids"]) | set(
                     candidate["verification_source_ids"]
                 ) | set(candidate["primary_evidence_source_ids"]) | set(
@@ -912,7 +921,123 @@ class LocalCommandEditorialProvider:
                         "RESEARCH_PACKET_INVALID",
                         f"active candidate {selected_candidate['id']} needs valid distinct primary and independent evidence: {','.join(issues)}",
                     )
+        if research_targeting is not None:
+            value["hard_target_results"] = self._validate_hard_target_results(
+                value.get("hard_target_results"), research_targeting,
+                candidate_sections, candidates_by_id, sources_by_id,
+            )
         return value
+
+    @staticmethod
+    def _validate_hard_target_results(
+        raw_results: object,
+        research_targeting: dict,
+        candidate_sections: dict[str, set[str]],
+        candidates_by_id: dict[str, dict],
+        sources_by_id: dict[str, dict],
+    ) -> list[dict]:
+        targets = [
+            item for item in research_targeting.get("unresolved_targets", [])
+            if isinstance(item, dict) and item.get("hard") is True
+            and item.get("current_status") == "UNRESOLVED_PRE_DISCOVERY"
+            and item.get("target_id") in {"HARD:ACCOUNTABILITY", "HARD:SERVICE"}
+        ]
+        expected = {str(item["target_id"]) for item in targets}
+        if not expected:
+            return raw_results if isinstance(raw_results, list) else []
+
+        observed = raw_results if isinstance(raw_results, list) else []
+        by_target: dict[str, dict] = {}
+        for result in observed:
+            if not isinstance(result, dict) or result.get("target_id") not in expected or result["target_id"] in by_target:
+                raise ProviderError(
+                    "HARD_TARGET_DISPOSITION_INVALID",
+                    "hard target results must contain one record per requested hard target",
+                )
+            by_target[result["target_id"]] = result
+        missing = sorted(expected - set(by_target))
+        if missing:
+            relevant_sections = set().union(*HARD_TARGET_SECTIONS.values())
+            unassigned = sorted(
+                candidate_id for candidate_id, section_ids in candidate_sections.items()
+                if not section_ids.intersection(relevant_sections)
+            )
+            raise ProviderError(
+                "HARD_TARGET_DISPOSITION_MISSING",
+                f"provider omitted explicit dispositions for: {', '.join(missing)}",
+                diagnostics={
+                    "hard_target_results": [
+                        {
+                            "target_id": target_id,
+                            "status": "MISSING_PROVIDER_DISPOSITION",
+                            "candidate_matches": [],
+                            "reason": "Provider output omitted the requested hard target disposition.",
+                        }
+                        for target_id in missing
+                    ],
+                    "unassigned_generic_candidate_ids": unassigned,
+                },
+            )
+
+        normalized = []
+        for target in targets:
+            target_id = str(target["target_id"])
+            lane = str(target.get("semantic_lane") or "").upper()
+            result = by_target[target_id]
+            status = result.get("status")
+            attempts = result.get("search_attempts")
+            matches = result.get("candidate_matches")
+            no_candidate_reason = result.get("no_qualifying_reason")
+            if (
+                lane not in HARD_TARGET_SECTIONS
+                or status not in {"CANDIDATES_PRODUCED", "NO_QUALIFYING_CANDIDATE_FOUND"}
+                or not str(result.get("search_intent") or "").strip()
+                or not isinstance(attempts, list) or not attempts
+                or any(not isinstance(attempt, dict) or not str(attempt.get("query") or "").strip()
+                       or not str(attempt.get("purpose") or "").strip() for attempt in attempts)
+                or not isinstance(matches, list)
+            ):
+                raise ProviderError(
+                    "HARD_TARGET_DISPOSITION_INVALID",
+                    f"hard target {target_id} lacks a structured search attempt or disposition",
+                )
+            if status == "CANDIDATES_PRODUCED":
+                if not matches or no_candidate_reason is not None:
+                    raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", f"hard target {target_id} candidate disposition is inconsistent")
+                for match in matches:
+                    candidate_id = str(match.get("candidate_id") or "") if isinstance(match, dict) else ""
+                    section_ids = candidate_sections.get(candidate_id, set())
+                    if (
+                        candidate_id not in candidates_by_id
+                        or len(section_ids) != 1
+                        or not section_ids.issubset(HARD_TARGET_SECTIONS[lane])
+                        or not str(match.get("semantic_match_rationale") or "").strip()
+                        or not str(match.get("current_event_rationale") or "").strip()
+                    ):
+                        raise ProviderError(
+                            "HARD_TARGET_CANDIDATE_MISMATCH",
+                            f"candidate {candidate_id or '<missing>'} is not an auditable {lane} candidate",
+                        )
+                    expected_roles = match.get("expected_source_roles")
+                    exact_ids = match.get("exact_artifact_source_ids")
+                    if (
+                        not isinstance(expected_roles, list) or not expected_roles
+                        or any(role not in {"PRIMARY", "INDEPENDENT", "CONTEXT"} for role in expected_roles)
+                        or not isinstance(exact_ids, list)
+                        or not set(exact_ids).issubset(sources_by_id)
+                    ):
+                        raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", f"candidate {candidate_id} has invalid evidence-role references")
+                    candidate = candidates_by_id[candidate_id]
+                    if "PRIMARY" in expected_roles and not candidate.get("primary_evidence_source_ids"):
+                        raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", f"candidate {candidate_id} claims PRIMARY expectation without a primary source")
+                    if "INDEPENDENT" in expected_roles and not candidate.get("independent_evidence_source_ids"):
+                        raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", f"candidate {candidate_id} claims INDEPENDENT expectation without an independent source")
+            elif matches or not isinstance(no_candidate_reason, str) or not no_candidate_reason.strip():
+                raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", f"hard target {target_id} no-candidate disposition is inconsistent")
+            normalized.append({**result, "target_id": target_id})
+        if set(by_target) != expected:
+            raise ProviderError("HARD_TARGET_DISPOSITION_INVALID", "provider returned an unrequested hard target")
+        return normalized
 
     def articles(self, research: dict) -> list[dict]:
         self._ensure_research_sufficient_for_articles(research)

@@ -1969,6 +1969,7 @@ def query_ladder(job: dict, need: dict | None) -> list[dict]:
                 "provider_candidate_id": source.get("provider_candidate_id") or discovery_source.get("provider_candidate_id"),
                 "provider_supplied_url": source.get("provider_supplied_url") or target,
                 "lead_origin": "PROVIDER_EXACT",
+                "provider_source_role": source.get("provider_source_role"),
                 "hard_deficit": deepcopy(source.get("hard_deficit")) if isinstance(source.get("hard_deficit"), dict) else None,
             })
         # Exact provider artifacts are untrusted leads, not evidence.  They
@@ -2264,6 +2265,7 @@ def create_research_action(
         # role resolution, evidence scoring, or publication eligibility.
         "provider_lead_id": strategy.get("provider_lead_id"),
         "provider_candidate_id": strategy.get("provider_candidate_id"),
+        "provider_source_role": strategy.get("provider_source_role"),
         "provider_supplied_url": strategy.get("provider_supplied_url"),
         "lead_origin": strategy.get("lead_origin") or "DETERMINISTIC_DISCOVERY",
         "hard_deficit": deepcopy(hard_deficit) if provider_exact_hard else None,
@@ -2360,55 +2362,85 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     # still cannot leave World/breadth/distinct-event research at zero.
     first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
     first_wave_all = [item for item in all_actions if int(item.get("strategy_index", 0)) == 0]
-    hard_lane_present = any(
-        str(item.get("research_lane") or "").startswith("HARD")
-        or str(item.get("recovery_need_id") or "").startswith("BREADTH:")
-        for item in all_actions
+    def hard_lane(item: dict) -> str | None:
+        hard_deficit = item.get("hard_deficit") if isinstance(item.get("hard_deficit"), dict) else {}
+        target = str(item.get("target_editorial_function") or hard_deficit.get("target_editorial_function") or "").upper()
+        if target in {"ACCOUNTABILITY", "SERVICE"}:
+            return target
+        lane = str(item.get("research_lane") or "").upper()
+        return lane.split(":", 1)[1] if lane.startswith("HARD:") and lane.split(":", 1)[1] in {"ACCOUNTABILITY", "SERVICE"} else None
+
+    active_hard_lanes = {
+        lane for item in all_actions if (lane := hard_lane(item))
+    }
+    for job in jobs:
+        source = job.get("lead", {}).get("discovery_source", {})
+        for exact in source.get("exact_provider_sources", []) if isinstance(source, dict) else []:
+            deficit = exact.get("hard_deficit") if isinstance(exact, dict) else None
+            lane = str((deficit or {}).get("target_editorial_function") or "").upper()
+            if lane in {"ACCOUNTABILITY", "SERVICE"}:
+                active_hard_lanes.add(lane)
+        for need in job.get("recovery_needs", []):
+            lane = str(need.get("target_editorial_function") or "").upper() if isinstance(need, dict) else ""
+            if lane in {"ACCOUNTABILITY", "SERVICE"} and str(need.get("need_id") or "").startswith("BREADTH:"):
+                active_hard_lanes.add(lane)
+
+    hard_lane_actions = {
+        lane: sorted(
+            [item for item in eligible_actions if hard_lane(item) == lane and item.get("action_type") in ACTION_TYPES
+             and (item.get("action_type") not in FETCH_ACTIONS or assess_source_url(str(item.get("target") or "")).get("state") != "URL_UNSAFE")],
+            key=lambda item: (
+                0 if item.get("lead_origin") == "PROVIDER_EXACT" else 1,
+                0 if item.get("provider_source_role") == "PRIMARY" else 1,
+                int(item.get("strategy_index", 0)),
+                str(item.get("provider_candidate_id") or item.get("recovery_need_id") or item.get("job_id") or ""),
+                str(item.get("action_id") or ""),
+            ),
+        )
+        for lane in sorted(active_hard_lanes)
+    }
+    hard_reserved: dict[str, dict] = {}
+    # Give every active lane one executable opportunity before generic breadth
+    # and the ordinary priority/fairness pass share the remaining fixed cap.
+    for lane in ("ACCOUNTABILITY", "SERVICE"):
+        candidates = hard_lane_actions.get(lane, [])
+        if candidates and len(selected) < cap:
+            selected.append(candidates[0])
+            hard_reserved[lane] = candidates[0]
+
+    hard_lane_present = bool(active_hard_lanes) or any(
+        str(item.get("recovery_need_id") or "").startswith("BREADTH:") for item in all_actions
     )
-    # Preserve one existing round slot for ordinary desk discovery whenever
-    # hard-breadth lanes are active.  This is a reservation inside the fixed
-    # round cap, not an additional request budget; it prevents mandatory
-    # semantic work from starving the newspaper's general discovery lanes.
+    general_reserved = None
+    # Keep one existing capacity slot for generic discovery after hard lanes
+    # receive their bounded opportunity.
     if hard_lane_present:
         general = sorted(
-            (
-                item for item in first_wave_all
-                if item.get("research_lane") == "GENERAL_DISCOVERY"
-                and not item.get("recovery_need_id")
-            ),
+            (item for item in first_wave_all
+             if item.get("research_lane") == "GENERAL_DISCOVERY" and not item.get("recovery_need_id")),
             key=lambda item: (str(item.get("job_id") or ""), item.get("action_id", "")),
         )
         if general and len(selected) < cap:
-            selected.append(general[0])
+            general_reserved = general[0]
+            selected.append(general_reserved)
+
+    # If an exact provider candidate supplied both expected roles, reserve its
+    # complementary original/corroborating page next when capacity permits.
+    for lane, chosen in list(hard_reserved.items()):
+        role = chosen.get("provider_source_role")
+        complement = "INDEPENDENT" if role == "PRIMARY" else "PRIMARY" if role == "INDEPENDENT" else None
+        if not complement or len(selected) >= cap:
+            continue
+        pair = next((item for item in hard_lane_actions.get(lane, [])
+                     if item.get("provider_candidate_id") == chosen.get("provider_candidate_id")
+                     and item.get("provider_source_role") == complement
+                     and item["action_id"] not in {selected_item["action_id"] for selected_item in selected}), None)
+        if pair is not None:
+            selected.append(pair)
     for priority in ("P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION"):
         candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
-        if candidate is not None and len(selected) < cap:
+        if candidate is not None and len(selected) < cap and candidate["action_id"] not in {item["action_id"] for item in selected}:
             selected.append(candidate)
-    # Mandatory semantic breadth needs receive one additional family branch
-    # when available.  This uses the existing round cap; it only prevents a
-    # generic first-wave action from consuming every opportunity for a
-    # second, relevant source family.
-    semantic_first_wave = [
-        item for item in first_wave
-        if item.get("priority_class") == "P1_BREADTH"
-        and str(item.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
-    ]
-    for branch in sorted(semantic_first_wave, key=lambda item: str(item.get("recovery_need_id") or item["action_id"])):
-        if len(selected) >= cap:
-            break
-        if branch["action_id"] not in {item["action_id"] for item in selected}:
-            selected.append(branch)
-    semantic_need_ids = {
-        item.get("recovery_need_id") for item in selected
-        if item.get("priority_class") == "P1_BREADTH"
-        and str(item.get("target_editorial_function") or "").upper() in {"ACCOUNTABILITY", "SERVICE"}
-    }
-    for need_id in sorted(item for item in semantic_need_ids if item):
-        if len(selected) >= cap:
-            break
-        branch = next((item for item in eligible_actions if item.get("recovery_need_id") == need_id and int(item.get("strategy_index", 0)) == 1), None)
-        if branch is not None:
-            selected.append(branch)
     for strategy_index in sorted({int(item.get("strategy_index", 0)) for item in eligible_actions}):
         for priority in sorted(PRIORITY_ORDER, key=PRIORITY_ORDER.get):
             pool = [item for item in eligible_actions if item["priority_class"] == priority]
@@ -2427,6 +2459,25 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         if len(selected) >= cap:
             break
     selected_ids = {item["action_id"] for item in selected}
+    selected_by_lane = {
+        lane: [item["action_id"] for item in selected if hard_lane(item) == lane]
+        for lane in sorted(active_hard_lanes)
+    }
+    deferred_by_lane = {
+        lane: [item["action_id"] for item in hard_lane_actions.get(lane, []) if item["action_id"] not in selected_ids]
+        for lane in sorted(active_hard_lanes)
+    }
+    hard_lane_telemetry = {
+        "active_hard_lanes": sorted(active_hard_lanes),
+        "hard_lane_candidates": {lane: sorted({str(item.get("provider_candidate_id") or item.get("recovery_need_id") or item.get("job_id")) for item in hard_lane_actions.get(lane, [])}) for lane in sorted(active_hard_lanes)},
+        "hard_lane_reserved_capacity": len(hard_reserved),
+        "hard_lane_actions_selected": selected_by_lane,
+        "hard_lane_actions_executed": {lane: 0 for lane in sorted(active_hard_lanes)},
+        "hard_lane_actions_deferred": deferred_by_lane,
+        "hard_lane_no_candidate_reason": {lane: "NO_VALID_EXECUTABLE_ACTION" for lane in sorted(active_hard_lanes) if not hard_lane_actions.get(lane)},
+        "hard_lane_closure_state": {lane: "OPEN_AT_SCHEDULING" for lane in sorted(active_hard_lanes)},
+        "remaining_general_capacity": max(0, cap - len(hard_reserved)),
+    }
     return {
         "actions": selected,
         "deferred_actions": [
@@ -2435,7 +2486,8 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         ],
         "budget_allocation": {
             "round_cap": cap,
-            "hard_breadth_reserved_slots": int(bool(hard_lane_present and any(item.get("research_lane") == "GENERAL_DISCOVERY" and not item.get("recovery_need_id") for item in first_wave_all))),
+            "hard_breadth_reserved_slots": int(general_reserved is not None),
+            "hard_lane_reservation": hard_lane_telemetry,
             "budget_increased": False,
         },
     }

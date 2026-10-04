@@ -192,6 +192,11 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
             assert set(object_schema["required"]) == set(object_schema["properties"])
 
     research = _schema("research")
+    assert "hard_target_results" in research["required"]
+    assert research["properties"]["hard_target_results"]["minItems"] == 2
+    assert research["properties"]["hard_target_results"]["maxItems"] == 2
+    hard_result = research["properties"]["hard_target_results"]["items"]
+    assert set(hard_result["properties"]["target_id"]["enum"]) == {"HARD:ACCOUNTABILITY", "HARD:SERVICE"}
     source = research["properties"]["sources"]["items"]
     assert set(source["properties"]) == {
             "id", "url", "publisher", "publication_date", "accessed_at", "source_type", "origin",

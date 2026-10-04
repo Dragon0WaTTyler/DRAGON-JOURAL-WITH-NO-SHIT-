@@ -56,6 +56,14 @@ SERVICE_CONTRACT = {
     ),
 }
 
+# These are the existing DRAGON desks for the two semantic hard lanes.  A
+# provider cannot satisfy a hard-lane disposition by relabeling a generic
+# country or world candidate.
+HARD_TARGET_SECTIONS = {
+    "ACCOUNTABILITY": {"investigations", "opinion"},
+    "SERVICE": {"service"},
+}
+
 SOURCE_EXPECTATIONS = {
     "original_primary": (
         "Prefer an exact issuer document or event-specific original institutional artifact; "
@@ -107,6 +115,12 @@ def _target(rule: dict, *, target_id: str, semantic_lane: str, hard: bool, objec
             "provider_cannot_close_need": True,
         },
         "discovery_objective": objective,
+        **({
+            "source_role_guidance": (
+                "Prefer a current first-party operational artifact as PRIMARY where the existing evidence contract requires it; "
+                "independent reporting can corroborate but cannot replace required PRIMARY evidence."
+            )
+        } if semantic_lane == "SERVICE" else {}),
     }
 
 
@@ -174,5 +188,9 @@ def build_research_targeting(edition_date: str, readiness: dict) -> dict:
             "provider_reported_roles_are_unverified": True,
             "can_close_research_need": False,
             "can_emit_executor_actions": False,
+            "hard_target_dispositions_required": True,
+            "hard_target_disposition_statuses": [
+                "CANDIDATES_PRODUCED", "NO_QUALIFYING_CANDIDATE_FOUND",
+            ],
         },
     }

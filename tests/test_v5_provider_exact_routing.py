@@ -85,32 +85,42 @@ def _job(urls: list[str], *, selected: bool = True) -> dict:
     return state["jobs"][0]
 
 
-def _hard_candidate_state() -> dict:
+def _hard_candidate_state(lane: str = "ACCOUNTABILITY", *, pair: bool = False) -> dict:
+    section_id = "investigations" if lane == "ACCOUNTABILITY" else "service"
     source = _source("s1", "https://fixture.example/accountability-report")
-    candidate = _candidate("selected", [source["id"]])
+    sources = [source]
+    source_ids = [source["id"]]
+    if pair:
+        independent = _source("s2", "https://independent.example/accountability-report")
+        sources.append(independent)
+        source_ids.append(independent["id"])
+    candidate = _candidate("selected", source_ids)
+    if pair:
+        candidate["primary_evidence_source_ids"] = ["s1"]
+        candidate["independent_evidence_source_ids"] = ["s2"]
     packet = {
         "edition_date": DATE,
-        "sources": [source],
+        "sources": sources,
         "sections": [{
-            "section_id": "investigations", "status": "ACTIVE",
+            "section_id": section_id, "status": "ACTIVE",
             "candidates": [candidate, dict(candidate, id="alternate", rank=2)],
             "selected_candidate_id": "selected",
         }],
     }
     need = {
-        "need_id": "BREADTH:accountability_and_service:1",
+        "need_id": f"BREADTH:{lane.lower()}:1",
         "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
-        "target_editorial_function": "ACCOUNTABILITY",
+        "target_editorial_function": lane,
         "attempt_count": 0,
         "max_attempts": 1,
-        "search_constraints": {"eligible_section_ids": ["investigations"]},
-        "topic_identifiers": ["investigations"],
+        "search_constraints": {"eligible_section_ids": [section_id]},
+        "topic_identifiers": [section_id],
         "query_context": {},
-        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "event_acquisition_plan": {"target_editorial_function": lane},
     }
     return build_deep_research_state(
         packet, {"event_clusters": []},
-        {"plans": [{"section_id": "investigations", "research_budget": {"level": "investigation"}}]},
+        {"plans": [{"section_id": section_id, "research_budget": {"level": "investigation"}}]},
         {"needs": [need]}, CONFIG, run_scope_id="provider-exact-hard-fixture",
     )
 
@@ -209,13 +219,62 @@ def test_selected_provider_exact_route_for_unresolved_hard_lane_gets_hard_opport
     assert exact["research_lane"] == "HARD:ACCOUNTABILITY"
     assert exact["priority_class"] == "P1_BREADTH"
     assert exact["hard_deficit"] == {
-        "need_id": "BREADTH:accountability_and_service:1",
+        "need_id": "BREADTH:accountability:1",
         "target_editorial_function": "ACCOUNTABILITY",
     }
 
     schedule = schedule_research_actions(state["jobs"], CONFIG)
     assert exact["action_id"] in {item["action_id"] for item in schedule["actions"]}
     assert schedule["budget_allocation"]["budget_increased"] is False
+    assert schedule["budget_allocation"]["hard_lane_reservation"]["hard_lane_actions_selected"]["ACCOUNTABILITY"]
+    assert schedule["budget_allocation"]["hard_lane_reservation"]["active_hard_lanes"] == ["ACCOUNTABILITY"]
+
+
+def test_single_unresolved_hard_lane_does_not_reserve_a_phantom_second_lane() -> None:
+    state = _hard_candidate_state()
+    for job in state["jobs"]:
+        for source in job.get("lead", {}).get("discovery_source", {}).get("exact_provider_sources", []):
+            source["url"] = "http://127.0.0.1/private"
+            source["provider_supplied_url"] = "http://127.0.0.1/private"
+    schedule = schedule_research_actions(state["jobs"], CONFIG)
+    telemetry = schedule["budget_allocation"]["hard_lane_reservation"]
+
+    assert telemetry["active_hard_lanes"] == ["ACCOUNTABILITY"]
+    assert telemetry["hard_lane_reserved_capacity"] == 1
+    assert telemetry["hard_lane_actions_selected"]["ACCOUNTABILITY"]
+    assert "SERVICE" not in telemetry["hard_lane_actions_selected"]
+
+
+def test_both_hard_lanes_and_generic_discovery_get_bounded_capacity_inside_existing_cap() -> None:
+    accountability = _hard_candidate_state("ACCOUNTABILITY")
+    service = _hard_candidate_state("SERVICE")
+    generic_job = _job([f"https://fixture.example/generic-breadth-{index}" for index in range(12)])
+    jobs = accountability["jobs"] + service["jobs"] + [generic_job]
+
+    schedule = schedule_research_actions(jobs, CONFIG)
+    selected_lanes = {
+        item.get("target_editorial_function") for item in schedule["actions"]
+        if item.get("research_lane", "").startswith("HARD:")
+    }
+    assert selected_lanes == {"ACCOUNTABILITY", "SERVICE"}
+    assert len(schedule["actions"]) == CONFIG["executor"]["maximum_actions_per_round"]
+    assert schedule["budget_allocation"]["hard_lane_reservation"]["hard_lane_reserved_capacity"] == 2
+    assert schedule["budget_allocation"]["hard_breadth_reserved_slots"] == 1
+    assert schedule["budget_allocation"]["budget_increased"] is False
+    assert any(item.get("lead_origin") == "PROVIDER_EXACT" for item in schedule["deferred_actions"])
+
+
+def test_hard_candidate_primary_and_independent_exact_pair_are_selected_together_when_capacity_allows() -> None:
+    state = _hard_candidate_state("ACCOUNTABILITY", pair=True)
+    job = next(job for job in state["jobs"] if not job.get("recovery_needs"))
+    schedule = schedule_research_actions(state["jobs"], CONFIG)
+
+    candidate_actions = [
+        action for action in schedule["actions"]
+        if action.get("provider_candidate_id") == "investigations:selected"
+    ]
+    assert {action.get("provider_source_role") for action in candidate_actions} >= {"PRIMARY", "INDEPENDENT"}
+    assert len(schedule["actions"]) <= CONFIG["executor"]["maximum_actions_per_round"]
 
 
 def test_exact_fetch_directness_does_not_grant_primary_evidence_or_bypass_qualification() -> None:

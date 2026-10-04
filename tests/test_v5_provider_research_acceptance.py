@@ -16,6 +16,7 @@ from dragon.provider_research_acceptance import (
 )
 from dragon.provider_acceptance import OfflineReplayResearchAdapter
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, SECTION_HEADINGS
+from dragon.provider_targeting import build_research_targeting
 from dragon.research_acceptance import (
     FORBIDDEN_STAGES,
     PROVIDER_RESEARCH_ACCEPTANCE_MODE,
@@ -157,8 +158,20 @@ def _provider_invoke(packet: dict, calls: list[str], *, failure: ProviderError |
         assert operation == "research"
         if failure is not None:
             raise failure
-        provider._capture("research.raw.json", packet)
-        return packet
+        result_packet = json.loads(json.dumps(packet))
+        result_packet.setdefault("hard_target_results", [
+            {
+                "target_id": target_id,
+                "status": "NO_QUALIFYING_CANDIDATE_FOUND",
+                "search_intent": f"Synthetic offline search for {target_id}.",
+                "search_attempts": [{"query": f"current {target_id} event", "purpose": "fixture disposition"}],
+                "candidate_matches": [],
+                "no_qualifying_reason": "The offline provider fixture contains no qualifying hard-lane candidate.",
+            }
+            for target_id in ("HARD:ACCOUNTABILITY", "HARD:SERVICE")
+        ])
+        provider._capture("research.raw.json", result_packet)
+        return result_packet
     return invoke
 
 
@@ -223,7 +236,43 @@ def test_provider_accountability_without_service_candidate_preserves_no_news_tru
         for section_id in [section["section_id"]]
     ]
 
-    normalized = _provider(packet).normalize_research_packet(DATE, packet)
+    packet["hard_target_results"] = [
+        {
+            "target_id": "HARD:ACCOUNTABILITY",
+            "status": "CANDIDATES_PRODUCED",
+            "search_intent": "Find a current formal oversight action.",
+            "search_attempts": [{"query": "current inspection action", "purpose": "find an active accountability event"}],
+            "candidate_matches": [{
+                "candidate_id": "accountability-1",
+                "semantic_match_rationale": "The candidate records a current oversight action.",
+                "current_event_rationale": "The fixture is dated to the edition date.",
+                "expected_source_roles": ["PRIMARY", "INDEPENDENT"],
+                "exact_artifact_source_ids": ["provider-lead"],
+            }],
+            "no_qualifying_reason": None,
+        },
+        {
+            "target_id": "HARD:SERVICE",
+            "status": "NO_QUALIFYING_CANDIDATE_FOUND",
+            "search_intent": "Find a current concrete reader-life service event.",
+            "search_attempts": [{"query": "current operational service notice", "purpose": "find an active service event"}],
+            "candidate_matches": [],
+            "no_qualifying_reason": "The fixture contains no current qualifying service candidate.",
+        },
+    ]
+    targeting = build_research_targeting(DATE, {
+        "coverage_rules": [{
+            "id": "accountability_and_service",
+            "sections": ["investigations", "opinion", "service"],
+            "minimum_active": 2,
+        }],
+    })
+    normalized = _provider(packet).normalize_research_packet(
+        DATE, packet, research_targeting=targeting,
+    )
+    assert [item["status"] for item in normalized["hard_target_results"]] == [
+        "CANDIDATES_PRODUCED", "NO_QUALIFYING_CANDIDATE_FOUND",
+    ]
     accountability = next(item for item in normalized["sections"] if item["section_id"] == "investigations")
     service = next(item for item in normalized["sections"] if item["section_id"] == "service")
     assert len(accountability["candidates"]) == 2

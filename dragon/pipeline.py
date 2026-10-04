@@ -457,6 +457,9 @@ def build_stage_definitions(
                     for job in all_jobs if job["job_id"] not in actions_by_job
                 ],
                 "deferred_actions": schedule["deferred_actions"],
+                "hard_lane_reservation": deepcopy(
+                    schedule.get("budget_allocation", {}).get("hard_lane_reservation", {})
+                ),
             }
         executions_by_job = {
             item.get("job", {}).get("job_id"): item
@@ -519,6 +522,7 @@ def build_stage_definitions(
             initial_packet, initial_intelligence, coverage, readiness
         )
         execution = _load(execution_path)
+        epoch0_hard_telemetry = deepcopy(execution.get("hard_lane_reservation") or {})
         outputs: tuple[Path, ...] = (path,)
         if execution.get("status") == "EXECUTED":
             combined = {
@@ -571,6 +575,22 @@ def build_stage_definitions(
             need_id: 1 for need_id in combined["recovery_attempts"]
         } if execution.get("status") == "EXECUTED" else None
         report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
+        epoch0_hard_telemetry["hard_lane_actions_executed"] = {
+            lane: sum(
+                1 for action in execution.get("actions_planned", [])
+                if str(action.get("target_editorial_function") or "").upper() == lane
+            )
+            for lane in epoch0_hard_telemetry.get("active_hard_lanes", [])
+        }
+        epoch0_hard_telemetry["hard_lane_closure_state"] = {
+            lane: (
+                "CLOSED" if not any(
+                    str(need.get("target_editorial_function") or "").upper() == lane
+                    for need in report.get("needs", [])
+                ) else "OPEN"
+            )
+            for lane in epoch0_hard_telemetry.get("active_hard_lanes", [])
+        }
         # Recovery is state-dependent: Epoch 0 observations can create new
         # candidate-specific P0 needs.  Execute exactly one delta epoch before
         # deciding readiness; never restart the full deep-research tree.
@@ -612,6 +632,9 @@ def build_stage_definitions(
                         for job in epoch1_state["jobs"] if job["job_id"] in by_job
                     ],
                     "deferred_actions": schedule["deferred_actions"],
+                    "hard_lane_reservation": deepcopy(
+                        schedule.get("budget_allocation", {}).get("hard_lane_reservation", {})
+                    ),
                 }
                 epoch1_execution["actions_planned"] = [
                     action for item in epoch1_execution["jobs"] for action in item["actions"]
@@ -631,12 +654,31 @@ def build_stage_definitions(
                 atomic_write_json(recovered_packet_path, packet)
                 atomic_write_json(recovered_intelligence_path, intelligence)
                 report = build_recovery_plan(packet, intelligence, coverage, readiness)
+                epoch1_execution["hard_lane_reservation"]["hard_lane_closure_state"] = {
+                    lane: (
+                        "CLOSED" if not any(
+                            str(need.get("target_editorial_function") or "").upper() == lane
+                            for need in report.get("needs", [])
+                        ) else "OPEN"
+                    )
+                    for lane in epoch1_execution["hard_lane_reservation"].get("active_hard_lanes", [])
+                }
+            reservation = epoch1_execution.get("hard_lane_reservation", {})
+            reservation["hard_lane_actions_executed"] = {
+                lane: sum(1 for action in epoch1_execution.get("actions_planned", [])
+                          if str(action.get("target_editorial_function") or "").upper() == lane)
+                for lane in reservation.get("active_hard_lanes", [])
+            }
             epoch1_execution_path = context.run_dir / "deep-research" / "epoch-1-execution-report.json"
             atomic_write_json(epoch1_execution_path, epoch1_execution)
             outputs = (*outputs, epoch1_execution_path)
         report["recovery_epochs"] = {
             "epoch_0": {"need_count": len(initial_recovery.get("needs", [])), "execution": execution.get("status")},
             "epoch_1": {"delta_need_count": len(delta_needs), "execution": epoch1_execution.get("status"), "jobs": len((epoch1_state or {}).get("recovery_job_mappings", []))},
+        }
+        report["hard_lane_epochs"] = {
+            "epoch_0": epoch0_hard_telemetry,
+            "epoch_1": deepcopy(epoch1_execution.get("hard_lane_reservation") or {}),
         }
         final_unmapped = set(item["need_id"] for item in report.get("needs", [])) - {
             item["recovery_need_id"] for item in (epoch1_state or {}).get("recovery_job_mappings", [])
