@@ -244,6 +244,41 @@ def test_structured_output_schemas_are_strict_and_complete() -> None:
     }
 
 
+def test_research_schema_avoids_composition_rejected_by_live_codex_api() -> None:
+    def check(value):
+        if isinstance(value, dict):
+            assert "allOf" not in value
+            for child in value.values():
+                check(child)
+        elif isinstance(value, list):
+            for child in value:
+                check(child)
+    check(_schema("research"))
+    from dragon.provider_targeting import build_research_targeting
+    from dragon.providers import LocalCommandEditorialProvider, ProviderError
+    targeting = build_research_targeting("2099-01-02", {"coverage_rules": [{
+        "id": "accountability_and_service", "sections": ["investigations", "service"], "minimum_active": 2,
+    }]})
+    results = [{"target_id": f"HARD:{lane}", "status": "NO_QUALIFYING_CANDIDATE_FOUND",
+        "search_intent": "Fixture search", "search_attempts": [{"query": "fixture", "purpose": "fixture search"}],
+        "candidate_matches": [], "no_qualifying_reason": "Fixture search found no qualifying candidate."}
+        for lane in ("ACCOUNTABILITY", "SERVICE")]
+    for invalid_status, invalid_matches, invalid_reason in (
+        ("CANDIDATES_PRODUCED", [], None),
+        ("NO_QUALIFYING_CANDIDATE_FOUND", [{"candidate_id": "generic"}], "No qualifying candidate."),
+        ("NO_QUALIFYING_CANDIDATE_FOUND", [], None),
+    ):
+        import copy
+        invalid = copy.deepcopy(results)
+        invalid[1].update(status=invalid_status, candidate_matches=invalid_matches, no_qualifying_reason=invalid_reason)
+        try:
+            LocalCommandEditorialProvider._validate_hard_target_results(invalid, targeting, {}, {}, {})
+        except ProviderError as exc:
+            assert exc.code == "HARD_TARGET_DISPOSITION_INVALID"
+        else:
+            raise AssertionError("unsupported schema composition removal weakened runtime disposition validation")
+
+
 def test_article_wrapper_is_unwrapped_for_provider_protocol() -> None:
     def runner(command, **kwargs):
         output = Path(command[command.index("--output-last-message") + 1])

@@ -51,3 +51,19 @@ planning/materialization, and compares every scheduler selection and deferral.
 It invokes no provider, search, or retrieval adapter. Use the implementation commit
 named in the manifest. Replay receipts live beside bundles under `replay-reports`
 and are bound to the original manifest hash; the completed bundle remains intact.
+
+## October 4 trial outcome
+
+Run `provider-research-acceptance-ea533dd5-d3ce-492f-97fb-9f135cf405f4`
+used commit `2090cf40fcb20b9834d6da8ebd7ed7a6946d6058`. Live preflight passed,
+then its one authorized provider invocation failed with HTTP 400
+`invalid_json_schema`: the API rejected `allOf` under `hard_target_results.items`.
+No raw research packet or dispositions were returned. The durable bundle remains
+`INCOMPLETE` with the missing raw response explicitly listed; requests, invocation
+diagnostic, state, preflight, and configuration bytes are preserved. The source run
+is retained. Do not reinterpret this as SERVICE omission or a scheduler failure.
+
+The subsequent schema correction removes unsupported composition and retains
+conditional disposition checks in the runtime normalizer. It has offline coverage;
+this does not turn the failed trial into a successful live test. No second provider
+invocation was authorized or made.

@@ -226,16 +226,9 @@ def _schema(operation: str) -> dict:
                 "target_id", "status", "search_intent", "search_attempts",
                 "candidate_matches", "no_qualifying_reason",
             ],
-            "allOf": [
-                {
-                    "if": {"properties": {"status": {"const": "CANDIDATES_PRODUCED"}}},
-                    "then": {"properties": {"candidate_matches": {"minItems": 1}, "no_qualifying_reason": {"const": None}}},
-                },
-                {
-                    "if": {"properties": {"status": {"const": "NO_QUALIFYING_CANDIDATE_FOUND"}}},
-                    "then": {"properties": {"candidate_matches": {"maxItems": 0}, "no_qualifying_reason": {"type": "string", "minLength": 1}}},
-                },
-            ],
+            # Codex structured output rejects allOf/conditional composition.
+            # The runtime hard-target validator still enforces nonempty matches
+            # for CANDIDATES_PRODUCED, and empty matches plus a reason for no result.
             "additionalProperties": False,
         }
         return {
