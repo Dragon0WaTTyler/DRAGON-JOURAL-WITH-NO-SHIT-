@@ -1,0 +1,11 @@
+{
+  "fixture": "minimized-2026-09-11-live-provider-length-under-budget",
+  "active_articles": 12,
+  "initial_active_words": [309, 272, 283, 263, 257, 258, 260, 254, 260, 250, 262, 262],
+  "repaired_active_words": [433, 272, 283, 263, 257, 258, 260, 254, 260, 250, 262, 262],
+  "minimum_article_words": 350,
+  "minimum_edition_words": 4000,
+  "initial_total_words": 3190,
+  "repaired_total_words": 3314,
+  "repair_opportunities": 1
+}

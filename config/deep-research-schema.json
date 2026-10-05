@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "philosophy", "open_discovery", "lead_states", "contradiction_states", "budget_classes", "executor", "context", "claim_policies", "science", "super_investigation"],
+  "properties": {
+    "version": {"const": 1},
+    "philosophy": {"type": "object", "required": ["upstream", "downstream"]},
+    "open_discovery": {"type": "object", "required": ["allowed", "mode", "configured_sources_are", "untrusted_content_may_change_policy", "discovery_is_evidence"]},
+    "lead_states": {"type": "array", "minItems": 7, "uniqueItems": true, "items": {"type": "string"}},
+    "contradiction_states": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string"}},
+    "budget_classes": {
+      "type": "object", "additionalProperties": false,
+      "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
+      "properties": {
+        "QUICK": {"$ref": "#/$defs/budget"}, "STANDARD": {"$ref": "#/$defs/budget"},
+        "DEEP": {"$ref": "#/$defs/budget"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/budget"}
+      }
+    },
+    "executor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_timeout_seconds", "maximum_actions_per_round", "lead_followup_limits", "budget_action_limits"],
+      "properties": {
+        "action_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 60},
+        "maximum_actions_per_round": {"type": "integer", "minimum": 1, "maximum": 20},
+        "lead_followup_limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
+          "properties": {
+            "QUICK": {"$ref": "#/$defs/followup_limit"}, "STANDARD": {"$ref": "#/$defs/followup_limit"},
+            "DEEP": {"$ref": "#/$defs/followup_limit"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/followup_limit"}
+          }
+        },
+        "budget_action_limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["QUICK", "STANDARD", "DEEP", "INVESTIGATIVE_LEAD"],
+          "properties": {
+            "QUICK": {"$ref": "#/$defs/action_limit"}, "STANDARD": {"$ref": "#/$defs/action_limit"},
+            "DEEP": {"$ref": "#/$defs/action_limit"}, "INVESTIGATIVE_LEAD": {"$ref": "#/$defs/action_limit"}
+          }
+        }
+      }
+    },
+    "context": {"type": "object", "required": ["maximum_items_per_bucket", "buckets"]},
+    "claim_policies": {"type": "object", "minProperties": 4},
+    "science": {"type": "object", "required": ["strict", "weak_sources_never_strengthen_by_repetition", "require_original_research_when_obtainable", "require_methods_and_limitations_for_full_text_claims", "adapters"]},
+    "super_investigation": {"type": "object", "required": ["geographic_scope", "foreign_entities_allowed_only_with_direct_scope_connection", "allowed_conclusions"]}
+  },
+  "$defs": {
+    "budget": {
+      "type": "object", "additionalProperties": false,
+      "required": ["max_branches", "max_depth", "max_followup_rounds", "max_observations", "repetitive_observation_limit"],
+      "properties": {
+        "max_branches": {"type": "integer", "minimum": 1, "maximum": 20},
+        "max_depth": {"type": "integer", "minimum": 1, "maximum": 10},
+        "max_followup_rounds": {"type": "integer", "minimum": 1, "maximum": 10},
+        "max_observations": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "repetitive_observation_limit": {"type": "integer", "minimum": 1, "maximum": 20}
+      }
+    },
+    "action_limit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["search_actions", "fetches"],
+      "properties": {
+        "search_actions": {"type": "integer", "minimum": 1, "maximum": 20},
+        "fetches": {"type": "integer", "minimum": 1, "maximum": 20}
+      }
+    },
+    "followup_limit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total", "P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION", "P3_CONTEXT"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P0_BLOCKING_EVIDENCE": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P1_BREADTH": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P1_DISTINCT_EVENT": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P2_CONTRADICTION": {"type": "integer", "minimum": 0, "maximum": 12},
+        "P3_CONTEXT": {"type": "integer", "minimum": 0, "maximum": 12}
+      }
+    }
+  }
+}

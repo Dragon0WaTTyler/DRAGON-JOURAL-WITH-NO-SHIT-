@@ -1,0 +1,11 @@
+# Optional, provider-neutral public discovery.  This is a bounded RSS search
+# route, not evidence and not a paid or authenticated service.
+version: 1
+enabled: true
+adapter_id: public-rss-search
+endpoint_template: "https://news.google.com/rss/search?q={query}&hl=fr&gl=MA&ceid=MA:fr"
+timeout_seconds: 10
+maximum_bytes: 1000000
+maximum_results: 8
+integration_test_status: NOT_RUN
+provenance_behavior: DISCOVERY_ONLY_UNKNOWN_DOMAINS_ALLOWED

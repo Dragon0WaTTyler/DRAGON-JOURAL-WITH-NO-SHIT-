@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "weights", "signal_caps", "thresholds", "budgets", "context"],
+  "properties": {
+    "version": {"const": 1},
+    "weights": {
+      "type": "object", "additionalProperties": false,
+      "required": ["base", "primary_evidence", "independent_origin", "uncertainty", "controversy", "front_page", "investigation", "newsworthiness", "public_impact", "morocco_meknes_relevance", "strategic_impact", "evidence_quality", "novelty", "investigative_potential"],
+      "properties": {
+        "base": {"type": "integer", "minimum": 0, "maximum": 10},
+        "primary_evidence": {"type": "integer", "minimum": 0, "maximum": 10},
+        "independent_origin": {"type": "integer", "minimum": 0, "maximum": 10},
+        "uncertainty": {"type": "integer", "minimum": 0, "maximum": 10},
+        "controversy": {"type": "integer", "minimum": 0, "maximum": 10},
+        "front_page": {"type": "integer", "minimum": 0, "maximum": 10},
+        "investigation": {"type": "integer", "minimum": 0, "maximum": 10},
+        "newsworthiness": {"type": "integer", "minimum": 0, "maximum": 10},
+        "public_impact": {"type": "integer", "minimum": 0, "maximum": 10},
+        "morocco_meknes_relevance": {"type": "integer", "minimum": 0, "maximum": 10},
+        "strategic_impact": {"type": "integer", "minimum": 0, "maximum": 10},
+        "evidence_quality": {"type": "integer", "minimum": 0, "maximum": 10},
+        "novelty": {"type": "integer", "minimum": 0, "maximum": 10},
+        "investigative_potential": {"type": "integer", "minimum": 0, "maximum": 10}
+      }
+    },
+    "signal_caps": {
+      "type": "object", "additionalProperties": false,
+      "required": ["primary_evidence", "independent_origin", "provider_score"],
+      "properties": {
+        "primary_evidence": {"type": "integer", "minimum": 1, "maximum": 20},
+        "independent_origin": {"type": "integer", "minimum": 1, "maximum": 20},
+        "provider_score": {"type": "integer", "minimum": 1, "maximum": 5}
+      }
+    },
+    "thresholds": {
+      "type": "object", "additionalProperties": false,
+      "required": ["normal", "major", "investigation"],
+      "properties": {
+        "normal": {"type": "integer", "minimum": 1},
+        "major": {"type": "integer", "minimum": 2},
+        "investigation": {"type": "integer", "minimum": 3}
+      }
+    },
+    "budgets": {
+      "type": "object", "additionalProperties": false,
+      "required": ["brief", "normal", "major", "investigation"],
+      "properties": {
+        "brief": {"$ref": "#/$defs/budget"}, "normal": {"$ref": "#/$defs/budget"},
+        "major": {"$ref": "#/$defs/budget"}, "investigation": {"$ref": "#/$defs/budget"}
+      }
+    },
+    "context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum_items_per_bucket"],
+      "properties": {"maximum_items_per_bucket": {"type": "integer", "minimum": 1, "maximum": 100}}
+    }
+  },
+  "$defs": {
+    "budget": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum_parallel_branches", "maximum_followup_questions"],
+      "properties": {
+        "maximum_parallel_branches": {"type": "integer", "minimum": 1, "maximum": 20},
+        "maximum_followup_questions": {"type": "integer", "minimum": 1, "maximum": 50}
+      }
+    }
+  }
+}

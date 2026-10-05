@@ -1,0 +1,512 @@
+from dragon.deep_research_executor import build_event_bundles, _observation as make_observation, classify_document_type, create_research_action, extract_event_skeleton, query_ladder, _breadth_event_queries, _pivot_source_class_branches
+from dragon.deep_research_executor import apply_executor_results_to_packet
+from dragon.research_recovery import _breadth_acquisition_plan, _current_process_discovery_context, build_recovery_plan
+from dragon.investigation_scope import evaluate_super_investigation_scope
+
+
+def _action(mode="DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED", target="ACCOUNTABILITY", need="N1", job="J1"):
+    return {
+        "action_id": job, "recovery_need_id": need, "originating_recovery_need_id": need,
+        "recovery_mode": mode, "target_editorial_function": target, "desk": "investigations" if target == "ACCOUNTABILITY" else "service",
+        "event_acquisition_plan": {"target_editorial_function": target},
+        "event_context": {"topic_terms": ["investigations" if target == "ACCOUNTABILITY" else "service"], "research_date": "2026-09-13"},
+        "acceptable_story_roles": ["brief"],
+    }
+
+
+def _observation(action, *, title, fingerprint="EVENT-1", action_text="orders monitoring", obj="election complaints", source_id="S1"):
+    return {
+        "observation_id": "OBS-1", "source_id": source_id, "origin": "official.gov.ma",
+        "source_class": "primary", "verification_status": "VALIDATED_EVIDENCE",
+        "event_skeleton": {"state": "CONCRETE_EVENT", "event_fingerprint": fingerprint, "title": title,
+            "actor": "Public authority", "action": action_text, "object": obj,
+            "topic": title, "published_at": "2026-09-10", "lead_paragraphs": f"Public authority {action_text} {obj}.",
+            "geography": ["Morocco"], "temporal_relevance": {"active_on_edition_date": True}},
+        "source_role_resolution": {"document_type": "DIRECTIVE", "publisher_event_relation": "ISSUER"},
+        "evidence_relation": "SUPPORTS", "directness": "DIRECT",
+        "article_metadata": {"publisher": {"name": "Public authority"}},
+        "provenance": {"action_id": action["action_id"], "originating_recovery_need_id": action["recovery_need_id"], "recovery_mode": action["recovery_mode"]},
+    }
+
+
+def _source(source_id="S1"):
+    return {"id": source_id, "source_type": "primary", "origin": "official.gov.ma", "url": "https://official.gov.ma/directive"}
+
+
+def test_mode_b_creates_need_scoped_root_and_validates_accountability():
+    action = _action()
+    bundles, discoveries = build_event_bundles([_observation(action, title="Monitoring directive")], [], [_source()], [action])
+    assert len(bundles) == 1
+    bundle = bundles[0]
+    assert bundle["event_lead_state"] == "NEW_RECOVERY_EVENT_LEAD"
+    assert bundle["recovery_need_id"] == "N1"
+    assert bundle["state"] == "EVENT_VALIDATED"
+    assert any(item["function"] == "ACCOUNTABILITY" for item in bundle["editorial_functions"])
+    assert discoveries and discoveries[0]["event_id"] == bundle["event_lead_id"]
+
+
+def test_mode_b_service_creates_new_root_without_existing_lead():
+    action = _action(target="SERVICE")
+    obs = _observation(action, title="Registration procedure", action_text="opens registration", obj="applications")
+    obs["event_skeleton"]["lead_paragraphs"] = "Public service registration procedure opens for eligible applicants with a documented deadline on 2026-09-22 and access instructions. " * 3
+    bundles, discoveries = build_event_bundles([obs], [], [_source()], [action])
+    assert bundles[0]["new_recovery_event"] is True
+    assert bundles[0]["state"] == "EVENT_VALIDATED"
+    assert any(item["function"] == "SERVICE" for item in bundles[0]["editorial_functions"])
+    assert discoveries
+
+
+def test_mode_a_different_event_is_not_attached_or_regenerated():
+    action = _action(mode="CORROBORATE_EXISTING_EVENT")
+    existing = {"event_lead_id": "EV-OLD", "event_skeleton": {"state": "CONCRETE_EVENT", "event_fingerprint": "OLD", "title": "Old event", "actor": "Public authority", "action": "orders monitoring", "object": "old complaints", "published_at": "2026-09-10", "geography": ["Morocco"]}}
+    obs = _observation(action, title="Different notice", fingerprint="NEW", action_text="publishes", obj="tax notice")
+    obs["event_skeleton"]["geography"] = ["India"]
+    obs["event_skeleton"]["published_at"] = "2026-08-01"
+    bundles, _ = build_event_bundles([obs], [existing], [_source()], [action])
+    assert bundles[0]["event_lead_id"] == "EV-OLD"
+    assert bundles[0]["observations"] == []
+
+
+def test_new_event_identity_excludes_retrieval_ids():
+    a1 = _action(job="J1")
+    a2 = _action(job="J2")
+    o1 = _observation(a1, title="Monitoring directive")
+    o2 = _observation(a2, title="Monitoring directive")
+    b1, _ = build_event_bundles([o1], [], [_source()], [a1])
+    b2, _ = build_event_bundles([o2], [], [_source()], [a2])
+    assert b1[0]["event_lead_id"] == b2[0]["event_lead_id"]
+
+
+def test_normal_breadth_scope_is_explicit_and_not_super_scope():
+    need = {"kind": "NEED_ACCOUNTABILITY_AND_SERVICE", "target_editorial_function": "ACCOUNTABILITY"}
+    plan = _breadth_acquisition_plan(need, {"sections": []}, {"event_clusters": [], "source_records": []})
+    assert plan["geography_scope"] == "GLOBAL_WITH_MOROCCO_PRIORITY"
+    assert plan["target_editorial_function"] == "ACCOUNTABILITY"
+
+
+def test_super_investigation_scope_remains_isolated():
+    result = evaluate_super_investigation_scope({"geography": ["India"]})
+    assert result["status"] == "NOT_ELIGIBLE"
+    assert result["scope_rule"] == "MOROCCO + MEKNES ONLY"
+
+
+def test_query_target_cannot_turn_third_party_tax_page_into_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-TAX")
+    action.update({"known_entities": ["Supreme Audit Council"], "query": "Supreme Audit Council audit September 2026",
+                   "action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://cagurujitax.com/tax-audit-due-date-extension", "canonical_url": "https://cagurujitax.com/tax-audit-due-date-extension",
+           "title": "Tax Audit Due Date Extension: Will Tax Audit Date Be Extended?", "publisher": "cagurujitax.com",
+           "text": "Tax audit guidance explains the filing deadline and advises readers to verify against official government sources. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "a" * 64, "source_class": "primary"}
+    obs = make_observation(action, raw, set())
+    assert obs["source_class"] == "unknown"
+    assert obs["source_role_resolution"]["evidence_role"] == "UNRESOLVED"
+    assert obs["source_role_resolution"]["publisher_event_relation"] != "PUBLISHER_IS_DOCUMENT_ISSUER"
+    assert "Supreme Audit Council" not in str(obs["event_skeleton"])
+    assert "Morocco" not in (obs["event_skeleton"] or {}).get("geography", [])
+    assert classify_document_type(raw) == "NEWS_ARTICLE"
+
+
+def test_article_headline_actor_cannot_be_mistaken_for_publisher_identity():
+    action = _action(target="ACCOUNTABILITY", need="N-SAFIRCOM")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B",
+                   "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {
+        "url": "https://safircom.com/2026/09/03/morocco-elections-14/",
+        "canonical_url": "https://safircom.com/2026/09/03/morocco-elections-14/",
+        "title": "هيئة النزاهة تحذر من تأثير المال والنفوذ وتدعو إلى انتخابات نزيهة",
+        "publisher": "https://safircom.com/#organization",
+        "article_metadata": {
+            "publisher": {"name": "https://safircom.com/#organization", "canonical_domain": "safircom.com"},
+            "signals": {"html_title": "هيئة النزاهة تحذر من تأثير المال والنفوذ وتدعو إلى انتخابات نزيهة - سفيركم"},
+            "jsonld_article_types": ["Article"],
+        },
+        "text": "دعت الهيئة الوطنية للنزاهة والوقاية من الرشوة ومحاربتها إلى تعزيز نزاهة الانتخابات. " * 8,
+        "published_at": "2026-09-03", "fetch_status": "FETCHED", "content_hash": "e" * 64,
+        "source_class": "primary",
+    }
+    obs = make_observation(action, raw, set())
+    assert obs["source_role_resolution"]["evidence_role"] != "PRIMARY"
+    assert obs["source_role_resolution"]["publisher_event_relation"] != "PUBLISHER_IS_EVENT_ACTOR"
+    assert obs["source_class"] == "unknown"
+
+
+def test_observed_official_actor_can_still_resolve_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-OFFICIAL")
+    action.update({"known_entities": ["Prosecution Authority"], "action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://prosecution.gov.ma/directive", "canonical_url": "https://prosecution.gov.ma/directive",
+           "title": "Prosecution Authority directive orders monitoring", "publisher": "Prosecution Authority",
+           "text": "Prosecution Authority orders monitoring and rapid complaint processing during the election period. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "b" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["source_class"] == "primary"
+    assert obs["source_role_resolution"]["evidence_role"] == "PRIMARY"
+
+
+def test_official_portal_republication_never_auto_promotes_primary():
+    action = _action(target="ACCOUNTABILITY", need="N-PORTAL")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "source_route": {"route_id": "maroc-news", "verification_provenance": "official-national-portal-navigation",
+                                    "semantic_capabilities": ["ACCOUNTABILITY"], "route_status": "VERIFIED_WORKING", "url": "https://maroc.ma/en/news"},
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive", "canonical_url": "https://www.maroc.ma/ar/الأخبار/prosecution-directive",
+           "title": "رئاسة النيابة العامة تدعو النيابات إلى التعبئة", "publisher": "Maroc.ma",
+           "article_metadata": {"publisher": {"name": "Maroc.ma", "canonical_domain": "www.maroc.ma"}},
+           "text": ("أكد رئيس النيابة العامة في دورية جديدة موجهة إلى الوكلاء ضرورة تتبع مختلف مراحل الانتخابات "
+                    "والتصدي للممارسات المخالفة وإنجاز الأبحاث المرتبطة بالشكايات وتأمين المداومة. "
+                    "(ومع: 01 شتنبر 2026) " * 4),
+           "published_at": "2026-09-01", "fetch_status": "FETCHED", "content_hash": "d" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["origin_detail"]["portal_identity_state"] == "OFFICIAL_NATIONAL_PORTAL"
+    assert obs["content_origin"] == "MAP"
+    assert obs["stated_issuing_authority"] == "Public Prosecution"
+    assert obs["source_role_resolution"]["evidence_role"] == "UNRESOLVED"
+    assert obs["source_role_resolution"]["article_origin_state"] == "OFFICIAL_PORTAL_REPUBLICATION"
+
+
+def test_verified_route_records_health_without_granting_evidence():
+    action = _action(target="SERVICE", need="N-ROUTE")
+    action.update({"action_type": "FETCH_URL", "question_id": "Q", "branch_id": "B", "expected_result_type": "EXTRACTED_SOURCE",
+                   "source_route": {"route_id": "service-route", "url": "https://service.example/notices", "route_type": "NOTICES",
+                                    "route_status": "VERIFIED_WORKING", "semantic_capabilities": ["SERVICE"], "navigation_depth": 1},
+                   "provenance_requirements": {"required_role": None, "must_be_distinct_event": True}})
+    raw = {"url": "https://service.example/notices", "canonical_url": "https://service.example/notices",
+           "title": "Public service notice", "publisher": "Service Authority",
+           "text": "Public service registration opens today and remains available through the deadline. " * 4,
+           "published_at": "2026-09-13", "fetch_status": "FETCHED", "content_hash": "c" * 64, "source_class": "unknown"}
+    obs = make_observation(action, raw, set())
+    assert obs["route_health"]["route_id"] == "service-route"
+    assert obs["route_health"]["status"] == "VERIFIED_WORKING"
+    assert obs["verification_status"] != "VALIDATED_EVIDENCE"
+
+
+def test_mode_b_evidence_blocked_event_retains_memory_and_marks_pivot():
+    action = _action(target="ACCOUNTABILITY", need="BREADTH:accountability_and_service:1")
+    blocked = _observation(action, title="Prosecution circular", source_id="blocked-source")
+    blocked["source_class"] = "unknown"
+    blocked["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    blocked["extraction_status"] = "FETCHED"
+    bundles, discoveries = build_event_bundles([blocked], [], [], [action])
+    assert not discoveries
+    assert bundles[0]["state"] == "EVENT_EVIDENCE_BLOCKED"
+    memory = bundles[0]["blocked_event_memory"]
+    assert memory["blocker"] == "MISSING_PRIMARY"
+    assert memory["pivot_eligible"] is True
+    packet = {"edition_date": "2026-09-13", "sources": [], "sections": [], "event_evidence_bundles": bundles}
+    packet["sections"] = [
+        {"section_id": "investigations", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+        {"section_id": "opinion", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+        {"section_id": "service", "status": "NO_NEWS", "candidates": [], "recovery_candidates": []},
+    ]
+    coverage = {
+        "research_semantics": {"allow_open_discovery": True},
+        "sources": [{"source_id": sid, "name": sid, "url": f"https://{sid}.example", "origin": f"{sid}.example", "role": "PRIMARY", "enabled": True, "authority_class": "PUBLIC", "discovery_only": True, "primary_capable": True, "independent_reporting_capable": False} for sid in ("investigations", "opinion", "service")],
+        "desks": [{"section_id": sid, "source_ids": [sid], "coverage_status": "PARTIAL", "recovery_focus": ["fixture"]} for sid in ("investigations", "opinion", "service")],
+    }
+    plan = build_recovery_plan(packet, {"event_clusters": [], "source_records": []}, coverage, {"coverage_rules": [{"id": "accountability_and_service", "sections": ["investigations", "opinion", "service"], "minimum_active": 2}]})
+    pivot_need = next(item for item in plan["needs"] if item.get("target_editorial_function") == "ACCOUNTABILITY")
+    assert pivot_need["pivot_mode"] == "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED"
+    assert pivot_need["blocked_event_memory"][0]["event_fingerprint"] == "EVENT-1"
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1", "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY", "query_context": {"research_date": "2026-09-13"},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY", "excluded_event_fingerprints": []},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED", "blocked_event_memory": [memory],
+    }
+    ladder = query_ladder({"lead": {"event_entities": []}}, need)
+    assert ladder[0]["variant"] == "ALTERNATIVE_ROUTE_SCOPED_ARTIFACT"
+    assert "ALTERNATIVE_" in ladder[0]["intent"]
+
+
+def test_mode_b_alternative_event_gets_new_bundle_without_evidence_transfer():
+    action_a = _action(target="ACCOUNTABILITY", need="N-ALT", job="A")
+    action_b = _action(target="ACCOUNTABILITY", need="N-ALT", job="B")
+    event_a = _observation(action_a, title="Prosecution circular", fingerprint="EVENT-A", source_id="A")
+    event_a["source_class"] = "unknown"
+    event_a["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    event_a["extraction_status"] = "FETCHED"
+    event_b = _observation(action_b, title="Regulator directive adopts election integrity rules", fingerprint="EVENT-B", source_id="B", action_text="adopts", obj="election integrity rules")
+    event_b["observation_id"] = "OBS-B"
+    event_b["event_skeleton"]["actor"] = "Regulatory Council"
+    event_b["event_skeleton"]["topic"] = "Regulator directive adopts election integrity rules"
+    event_b["article_metadata"] = {"publisher": {"name": "Regulatory Council"}}
+    bundles, discoveries = build_event_bundles(
+        [event_a, event_b], [], [_source("B")], [action_a, action_b],
+    )
+    assert len(bundles) == 2
+    blocked = next(item for item in bundles if item["event_fingerprint"] == "EVENT-A")
+    alternative = next(item for item in bundles if item["event_fingerprint"] == "EVENT-B")
+    assert blocked["state"] == "EVENT_EVIDENCE_BLOCKED"
+    assert alternative["state"] == "EVENT_VALIDATED"
+    assert alternative["candidate_discovery"]
+    assert blocked["evidence_ids"] == []
+    assert alternative["evidence_ids"] == ["B"]
+    assert blocked["event_lead_id"] != alternative["event_lead_id"]
+    assert all(item["event_id"] == alternative["event_lead_id"] for item in discoveries)
+
+
+def test_mode_b_service_pivot_validates_first_party_operational_event():
+    action_a = _action(target="SERVICE", need="N-SVC", job="SA")
+    action_b = _action(target="SERVICE", need="N-SVC", job="SB")
+    blocked = _observation(action_a, title="Portal republication of service notice", fingerprint="SERVICE-A", source_id="SA")
+    blocked["source_class"] = "unknown"
+    blocked["verification_status"] = "EXTRACTED_NOT_VERIFIED"
+    blocked["extraction_status"] = "FETCHED"
+    alternative = _observation(action_b, title="Ministry opens registration deadline", fingerprint="SERVICE-B", source_id="SB", action_text="opens registration", obj="applications")
+    alternative["observation_id"] = "OBS-SB"
+    alternative["event_skeleton"]["actor"] = "Ministry of Public Service"
+    alternative["event_skeleton"]["topic"] = "Ministry opens registration deadline"
+    alternative["event_skeleton"]["lead_paragraphs"] = "Ministry opens registration for eligible applicants through the deadline on 2026-09-22 with access instructions. " * 3
+    alternative["article_metadata"] = {"publisher": {"name": "Ministry of Public Service"}}
+    bundles, discoveries = build_event_bundles([blocked, alternative], [], [_source("SB")], [action_a, action_b])
+    assert len(bundles) == 2
+    winner = next(item for item in bundles if item["event_fingerprint"] == "SERVICE-B")
+    assert winner["state"] == "EVENT_VALIDATED"
+    assert any(item["function"] == "SERVICE" for item in winner["editorial_functions"])
+    assert discoveries and discoveries[0]["event_id"] == winner["event_lead_id"]
+
+
+def test_epoch_alternative_bundle_merge_preserves_blocked_event_memory():
+    blocked = {"event_lead_id": "EVENT-A", "state": "EVENT_EVIDENCE_BLOCKED", "event_fingerprint": "A", "blocked_event_memory": {"pivot_eligible": True}}
+    alternative = {"event_lead_id": "EVENT-B", "state": "EVENT_VALIDATED", "event_fingerprint": "B"}
+    packet = {"sources": [], "sections": [], "event_evidence_bundles": [blocked]}
+    execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [alternative], "semantic_pivot_attempts": []}}
+    merged = apply_executor_results_to_packet(packet, execution)
+    assert {item["event_lead_id"] for item in merged["event_evidence_bundles"]} == {"EVENT-A", "EVENT-B"}
+    assert next(item for item in merged["event_evidence_bundles"] if item["event_lead_id"] == "EVENT-A")["state"] == "EVENT_EVIDENCE_BLOCKED"
+
+
+def test_pivot_allocates_distinct_accountability_source_classes_without_budget_growth():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": [{
+            "route_id": "maroc", "url": "https://maroc.ma/en/news", "origin": "maroc.ma",
+            "route_type": "NEWS_LISTING", "route_status": "VERIFIED_DISCOVERY_ONLY",
+            "name": "National portal", "semantic_capabilities": ["ACCOUNTABILITY", "SERVICE"],
+            "supported_languages": ["ar", "fr", "en"],
+        }]},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "pivot_source_classes_attempted": ["PROSECUTION_JUDICIARY"],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert len(strategies) == 4
+    assert len(set(classes)) == 4
+    assert "PROSECUTION_JUDICIARY" not in classes
+    assert strategies[0]["source_class_memory_before"] == ["PROSECUTION_JUDICIARY"]
+    assert strategies[1]["target_source_class"] not in strategies[1]["source_class_memory_before"]
+    assert strategies[1]["source_class_memory_before"] == ["PROSECUTION_JUDICIARY", strategies[0]["target_source_class"]]
+    assert all(item["target_source_class"].casefold() in item["query"].casefold() or item["target_source_class"] in {"REGULATOR", "AUDIT_BODY", "ELECTION_INTEGRITY", "ANTI_CORRUPTION"} for item in strategies)
+    assert all(item["first_party_discovery_objective"] == "FIRST_PARTY_SELF_ACTION" for item in strategies)
+    assert all(item["institution_discovery_mode"] == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION" for item in strategies)
+
+
+def test_pivot_query_does_not_copy_blocked_event_actor_or_institution():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13", "entities": ["Blocked Authority"], "aliases": ["Blocked Authority"]},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "blocked_event_memory": [{"event_actor": "Blocked Authority", "event_fingerprint": "BLOCKED"}],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    assert all("Blocked Authority" not in item["query"] for item in strategies)
+    assert all(item["target_source_class"] for item in strategies)
+
+
+def test_pivot_allocates_distinct_service_source_classes():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert classes == ["MINISTRY", "ELECTION_ADMINISTRATION", "PUBLIC_SERVICE_OPERATOR", "ADMINISTRATIVE_PORTAL"]
+    assert len(set(classes)) == len(classes)
+
+
+def test_initial_semantic_need_also_uses_bounded_source_class_branches():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)
+    assert [item["target_source_class"] for item in strategies] == ["MINISTRY", "ELECTION_ADMINISTRATION", "PUBLIC_SERVICE_OPERATOR", "ADMINISTRATIVE_PORTAL"]
+    assert all(item["source_class_branch_mode"] == "INITIAL_SEMANTIC" for item in strategies)
+
+
+def test_source_class_and_first_party_metadata_survive_action_materialization():
+    job = {
+        "job_id": "JOB-SOURCE-CLASS",
+        "round": 0,
+        "regime": "GENERAL_JOURNALISM",
+        "budget_class": "STANDARD",
+        "budget": {"max_followup_rounds": 2},
+        "lead": {"desk": "service", "topic": "public procedure", "event_entities": [], "related_event_cluster": None},
+        "question_tree": [{"question_id": "Q-SOURCE-CLASS", "kind": "FUNCTION"}],
+        "branches": [{"branch_id": "BR-SOURCE-CLASS", "question_ids": ["Q-SOURCE-CLASS"]}],
+        "executor_state": {},
+    }
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "recovery_mode": "DISCOVER_NEW_EVENT_FOR_SEMANTIC_NEED",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13"},
+        "search_constraints": {"configured_source_routes": []},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+    }
+    strategy = _breadth_event_queries(job, need, month="2026-09", primary_language="ar", alternate_language="fr", route=None)[0]
+    action = create_research_action(job, job["branches"][0], recovery_need=need, query_strategy=strategy)
+    assert action["target_source_class"] == "MINISTRY"
+    assert action["source_class_branch_mode"] == "INITIAL_SEMANTIC"
+    assert action["first_party_discovery_objective"] == "FIRST_PARTY_SELF_ACTION"
+    assert action["institution_discovery_mode"] == "OPEN_DISCOVERY_THEN_OWNERSHIP_VALIDATION"
+
+
+def test_current_process_context_guides_diversified_queries_without_becoming_event_fact():
+    job = {
+        "job_id": "JOB-CURRENT-PROCESS",
+        "round": 0,
+        "regime": "GENERAL_JOURNALISM",
+        "budget_class": "STANDARD",
+        "budget": {"max_followup_rounds": 2},
+        "lead": {"desk": "investigations", "topic": "public process", "event_entities": [], "related_event_cluster": None},
+        "question_tree": [{"question_id": "Q-CURRENT-PROCESS", "kind": "FUNCTION"}],
+        "branches": [{"branch_id": "BR-CURRENT-PROCESS", "question_ids": ["Q-CURRENT-PROCESS"]}],
+        "executor_state": {},
+    }
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {
+            "research_date": "2026-09-13",
+            "current_process_context": "active national election process",
+        },
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+    assert len(strategies) == 4
+    assert all(item["current_process_context"] == "active national election process" for item in strategies)
+    assert all("active national election process" in item["query"] for item in strategies if item.get("query"))
+    assert all("event_actor" not in item and "actor" not in item for item in strategies)
+    action = create_research_action(job, job["branches"][0], recovery_need=need, query_strategy=strategies[0])
+    assert action["current_process_context"] == "active national election process"
+    assert action["source_class_selection_reason"] == "CURRENT_PROCESS_CONTEXT"
+    assert action["event_context"]["current_process_context"] == "active national election process"
+
+
+def test_current_process_context_prioritizes_matching_source_class_without_changing_budget():
+    for target, expected in (("ACCOUNTABILITY", "ELECTION_INTEGRITY"), ("SERVICE", "ELECTION_ADMINISTRATION")):
+        need = {
+            "need_id": f"BREADTH:accountability_and_service:{target}",
+            "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+            "target_editorial_function": target,
+            "query_context": {"research_date": "2026-09-13", "current_process_context": "active national election process"},
+            "event_acquisition_plan": {"target_editorial_function": target},
+        }
+        strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+        assert strategies[0]["target_source_class"] == expected
+        assert strategies[0]["source_class_selection_reason"] == "CURRENT_PROCESS_CONTEXT"
+
+
+def test_context_priority_respects_attempted_source_class_memory():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:2",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "SERVICE",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "active national election process"},
+        "event_acquisition_plan": {"target_editorial_function": "SERVICE"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "pivot_source_classes_attempted": ["ELECTION_ADMINISTRATION"],
+    }
+    strategies = _breadth_event_queries({}, need, month="2026-09", primary_language="en", alternate_language="fr", route=None)
+    classes = [item["target_source_class"] for item in strategies]
+    assert classes[0] != "ELECTION_ADMINISTRATION"
+    assert "ELECTION_ADMINISTRATION" not in classes
+    assert all("ELECTION_ADMINISTRATION" in item["source_class_memory_before"] for item in strategies)
+
+
+def test_recovery_need_derives_current_process_context_from_selected_packet_facts():
+    packet = {
+        "edition_date": "2026-09-13",
+        "sections": [{
+            "section_id": "front",
+            "status": "ACTIVE",
+            "selected_candidate_id": "C1",
+            "candidates": [{"id": "C1", "title": "Election campaign enters final phase", "facts": ["Polling continues"]}],
+        }],
+    }
+    selected = [(packet["sections"][0], packet["sections"][0]["candidates"][0])]
+    context = _current_process_discovery_context(packet, selected)
+    assert context == "Election campaign enters final phase"
+    assert len(context) <= 160
+
+
+def test_derived_long_process_context_is_compacted_for_discovery_only():
+    packet = {
+        "edition_date": "2026-09-13",
+        "sections": [{
+            "section_id": "front",
+            "status": "ACTIVE",
+            "selected_candidate_id": "C1",
+            "candidates": [{
+                "id": "C1",
+                "title": "الانتخابات التشريعية 2026: حصيلة مؤقتة تفتح أسئلة المنافسة والتمثيل وإيداع لوائح المترشحين ومراحل الاقتراع",
+                "facts": ["تتواصل العملية الانتخابية خلال شتنبر 2026"],
+            }],
+        }],
+    }
+    selected = [(packet["sections"][0], packet["sections"][0]["candidates"][0])]
+    context = _current_process_discovery_context(packet, selected)
+    assert context == "election electoral process 2026"
+    assert len(context) < 96
+
+
+def test_pivot_source_class_memory_persists_in_packet_merge():
+    packet = {"sources": [], "sections": [], "event_evidence_bundles": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "REGULATOR"}]}
+    execution = {"source_packet_patch": {"sources": [], "candidate_evidence_updates": [], "candidate_discoveries": [], "event_leads": [], "event_bundles": [], "semantic_pivot_attempts": [], "semantic_pivot_source_classes": [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]}}
+    merged = apply_executor_results_to_packet(packet, execution)
+    assert merged["semantic_pivot_source_classes"] == [{"need_id": "N", "source_class": "AUDIT_BODY"}, {"need_id": "N", "source_class": "REGULATOR"}]
+
+
+def test_source_class_branch_queries_are_compact_and_context_scoped():
+    need = {
+        "need_id": "BREADTH:accountability_and_service:1",
+        "kind": "NEED_ACCOUNTABILITY_AND_SERVICE",
+        "target_editorial_function": "ACCOUNTABILITY",
+        "query_context": {"research_date": "2026-09-13", "current_process_context": "election electoral process 2026"},
+        "pivot_mode": "FIND_ALTERNATIVE_EVENT_FOR_SEMANTIC_NEED",
+        "event_acquisition_plan": {"target_editorial_function": "ACCOUNTABILITY"},
+        "search_constraints": {"configured_source_routes": [{
+            "url": "https://maroc.ma/en/news", "origin": "maroc.ma", "route_type": "NEWS_LISTING",
+            "route_status": "VERIFIED_WORKING", "supported_languages": ["ar", "fr"],
+        }]},
+    }
+    strategies = _breadth_event_queries(
+        {"lead": {"event_entities": []}}, need, month="September 2026",
+        primary_language="ar", alternate_language="fr", route=None,
+    )
+    assert len(strategies) == 4
+    assert all(len(item["query"].split()) <= 14 for item in strategies)
+    assert all("election electoral process 2026" in item["query"] or item["target_source_class"] == "AUDIT_BODY" for item in strategies)
+    assert strategies[1]["fallback_query"]
+    assert "هيئة" not in strategies[1]["fallback_query"]

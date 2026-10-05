@@ -1,0 +1,11 @@
+version: 1
+default_adapter: trafilatura
+fallbacks:
+  - adapter_id: crawl4ai-optional
+    enabled: false
+    trigger: SOURCE_DYNAMIC_ROUTE_REQUIRED
+    timeout_seconds: 30
+    cache_required: true
+    integration_test_status: NOT_RUN
+    classification: extraction-only
+    provenance_behavior: Browser extraction remains EXTRACTED_NOT_VERIFIED and needs exact-source verification.

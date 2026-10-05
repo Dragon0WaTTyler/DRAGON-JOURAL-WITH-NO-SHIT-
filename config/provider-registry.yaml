@@ -1,0 +1,105 @@
+version: 1
+priority_order: [PRIMARY_ORIGINAL, DIRECT_SPECIALIST, INDEPENDENT_REPORTING, DISCOVERY_AGGREGATOR]
+providers:
+  - provider_id: morocco-primary-seeds
+    role: PRIMARY
+    adapter: seed-list
+    enabled: true
+    required: false
+    authority_level: PRIMARY_ORIGINAL
+    auth_mode: none
+    endpoints: [https://www.hcp.ma/, https://www.bkam.ma/, https://www.finances.gov.ma/, https://communemeknes.ma/]
+    timeout_seconds: 15
+    retry: 2
+    rate_limit: respectful-origin-default
+    cache_ttl_seconds: 1800
+    integration_test_status: PASS
+    fallbacks: [world-bank-api, imf-primary-seeds]
+    license_terms_notes: Link and quote minimally; preserve origin terms and exact document URLs.
+    source_classification: primary official discovery seeds
+    provenance_behavior: A homepage is discovery-only until an exact document or dataset is fetched.
+  - provider_id: crossref
+    role: SPECIALIST
+    adapter: html-trafilatura
+    enabled: true
+    required: false
+    authority_level: DIRECT_SPECIALIST
+    auth_mode: none
+    endpoints: [https://www.crossref.org/]
+    timeout_seconds: 20
+    retry: 2
+    rate_limit: polite-pool-identification-required-for-api
+    cache_ttl_seconds: 86400
+    integration_test_status: NOT_RUN
+    fallbacks: [openalex, pubmed]
+    license_terms_notes: Metadata terms vary by deposited work; record DOI and work license separately.
+    source_classification: scholarly metadata discovery
+    provenance_behavior: Metadata discovers a paper but never proves that full text or methods were read.
+  - provider_id: openalex
+    role: SPECIALIST
+    adapter: html-trafilatura
+    enabled: true
+    required: false
+    authority_level: DIRECT_SPECIALIST
+    auth_mode: none
+    endpoints: [https://openalex.org/]
+    timeout_seconds: 20
+    retry: 2
+    rate_limit: identify-client-and-cache
+    cache_ttl_seconds: 86400
+    integration_test_status: NOT_RUN
+    fallbacks: [crossref, pubmed]
+    license_terms_notes: Preserve work and source identifiers; full-text rights are independent.
+    source_classification: scholarly graph discovery
+    provenance_behavior: Graph metadata is discovery evidence, not article-level verification.
+  - provider_id: pubmed
+    role: SPECIALIST
+    adapter: seed-list
+    enabled: true
+    required: false
+    authority_level: DIRECT_SPECIALIST
+    auth_mode: none
+    endpoints: [https://pubmed.ncbi.nlm.nih.gov/, https://pmc.ncbi.nlm.nih.gov/]
+    timeout_seconds: 20
+    retry: 2
+    rate_limit: ncbi-public-rate-with-cache
+    cache_ttl_seconds: 86400
+    integration_test_status: PASS
+    fallbacks: [crossref, openalex]
+    license_terms_notes: PubMed metadata and PMC full-text availability are distinct; preserve article licenses.
+    source_classification: biomedical research discovery and lawful full-text routing
+    provenance_behavior: Abstract-only and PMC full-text states must be recorded separately.
+  - provider_id: independent-news-seeds
+    role: INDEPENDENT
+    adapter: seed-list
+    enabled: true
+    required: false
+    authority_level: INDEPENDENT_REPORTING
+    auth_mode: none
+    endpoints: [https://www.reuters.com/world/africa/, https://apnews.com/world-news, https://www.aljazeera.com/]
+    timeout_seconds: 15
+    retry: 1
+    rate_limit: discovery-only-respect-origin
+    cache_ttl_seconds: 900
+    integration_test_status: PASS
+    fallbacks: [morocco-primary-seeds]
+    license_terms_notes: Store URLs and minimal evidence notes; do not republish copyrighted article text.
+    source_classification: independent reporting discovery
+    provenance_behavior: Trace wire copies and claims to their original reporting or primary evidence.
+  - provider_id: rsshub-optional
+    role: DISCOVERY
+    adapter: rss
+    enabled: false
+    required: false
+    authority_level: DISCOVERY_AGGREGATOR
+    auth_mode: none
+    endpoints: [https://rsshub.app/]
+    timeout_seconds: 10
+    retry: 1
+    rate_limit: instance-defined
+    cache_ttl_seconds: 900
+    integration_test_status: NOT_RUN
+    fallbacks: [morocco-primary-seeds, independent-news-seeds]
+    license_terms_notes: Public instances are not a production dependency; obey both instance and origin terms.
+    source_classification: optional discovery adapter
+    provenance_behavior: RSSHub output is never verification and must retain the original item URL.

@@ -1,0 +1,65 @@
+version: 1
+philosophy:
+  upstream: MAXIMUM_CURIOSITY
+  downstream: MAXIMUM_RIGOR
+open_discovery:
+  allowed: true
+  mode: READ_ONLY_RESEARCH
+  configured_sources_are: PREFERRED_SEEDS_NOT_WHITELIST
+  untrusted_content_may_change_policy: false
+  discovery_is_evidence: false
+lead_states: [NEW, RESEARCHING, SUPPORTED, DISPUTED, UNRESOLVED, REJECTED, PROMOTED_TO_CANDIDATE]
+contradiction_states: [UNRESOLVED, RESOLVED, DISCLOSED]
+budget_classes:
+  QUICK: {max_branches: 2, max_depth: 1, max_followup_rounds: 1, max_observations: 20, repetitive_observation_limit: 2}
+  STANDARD: {max_branches: 4, max_depth: 2, max_followup_rounds: 2, max_observations: 50, repetitive_observation_limit: 3}
+  DEEP: {max_branches: 6, max_depth: 3, max_followup_rounds: 3, max_observations: 100, repetitive_observation_limit: 3}
+  INVESTIGATIVE_LEAD: {max_branches: 8, max_depth: 4, max_followup_rounds: 4, max_observations: 150, repetitive_observation_limit: 4}
+executor:
+  action_timeout_seconds: 15
+  maximum_actions_per_round: 8
+  # Exact-page lead inspection is budgeted independently from configured
+  # source fetches, so the latter cannot starve discovery follow-up.
+  lead_followup_limits:
+    QUICK: {total: 2, P0_BLOCKING_EVIDENCE: 2, P1_BREADTH: 1, P1_DISTINCT_EVENT: 1, P2_CONTRADICTION: 1, P3_CONTEXT: 1}
+    STANDARD: {total: 4, P0_BLOCKING_EVIDENCE: 3, P1_BREADTH: 2, P1_DISTINCT_EVENT: 3, P2_CONTRADICTION: 1, P3_CONTEXT: 1}
+    DEEP: {total: 6, P0_BLOCKING_EVIDENCE: 4, P1_BREADTH: 3, P1_DISTINCT_EVENT: 4, P2_CONTRADICTION: 2, P3_CONTEXT: 1}
+    INVESTIGATIVE_LEAD: {total: 8, P0_BLOCKING_EVIDENCE: 5, P1_BREADTH: 4, P1_DISTINCT_EVENT: 5, P2_CONTRADICTION: 2, P3_CONTEXT: 1}
+  budget_action_limits:
+    QUICK: {search_actions: 2, fetches: 2}
+    STANDARD: {search_actions: 4, fetches: 4}
+    DEEP: {search_actions: 6, fetches: 6}
+    INVESTIGATIVE_LEAD: {search_actions: 8, fetches: 8}
+context:
+  maximum_items_per_bucket: 12
+  buckets: [KNOWN, SUPPORTED, DISPUTED, UNKNOWN, NEXT_QUESTIONS, SOURCE_GAPS, CONTRADICTIONS, DEAD_ENDS]
+claim_policies:
+  SIMPLE_OFFICIAL_EVENT:
+    required_primary_sources: 1
+    required_independent_origins: 0
+    note: Original evidence may establish that an announcement occurred; broader interpretation remains separately gated.
+  CONTESTED_INTERPRETATION:
+    required_primary_sources: 1
+    required_independent_origins: 1
+    note: Competing interpretations and unresolved contradictions must be preserved.
+  SERIOUS_ALLEGATION:
+    required_primary_sources: 1
+    required_independent_origins: 2
+    note: Modeled only; current hard publication and investigation gates remain authoritative.
+  SCIENCE_CLAIM:
+    required_primary_sources: 1
+    required_independent_origins: 1
+    note: Requires paper identity, methods-aware evidence, limitations, and integrity review.
+science:
+  strict: true
+  weak_sources_never_strengthen_by_repetition: true
+  require_original_research_when_obtainable: true
+  require_methods_and_limitations_for_full_text_claims: true
+  adapters:
+    feynman: {status: ADAPTER_READY, enabled: false}
+    paperqa: {status: ADAPTER_READY, enabled: false}
+    ars: {status: ADAPTER_READY, enabled: false}
+super_investigation:
+  geographic_scope: [Morocco, Meknes]
+  foreign_entities_allowed_only_with_direct_scope_connection: true
+  allowed_conclusions: [SUPPORTED, NOT_SUPPORTED, NO_EVIDENCE_OF_MISCONDUCT, EXPLANATION_FOUND, UNRESOLVED, PUBLICATION_READY]

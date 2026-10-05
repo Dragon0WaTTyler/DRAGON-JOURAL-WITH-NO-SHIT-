@@ -1,5 +1,10 @@
 # Existing ChatGPT schedule launchers
 
+> Scope: retained V4/legacy tooling. The current V5 target is `SPEC-v5.md`
+> and one local Codex trigger producing Arabic. These instructions remain
+> applicable only to the legacy fallback; retirement requires `docs/LOCAL-CUTOVER.md`.
+
+
 Replace the instructions of each existing job, preserving the corresponding name and Casablanca schedule. These small launchers load the current repository contract, so future fixes do not require pasting long obsolete prompts. This file does not itself create or change schedules.
 
 ## Task 1

@@ -1,0 +1,347 @@
+version: 5
+defaults:
+  action: INCIDENT
+  max_attempts: 1
+  initial_backoff_seconds: 0
+  backoff_multiplier: 2
+  maximum_backoff_seconds: 0
+categories:
+  TRANSIENT:
+    action: RETRY
+    max_attempts: 3
+    initial_backoff_seconds: 5
+    backoff_multiplier: 2
+    maximum_backoff_seconds: 60
+  DEPENDENCY:
+    action: BLOCK
+    max_attempts: 1
+  CONTENT:
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  VALIDATION:
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ENVIRONMENT:
+    action: BLOCK
+    max_attempts: 1
+  CODE_DEFECT:
+    action: INCIDENT
+    max_attempts: 1
+  DELIVERY:
+    action: RETRY
+    max_attempts: 3
+    initial_backoff_seconds: 10
+    backoff_multiplier: 2
+    maximum_backoff_seconds: 120
+  UNKNOWN:
+    action: INCIDENT
+    max_attempts: 1
+error_codes:
+  CHANGE_WATCHLIST_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_MONITORING_REQUIRED_FAILED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  PROVIDER_REGISTRY_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  PROVIDER_REGISTRY_UNAVAILABLE:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_DYNAMIC_ROUTE_REQUIRED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  DOCUMENT_EXTRACTION_EMPTY:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_ARCHIVE_LIMIT_EXCEEDED:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  DOCUMENT_ARCHIVE_UNSAFE_PATH:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  DOCUMENT_ARCHIVE_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_PDF_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_PDF_ENCRYPTED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  DOCUMENT_DOCX_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_XLSX_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_JSON_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_TEXT_ENCODING_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  DOCUMENT_TYPE_UNSUPPORTED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  AI_PROVIDER_UNCONFIGURED:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  AI_PROVIDER_INTEGRATION_NOT_PROVEN:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  AI_PROVIDER_EXECUTION_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  AI_PROVIDER_RESPONSE_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  RESEARCH_PACKET_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  RESEARCH_INSUFFICIENT:
+    category: CONTENT
+    action: BLOCK
+    max_attempts: 1
+  RESEARCH_RECOVERY_REQUIRED:
+    category: CONTENT
+    action: INCIDENT
+    max_attempts: 1
+  SOURCE_INTELLIGENCE_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  RESEARCH_PLAN_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  RESEARCH_BUDGET_CONFIG_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  CLAIM_GRAPH_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  MEDIA_CRITIC_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SCIENCE_INTEGRITY_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  SCIENCE_REPORT_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  INVESTIGATION_DOSSIER_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  INVESTIGATION_GATE_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ADVERSARIAL_REVIEW_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  SOURCE_TIMEOUT:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 3
+  SOURCE_FETCH_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 3
+  SOURCE_URL_UNSAFE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_REDIRECT_UNSAFE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_RESPONSE_TOO_LARGE:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_BLOCKED:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  SOURCE_CONTENT_EMPTY:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  SOURCE_INSUFFICIENT:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARTICLE_SCHEMA_INVALID:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  CHIEF_EDITOR_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARTICLE_FACTCHECK_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  FACTCHECK_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ARABIC_LANGUAGE_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  COVER_BRIEF_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  LAYOUT_PLAN_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  DESIGN_SYSTEM_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  ARABIC_RENDERING_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  RTL_LAYOUT_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_BROWSER_CRASH:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  PDF_CONTENT_MISMATCH:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_BLANK_PAGE:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_XML_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_MISSING_RESOURCE:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  COVER_FAILED:
+    category: CONTENT
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  ASSET_PROVENANCE_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  PUBLICATION_SOURCE_INVALID:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  PDF_VISUAL_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUB_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUBCHECK_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  EPUBCHECK_UNAVAILABLE:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  EPUBCHECK_VERSION_MISMATCH:
+    category: ENVIRONMENT
+    action: BLOCK
+    max_attempts: 1
+  EPUBCHECK_EXECUTION_FAILED:
+    category: TRANSIENT
+    action: RETRY
+    max_attempts: 2
+  EPUBCHECK_REPORT_INVALID:
+    category: VALIDATION
+    action: BLOCK
+    max_attempts: 1
+  FINAL_QA_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  STAGE_INPUT_INVALID:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  RUNTIME_FINGERPRINT_MISMATCH:
+    category: DEPENDENCY
+    action: BLOCK
+    max_attempts: 1
+  STAGE_ACCEPTANCE_FAILED:
+    category: VALIDATION
+    action: TARGETED_REPAIR
+    max_attempts: 2
+  STAGE_RESULT_INVALID:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1
+  STAGE_STATE_UPDATE_INVALID:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1
+  GIT_PUSH_FAILED:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  GITHUB_READBACK_MISMATCH:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  WHATSAPP_SEND_FAILED:
+    category: DELIVERY
+    action: RETRY
+    max_attempts: 3
+  UNKNOWN_CODE_DEFECT:
+    category: CODE_DEFECT
+    action: INCIDENT
+    max_attempts: 1

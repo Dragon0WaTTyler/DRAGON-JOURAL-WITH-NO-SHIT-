@@ -1,0 +1,9 @@
+html, body {
+  direction: rtl;
+  unicode-bidi: plaintext;
+  font-family: Tahoma, Arial, sans-serif;
+}
+h1, h2, h3, p, li, figcaption, blockquote { text-align: right; }
+h1, h2, h3, .standfirst, .byline, .section-bar { break-after: avoid; }
+p, li { orphans: 3; widows: 3; }
+[dir="ltr"], .brand, time, .doi, .url { direction: ltr; unicode-bidi: isolate; }

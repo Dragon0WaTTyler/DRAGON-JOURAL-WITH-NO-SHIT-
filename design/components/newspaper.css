@@ -1,0 +1,39 @@
+/* component:masthead */
+.masthead { border-bottom: var(--rule-heavy) solid var(--dragon-red); margin-bottom: var(--space-md); }
+.brand { font: 800 26pt Arial, sans-serif; letter-spacing: .08em; }
+/* component:section-bar */
+.section, .section-bar { color: var(--dragon-red); font-weight: 700; border-bottom: var(--rule-thin) solid var(--muted-rule); }
+/* component:headline */
+.headline, article > h2 { font-size: 24pt; line-height: 1.35; }
+/* component:kicker */
+.kicker { color: var(--dragon-red); font-size: 9pt; font-weight: 700; }
+/* component:standfirst */
+.standfirst { color: #333; font-size: 14pt; line-height: 1.55; }
+/* component:byline */
+.byline { color: #555; font-size: 9pt; }
+/* component:pull-quote */
+.pull-quote { border-inline-start: var(--rule-heavy) solid var(--dragon-red); font-size: 18pt; padding-inline-start: var(--space-sm); }
+/* component:sidebar */
+.sidebar { background: #eee9df; padding: var(--space-sm); }
+/* component:timeline */
+.timeline { border-inline-start: var(--rule-thin) solid var(--muted-rule); padding-inline-start: var(--space-sm); }
+/* component:study-card */
+.study-card { border: var(--rule-thin) solid #24566f; padding: var(--space-sm); }
+/* component:evidence-box */
+.evidence-box { border: var(--rule-thin) solid var(--dragon-red); padding: var(--space-sm); }
+/* component:fact-check-verdict */
+.fact-check-verdict { border-block: var(--rule-heavy) solid var(--ink); font-weight: 700; }
+/* component:chart */
+.chart { break-inside: avoid; max-width: 100%; }
+/* component:data-table */
+.data-table { border-collapse: collapse; width: 100%; }
+.data-table th, .data-table td { border-bottom: var(--rule-thin) solid var(--muted-rule); padding: var(--space-xs); }
+/* component:document-excerpt */
+.document-excerpt { background: #f2eee6; border-inline-start: var(--rule-heavy) solid #555; padding: var(--space-sm); }
+/* component:brief-rail */
+.brief-rail { border-block: var(--rule-thin) solid var(--muted-rule); columns: 2; column-gap: var(--column-gutter); }
+/* component:folio */
+.folio { color: #666; font-size: 8pt; }
+/* component:caption */
+.caption, figcaption { color: #555; font-size: 8pt; }
+.source { border-top: var(--rule-thin) solid var(--muted-rule); font-size: 9pt; padding-top: var(--space-sm); }

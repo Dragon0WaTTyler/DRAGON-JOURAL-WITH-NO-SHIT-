@@ -1,0 +1,12 @@
+# Optional public GDELT DOC ArticleList discovery.  It is read-only metadata
+# discovery; every result remains a LEAD until DRAGON fetches, classifies and
+# validates the exact source page.
+version: 1
+enabled: true
+adapter_id: gdelt-doc
+base_url: https://api.gdeltproject.org/api/v2/doc/doc
+timeout_seconds: 10
+maximum_bytes: 1000000
+maximum_results: 8
+integration_test_status: NOT_RUN
+provenance_behavior: DISCOVERY_ONLY_EXACT_PAGE_REQUIRED

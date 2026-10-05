@@ -5,3 +5,6 @@
 *.jpg -text
 *.jpeg -text
 *.webp -text
+# V5 archive read-back is byte-exact. Preserve every dated edition artifact,
+# including JSON/HTML/Markdown generated with Windows line endings.
+editions/** -text

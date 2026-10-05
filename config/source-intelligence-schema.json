@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "source_records", "duplicate_groups", "event_clusters", "summary"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "status": {"const": "PASS"},
+    "source_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "canonical_url", "discovered_url", "publisher", "author", "title", "source_type", "retrieved_at", "published_at", "fetch_status", "http_status", "extraction_method", "extraction_quality", "content_hash", "normalized_text_hash", "language", "primary_or_secondary", "authority_level", "independent_origin_group", "wire_origin", "syndication_status", "citation_chain", "first_observed", "likely_original", "primary_evidence", "archive_reference", "license_use_notes", "doi", "publication_status", "full_text_status", "methods_read", "limitations_read", "science_metadata", "verification_status", "evidence_relation", "directness", "provenance", "provider_lead_id", "provider_supplied_url", "lead_origin", "provider_candidate_ids", "uncertainty", "event_ids", "claims_supported", "duplicate_group_ids"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "canonical_url": {"type": "string", "pattern": "^https://"},
+          "discovered_url": {"type": "string", "pattern": "^https://"},
+          "publisher": {"type": ["string", "null"]},
+          "author": {"type": ["string", "null"]},
+          "title": {"type": ["string", "null"]},
+          "source_type": {"type": ["string", "null"]},
+          "retrieved_at": {"type": ["string", "null"]},
+          "published_at": {"type": ["string", "null"]},
+          "fetch_status": {"enum": ["PROVIDER_REPORTED", "FETCHED"]},
+          "http_status": {"type": ["integer", "null"]},
+          "extraction_method": {"type": "string"},
+          "extraction_quality": {"enum": ["UNVERIFIED", "MEDIUM", "HIGH"]},
+          "content_hash": {"type": ["string", "null"]},
+          "normalized_text_hash": {"type": ["string", "null"]},
+          "language": {"type": ["string", "null"]},
+          "primary_or_secondary": {"type": ["string", "null"]},
+          "authority_level": {"enum": ["PRIMARY", "SECONDARY"]},
+          "independent_origin_group": {"type": "string", "minLength": 1},
+          "wire_origin": {"type": ["string", "null"]},
+          "syndication_status": {"enum": ["WIRE_REPORTED", "UNKNOWN"]},
+          "citation_chain": {"type": "array", "items": {"type": "string"}},
+          "first_observed": {"type": ["string", "null"]},
+          "likely_original": {"type": "boolean"},
+          "primary_evidence": {"type": "boolean"},
+          "archive_reference": {"type": ["string", "null"]},
+          "license_use_notes": {"type": ["string", "null"]},
+          "doi": {"type": ["string", "null"]},
+          "publication_status": {"type": ["string", "null"]},
+          "full_text_status": {"type": ["string", "null"]},
+          "methods_read": {"type": "boolean"},
+          "limitations_read": {"type": "boolean"},
+          "science_metadata": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["paper_id", "title", "authors", "journal", "version_type", "sample", "sample_size", "design", "effect_result", "statistics", "corrections_retractions", "conflicting_study_source_ids", "locators", "confidence", "doi_verified", "metadata_matches", "claim_alignment", "correlation_only"],
+            "properties": {
+              "paper_id": {"type": ["string", "null"]},
+              "title": {"type": ["string", "null"]},
+              "authors": {"type": "array", "items": {"type": "string"}},
+              "journal": {"type": ["string", "null"]},
+              "version_type": {"enum": ["PREPRINT", "ACCEPTED_MANUSCRIPT", "VERSION_OF_RECORD", "UNKNOWN", null]},
+              "sample": {"type": ["string", "null"]},
+              "sample_size": {"type": ["integer", "null"], "minimum": 0},
+              "design": {"type": ["string", "null"]},
+              "effect_result": {"type": ["string", "null"]},
+              "statistics": {"type": ["string", "null"]},
+              "corrections_retractions": {"type": "array", "items": {"type": "string"}},
+              "conflicting_study_source_ids": {"type": "array", "items": {"type": "string"}},
+              "locators": {"type": "array", "items": {"type": "string"}},
+              "confidence": {"enum": ["HIGH", "MEDIUM", "LOW", "UNKNOWN"]},
+              "doi_verified": {"type": "boolean"},
+              "metadata_matches": {"type": "boolean"},
+              "claim_alignment": {"enum": ["ALIGNED", "PARTIAL", "MISALIGNED", "NOT_ASSESSED"]},
+              "correlation_only": {"type": "boolean"}
+            }
+          },
+          "verification_status": {"type": "string"},
+          "evidence_relation": {"enum": ["SUPPORTS", "CONTRADICTS", "CONTEXT_ONLY", "DOES_NOT_ADDRESS", null]},
+          "directness": {"enum": ["DIRECT_STATEMENT", "DIRECT_MEASUREMENT", "DERIVED_CALCULATION", "INFERENCE_REQUIRED", null]},
+          "provenance": {"type": ["object", "null"]},
+          "provider_lead_id": {"type": ["string", "null"]},
+          "provider_supplied_url": {"type": ["string", "null"]},
+          "lead_origin": {"enum": ["PROVIDER_EXACT", "PROVIDER_CONTEXT", "DETERMINISTIC_DISCOVERY"]},
+          "provider_candidate_ids": {"type": "array", "items": {"type": "string"}},
+          "uncertainty": {"type": "array", "items": {"type": "string"}},
+          "event_ids": {"type": "array", "items": {"type": "string", "pattern": "^EVT-[A-F0-9]{12}$"}},
+          "claims_supported": {"type": "array", "items": {"type": ["string", "null"]}},
+          "duplicate_group_ids": {"type": "array", "items": {"type": "string", "pattern": "^DUP-[A-F0-9]{12}$"}}
+        }
+      }
+    },
+    "duplicate_groups": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["duplicate_group_id", "kind", "canonical_url", "source_ids", "signals"],
+        "properties": {
+          "duplicate_group_id": {"type": "string", "pattern": "^DUP-[A-F0-9]{12}$"},
+          "kind": {"enum": ["EXACT_CANONICAL_URL", "EXACT_CONTENT_HASH", "NORMALIZED_TEXT_HASH", "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY"]},
+          "canonical_url": {"type": ["string", "null"]},
+          "source_ids": {"type": "array", "minItems": 2, "items": {"type": "string"}, "uniqueItems": true},
+          "signals": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["kind", "score"],
+              "properties": {
+                "kind": {"enum": ["EXACT_CANONICAL_URL", "EXACT_CONTENT_HASH", "NORMALIZED_TEXT_HASH", "TOKEN_SIMILARITY", "EDIT_SIMILARITY", "HEADLINE_SIMILARITY"]},
+                "score": {"type": "number", "minimum": 0, "maximum": 1}
+              }
+            }
+          }
+        }
+      }
+    },
+    "event_clusters": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["event_id", "candidate_keys", "source_ids", "publisher_count", "independent_origin_count", "independent_origin_groups", "wire_origins"],
+        "properties": {
+          "event_id": {"type": "string", "pattern": "^EVT-[A-F0-9]{12}$"},
+          "candidate_keys": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "source_ids": {"type": "array", "items": {"type": "string"}},
+          "publisher_count": {"type": "integer", "minimum": 0},
+          "independent_origin_count": {"type": "integer", "minimum": 0},
+          "independent_origin_groups": {"type": "array", "items": {"type": "string"}},
+          "wire_origins": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_count", "canonical_source_count", "duplicate_group_count", "event_count", "wire_source_count"],
+      "properties": {
+        "source_count": {"type": "integer", "minimum": 0},
+        "canonical_source_count": {"type": "integer", "minimum": 0},
+        "duplicate_group_count": {"type": "integer", "minimum": 0},
+        "event_count": {"type": "integer", "minimum": 0},
+        "wire_source_count": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

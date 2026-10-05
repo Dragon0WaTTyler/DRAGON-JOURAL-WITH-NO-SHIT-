@@ -1,0 +1,20 @@
+/* Reusable publication tokens; values are part of the deterministic renderer contract. */
+:root {
+  --ink: #111111;
+  --paper: #f5efe3;
+  --dragon-red: #9e1523;
+  --muted-rule: #c9c1b5;
+  --column-gutter: 9mm;
+  --space-xs: 1.5mm;
+  --space-sm: 3mm;
+  --space-md: 6mm;
+  --space-lg: 10mm;
+  --rule-thin: 0.3mm;
+  --rule-heavy: 1.2mm;
+}
+
+@page { size: A4; margin: 15mm; }
+@page:first { margin: 0; }
+html, body { background: white; color: var(--ink); }
+body { margin: 0; }
+a { color: inherit; overflow-wrap: anywhere; }

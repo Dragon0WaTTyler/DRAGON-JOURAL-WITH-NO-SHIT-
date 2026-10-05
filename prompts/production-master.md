@@ -1,5 +1,10 @@
 # DRAGON production contract — version 4
 
+> Scope: retained V4/legacy tooling. The current V5 target is `SPEC-v5.md`
+> and one local Codex trigger producing Arabic. These instructions remain
+> applicable only to the legacy fallback; retirement requires `docs/LOCAL-CUTOVER.md`.
+
+
 ## Version 4 editorial architecture — authoritative amendment
 
 DRAGON is a daily newspaper, not a digest of identical analytical summaries.

@@ -1,0 +1,70 @@
+{
+  "sources": [
+    {
+      "id": "s01",
+      "url": "https://www.maroc.ma/fr/actualites/legislatives-2026-1850-listes-de-candidatures-presentees-lechelle-nationale",
+      "publisher": "البوابة الوطنية للمغرب / وكالة المغرب العربي للأنباء",
+      "publication_date": "2026-09-11",
+      "accessed_at": "2026-09-11",
+      "source_type": "official",
+      "claim_supported": "تنقل البوابة عن وزير الداخلية معطيات مؤقتة عن لوائح الترشيح والحملة الانتخابية.",
+      "doi": null,
+      "publication_status": "news",
+      "full_text_status": "FULL_TEXT_VERIFIED",
+      "methods_read": false,
+      "limitations_read": false,
+      "science_metadata": null
+    },
+    {
+      "id": "s02",
+      "url": "https://www.aljazeera.net/news/2026/9/10/27-حزبا-تتنافس-على-395-مقعدا-انطلاق-الحملة",
+      "publisher": "الجزيرة نت",
+      "publication_date": "2026-09-10",
+      "accessed_at": "2026-09-11",
+      "source_type": "independent",
+      "claim_supported": "تفيد التغطية بانطلاق الحملة الانتخابية المغربية وتنافس الأحزاب على المقاعد.",
+      "doi": null,
+      "publication_status": "news",
+      "full_text_status": "FULL_TEXT_UNAVAILABLE",
+      "methods_read": false,
+      "limitations_read": false,
+      "science_metadata": null
+    }
+  ],
+  "front": {
+    "section_id": "front",
+    "status": "ACTIVE",
+    "candidates": [
+      {
+        "id": "front_1",
+        "rank": 1,
+        "title": "الحملة التشريعية تدخل يومها الثاني ومعطيات الترشيح تضع التنافس تحت المجهر",
+        "discovery_source_ids": ["s02"],
+        "verification_source_ids": ["s01", "s02"],
+        "primary_evidence_source_ids": [],
+        "independent_evidence_source_ids": ["s02"],
+        "facts": ["بدأت الحملة الانتخابية في 10 سبتمبر وينتهي أجلها عند منتصف ليل 22 سبتمبر."],
+        "claims": ["تصف وزارة الداخلية أرقام الترشيح المنشورة بأنها مؤقتة."],
+        "unknowns": ["لا تتوفر حصيلة نهائية للطعون أو تقديرات موثوقة للمشاركة."],
+        "disputed_points": ["تختلف طريقة عد الأحزاب والهيئات السياسية بين المصدرين." ]
+      },
+      {
+        "id": "front_2",
+        "rank": 2,
+        "title": "بديل غير مكتمل الأدلة",
+        "discovery_source_ids": ["s02"],
+        "verification_source_ids": ["s02"],
+        "primary_evidence_source_ids": [],
+        "independent_evidence_source_ids": ["s02"],
+        "facts": ["تغطية مستقلة واحدة."],
+        "claims": [],
+        "unknowns": ["لا يوجد أصل أولي."],
+        "disputed_points": []
+      }
+    ],
+    "selected_candidate_id": "front_1",
+    "selection_reason": "الحدث الوطني المباشر مدعوم ببلاغ رسمي وتغطية صحفية مستقلة.",
+    "no_news_reason": null,
+    "fallback_action": null
+  }
+}

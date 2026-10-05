@@ -1,0 +1,30 @@
+version: 5
+required_consecutive_unattended_runs: 3
+require_synthetic_publication: true
+require_manual_real_publication: true
+require_verified_git_archive: true
+require_whatsapp_delivery: false
+required_review_evidence:
+  failure-injection.json:
+    - process_interruption
+    - network_timeout
+    - epub_corruption
+    - pdf_failure
+    - git_push_failure
+    - whatsapp_failure
+    - stale_lock
+    - invalid_article_output
+  artifact-comparison.json:
+    - article_depth
+    - section_decisions
+    - source_traceability
+    - arabic_rtl
+    - cover
+    - pdf
+    - epub
+  scheduler-trial.json:
+    - single_task_entry
+    - unattended_trigger
+    - watchdog_recovery
+    - no_duplicate_run
+    - deadline_reporting

@@ -1,0 +1,18 @@
+# Provider-neutral web discovery through the repository's private local
+# SearXNG deployment. Search output remains discovery-only and is safe to
+# leave enabled when the local service is down: the executor records a bounded
+# backend outage and continues with its other read-only channels.
+version: 2
+enabled: true
+adapter_id: searxng-general-search
+base_url: http://127.0.0.1:8088
+endpoint_policy: LOCAL_PRIVATE_ONLY
+timeout_seconds: 10
+maximum_bytes: 1000000
+maximum_results: 8
+language: auto
+categories: general
+time_range: month
+page: 1
+integration_test_status: PASS
+provenance_behavior: DISCOVERY_ONLY_EXACT_PAGE_REQUIRED

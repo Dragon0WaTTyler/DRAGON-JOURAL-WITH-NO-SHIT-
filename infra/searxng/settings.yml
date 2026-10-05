@@ -1,0 +1,18 @@
+use_default_settings: true
+
+general:
+  debug: false
+  instance_name: "DRAGON private local discovery"
+
+search:
+  safe_search: 2
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  limiter: false
+  public_instance: false
+  image_proxy: false

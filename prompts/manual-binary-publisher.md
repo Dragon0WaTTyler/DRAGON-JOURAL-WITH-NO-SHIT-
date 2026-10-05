@@ -1,5 +1,10 @@
 # Optional manual recovery
 
+> Scope: retained V4/legacy tooling. The current V5 target is `SPEC-v5.md`
+> and one local Codex trigger producing Arabic. These instructions remain
+> applicable only to the legacy fallback; retirement requires `docs/LOCAL-CUTOVER.md`.
+
+
 Normal publication is automatic through .github/workflows/publish.yml.
 For recovery, read prompts/production-master.md and config/final-publication.yaml, install requirements, then use a clean authenticated checkout of main:
 

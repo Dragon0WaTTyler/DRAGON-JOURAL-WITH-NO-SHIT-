@@ -1,0 +1,35 @@
+{
+  "fixture": "minimized-2026-09-10-live-provider-all-no-news",
+  "sources": [
+    {
+      "id": "s1",
+      "source_type": "official",
+      "url": "https://pmnch.who.int/news-and-events/events/109"
+    }
+  ],
+  "sections": [
+    {"section_id": "front", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "siyasa_dawla", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "iqtisad_flous", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "mojtama3", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "ta3lim", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "se77a", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "3adl_7o9o9", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "bi2a_manakh", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "bniya_transport", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "meknes_local", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "filastin_middle_east", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "africa_sahel", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "world", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "business_companies", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "technology", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "science", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "sport", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "culture", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "adab", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "history", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "investigations", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "opinion", "status": "NO_NEWS", "selected_candidate_id": null},
+    {"section_id": "service", "status": "NO_NEWS", "selected_candidate_id": null}
+  ]
+}

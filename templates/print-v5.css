@@ -1,0 +1,73 @@
+@page {
+  size: A4;
+  margin: 16mm 14mm 18mm;
+}
+
+:root {
+  color: #111;
+  background: #fff;
+  font-family: "Noto Naskh Arabic", "Noto Sans Arabic", Amiri, Tahoma, Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.65;
+  direction: rtl;
+}
+
+html,
+body {
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+
+body {
+  margin: 0;
+}
+
+.masthead {
+  align-items: baseline;
+  border-block-end: 4px solid #b00020;
+  display: flex;
+  justify-content: space-between;
+  margin-block-end: 8mm;
+  padding-block-end: 3mm;
+}
+
+.brand,
+time,
+[dir="ltr"] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.brand {
+  font-family: Arial, sans-serif;
+  font-size: 28pt;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+article {
+  break-inside: auto;
+  margin-block-end: 8mm;
+}
+
+h1,
+h2,
+h3,
+.standfirst,
+.byline {
+  break-after: avoid;
+  text-align: right;
+}
+
+p,
+li {
+  orphans: 3;
+  text-align: right;
+  widows: 3;
+}
+
+a {
+  color: inherit;
+  overflow-wrap: anywhere;
+}

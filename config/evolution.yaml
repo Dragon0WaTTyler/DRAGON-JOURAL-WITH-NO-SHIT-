@@ -1,0 +1,16 @@
+version: 1
+evaluation_interval_complete_editions: 7
+resource_versions:
+  science_prompt: v1
+  media_critic: v1
+  source_policy: v1
+  chief_editor: v1
+  cover_director: v1
+  arabic_editor: v1
+  layout_policy: v1
+  event_clusterer: v1
+promotion:
+  automatic: false
+  requires_fixed_benchmark: true
+  requires_no_dimension_regression: true
+  requires_recorded_rollback_pointer: true
