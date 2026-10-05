@@ -52,6 +52,10 @@ defaults; it uses dedicated mode and explicitly sets Playwright
 and actual process arguments are checked for sandbox, certificate and origin
 policy bypasses. [Playwright's launch API](https://playwright.dev/python/docs/api/class-browsertype)
 documents the explicit sandbox option.
+The adapter also removes Playwright's unsafe SwiftShader headless opt-in and
+the disabled DevTools self-XSS warning default. It restores IPC flood protection
+by filtering the corresponding disabling default. Effective arguments must
+pass policy after the library/browser layers have completed launch.
 
 Readiness also requires actual renderer-token inspection: integrity at most
 Low (RID 4096) and a restricted token or AppContainer, plus verified parent

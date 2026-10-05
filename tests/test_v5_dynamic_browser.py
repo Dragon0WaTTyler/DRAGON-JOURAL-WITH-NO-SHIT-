@@ -64,7 +64,8 @@ def test_secure_success_structured_normalization_and_provenance(tmp_path):
 
 
 @pytest.mark.parametrize("flag",["--no-sandbox","--no-sandbox=true","--ignore-certificate-errors",
-                                "--allow-insecure-localhost","--disable-web-security"])
+                                "--allow-insecure-localhost","--disable-web-security",
+                                "--enable-unsafe-swiftshader","--unsafely-disable-devtools-self-xss-warnings"])
 def test_readiness_rejects_unsafe_flags(flag):
     with pytest.raises(BrowserFailure,match="Forbidden"):
         assert_launch_policy({"chromium_sandbox":True,"args":[flag]})

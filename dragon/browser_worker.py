@@ -83,7 +83,8 @@ async def acquire(request):
     if ":" in address: address=f"[{address}]"
     options={"headless":True,"channel":"chromium","chromium_sandbox":True,
              "args":["--enable-automation",f"--host-resolver-rules=MAP {target['host']} {address}, MAP * ~NOTFOUND"+(" , EXCLUDE 127.0.0.1" if request["operation"] in {"probe","offline_probe"} else "")],
-             "ignore_default_args":["--disable-ipc-flooding-protection"]}
+             "ignore_default_args":["--disable-ipc-flooding-protection","--enable-unsafe-swiftshader",
+                                    "--unsafely-disable-devtools-self-xss-warnings"]}
     assert_launch_policy(options)
     class SecureBrowserManager(BrowserManager):
         def _build_browser_args(self):

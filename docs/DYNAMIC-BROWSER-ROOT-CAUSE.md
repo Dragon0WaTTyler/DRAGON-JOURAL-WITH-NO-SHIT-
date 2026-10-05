@@ -17,6 +17,12 @@ The previous readiness bundle is immutable and remains separate from this work.
 - Playwright's Chromium launcher independently adds `--no-sandbox` unless
   `chromium_sandbox=True` (installed 1.63.0 `coreBundle.js`, lines 43346–43347).
   Removing only Crawl4AI's string would not establish sandboxing.
+- Playwright's headless launch also adds `--enable-unsafe-swiftshader`
+  (`coreBundle.js` line 43337) and its defaults disable DevTools self-XSS
+  warnings (line 34892). The final adapter filters both defaults and rejects
+  them in effective arguments. Chromium's own
+  [SwiftShader security guidance](https://chromium.googlesource.com/chromium/src/+/main/docs/gpu/swiftshader.md)
+  explicitly excludes untrusted content from the unsafe WebGL opt-in.
 - Crawl4AI's Windows-specific branch only omits the default chromium channel;
   it does not harden sandbox/TLS settings. Other operating systems receive the
   same unsafe defaults. This task qualifies Windows only.

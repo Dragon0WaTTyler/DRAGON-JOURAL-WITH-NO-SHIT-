@@ -14,6 +14,7 @@ PLAYWRIGHT_VERSION = "1.63.0"
 FORBIDDEN_FLAGS = ("--no-sandbox", "--disable-setuid-sandbox", "--ignore-certificate-errors",
                    "--ignore-certificate-errors-spki-list", "--allow-insecure-localhost",
                    "--disable-web-security", "--disable-site-isolation-trials",
+                   "--enable-unsafe-swiftshader", "--unsafely-disable-devtools-self-xss-warnings",
                    "--single-process", "--no-zygote", "--unsafely-treat-insecure-origin-as-secure")
 LIMITS = {"wall_seconds": 30, "navigation_ms": 15000, "output_bytes": 2_000_000,
           "stderr_bytes": 65_536, "content_bytes": 750_000, "temp_bytes": 64_000_000,
