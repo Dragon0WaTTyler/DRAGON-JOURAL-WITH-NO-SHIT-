@@ -66,6 +66,7 @@ from dragon.research_planning import (
 )
 from dragon.research_recovery import build_recovery_plan, validate_recovery_plan
 from dragon.research_finality import apply_research_finality, build_research_finality, validate_research_finality
+from dragon.deep_research_executor import continue_required_research_jobs
 from dragon.source_coverage import SourceCoverageError, load_source_coverage
 from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
@@ -457,7 +458,8 @@ def build_stage_definitions(
                 context.root / "config" / "deep-research-schema.json",
             )
             all_jobs = list(state.get("jobs", []))
-            schedule = schedule_research_actions(all_jobs, config)
+            mandatory_lanes = _mandatory_hard_lanes(_load(context.run_dir / "research/research-packet.json"), context) if (context.run_dir / "research/targeting-request.json").exists() else ()
+            schedule = schedule_research_actions(all_jobs, config, mandatory_lanes=mandatory_lanes)
             schedule_path = context.run_dir / "deep-research" / "scheduler-allocation.json"
             atomic_write_json(schedule_path, schedule)
             schedule_outputs = (schedule_path,)
@@ -521,6 +523,8 @@ def build_stage_definitions(
             (path, *schedule_outputs), inputs=(
                 state_path, context.root / "config" / "deep-research.yaml",
                 context.root / "config" / "deep-research-schema.json",
+                *((context.run_dir / "research/targeting-request.json", context.run_dir / "research/research-packet.json")
+                  if (context.run_dir / "research/targeting-request.json").exists() else ()),
             ),
         )
 
@@ -642,6 +646,15 @@ def build_stage_definitions(
             if item["need_id"] in deferred_need_ids
             or epoch0_signatures.get(item["need_id"]) != json.dumps(item, sort_keys=True, ensure_ascii=False)
         ]
+        mandatory_lanes = _mandatory_hard_lanes(packet, context) if (context.run_dir / "research/targeting-request.json").exists() else ()
+        config = load_deep_research_config(context.root / "config/deep-research.yaml", context.root / "config/deep-research-schema.json")
+        continuation_jobs = continue_required_research_jobs(initial_state, execution, config, mandatory_lanes)
+        open_lanes = {n.get("target_editorial_function") for n in report.get("needs", [])}
+        continuation_jobs = [j for j in continuation_jobs if any(a.get("target_editorial_function") in open_lanes
+                            for a in j["required_continuation_actions"])]
+        continuation_needs = {n["need_id"] for j in continuation_jobs for n in j.get("recovery_needs", [])}
+        continuation_lanes = {a.get("target_editorial_function") for j in continuation_jobs for a in j["required_continuation_actions"]}
+        delta_needs = [n for n in report.get("needs", []) if n in delta_needs or n["need_id"] in continuation_needs or n.get("target_editorial_function") in continuation_lanes]
         epoch1_execution = {"schema_version": 1, "status": "NOT_REQUIRED", "jobs": [], "actions_planned": []}
         epoch1_state = None
         if delta_needs:
@@ -654,6 +667,30 @@ def build_stage_definitions(
                 {"needs": delta_needs, "status": report["status"]}, config,
                 run_scope_id=context.run_dir.name, recovery_epoch=1, recovery_only=True,
             )
+            if continuation_jobs:
+                current_needs = {n["need_id"]: n for n in delta_needs}
+                identical_need_ids = {n["need_id"] for j in continuation_jobs for n in j.get("recovery_needs", []) if current_needs.get(n["need_id"]) == n}
+                # A renumbered or materially changed need is new work. Keep its
+                # native job and the old exact obligations as separate lineage;
+                # neither may silently replace the other's required searches.
+                auxiliary = []
+                for job in continuation_jobs:
+                    if job.get("recovery_needs") and not all(n["need_id"] in identical_need_ids for n in job["recovery_needs"]):
+                        job["continuation_recovery_needs"] = job.pop("recovery_needs")
+                        job["recovery_needs"] = []
+                        auxiliary.append({"job_id": job["job_id"], "original_need_ids": [n["need_id"] for n in job["continuation_recovery_needs"]],
+                            "action_ids": [a["action_id"] for a in job["required_continuation_actions"]]})
+                epoch1_state["required_continuation_mappings"] = auxiliary
+                replaced = {j["job_id"] for j in epoch1_state["jobs"] if any(n["need_id"] in identical_need_ids for n in j.get("recovery_needs", []))}
+                epoch1_state["jobs"] = [j for j in epoch1_state["jobs"] if j["job_id"] not in replaced] + continuation_jobs
+                carry_by_need = {n["need_id"]: j for j in continuation_jobs for n in j.get("recovery_needs", []) if n["need_id"] in identical_need_ids}
+                for mapping in epoch1_state.get("recovery_job_mappings", []):
+                    if mapping["recovery_need_id"] in carry_by_need:
+                        mapping["job_id"] = carry_by_need[mapping["recovery_need_id"]]["job_id"]
+                        mapping["continuation_of_epoch"] = 0
+                for lane in epoch1_state.get("hard_breadth_lanes", []):
+                    if lane["need_id"] in carry_by_need:
+                        lane["job_id"] = carry_by_need[lane["need_id"]]["job_id"]
             materialization_issues = validate_deep_research_state(epoch1_state)
             if materialization_issues:
                 raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", "; ".join(materialization_issues))
@@ -668,7 +705,9 @@ def build_stage_definitions(
             atomic_write_json(epoch1_state_path, epoch1_state)
             outputs = (*outputs, epoch1_state_path, epoch1_inputs_path)
             if research_adapter is not None:
-                schedule = schedule_research_actions(epoch1_state["jobs"], config)
+                general_executed = any(not a.get("target_editorial_function") for j in execution.get("jobs", []) for a in j.get("actions", []))
+                schedule = schedule_research_actions(epoch1_state["jobs"], config, mandatory_lanes=mandatory_lanes,
+                                                     general_opportunity_executed=general_executed)
                 epoch1_schedule_path = context.run_dir / "deep-research" / "epoch-1-scheduler-allocation.json"
                 atomic_write_json(epoch1_schedule_path, schedule)
                 outputs = (*outputs, epoch1_schedule_path)

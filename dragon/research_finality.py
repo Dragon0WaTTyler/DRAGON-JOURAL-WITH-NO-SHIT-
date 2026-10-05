@@ -9,7 +9,7 @@ from datetime import datetime
 import hashlib
 import json
 
-from dragon.deep_research_executor import FETCH_ACTIONS, _publisher_family, plan_research_actions
+from dragon.deep_research_executor import FETCH_ACTIONS, _publisher_family, plan_research_actions, reconcile_discovery_leads
 from dragon.editorial_functions import classify_event_functions, validated_function_names
 from dragon.evidence_policy import candidate_evidence_policy
 from dragon.provider_targeting import HARD_TARGET_SECTIONS
@@ -157,7 +157,11 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
     inputs = deepcopy({"targeting": targeting, "epochs": epochs, "config": config,
                        "closed_at": closed_at, "provider_failure": provider_failure,
                        "other_research_need_ids": other_research_need_ids})
-    observations = _observations(epochs)
+    observations = deepcopy(_observations(epochs))
+    all_actions = [a for epoch in epochs for job in epoch.get("execution", {}).get("jobs", []) for a in job.get("actions", [])]
+    # Reconcile cross-epoch inspections in a derived view. Earlier checkpoints
+    # and historical inputs remain immutable; no-event still needs exact proof.
+    lead_evaluations = reconcile_discovery_leads(observations, all_actions) if any(a.get("required_protocol") for a in all_actions) else []
     events = _events(packet, observations, epochs)
     targets = targeting.get("unresolved_targets", [])
     required_lanes = sorted({t.get("semantic_lane") for t in targets
@@ -217,6 +221,7 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
             for action in dynamic_deferred:
                 if _lane(action) == lane:
                     concrete_followup = (action.get("originating_event_lead_id")
+                        or action.get("required_lead_inspection") or action.get("dynamic_recovery")
                         or (action.get("provenance_requirements") or {}).get("required_role") in {"PRIMARY", "INDEPENDENT"}
                         or action.get("query_intent") == "LISTING_TO_DETAIL_EXACT_ARTIFACT")
                     if concrete_followup:
@@ -240,6 +245,9 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
                 "round_budget": deepcopy(execution.get("round_execution_budget") or {}),
                 "job_progress": [deepcopy(j.get("recovery_strategy_progress", [])) for j in execution.get("jobs", [])
                                  if any(_lane(a) == lane for a in j.get("actions", []))]})
+        for lead in lead_evaluations:
+            if lead["parent_action_id"] in executed and lead["state"] == "BLOCKED_CONTRACT_FAILURE":
+                protocol_errors.append("REQUIRED_LEAD_CONTRACT_FAILURE:" + str(lead["observation_id"]))
         lane_observations = [o for o in observations if (o.get("provenance") or {}).get("action_id") in executed]
         response_ids = {(o.get("provenance") or {}).get("action_id") for o in lane_observations}
         for identity, request in executed.items():
@@ -396,6 +404,8 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
         "unresolved_other_research_need_ids": sorted(other_research_need_ids or []),
         "editorial_absence_plan": [{"lane": lane, "action": "OMIT_UNSUPPORTED_STORY", "eligible_section_ids": sorted(HARD_TARGET_SECTIONS[lane]),
                                     "activate_section": False} for lane in required_lanes if lanes[lane]["state"] == "VERIFIED_NO_QUALIFYING_EVENT"]}
+    if lead_evaluations:
+        record["lead_evaluations"] = lead_evaluations
     record["decision_sha256"] = digest(record)
     return record
 

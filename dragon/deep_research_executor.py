@@ -2274,6 +2274,8 @@ def create_research_action(
 
 def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str] | None = None) -> list[dict]:
     """Plan query ladders; the global scheduler chooses a fair bounded slice."""
+    if "required_continuation_actions" in job:
+        return deepcopy(job["required_continuation_actions"])
     if job.get("status") == "STOPPED":
         return []
     if job.get("action_deferral_reason") == "PROVIDER_NO_RESULT_REQUIRES_RECOVERY_EPOCH":
@@ -2343,7 +2345,15 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
     return actions
 
 
-def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids: list[str] | None = None) -> dict:
+def _action_allowance(job: dict, action: dict, config: dict) -> tuple[str, int]:
+    counter = "search_actions" if action["action_type"] in SEARCH_ACTIONS else "lead_followups" if action.get("lead_followup") else "fetches"
+    limits = config["executor"]
+    maximum = limits["lead_followup_limits"][job["budget_class"]]["total"] if counter == "lead_followups" else limits["budget_action_limits"][job["budget_class"]][counter]
+    return counter, int(maximum) - int(job.get("executor_state", {}).get(counter, 0))
+
+
+def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids: list[str] | None = None,
+                              mandatory_lanes: tuple[str, ...] = (), general_opportunity_executed: bool = False) -> dict:
     """Select a finite, fair cross-desk slice without starving P1 behind P0.
 
     A wave contains the first untried strategy for each need.  Priority orders
@@ -2360,9 +2370,8 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     available_actions = []
     for action in all_actions:
         job = jobs_by_id[action["job_id"]]
-        counter = "search_actions" if action["action_type"] in SEARCH_ACTIONS else "fetches"
-        limit = config["executor"]["budget_action_limits"][job["budget_class"]][counter]
-        if int(job.get("executor_state", {}).get(counter, 0)) < int(limit):
+        counter, remaining = _action_allowance(job, action, config)
+        if remaining > 0:
             available_actions.append(action)
     available_ids = {action["action_id"] for action in available_actions}
     # Context is deliberately not allowed to consume a scarce recovery round.
@@ -2429,12 +2438,15 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     general_reserved = None
     # Keep one existing capacity slot for generic discovery after hard lanes
     # receive their bounded opportunity.
-    if hard_lane_present:
+    if hard_lane_present and not (mandatory_lanes and general_opportunity_executed):
         general = sorted(
             (item for item in first_wave_all
              if item.get("research_lane") == "GENERAL_DISCOVERY" and not item.get("recovery_need_id")),
             key=lambda item: (str(item.get("job_id") or ""), item.get("action_id", "")),
         )
+        if mandatory_lanes and not general:
+            general = sorted((a for a in first_wave_all if not hard_lane(a)),
+                             key=lambda a: (PRIORITY_ORDER[a["priority_class"]], str(a.get("recovery_need_id") or a["job_id"]), a["action_id"]))
         if general and len(selected) < cap:
             general_reserved = general[0]
             selected.append(general_reserved)
@@ -2454,6 +2466,27 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         if pair is not None:
             selected.append(pair)
             hard_reserved_ids.add(pair["action_id"])
+    # A requested hard protocol owns its core ladder, not merely its first
+    # wave. Give lanes alternating opportunities before optional/general waves.
+    # The general opportunity is edition-wide: an executed epoch-0 opportunity
+    # need not reserve a second slot in an otherwise full epoch-1 protocol.
+    required_pool = {lane: list(hard_lane_actions.get(lane, [])) for lane in mandatory_lanes}
+    while len(selected) < cap and any(required_pool.values()):
+        for lane in sorted(required_pool):
+            if len(selected) >= cap:
+                break
+            while required_pool[lane]:
+                action = required_pool[lane].pop(0)
+                if action["action_id"] in {a["action_id"] for a in selected}:
+                    continue
+                job = jobs_by_id[action["job_id"]]
+                counter, remaining = _action_allowance(job, action, config)
+                used = sum(a["job_id"] == action["job_id"] and _action_allowance(job, a, config)[0] == counter for a in selected)
+                if used >= remaining:
+                    continue
+                selected.append(action)
+                hard_reserved_ids.add(action["action_id"])
+                break
     for priority in ("P0_BLOCKING_EVIDENCE", "P1_BREADTH", "P1_DISTINCT_EVENT", "P2_CONTRADICTION"):
         candidate = next((item for item in sorted(first_wave, key=lambda value: (str(value.get("recovery_need_id") or value["job_id"]), value["action_id"])) if item["priority_class"] == priority), None)
         if candidate is not None and len(selected) < cap and candidate["action_id"] not in {item["action_id"] for item in selected}:
@@ -2470,11 +2503,19 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
                     break
                 if action["action_id"] in {item["action_id"] for item in selected}:
                     continue
+                if hard_lane(action) in mandatory_lanes:
+                    job = jobs_by_id[action["job_id"]]
+                    counter, remaining = _action_allowance(job, action, config)
+                    if sum(a["job_id"] == action["job_id"] and _action_allowance(job, a, config)[0] == counter for a in selected) >= remaining:
+                        continue
                 selected.append(action)
             if len(selected) >= cap:
                 break
         if len(selected) >= cap:
             break
+    for action in selected:
+        if hard_lane(action) in mandatory_lanes:
+            action["required_protocol"] = True
     selected_ids = {item["action_id"] for item in selected}
     selected_by_lane = {
         lane: [item["action_id"] for item in selected if hard_lane(item) == lane]
@@ -2496,6 +2537,10 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         "hard_lane_closure_state": {lane: "OPEN_AT_SCHEDULING" for lane in sorted(active_hard_lanes)},
         "remaining_general_capacity": max(0, cap - len(hard_reserved_ids)),
     }
+    if mandatory_lanes:
+        hard_lane_telemetry.update(completion_policy="MANDATORY_PROTOCOL_BEFORE_OPTIONAL_WAVES",
+            mandatory_lanes=list(mandatory_lanes), general_opportunity_executed_in_previous_epoch=general_opportunity_executed,
+            required_actions_planned={lane: [a["action_id"] for a in hard_lane_actions.get(lane, [])] for lane in mandatory_lanes})
     return {
         "actions": selected,
         "deferred_actions": [
@@ -2511,6 +2556,35 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     }
 
 
+def continue_required_research_jobs(initial_state: dict, execution: dict, config: dict,
+                                    mandatory_lanes: tuple[str, ...]) -> list[dict]:
+    """Carry exact unexecuted obligations into epoch 1 without resetting caps."""
+    completed = {a["action_id"] for j in execution.get("jobs", []) for a in j.get("actions", [])}
+    previous = {j["job"]["job_id"]: j for j in execution.get("jobs", [])}
+    deferred = [record["action"] for record in (execution.get("round_execution_budget") or {}).get("dynamic_actions_deferred", [])
+                if record.get("action") and (record["action"].get("required_lead_inspection") or record["action"].get("dynamic_recovery"))]
+    result = []
+    for job in initial_state.get("jobs", []):
+        native = plan_research_actions(job, config)
+        pending = [a for a in [*native, *deferred] if a.get("job_id") == job["job_id"]
+                   and a.get("target_editorial_function") in mandatory_lanes and a["action_id"] not in completed]
+        if not pending:
+            continue
+        carry = deepcopy(job)
+        prior = previous.get(job["job_id"], {})
+        carry["round"] = prior.get("job", {}).get("round", job.get("round", 0))
+        if carry["round"] >= carry["budget"]["max_followup_rounds"]:
+            continue
+        carry["executor_state"] = deepcopy(prior.get("job", {}).get("executor_state", {}))
+        if not carry["executor_state"]:
+            carry.pop("executor_state")
+        carry["completed_strategy_indices"] = {r["need_id"]: r["executed_variants"] for r in prior.get("recovery_strategy_progress", [])}
+        carry["required_continuation_actions"] = list({a["action_id"]: deepcopy(a) for a in pending}.values())
+        carry["continuation_of_epoch"] = 0
+        result.append(carry)
+    return result
+
+
 class FixtureResearchAdapter:
     """Deterministic read-only adapter keyed by action ID or action type."""
 
@@ -2523,14 +2597,27 @@ class FixtureResearchAdapter:
         return deepcopy(self.responses.get(action["action_id"], self.responses.get(action["action_type"], [])))
 
 
+def _fetch_action_source(action: dict, adapter) -> dict:
+    """Use the existing exceptional extractor only for an explicit action."""
+    dynamic = action.get("extraction_route") == "DYNAMIC"
+    fallback = getattr(adapter, "fallback_extractor", None) if dynamic else None
+    if dynamic and not callable(fallback):
+        raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE", "No proven dynamic extractor was supplied")
+    return fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"],
+        transport=getattr(adapter, "source_transport", default_transport), fallback_extractor=fallback, dynamic_only=dynamic)
+
+
 class HttpResearchAdapter:
     """Optional direct-fetch adapter; it intentionally has no search backend."""
+
+    def __init__(self, *, fallback_extractor=None):
+        self.fallback_extractor = fallback_extractor
 
     def execute(self, action: dict) -> list[dict]:
         if action["action_type"] not in FETCH_ACTIONS or not action.get("target"):
             raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
         try:
-            return [fetch_and_extract_source(action["target"], timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))]
+            return [_fetch_action_source(action, self)]
         except DiscoveryError as exc:
             return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail}]
 
@@ -2577,9 +2664,7 @@ class RssSearchAdapter:
     def execute(self, action: dict) -> list[dict]:
         if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
             try:
-                fetched = fetch_and_extract_source(
-                    str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport)
-                )
+                fetched = _fetch_action_source(action, self)
             except DiscoveryError as exc:
                 return [{
                     "result_type": "DEAD_END", "reason": exc.code,
@@ -2760,7 +2845,7 @@ class SearxngSearchAdapter:
     def execute(self, action: dict) -> list[dict]:
         if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
             try:
-                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))
+                fetched = _fetch_action_source(action, self)
             except DiscoveryError as exc:
                 return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail, "discovery_channel": f"{self.adapter_id}-followup"}]
             origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
@@ -2913,7 +2998,7 @@ class GdeltDocSearchAdapter:
             # Exact pages use DRAGON's one safe fetch path; GDELT never grants
             # a privileged retrieval route.
             try:
-                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))
+                fetched = _fetch_action_source(action, self)
             except DiscoveryError as exc:
                 return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail,
                          "discovery_channel": f"{self.adapter_id}-followup"}]
@@ -3027,7 +3112,7 @@ def searxng_search_adapter_from_config(path, *, source_classes_by_origin: dict[s
     )
 
 
-def discovery_adapter_from_config(root) -> ResearchAdapter | None:
+def discovery_adapter_from_config(root, *, fallback_extractor=None) -> ResearchAdapter | None:
     """Build the optional bounded discovery chain; no backend is evidence."""
     publisher_states = publisher_discovery_states_from_config(root / "config" / "publisher-discovery.yaml")
     rss = rss_search_adapter_from_config(root / "config" / "open-discovery.yaml", source_coverage_path=root / "config" / "source-coverage.yaml")
@@ -3035,6 +3120,13 @@ def discovery_adapter_from_config(root) -> ResearchAdapter | None:
     searxng = searxng_search_adapter_from_config(root / "config" / "general-search.yaml", source_classes_by_origin=classes)
     gdelt = gdelt_doc_adapter_from_config(root / "config" / "gdelt-discovery.yaml")
     adapters = [item for item in (rss, searxng, gdelt) if item is not None]
+    if fallback_extractor is not None:
+        from dragon.discovery import load_extraction_adapter_config
+        fallback_config = load_extraction_adapter_config(root / "config/extraction-adapters.yaml")
+        if not any(a["enabled"] and a["integration_test_status"] == "PASS" for a in fallback_config["fallbacks"]):
+            raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE", "Dynamic extractor configuration is disabled or unproven")
+        for adapter in adapters:
+            adapter.fallback_extractor = fallback_extractor
     if not adapters:
         return None
     result = DiscoveryAdapterChain(adapters) if len(adapters) > 1 else adapters[0]
@@ -4503,6 +4595,58 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
     return replayed, sources
 
 
+def reconcile_discovery_leads(observations: list[dict], actions: list[dict]) -> list[dict]:
+    """Resolve discovery bookkeeping from exact captured pages, never snippets."""
+    by_id = {a["action_id"]: a for a in actions}
+    records = []
+    for lead in observations:
+        parent = by_id.get((lead.get("provenance") or {}).get("action_id"))
+        if not parent or parent["action_type"] not in SEARCH_ACTIONS or lead.get("kind") != "LEAD" or not lead.get("url") or lead.get("extracted_text"):
+            continue
+        lane = parent.get("target_editorial_function")
+        matching = [o for o in observations if o is not lead and o.get("url")
+                    and normalize_url(o["url"]) == normalize_url(lead["url"])
+                    and (a := by_id.get((o.get("provenance") or {}).get("action_id")))
+                    and a["action_type"] in FETCH_ACTIONS and a.get("target")
+                    and a.get("target_editorial_function") == lane
+                    and normalize_url(a["target"]) == normalize_url(lead["url"])]
+        pages = [o for o in matching if o.get("extracted_text") and o.get("content_hash") and o.get("extraction_status") in {"FETCHED", "RETRIEVED"}]
+        state, reason = "BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH", "REQUIRED_LEAD_NOT_INSPECTED_WITHIN_BOUNDED_CAPACITY"
+        proof = []
+        if assess_source_url(lead["url"]).get("state") == "URL_UNSAFE":
+            state, reason = "BLOCKED_CONTRACT_FAILURE", "UNSAFE_REQUIRED_LEAD_URL"
+        elif pages:
+            proof = [{"observation_id": o["observation_id"], "content_hash": o["content_hash"]} for o in pages]
+            funcs = {f["function"] for o in pages for f in classify_event_functions(title=o.get("title"),
+                facts=[o["extracted_text"]], evidence_source_ids=[o.get("source_id") or o["observation_id"]], exact_page_validated=True)}
+            if all((o.get("temporal_relevance") or {}).get("active_on_edition_date") is False for o in pages):
+                state, reason = "OUTSIDE_TARGET_SCOPE", "EXACT_CONTENT_OUTSIDE_CURRENT_EVENT_WINDOW"
+            elif lane and lane not in funcs:
+                state, reason = "INSPECTED_REJECTED", "EXACT_CONTENT_DOES_NOT_QUALIFY_FOR_TARGET_FUNCTION"
+            elif any(o.get("validation_state") == "VALIDATED_EVIDENCE" for o in pages):
+                state, reason = "INSPECTED_CANDIDATE", "ORDINARY_EVIDENCE_EVALUATION_REQUIRED"
+            else:
+                state, reason = "INSPECTED_QUALIFICATION_UNRESOLVED", "EXACT_CONTENT_REQUIRES_NORMAL_EVIDENCE_GATES"
+            if state in {"INSPECTED_REJECTED", "OUTSIDE_TARGET_SCOPE"}:
+                # This is rejection only. The search observation remains a lead
+                # and receives neither source/evidence promotion nor article credit.
+                lead["relevance_status"] = "REJECTED"
+                lead["lead_attrition_state"] = state
+                duplicate = next((r for r in records if normalize_url(r["url"]) == normalize_url(lead["url"])
+                                  and r["proof"] == proof), None)
+                if duplicate:
+                    state, reason = "DEDUPLICATED_ALREADY_EVALUATED", "IDENTICAL_EXACT_URL_AND_CONTENT_HASH_ALREADY_EVALUATED"
+                    lead["lead_attrition_state"] = state
+        elif matching:
+            state, reason = "BLOCKED_TECHNICAL_FAILURE", str(matching[-1].get("discovery_reason") or "EXACT_SOURCE_NOT_EXTRACTED")
+        lead["lead_resolution"] = {"state": state, "reason": reason, "proof": proof}
+        lead["lead_attrition_state"] = state
+        lead["lead_attrition_reason"] = reason
+        records.append({"observation_id": lead["observation_id"], "url": lead["url"],
+            "parent_action_id": parent["action_id"], "state": state, "reason": reason, "proof": proof})
+    return records
+
+
 class RoundActionBudget:
     """Share the round ceiling across jobs, protecting scheduled opportunities."""
 
@@ -4558,6 +4702,17 @@ def execute_research_round(
     attempted_strategies: dict[str, set[int]] = {}
     strategy_counts: dict[str, int] = {}
     executed = []
+    mandatory_protocol = any(a.get("required_protocol") for a in planned)
+    core_phase = True
+    followup_queue: list[dict] = []
+    unexecuted_actions: list[dict] = []
+    dynamic_recovery_actions: list[str] = []
+
+    def defer_action(action: dict, reason: str) -> None:
+        record = {"action": deepcopy(action), "reason": reason}
+        unexecuted_actions.append(record)
+        if round_budget is not None and not any(r["action"]["action_id"] == action["action_id"] for r in round_budget.deferred):
+            round_budget.deferred.append(record)
 
     def generic_search_budget_available(action: dict) -> bool:
         """Reserve one existing search slot for actor-first recovery.
@@ -4583,11 +4738,17 @@ def execute_research_round(
         nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, direct_route_selection, actor_first_telemetry
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
+        if mandatory_protocol and core_phase and action["action_id"] not in {a["action_id"] for a in planned}:
+            if not any(a["action_id"] == action["action_id"] for a in followup_queue):
+                followup_queue.append(deepcopy(action))
+            return
         is_search = action["action_type"] in SEARCH_ACTIONS
         is_lead_followup = bool(action.get("lead_followup"))
         counter = "search_actions" if is_search else ("lead_followups" if is_lead_followup else "fetches")
         ceiling = int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]) if is_lead_followup else limits[counter]
         if state[counter] >= ceiling:
+            if mandatory_protocol:
+                defer_action(action, "JOB_ACTION_ALLOWANCE_EXHAUSTED")
             return
         if round_budget is not None and not round_budget.admit(action):
             return
@@ -4598,6 +4759,7 @@ def execute_research_round(
             attempted_strategies.setdefault(need_id, set()).add(int(action.get("strategy_index", 0)))
             strategy_counts[need_id] = max(strategy_counts.get(need_id, 0), int(action.get("strategy_count", 1)))
         try:
+            attempt_started_at = datetime.now(timezone.utc).isoformat()
             raw_results = adapter.execute(action)
         except ResearchExecutorError as exc:
             raw_results = [{"result_type": "DEAD_END", "reason": str(exc)}]
@@ -4616,13 +4778,25 @@ def execute_research_round(
         for raw in raw_results:
             if not isinstance(raw, dict):
                 raise ResearchExecutorError("RESEARCH_ADAPTER_RESULT_INVALID")
+            if mandatory_protocol and not (raw.get("retrieved_at") or raw.get("discovered_at")):
+                raw = {**raw, "discovered_at": attempt_started_at}
             # Failed follow-up responses must retain the exact target so lead
             # attrition can distinguish fetch/extraction/browser states.
             if action.get("action_type") in FETCH_ACTIONS and action.get("target") and not (raw.get("canonical_url") or raw.get("url")):
                 raw = {**raw, "url": action["target"]}
             observation = _observation(action, raw, seen_urls)
+            if action.get("dynamic_recovery"):
+                observation["extraction_method"] = raw.get("extraction_method")
             observations.append(observation)
             branch_results.setdefault(action["branch_id"], []).append(observation)
+            if (mandatory_protocol and observation.get("discovery_reason") == "SOURCE_DYNAMIC_ROUTE_REQUIRED"
+                and action.get("action_type") in FETCH_ACTIONS and not action.get("dynamic_recovery")):
+                recovery = {**action, "action_id": _stable_id("ACT", action["action_id"], "DYNAMIC_RECOVERY"),
+                    "lead_followup": True, "dynamic_recovery": True, "extraction_route": "DYNAMIC",
+                    "originating_observation_id": observation["observation_id"],
+                    "query_intent": "DYNAMIC_EXACT_SOURCE_RECOVERY", "channel_fallback": None}
+                dynamic_recovery_actions.append(recovery["action_id"])
+                run_action(recovery)
             # Bounded provenance recovery applies to fetched secondary or
             # unresolved leads only.  It consumes the existing follow-up cap
             # and never upgrades the originating observation's evidence role.
@@ -4978,6 +5152,12 @@ def execute_research_round(
 
     for action in planned[: config["executor"]["maximum_actions_per_round"]]:
         run_action(action)
+    core_phase = False
+    # Resolve already-observed extraction failures first; inspected search
+    # leads then precede optional recursive navigation and channel expansion.
+    for action in [a for a in followup_queue if a.get("dynamic_recovery")]:
+        run_action(action)
+    followup_queue = [a for a in followup_queue if not a.get("dynamic_recovery")]
 
     # Follow a bounded, rank- and diversity-selected set of discovery leads.
     # This reserve is separate from configured-source fetches so pre-existing
@@ -5008,13 +5188,14 @@ def execute_research_round(
                 "expected_result_type": "EXTRACTED_SOURCE",
                 "timeout_seconds": config["executor"]["action_timeout_seconds"],
                 "lead_followup": True,
+                "required_lead_inspection": mandatory_protocol,
                 # The discovery ladder already selected this exact page. A
                 # failed retrieval is attrition evidence, not permission to
                 # recursively spend search budget on its parent query.
                 "channel_fallback": None,
             }
             run_action(fetch_action)
-            if state["lead_followups"] >= followup_limits["total"]:
+            if not mandatory_protocol and state["lead_followups"] >= followup_limits["total"]:
                 break
         # An exact page can reveal a concrete but unknown-role event and
         # trigger one alternative-coverage search.  Reconsider only its new
@@ -5051,6 +5232,23 @@ def execute_research_round(
                 run_action(fetch_action)
                 if state["lead_followups"] >= followup_limits["total"]:
                     break
+    for action in followup_queue:
+        run_action(action)
+    lead_evaluations = []
+    if mandatory_protocol:
+        lead_evaluations = reconcile_discovery_leads(observations, executed)
+        # Preserve a concrete required request for every potential uninspected
+        # lead, including those excluded from the ranked finite fetch slice.
+        by_id = {a["action_id"]: a for a in executed}
+        for record in lead_evaluations:
+            if record["state"] != "BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH":
+                continue
+            parent = by_id[record["parent_action_id"]]
+            pending = {**parent, "action_id": _stable_id("ACT", parent["action_id"], "FETCH_URL", record["url"]),
+                "action_type": "FETCH_URL", "target": record["url"], "lead_followup": True,
+                "required_lead_inspection": True, "originating_observation_id": record["observation_id"],
+                "channel_fallback": None, "expected_result_type": "EXTRACTED_SOURCE"}
+            defer_action(pending, record["reason"])
     # Event leads and their alternative exact pages are evaluated together.
     # This happens before downstream recovery so a complete, claim-policy-safe
     # bundle can become one normal candidate patch rather than disconnected
@@ -5087,9 +5285,9 @@ def execute_research_round(
     strategy_progress = [
         {
             "need_id": need_id,
-            "executed_variants": sorted(indices),
+            "executed_variants": sorted(indices | set(job.get("completed_strategy_indices", {}).get(need_id, []))),
             "strategy_count": strategy_counts[need_id],
-            "attempt_exhausted": len(indices) >= strategy_counts[need_id],
+            "attempt_exhausted": len(indices | set(job.get("completed_strategy_indices", {}).get(need_id, []))) >= strategy_counts[need_id],
         }
         for need_id, indices in sorted(attempted_strategies.items())
     ]
@@ -5117,6 +5315,8 @@ def execute_research_round(
         "job": advanced,
         "actions": executed,
         "observations": observations,
+        **({"lead_evaluations": lead_evaluations, "unexecuted_actions": unexecuted_actions,
+            "dynamic_recovery_actions": dynamic_recovery_actions} if mandatory_protocol else {}),
         "source_packet_patch": {
             "sources": source_records,
             "candidate_evidence_updates": updates,

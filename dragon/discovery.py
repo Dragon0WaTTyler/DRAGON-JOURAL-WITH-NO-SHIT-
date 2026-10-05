@@ -840,16 +840,21 @@ def fetch_and_extract_source(
     timeout_seconds: int = 15,
     maximum_bytes: int = 10_000_000,
     retrieved_at: str | None = None,
+    fallback_extractor: ExtractionFallback | None = None,
+    dynamic_only: bool = False,
 ) -> dict:
     """Fetch once, then route by the returned material type."""
     response = _fetch(url, transport, timeout_seconds, maximum_bytes)
     if response.content_type in {"text/html", "application/xhtml+xml"}:
+        if dynamic_only:
+            return _fallback_or_dynamic_route(response, url, retrieved_at, fallback_extractor, "bounded dynamic recovery")
         return fetch_and_extract_html(
             url,
             transport=lambda *_: response,
             timeout_seconds=timeout_seconds,
             maximum_bytes=maximum_bytes,
             retrieved_at=retrieved_at,
+            fallback_extractor=fallback_extractor,
         )
     from dragon.structured_extraction import DocumentExtractionError, extract_structured_document
 
