@@ -472,6 +472,12 @@ def build_stage_definitions(
             item.get("job", {}).get("job_id"): item
             for item in report.get("jobs", []) if isinstance(item, dict)
         }
+        reservation = report.get("hard_lane_reservation", {})
+        reservation["hard_lane_actions_executed"] = {
+            lane: sum(1 for action in report.get("actions_planned", [])
+                if str(action.get("target_editorial_function") or "").upper() == lane)
+            for lane in reservation.get("active_hard_lanes", [])
+        }
         actions_by_need: dict[str, list[str]] = {}
         for action in report.get("actions_planned", []):
             need_id = action.get("recovery_need_id")

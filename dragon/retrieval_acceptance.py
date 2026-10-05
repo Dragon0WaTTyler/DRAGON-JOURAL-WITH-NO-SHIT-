@@ -178,22 +178,26 @@ def run_research_stages(root: Path, run_dir: Path, edition_date: str, adapter, c
     return states
 
 
+class SavedResearchAdapter:
+    follow_discovery_leads = True
+
+    def __init__(self, records):
+        self.records, self.index = records, 0
+
+    def execute(self, action):
+        if self.index >= len(self.records):
+            raise ValueError("replay attempted an unrecorded action")
+        record = self.records[self.index]
+        if record["action"] != action or record["state"] != "RESPONDED":
+            raise ValueError("replay request differs from preserved action")
+        self.index += 1
+        return deepcopy(record["results"])
+
+
 def replay_retrieval(bundle: Path, *, root: Path, require_complete: bool = True) -> dict:
     manifest = verify_acceptance_bundle(bundle, require_complete=require_complete)
     artifacts = bundle / "artifacts"
     records = [read(path) for path in sorted((artifacts / "retrieval/actions").glob("*.json"))]
-
-    class SavedAdapter:
-        follow_discovery_leads = True
-        def __init__(self): self.index = 0
-        def execute(self, action):
-            if self.index >= len(records):
-                raise ValueError("replay attempted an unrecorded action")
-            record = records[self.index]
-            if record["action"] != action or record["state"] != "RESPONDED":
-                raise ValueError("replay request differs from preserved action")
-            self.index += 1
-            return deepcopy(record["results"])
 
     # A matching directory basename retains recovery action identities.
     with tempfile.TemporaryDirectory(prefix="dragon-retrieval-replay-") as directory:
@@ -201,7 +205,7 @@ def replay_retrieval(bundle: Path, *, root: Path, require_complete: bool = True)
         shutil.copytree(bundle / "configuration/config", replay_root / "config")
         run_dir = replay_root / "runs" / manifest["run_id"]
         seed_run(run_dir, read(artifacts / "retrieval/execution-replay.json"))
-        adapter = SavedAdapter()
+        adapter = SavedResearchAdapter(records)
         run_research_stages(replay_root, run_dir, manifest["edition_date"], adapter)
         if adapter.index != len(records):
             raise ValueError("replay did not consume every preserved action")
@@ -216,6 +220,63 @@ def replay_retrieval(bundle: Path, *, root: Path, require_complete: bool = True)
             if original.exists(): compared.append(name)
     return {"status": "PASS", "run_id": manifest["run_id"], "manifest_sha256": sha256_file(bundle / "manifest.json"),
         "provider_calls": 0, "network_calls": 0, "actions_replayed": len(records), "exact_artifacts_compared": compared}
+
+
+def review_retrieval(bundle: Path, *, root: Path) -> dict:
+    """Hash-bound current-code review; retain the original live verdict intact."""
+    manifest = verify_acceptance_bundle(bundle)
+    artifacts = bundle / "artifacts"
+    records = [read(path) for path in sorted((artifacts / "retrieval/actions").glob("*.json"))]
+    review_id = "retrieval-evidence-review-" + str(uuid4())
+    outcomes = []
+    with tempfile.TemporaryDirectory(prefix="dragon-evidence-review-") as directory:
+        for iteration in range(2):
+            workspace = Path(directory) / str(iteration)
+            shutil.copytree(bundle / "configuration/config", workspace / "config")
+            run_dir = workspace / "runs" / manifest["run_id"]
+            seed_run(run_dir, read(artifacts / "retrieval/execution-replay.json"))
+            adapter = SavedResearchAdapter(records)
+            run_research_stages(workspace, run_dir, manifest["edition_date"], adapter)
+            if adapter.index != len(records):
+                raise ValueError("evidence review did not consume every preserved action")
+            reports = {path.relative_to(run_dir).as_posix(): read(path) for path in run_dir.rglob("*.json")}
+            outcomes.append(reports)
+        if outcomes[0] != outcomes[1]:
+            raise ValueError("current-code evidence review was nondeterministic")
+        changes = []
+        def compare(before, after, path):
+            if isinstance(before, dict) and isinstance(after, dict):
+                for key in sorted(set(before) | set(after)):
+                    compare(before.get(key), after.get(key), path + "/" + str(key))
+            elif isinstance(before, list) and isinstance(after, list) and len(before) == len(after):
+                for index, (left, right) in enumerate(zip(before, after)):
+                    compare(left, right, path + "/" + str(index))
+            elif before != after:
+                changes.append({"path": path, "before": before, "after": after})
+        for name, value in outcomes[0].items():
+            if (artifacts / name).is_file(): compare(read(artifacts / name), value, name)
+        archive = LocalAcceptanceArchive(root=root, run_dir=run_dir, run_id=review_id,
+            edition_date=manifest["edition_date"], destination=bundle.parent)
+        archive.manifest.update(provider_call_limit=0, bundle_type="OFFLINE_RETRIEVAL_EVIDENCE_REVIEW",
+            parent_retrieval_bundle_id=manifest["run_id"], parent_retrieval_manifest_sha256=sha256_file(bundle / "manifest.json"),
+            parent_provider_bundle_id=manifest["parent_provider_bundle_id"], network_calls=0)
+        shutil.copytree(artifacts / "retrieval/actions", run_dir / "retrieval/actions")
+        shutil.copyfile(artifacts / "retrieval/execution-replay.json", run_dir / "retrieval/execution-replay.json")
+        atomic_write_json(run_dir / "state.json", {"run_id": review_id, "mode": "OFFLINE_CURRENT_CODE_EVIDENCE_REVIEW", "provider_calls": 0, "network_calls": 0})
+        decisions = evidence_decisions(run_dir)
+        decisions["verdicts"]["RETRIEVAL_ACCEPTANCE_ARTIFACT_DURABILITY"] = "PASS"
+        decisions["verdicts"]["PHASE_2_ACCEPTANCE"] = decisions["verdicts"]["TECHNICAL_RESEARCH_ACCEPTANCE"]
+        atomic_write_json(run_dir / "retrieval/evidence-decisions.json", decisions)
+        result = {"run_id": review_id, "mode": "OFFLINE_CURRENT_CODE_EVIDENCE_REVIEW", "status": "PASS",
+            "parent_retrieval_bundle_id": manifest["run_id"], "parent_retrieval_manifest_sha256": sha256_file(bundle / "manifest.json"),
+            "actions_replayed": adapter.index, "provider_calls": 0, "network_calls": 0, "deterministic_replays": 2,
+            "decision_changes": changes, "verdicts": decisions["verdicts"]}
+        atomic_write_json(run_dir / "retrieval/current-code-review.json", result)
+        archive.finalize(required=["state.json", "retrieval/current-code-review.json", "retrieval/evidence-decisions.json",
+            "retrieval/execution-replay.json", "deep-research/execution-report.json", "research-recovery/plan.json"],
+            provider_calls=0, run_result="OFFLINE_EVIDENCE_REVIEW_COMPLETE")
+    verify_acceptance_bundle(bundle)
+    return {**result, "bundle": str(archive.bundle), "manifest_sha256": sha256_file(archive.bundle / "manifest.json")}
 
 
 def evidence_decisions(run_dir: Path) -> dict:

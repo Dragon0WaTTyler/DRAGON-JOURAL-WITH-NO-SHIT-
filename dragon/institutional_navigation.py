@@ -175,8 +175,10 @@ def extract_document_references(raw: dict) -> list[dict]:
         if not match:
             continue
         issuer, aliases = issuer_spec
+        local_text = text[max(0, match.start() - 180): match.end() + 220]
+        if issuer and not any(alias.casefold() in local_text.casefold() for alias in aliases):
+            issuer, aliases = None, ()
         if issuer is None:
-            local_text = text[max(0, match.start() - 180): match.end() + 220]
             for candidate, candidate_aliases in (
                 ("Public Prosecution", ("النيابة العامة", "رئاسة النيابة العامة", "public prosecution", "parquet")),
                 ("Ministry of Interior", ("وزارة الداخلية", "وزير الداخلية", "ministry of interior")),
@@ -198,7 +200,7 @@ def extract_document_references(raw: dict) -> list[dict]:
             "issuer_provenance": "PAGE_TEXT_EXPLICIT" if issuer else "ISSUER_UNRESOLVED",
         })
     # Keep explicit identifiers, but never mistake a bare year for one.
-    explicit_ids = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|(?:رقم|no\.?|n°)\s*[A-Za-z0-9\-/]+)\b", text, flags=re.I)))
+    explicit_ids = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|(?:رقم|no\.?)\s+[A-Za-z0-9\-/]+|n°\s*[A-Za-z0-9\-/]+)\b", text, flags=re.I)))
     for ref in refs:
         if explicit_ids:
             ref["identifier"] = explicit_ids[0]

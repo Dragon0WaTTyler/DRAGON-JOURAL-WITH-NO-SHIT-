@@ -31,6 +31,20 @@ upstream manifest, raw hash and comparison receipt. `replay --bundle PATH`
 executes the same two runners from archived responses without network and
 compares resulting packet, observations, plans and evidence reports exactly.
 
+After the October 4-frame live trial, inspection of preserved responses exposed
+an unsupported document-issuer inference: a generic communiqué defaulted to
+the Ministry of Interior, and “non confidentiel” could produce a false document
+identifier. Issuers now require nearby explicit institutional text; identifiers
+require a real delimiter. These corrections grant no evidence role. Initial
+execution reports also now record the actual hard-lane execution count rather
+than leaving the scheduler's pre-execution zero in place.
+
+`review --bundle PATH` performs a separately archived current-code evaluation
+of every saved response twice. It requires identical recorded requests and
+deterministic resulting reports, records all decision differences, and binds
+its own manifest to the immutable live retrieval bundle. It never replaces the
+original live reports or their already-completed exact replay receipt.
+
 Historical evidence limitation is permanent:
 
 - `SEP27_PRIMARY_ARTIFACTS = UNAVAILABLE`

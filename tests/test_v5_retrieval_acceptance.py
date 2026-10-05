@@ -14,9 +14,10 @@ from dragon.deep_research_executor import FixtureResearchAdapter, RoundActionBud
 from dragon.editorial_functions import classify_event_functions
 from dragon.providers import LocalCommandEditorialProvider
 from dragon.research_acceptance import ProviderFreeAcceptanceProvider
-from dragon.retrieval_acceptance import prepare_retrieval, seed_run, run_research_stages, RecordingResearchAdapter, replay_retrieval, evidence_decisions
+from dragon.retrieval_acceptance import prepare_retrieval, seed_run, run_research_stages, RecordingResearchAdapter, replay_retrieval, evidence_decisions, review_retrieval
 from dragon.archive import LocalAcceptanceArchive
 from dragon.state import atomic_write_json
+from dragon.institutional_navigation import extract_document_references
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -73,6 +74,8 @@ def test_unchanged_service_need_is_attempted_in_existing_recovery_epoch(replay, 
     result = run_research_stages(tmp_path, run_dir, "2026-10-04", adapter)
     assert result["research_recovery"]["error_code"] in {"RESEARCH_RECOVERY_REQUIRED", "RESEARCH_INSUFFICIENT"}
     report = json.loads((run_dir / "deep-research/epoch-1-execution-report.json").read_text(encoding="utf-8"))
+    initial = json.loads((run_dir / "deep-research/execution-report.json").read_text(encoding="utf-8"))
+    assert initial["hard_lane_reservation"]["hard_lane_actions_executed"]["ACCOUNTABILITY"] == 3
     assert any(a.get("target_editorial_function") == "SERVICE" for a in report["actions_planned"])
     assert len(report["actions_planned"]) <= 8
     assert report["round_execution_budget"]["maximum_actions_per_round"] == 8
@@ -114,6 +117,7 @@ def test_preserved_empty_retrieval_replays_all_production_decisions_exactly(repl
         archive = LocalAcceptanceArchive(root=ROOT, run_dir=run_dir, run_id=run_dir.name,
             edition_date="2026-10-04", destination=tmp_path)
         archive.manifest["provider_call_limit"] = 0
+        archive.manifest["parent_provider_bundle_id"] = replay["input_run_id"]
         seed_run(run_dir, replay)
         atomic_write_json(run_dir / "retrieval/execution-replay.json", replay)
         adapter = RecordingResearchAdapter(FixtureResearchAdapter({}), run_dir, archive)
@@ -128,6 +132,10 @@ def test_preserved_empty_retrieval_replays_all_production_decisions_exactly(repl
     assert result["status"] == "PASS"
     assert result["provider_calls"] == result["network_calls"] == 0
     assert 8 <= result["actions_replayed"] <= 16
+    review = review_retrieval(archive.bundle, root=ROOT)
+    assert review["provider_calls"] == review["network_calls"] == 0
+    assert review["deterministic_replays"] == 2
+    assert review["decision_changes"] == []
 
 
 def test_comparison_tampering_stops_before_network(replay, tmp_path):
@@ -139,3 +147,17 @@ def test_comparison_tampering_stops_before_network(replay, tmp_path):
     (tmp_path / "receipt/comparison.json").write_text("tampered", encoding="utf-8")
     with pytest.raises(ValueError, match="comparison artifact hash differs"):
         prepare_retrieval(parent, tmp_path / "receipt/receipt.json", root=ROOT)
+
+
+@pytest.mark.parametrize("title", ["Communiqué du Conseil de la concurrence", "Public circular about a service"])
+def test_document_type_cannot_invent_an_issuer(title):
+    refs = extract_document_references({"title": title, "text": "Routine notice. Résumé non confidentiel de l'opération."})
+    assert refs and all(ref["issuer"] is None and ref["issuer_provenance"] == "ISSUER_UNRESOLVED" for ref in refs)
+    assert all(ref["identifier"] is None for ref in refs)
+
+
+def test_explicit_document_issuer_and_identifier_are_retained():
+    refs = extract_document_references({"title": "Communiqué du Ministry of Interior no. 123", "text": "Official notice"})
+    assert refs[0]["issuer"] == "Ministry of Interior"
+    assert refs[0]["issuer_provenance"] == "PAGE_TEXT_EXPLICIT"
+    assert refs[0]["identifier"] == "no. 123"

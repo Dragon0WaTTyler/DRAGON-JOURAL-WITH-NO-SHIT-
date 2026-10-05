@@ -3,21 +3,23 @@
 import argparse
 import json
 from pathlib import Path
-from dragon.retrieval_acceptance import prepare_retrieval, replay_retrieval, run_live_retrieval
+from dragon.retrieval_acceptance import prepare_retrieval, replay_retrieval, run_live_retrieval, review_retrieval
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("preflight", "live", "replay"))
+    parser.add_argument("operation", choices=("preflight", "live", "replay", "review"))
     parser.add_argument("--bundle", required=True, type=Path)
     parser.add_argument("--receipt", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
-    if args.operation != "replay" and args.receipt is None:
+    if args.operation in {"preflight", "live"} and args.receipt is None:
         parser.error("--receipt is required before live retrieval")
     try:
         if args.operation == "replay":
             result = replay_retrieval(args.bundle, root=root)
+        elif args.operation == "review":
+            result = review_retrieval(args.bundle, root=root)
         elif args.operation == "live":
             result = run_live_retrieval(args.bundle, args.receipt, root=root)
         else:
