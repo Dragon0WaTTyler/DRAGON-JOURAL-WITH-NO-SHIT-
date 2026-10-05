@@ -35,7 +35,7 @@ After the October 4-frame live trial, inspection of preserved responses exposed
 an unsupported document-issuer inference: a generic communiqué defaulted to
 the Ministry of Interior, and “non confidentiel” could produce a false document
 identifier. Issuers now require nearby explicit institutional text; identifiers
-require a real delimiter. These corrections grant no evidence role. Initial
+require a real delimiter and a nearby document reference. These corrections grant no evidence role. Initial
 execution reports also now record the actual hard-lane execution count rather
 than leaving the scheduler's pre-execution zero in place.
 

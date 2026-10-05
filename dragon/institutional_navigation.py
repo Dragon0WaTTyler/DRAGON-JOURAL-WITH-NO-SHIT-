@@ -200,8 +200,10 @@ def extract_document_references(raw: dict) -> list[dict]:
             "issuer_provenance": "PAGE_TEXT_EXPLICIT" if issuer else "ISSUER_UNRESOLVED",
         })
     # Keep explicit identifiers, but never mistake a bare year for one.
-    explicit_ids = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|(?:رقم|no\.?)\s+[A-Za-z0-9\-/]+|n°\s*[A-Za-z0-9\-/]+)\b", text, flags=re.I)))
     for ref in refs:
+        # Numbers elsewhere on the page may identify a law, company or
+        # registry entry rather than this document. Require a nearby locator.
+        explicit_ids = sorted(set(re.findall(r"\b(?:[A-Z]{2,}[\-/]?\d{2,}|(?:رقم|no\.?)\s+[A-Za-z0-9\-/]+|n°\s*[A-Za-z0-9\-/]+)\b", ref["matched_text"], flags=re.I)))
         if explicit_ids:
             ref["identifier"] = explicit_ids[0]
     return refs[:8]

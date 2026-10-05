@@ -161,3 +161,9 @@ def test_explicit_document_issuer_and_identifier_are_retained():
     assert refs[0]["issuer"] == "Ministry of Interior"
     assert refs[0]["issuer_provenance"] == "PAGE_TEXT_EXPLICIT"
     assert refs[0]["identifier"] == "no. 123"
+
+
+def test_unrelated_registry_number_is_not_a_document_identifier():
+    refs = extract_document_references({"title": "Communiqué concerning routine acquisition",
+        "text": "General public notification. " * 25 + "Company registered under N° 652577."})
+    assert refs[0]["identifier"] is None

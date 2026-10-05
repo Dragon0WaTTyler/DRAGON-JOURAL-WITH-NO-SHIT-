@@ -25,10 +25,10 @@ def main():
         else:
             replay = prepare_retrieval(args.bundle, args.receipt, root=root)
             result = {**replay["retrieval_preflight"], "selected_action_ids": [a["action_id"] for a in replay["scheduler_allocation"]["actions"]]}
-        print(json.dumps(result, ensure_ascii=False))
+        print(json.dumps(result, ensure_ascii=True))
         return 0
     except Exception as exc:
-        print(json.dumps({"status": "FAIL", "code": getattr(exc, "code", type(exc).__name__), "detail": str(exc)}, ensure_ascii=False))
+        print(json.dumps({"status": "FAIL", "code": getattr(exc, "code", type(exc).__name__), "detail": str(exc)}, ensure_ascii=True))
         return 1
 
 
