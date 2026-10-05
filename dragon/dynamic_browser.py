@@ -307,14 +307,18 @@ def dynamic_extractor_from_config(root,*,diagnostic=False):
     if not (root/"config/extraction-adapters.yaml").is_file(): return None
     settings=load_extraction_adapter_config(root/"config/extraction-adapters.yaml")
     entry=next((item for item in settings["fallbacks"] if item["adapter_id"]=="crawl4ai-optional"),None)
-    if entry is None or (not diagnostic and not entry["enabled"]): return None
+    if entry is None: return None
     directory=local_browser_directory(root)
     try:
         local=json.loads((directory/"runtime.json").read_text(encoding="utf-8"))
-        if set(local)!={"python_executable"} or not Path(local["python_executable"]).is_absolute():
+        if set(local) not in ({"python_executable"},{"python_executable","enabled"}) or not Path(local["python_executable"]).is_absolute():
             raise ValueError("Runtime binding must contain an absolute Python executable")
+        if "enabled" in local and type(local["enabled"]) is not bool:
+            raise ValueError("Local enabled flag must be boolean")
     except (OSError,ValueError,TypeError) as exc:
+        if not diagnostic and not entry["enabled"]: return None
         raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE",str(exc)) from exc
+    if not diagnostic and not (entry["enabled"] or local.get("enabled") is True): return None
     extractor=DynamicBrowserExtractor(root=root,runtime=Path(local["python_executable"]),directory=directory,diagnostic=diagnostic)
     if not diagnostic and extractor.readiness()["state"]!="DYNAMIC_ADAPTER_READY":
         raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE",json.dumps(extractor.readiness()))

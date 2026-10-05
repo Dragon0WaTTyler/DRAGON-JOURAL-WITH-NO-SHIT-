@@ -3155,7 +3155,9 @@ def discovery_adapter_from_config(root, *, fallback_extractor=None) -> ResearchA
         from dragon.discovery import load_extraction_adapter_config
         fallback_config = load_extraction_adapter_config(root / "config/extraction-adapters.yaml")
         if not any(a["enabled"] and a["integration_test_status"] == "PASS" for a in fallback_config["fallbacks"]):
-            raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE", "Dynamic extractor configuration is disabled or unproven")
+            from dragon.dynamic_browser import DynamicBrowserExtractor
+            if not isinstance(fallback_extractor, DynamicBrowserExtractor) or fallback_extractor.readiness()["state"] != "DYNAMIC_ADAPTER_READY":
+                raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE", "Dynamic extractor configuration is disabled or unproven")
         for adapter in adapters:
             adapter.fallback_extractor = fallback_extractor
     if not adapters:

@@ -263,3 +263,40 @@ def test_native_worker_joins_exact_parent_job_before_browser_import(tmp_path):
     value=run_worker(Path(sys.executable),worker,{},workspace=tmp_path,timeout=5)
     assert value["code"]=="EXPECTED_CONTAINED_WORKER"
     assert "'verified': True" in value["detail"] and value["host"]["cleanup"]["verified"] is True
+
+
+def test_local_opt_in_cannot_register_native_backend_without_host_proof(tmp_path,monkeypatch):
+    import dragon.dynamic_browser as module
+    monkeypatch.setattr(module,"local_browser_directory",lambda _root:tmp_path)
+    (tmp_path/"runtime.json").write_text(json.dumps({"python_executable":sys.executable,"enabled":True}),encoding="utf-8")
+    with pytest.raises(DiscoveryError) as error:
+        module.dynamic_extractor_from_config(ROOT)
+    assert error.value.code=="SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE"
+    assert "READINESS_RECEIPT_INVALID" in str(error.value)
+
+
+def test_unconfigured_optional_browser_does_not_block_static_factory(tmp_path,monkeypatch):
+    import dragon.dynamic_browser as module
+    monkeypatch.setattr(module,"local_browser_directory",lambda _root:tmp_path)
+    assert module.dynamic_extractor_from_config(ROOT) is None
+    (tmp_path/"runtime.json").write_text(json.dumps({"python_executable":sys.executable,"enabled":False}),encoding="utf-8")
+    assert module.dynamic_extractor_from_config(ROOT) is None
+
+
+def test_local_opt_in_with_all_proofs_registers_actual_native_adapter(tmp_path,monkeypatch):
+    import dragon.dynamic_browser as module
+    from dragon.deep_research_executor import discovery_adapter_from_config
+    monkeypatch.setattr(module,"local_browser_directory",lambda _root:tmp_path)
+    (tmp_path/"runtime.json").write_text(json.dumps({"python_executable":sys.executable,"enabled":True}),encoding="utf-8")
+    proof=tmp_path/"proof.json"; proof.write_text("verified fixture")
+    dependency=tmp_path/"runtime-dependency"; dependency.write_text("pinned")
+    receipt=ready_receipt()
+    receipt["proof_artifacts"]={"proof.json":hashlib.sha256(proof.read_bytes()).hexdigest()}
+    receipt["runtime_files"]={str(dependency):hashlib.sha256(dependency.read_bytes()).hexdigest()}
+    data=json.dumps(receipt).encode(); (tmp_path/"readiness.json").write_bytes(data)
+    (tmp_path/"readiness.sha256").write_text(hashlib.sha256(data).hexdigest())
+    backend=module.dynamic_extractor_from_config(ROOT)
+    assert isinstance(backend,module.DynamicBrowserExtractor) and backend.readiness()["state"]=="DYNAMIC_ADAPTER_READY"
+    adapter=discovery_adapter_from_config(ROOT)
+    members=getattr(adapter,"adapters",[adapter])
+    assert members and all(isinstance(item.fallback_extractor,module.DynamicBrowserExtractor) for item in members)

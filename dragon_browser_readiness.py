@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
+from uuid import uuid4
 
 from dragon.browser_protocol import BrowserFailure,LIMITS,assert_launch_policy,canonical_hash
 from dragon.dynamic_browser import dynamic_extractor_from_config,implementation_identity,local_browser_directory
@@ -75,8 +76,7 @@ def qualify(root, *, live_capture, offline_capture, controls_log):
         for name in ("request.json","response.json","normalized.json","probe-summary.json","implementation.json","evaluation.json"):
             path=capture/name
             proofs[path.relative_to(directory).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
-    target=directory/"focused-controls.log"
-    if target.exists(): raise DiscoveryError("DYNAMIC_READINESS_FAILURE","Control proof already exists")
+    target=directory/("focused-controls-"+str(uuid4())+".log")
     target.write_bytes(controls_log.read_bytes())
     proofs[target.relative_to(directory).as_posix()]=hashlib.sha256(target.read_bytes()).hexdigest()
     runtime=dynamic_extractor_from_config(root,diagnostic=True).runtime

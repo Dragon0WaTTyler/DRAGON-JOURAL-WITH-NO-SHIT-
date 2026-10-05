@@ -23,9 +23,14 @@ No dependencies are installed into production Python. The official
 publishes the embeddable runtime's checksum; the local runtime inventory also
 hashes its DLL, stdlib ZIP, `_pth`, browser and relevant dependency code.
 
-`dynamic_extractor_from_config` requires the existing YAML enabled/PASS gate
-and a local `runtime.json` binding in the common Git directory's
-`dragon/dynamic-browser` directory. A YAML PASS alone cannot enable the route.
+The accepted global YAML remains disabled/unproven, preserving its frozen
+historical identity and ordinary static behavior on unconfigured hosts.
+`dynamic_extractor_from_config` accepts explicit host-local `enabled: true`
+in `runtime.json`, alongside the absolute `python_executable`, in the common
+Git directory's `dragon/dynamic-browser` directory. Local activation is accepted
+only for the native `DynamicBrowserExtractor` with verified readiness. An
+arbitrary injected callable still requires the original YAML enabled/PASS gate.
+A YAML PASS or local flag alone cannot register the native route.
 `DynamicBrowserExtractor.readiness` requires a receipt with all mandatory
 checks, unchanged code/runtime/dependencies, unchanged captured proofs, limits
 and a timestamp no older than 24 hours. Missing, changed or stale proofs return
