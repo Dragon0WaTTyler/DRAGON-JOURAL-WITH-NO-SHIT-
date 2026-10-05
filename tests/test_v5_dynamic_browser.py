@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import socket
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -18,6 +19,13 @@ from dragon.browser_windows import WindowsJob,token_security
 
 ROOT=Path(__file__).resolve().parents[1]
 TEXT="Actual rendered source content. "*20
+
+
+@pytest.fixture
+def windows_host(monkeypatch):
+    """Proof fixtures exercise Windows policy without changing the runner's OS."""
+    import dragon.dynamic_browser as module
+    monkeypatch.setattr(module,"os",SimpleNamespace(**{**vars(os),"name":"nt"}))
 
 
 def response():
@@ -236,7 +244,7 @@ def test_promotion_rejects_missing_or_unsafe_actual_proof(tmp_path,defect):
     with pytest.raises(DiscoveryError): validate_probe_proof(value,request,summary,offline=False)
 
 
-def test_registration_rechecks_proof_and_dependency_hashes(tmp_path):
+def test_registration_rechecks_proof_and_dependency_hashes(tmp_path,windows_host):
     extractor=backend(tmp_path,lambda *_a,**_k:pytest.fail("no execution"))
     proof=extractor.directory/"proof.json"; proof.write_text("proof")
     dependency=tmp_path/"dependency"; dependency.write_text("dependency")
@@ -266,7 +274,7 @@ def test_native_worker_joins_exact_parent_job_before_browser_import(tmp_path):
     assert "'verified': True" in value["detail"] and value["host"]["cleanup"]["verified"] is True
 
 
-def test_local_opt_in_cannot_register_native_backend_without_host_proof(tmp_path,monkeypatch):
+def test_local_opt_in_cannot_register_native_backend_without_host_proof(tmp_path,monkeypatch,windows_host):
     import dragon.dynamic_browser as module
     monkeypatch.setattr(module,"local_browser_directory",lambda _root:tmp_path)
     (tmp_path/"runtime.json").write_text(json.dumps({"python_executable":sys.executable,"enabled":True}),encoding="utf-8")
@@ -284,7 +292,7 @@ def test_unconfigured_optional_browser_does_not_block_static_factory(tmp_path,mo
     assert module.dynamic_extractor_from_config(ROOT) is None
 
 
-def test_local_opt_in_with_all_proofs_registers_actual_native_adapter(tmp_path,monkeypatch):
+def test_local_opt_in_with_all_proofs_registers_actual_native_adapter(tmp_path,monkeypatch,windows_host):
     import dragon.dynamic_browser as module
     from dragon.deep_research_executor import discovery_adapter_from_config
     monkeypatch.setattr(module,"local_browser_directory",lambda _root:tmp_path)
@@ -301,3 +309,11 @@ def test_local_opt_in_with_all_proofs_registers_actual_native_adapter(tmp_path,m
     adapter=discovery_adapter_from_config(ROOT)
     members=getattr(adapter,"adapters",[adapter])
     assert members and all(isinstance(item.fallback_extractor,module.DynamicBrowserExtractor) for item in members)
+
+
+def test_non_windows_host_cannot_register_windows_containment(tmp_path,monkeypatch):
+    import dragon.dynamic_browser as module
+    monkeypatch.setattr(module,"os",SimpleNamespace(**{**vars(os),"name":"posix"}))
+    extractor=backend(tmp_path,lambda *_a,**_k:pytest.fail("must not execute"))
+    assert extractor.readiness()=={"state":"SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE",
+                                   "reasons":["WINDOWS_CONTAINMENT_NOT_AVAILABLE"]}

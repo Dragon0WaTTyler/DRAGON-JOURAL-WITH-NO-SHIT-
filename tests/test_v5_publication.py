@@ -42,8 +42,7 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
         json.dumps({"mode": "production", "articles": [article]}, ensure_ascii=False),
         encoding="utf-8",
     )
-    html = edition / "edition.html"
-    html.write_text('<html lang="ar" dir="rtl"></html>', encoding="utf-8")
+    html = build_html(edition, "2099-01-02", [article])
 
     pdf = render_pdf(html, edition / "DRAGON-2099-01-02.pdf")
     report = validate_pdf(
@@ -115,8 +114,8 @@ def test_pdf_validator_rejects_a_different_first_page_cover(tmp_path: Path) -> N
         ),
         encoding="utf-8",
     )
-    html = edition / "edition.html"
-    html.write_text("x", encoding="utf-8")
+    articles = json.loads((edition / "articles.json").read_text(encoding="utf-8"))["articles"]
+    html = build_html(edition, "2099-01-02", articles)
     pdf = render_pdf(html, edition / "edition.pdf")
     other = build_cover_png(
         edition / "other.png",
@@ -198,8 +197,7 @@ def test_pdf_validator_rejects_an_inserted_blank_page(tmp_path: Path) -> None:
         json.dumps({"mode": "synthetic", "articles": [article]}, ensure_ascii=False),
         encoding="utf-8",
     )
-    html = edition / "edition.html"
-    html.write_text("x", encoding="utf-8")
+    html = build_html(edition, "2099-01-02", [article], mode="synthetic")
     rendered = render_pdf(html, edition / "rendered.pdf")
     writer = PdfWriter()
     writer.append(str(rendered))
@@ -263,8 +261,8 @@ def test_pdf_visual_qa_persists_contact_sheet_and_reports_human_review(tmp_path:
         json.dumps({"pages": [{"article_id": "a", "page_role": "LEAD", "columns": 2}]}),
         encoding="utf-8",
     )
-    html = edition / "edition.html"
-    html.write_text("x", encoding="utf-8")
+    html = build_html(edition, "2099-01-02", [article], mode="synthetic",
+                      layout_plan={"pages": [{"article_id": "a", "page_role": "LEAD", "columns": 2}]})
     pdf = render_pdf(html, edition / "edition.pdf")
     structural = validate_pdf(pdf, minimum_content_fill=0.55)
     contact = build_pdf_contact_sheet(pdf, tmp_path / "qa" / "contact.png")

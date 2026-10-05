@@ -167,6 +167,27 @@ The corrected runner command was also exercised locally: **994 passed, 0 failed,
 smoke cases remain unavailable on this Windows host and stay enabled in Linux CI;
 this local result does not substitute for the required Linux check.
 
+The complete Linux run `37374456131` then reported **969 passed, 13 failed,
+14 skipped** (153.42 seconds). It exposed previously hidden fixture assumptions:
+seven acceptance cases require a real `codex/` development branch but Actions
+checks out a detached merge; three proof-registration cases assumed a Windows
+host; three PDF cases passed placeholder HTML which WeasyPrint correctly rendered
+literally. CI now creates an ephemeral local `codex/ci-verification` branch at the
+unchanged checked-out commit. This creates no remote branch, changes no ancestry,
+and preserves the actual development-branch acceptance guard.
+
+Proof fixtures explicitly simulate only the dynamic-browser module's Windows host
+boundary without changing the runner OS; all existing assertions and native
+integration skips remain. An additional negative test proves non-Windows hosts
+still cannot register Windows containment. PDF fixtures now call the actual Arabic
+HTML builder instead of supplying empty/`x` documents, including the blank-page
+failure injection case. Pagination, Arabic extraction, cover identity, determinism,
+source links, visual QA and blank-page assertions are unchanged. No rendering,
+containment or editorial runtime gate is relaxed. Final platform regression and
+corrected Actions results are recorded on PR #4 and the task report.
+The targeted acceptance/archive/browser/publication regression after fixture
+correction passed **101 tests** (55.47 seconds).
+
 The documentation contract check initially had one failure because the rewritten
 README omitted the existing tested phrase “V5 is the authoritative implementation
 target.” That truthful marker was restored; tests were not changed. The immediate
