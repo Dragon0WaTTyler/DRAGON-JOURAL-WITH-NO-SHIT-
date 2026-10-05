@@ -139,16 +139,23 @@ def test_full_native_bundle_replays_after_run_tree_deletion_without_provider_or_
     assert calls == ["research"]
 
 
-def test_service_provider_omission_is_preserved_and_replay_reproduces_same_failure(tmp_path, monkeypatch):
+def test_service_provider_omission_is_preserved_as_target_failure_and_replays(tmp_path, monkeypatch):
     bundle, state, _ = _run_archived_fixture(tmp_path, monkeypatch, omit_service=True)
-    assert state["stages"]["research"]["error_code"] == "HARD_TARGET_DISPOSITION_MISSING"
-    assert not (bundle / "artifacts/provider-research/normalized-research-packet.json").exists()
-    invocation = json.loads((bundle / "artifacts/provider-research/invocation.json").read_text(encoding="utf-8"))
-    assert invocation["diagnostics"]["hard_target_results"][0]["target_id"] == "HARD:SERVICE"
+    assert state["stages"]["research"]["error_code"] is None
+    raw = json.loads((bundle / "artifacts/provider-research/research.raw.json").read_text(encoding="utf-8"))
+    normalized = json.loads((bundle / "artifacts/provider-research/normalized-research-packet.json").read_text(encoding="utf-8"))
+    assert len(raw["hard_target_results"]) == 1
+    assert normalized["hard_target_results"][0] == raw["hard_target_results"][0]
+    assert normalized["hard_target_results"][1]["status"] == "CONTRACT_VIOLATION"
+    audit = normalized["provider_response_validation"]["hard_targets"][1]
+    assert audit["target_error"]["code"] == "HARD_TARGET_DISPOSITION_MISSING"
+    assert audit["target_contract_status"] == "FAIL"
     replay = replay_acceptance_bundle(bundle, code_root=ROOT)
     assert replay["FRESH_LIVE_REPLAY"] == "PASS"
-    assert replay["checks"]["reproduced_failure"] == "HARD_TARGET_DISPOSITION_MISSING"
-    assert replay["checks"]["scheduling"] == "NOT_REACHED"
+    assert replay["checks"]["normalization"] == "PASS"
+    assert replay["checks"]["scheduling"] == "PASS"
+    assert not any(stage["status"] == "COMPLETE" for name, stage in state["stages"].items()
+        if name in {"article_generation", "pdf", "epub", "whatsapp_delivery"})
 
 
 def test_missing_durability_proof_blocks_before_provider(tmp_path):

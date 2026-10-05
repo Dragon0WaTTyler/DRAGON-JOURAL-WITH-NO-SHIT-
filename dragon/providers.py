@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 from math import ceil
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -735,9 +736,11 @@ class LocalCommandEditorialProvider:
         already preserved a raw packet (notably offline replay) may therefore
         use this method without invoking the editorial provider again.
         """
-        value = _stamp_retrieval_times(raw_value, retrieved_at) if isinstance(raw_value, dict) else raw_value
+        value = _stamp_retrieval_times(deepcopy(raw_value), retrieved_at) if isinstance(raw_value, dict) else raw_value
         if not isinstance(value, dict) or value.get("edition_date") != edition_date:
             raise ProviderError("RESEARCH_PACKET_INVALID", "date or root object is invalid")
+        if "schema_version" in value and value["schema_version"] != 5:
+            raise ProviderError("RESEARCH_PACKET_INVALID", "unsupported provider packet version")
         sources = value.get("sources")
         if not isinstance(sources, list) or not sources:
             raise ProviderError("RESEARCH_PACKET_INVALID", "sources must be a non-empty list")
@@ -812,6 +815,9 @@ class LocalCommandEditorialProvider:
             source["lead_origin"] = "PROVIDER_EXACT"
             identifiers.add(source["id"])
         sources_by_id = {source["id"]: source for source in sources}
+        from dragon.provider_contract import isolate_response_candidates
+        isolate_response_candidates(value, research_targeting, sources_by_id,
+            self._validate_hard_target_results, self._candidate_evidence_issues)
         if value.get("mode") != "synthetic" and self.normalize_evidence_links:
             self._normalize_research_evidence(value, sources_by_id)
         sections = value.get("sections")
@@ -972,11 +978,6 @@ class LocalCommandEditorialProvider:
                         "RESEARCH_PACKET_INVALID",
                         f"active candidate {selected_candidate['id']} needs valid distinct primary and independent evidence: {','.join(issues)}",
                     )
-        if research_targeting is not None:
-            value["hard_target_results"] = self._validate_hard_target_results(
-                value.get("hard_target_results"), research_targeting,
-                candidate_sections, candidates_by_id, sources_by_id,
-            )
         return value
 
     @staticmethod

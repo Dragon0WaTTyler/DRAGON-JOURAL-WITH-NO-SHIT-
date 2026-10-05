@@ -2276,6 +2276,8 @@ def plan_research_actions(job: dict, config: dict, *, known_event_ids: list[str]
     """Plan query ladders; the global scheduler chooses a fair bounded slice."""
     if job.get("status") == "STOPPED":
         return []
+    if job.get("action_deferral_reason") == "PROVIDER_NO_RESULT_REQUIRES_RECOVERY_EPOCH":
+        return []
     branches = [item for item in job.get("branches", []) if item.get("status") == "PLANNED"]
     needs = sorted(
         (

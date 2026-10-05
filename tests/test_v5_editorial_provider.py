@@ -119,10 +119,19 @@ def test_provider_rejects_source_prose_disguised_as_research_metadata(
         (sys.executable, str(script)), timeout_seconds=30
     )
 
-    with pytest.raises(ProviderError) as caught:
-        provider.research("2099-01-02")
-
-    assert caught.value.code == "RESEARCH_PACKET_INVALID"
+    if needle.startswith("["):
+        research = provider.research("2099-01-02")
+        assert all(section["status"] == "NO_NEWS" for section in research["sections"])
+        assert all(not section["candidates"] and not section.get("recovery_candidates") for section in research["sections"])
+        rejected = research["provider_response_validation"]["rejected_candidates"]
+        assert len(rejected) == 46
+        assert all(item["rejection_code"] == "CANDIDATE_STRUCTURE_INVALID" for item in rejected)
+        with pytest.raises(ProviderError):
+            provider._ensure_research_sufficient_for_articles(research)
+    else:
+        with pytest.raises(ProviderError) as caught:
+            provider.research("2099-01-02")
+        assert caught.value.code == "RESEARCH_PACKET_INVALID"
 
 
 def test_provider_factory_cannot_claim_availability_before_proven_check(tmp_path: Path) -> None:

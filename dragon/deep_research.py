@@ -603,6 +603,16 @@ def build_deep_research_state(
     }
     jobs = []
     hard_breadth_lanes = []
+    # An explicit, validated empty provider target has no candidate opportunity
+    # in the initial provider round. Its unresolved acquisition need remains
+    # visible and is eligible in the ordinary bounded recovery epoch.
+    initial_no_result_lanes = {
+        str(item.get("target_id", "")).removeprefix("HARD:")
+        for item in packet.get("provider_response_validation", {}).get("hard_targets", [])
+        if item.get("target_contract_status") == "PASS"
+        and item.get("target_disposition_effective") == "NO_QUALIFYING_CANDIDATE_FOUND"
+        and item.get("accepted_candidate_count") == 0
+    } if not recovery_only and recovery_epoch == 0 else set()
     for section in ([] if recovery_only else packet.get("sections", [])):
         # Only the selected publication candidate can change an active desk's
         # readiness.  Running a full question tree for every lower-ranked
@@ -747,13 +757,16 @@ def build_deep_research_state(
                     "fetches": int(limits.get("fetches", 0)),
                 },
             })
+            if target_function in initial_no_result_lanes and not candidate_id:
+                job["action_deferral_reason"] = "PROVIDER_NO_RESULT_REQUIRES_RECOVERY_EPOCH"
             hard_breadth_lanes.append({
                 "lane_id": f"HARD:{need['need_id']}",
                 "need_id": need["need_id"],
                 "hard_requirement": job["hard_requirement"],
                 "target_editorial_function": target_function,
                 "job_id": job["job_id"],
-                "status": "PLANNED",
+                "status": "DEFERRED" if job.get("action_deferral_reason") else "PLANNED",
+                "deferral_reason": job.get("action_deferral_reason"),
                 "budget_reserved": job["budget_reservation"],
             })
         else:

@@ -5,13 +5,14 @@ import json
 from pathlib import Path
 
 from dragon.acceptance_replay import replay_acceptance_bundle
+from dragon.contract_replay import preserve_contract_comparison
 from dragon.archive import acceptance_archive_root, discover_acceptance_bundles, prove_acceptance_archive, verify_acceptance_bundle
 from dragon.state import atomic_write_json, sha256_file
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("prove", "discover", "verify", "replay"))
+    parser.add_argument("operation", choices=("prove", "discover", "verify", "replay", "compare-contract"))
     parser.add_argument("--bundle", type=Path)
     parser.add_argument("--archive-root", type=Path)
     args = parser.parse_args()
@@ -24,11 +25,14 @@ def main():
             result = {"bundles": [str(path) for path in discover_acceptance_bundles(destination)]}
         else:
             if args.bundle is None:
-                parser.error("--bundle is required for verify/replay")
+                parser.error("--bundle is required for verify/replay/compare-contract")
             if args.operation == "verify":
                 manifest = verify_acceptance_bundle(args.bundle)
                 result = {"status": "PASS", "run_id": manifest["run_id"], "artifacts": len(manifest["artifacts"]),
                     "manifest_sha256": sha256_file(args.bundle / "manifest.json")}
+            elif args.operation == "compare-contract":
+                result = preserve_contract_comparison(args.bundle, code_root=root,
+                    destination=destination / "contract-comparisons")
             else:
                 result = replay_acceptance_bundle(args.bundle, code_root=root)
                 result["manifest_sha256"] = sha256_file(args.bundle / "manifest.json")
