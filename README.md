@@ -40,7 +40,7 @@ the unchanged two-epoch budget. Both hard lanes remained
 `BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH`; research stopped at
 `RESEARCH_RECOVERY_REQUIRED` before article generation. Fetching 13 pages,
 including eight discovered child URLs, did not produce an accepted hard-lane
-evidence bundle. The complete regression suite passed **994 tests, with two
+evidence bundle. The complete Windows regression suite passed **995 tests, with two
 Windows rendering skips**. These results establish a tested development
 baseline, not unattended production acceptance.
 

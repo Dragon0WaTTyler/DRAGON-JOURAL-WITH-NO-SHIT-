@@ -187,6 +187,9 @@ containment or editorial runtime gate is relaxed. Final platform regression and
 corrected Actions results are recorded on PR #4 and the task report.
 The targeted acceptance/archive/browser/publication regression after fixture
 correction passed **101 tests** (55.47 seconds).
+The final full Windows regression passed **995 tests, 0 failed, 2 skipped** in
+307.49 seconds (`cross-platform-final-windows.xml`); the count increases by the
+new negative containment test. Linux native rendering cases remain enabled.
 
 The documentation contract check initially had one failure because the rewritten
 README omitted the existing tested phrase “V5 is the authoritative implementation

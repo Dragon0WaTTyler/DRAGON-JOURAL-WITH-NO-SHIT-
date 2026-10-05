@@ -7,7 +7,7 @@ in [the reconciliation report](REPOSITORY-RECONCILIATION-2026-10-05.md).
 
 | Phase | Status | Evidence and remaining dependency |
 | --- | --- | --- |
-| 1. Canonical development baseline | TESTED OFFLINE | Latest valid lineage selected, remote archive history merged, immutable data preserved; full baseline 994 passed / 2 skipped. Repository sync is distinct from runtime activation. |
+| 1. Canonical development baseline | TESTED OFFLINE | Latest valid lineage selected, remote archive history merged, immutable data preserved; final Windows regression 995 passed / 2 skipped. Repository sync is distinct from runtime activation. |
 | 2. Real V5 production proof | BLOCKED | Research-only provider/retrieval trials and strict gates exist. No accepted complete real Arabic edition or human comparison. |
 | 3. Scheduler and production cutover | BLOCKED | Exactly one local Codex automation is configured but PAUSED; cutover switches stay disabled pending the acceptance plan. |
 | 4. Source intelligence and hard research | PARTIALLY VERIFIED | Origin/wire analysis, hard targeting, mandatory ladders, exact artifacts, bounded scheduling and dynamic extraction adapter exist. Fresh coverage/closure is not guaranteed. |
