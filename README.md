@@ -280,7 +280,9 @@ Converging on one canonical editorial source is roadmap work.
 | HTML, XHTML, assets, PDF, EPUB | Derived outputs | Validated, nonzero, hash-bound artifacts |
 
 V5 retains WeasyPrint on non-Windows hosts and the existing legacy rendering
-foundation. Windows V5 uses Pillow with Arabic shaping/bidi and an invisible
+foundation. Reproducible native font subsetting requires `libharfbuzz-subset0`;
+Linux CI installs it alongside the retained Pango libraries and fonts.
+Windows V5 uses Pillow with Arabic shaping/bidi and an invisible
 logical-order Unicode text layer; PDF checks require extractable Arabic text.
 The native EPUB builder produces Arabic metadata and RTL progression. W3C
 EPUBCheck 5.3.0 is a production hard gate; explicit synthetic mode may record

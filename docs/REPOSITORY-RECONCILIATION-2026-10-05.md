@@ -196,6 +196,16 @@ one logical text run. The content comparison now normalizes only layout whitespa
 the exact headline/body characters, punctuation and every assertion remain intact.
 Rendering and production validators are unchanged. This is a portable content
 comparison, not evidence or language-gate relaxation.
+Linux run `37376451714` then passed the content checks but reached the repeated
+PDF hash assertion: **982 passed, 1 failed, 14 skipped** (127.07 seconds).
+Inspection of installed WeasyPrint 68.1 and FontTools identified the font-subset
+fallback's regenerated modification timestamp. Linux setup was missing
+`libharfbuzz-subset0`, so WeasyPrint selected that fallback. CI now installs the
+native HarfBuzz subset library alongside the existing Pango libraries and fonts.
+WeasyPrint's existing native subset path preserves the Unicode mapping and avoids
+the FontTools timestamp rewrite. No renderer implementation or repeated SHA-256
+assertion changed. Final native determinism acceptance must come from the corrected
+complete Linux run.
 
 The documentation contract check initially had one failure because the rewritten
 README omitted the existing tested phrase “V5 is the authoritative implementation
