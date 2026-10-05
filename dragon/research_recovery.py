@@ -190,6 +190,7 @@ def build_recovery_plan(
     *,
     attempts_by_need: dict[str, int] | None = None,
     policy: dict | None = None,
+    mandatory_research_lanes: tuple[str, ...] = (),
 ) -> dict:
     """Describe the smallest honest follow-ups needed before article generation.
 
@@ -327,6 +328,17 @@ def build_recovery_plan(
                 if any(placement.split(":", 1)[0] in set(rule["sections"]) for placement, _candidate in placements)
             }
         missing = max(0, int(rule["minimum_active"]) - len(rule_events))
+        target_functions = []
+        if rule.get("id") == "accountability_and_service":
+            ordered = sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda name: (len(function_coverage[name]), name))
+            target_functions = [ordered[index % len(ordered)] for index in range(missing)]
+            # Research obligations are per lane even when the historical
+            # combined event floor was met by multiple events in one lane.
+            # Legacy callers retain their original event-only plan.
+            for lane in mandatory_research_lanes:
+                if not function_coverage[lane] and lane not in target_functions:
+                    target_functions.append(lane)
+            missing = len(target_functions)
         for index in range(missing):
             need_id = f"BREADTH:{rule['id']}:{index + 1}"
             attempts = int(attempts_by_need.get(need_id, 0))
@@ -338,8 +350,7 @@ def build_recovery_plan(
                 # The combined minimum stays intact.  Diversifying the first
                 # two bounded attempts gives the acquisition path a fair
                 # chance to find either missing journalistic function.
-                ordered = sorted(("ACCOUNTABILITY", "SERVICE"), key=lambda name: (function_counts[name], name))
-                target_function = ordered[index % len(ordered)]
+                target_function = target_functions[index]
                 route_section = "investigations" if target_function == "ACCOUNTABILITY" else "service"
             route_context = desk_recovery_context(coverage, route_section, capability=target_function)
             candidate_routes = route_context.get("configured_source_routes", [])
@@ -468,7 +479,9 @@ def validate_recovery_plan(value: dict) -> list[str]:
     if value.get("status") not in {"PASS", "RECOVERY_REQUIRED", "RESEARCH_INSUFFICIENT"}:
         return ["RESEARCH_RECOVERY_STATUS_INVALID"]
     needs = value.get("needs")
-    if not isinstance(needs, list) or value.get("article_generation_allowed") != (not needs):
+    finality = value.get("research_finality")
+    allowed = not needs and (not isinstance(finality, dict) or finality.get("combined_research_coverage_complete") is True)
+    if not isinstance(needs, list) or value.get("article_generation_allowed") != allowed:
         return ["RESEARCH_RECOVERY_NEEDS_INVALID"]
     issues = []
     for need in needs:
@@ -482,6 +495,8 @@ def validate_recovery_plan(value: dict) -> list[str]:
             issues.append("RESEARCH_RECOVERY_IDENTITY_MIXED")
     if value["status"] == "PASS" and needs:
         issues.append("RESEARCH_RECOVERY_PASS_WITH_NEEDS")
+    if value["status"] == "PASS" and not allowed:
+        issues.append("RESEARCH_RECOVERY_PASS_WITH_INCOMPLETE_FINALITY")
     if value["status"] == "RESEARCH_INSUFFICIENT" and not all(item["attempt_count"] >= item["max_attempts"] for item in needs):
         issues.append("RESEARCH_RECOVERY_EXHAUSTION_INVALID")
     return sorted(set(issues))

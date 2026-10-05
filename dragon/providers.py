@@ -1094,9 +1094,22 @@ class LocalCommandEditorialProvider:
     def articles(self, research: dict) -> list[dict]:
         self._ensure_research_sufficient_for_articles(research)
         budget_contract = self._article_budget_contract(research)
+        editorial_research = deepcopy(research)
+        finality = (editorial_research.get("research_recovery") or {}).get("research_finality")
+        if isinstance(finality, dict):
+            # The exact machine proof is retained in the local checkpoint.
+            # Editorial receives the decisions and explicit absence plan.
+            finality.pop("inputs", None)
+        from dragon.research_finality import editorial_absent_sections
+        absent = editorial_absent_sections(research)
+        for section in editorial_research.get("sections", []):
+            if section.get("section_id") in absent:
+                section.update(status="NO_NEWS", candidates=[], selected_candidate_id=None,
+                    selection_reason=None, fallback_action="SKIP",
+                    no_news_reason="لم يعثر البحث المكتمل ضمن نافذته ومصادره المحددة على حدث راهن مؤهل لهذه الوظيفة التحريرية.")
         payload = {
             "schema_version": 5,
-            "research": research,
+            "research": editorial_research,
             "language": "ar",
             "quality_constraints": {
                 "minimum_active_article_words": self.minimum_active_article_words,
@@ -1152,9 +1165,11 @@ class LocalCommandEditorialProvider:
             if isinstance(item, dict) and isinstance(item.get("id"), str)
         }
         synthetic = research.get("mode") == "synthetic"
+        from dragon.research_finality import editorial_absent_sections
+        absent = editorial_absent_sections(research)
         selected: list[tuple[dict, dict]] = []
         for section in sections or []:
-            if not isinstance(section, dict) or section.get("status") != "ACTIVE":
+            if not isinstance(section, dict) or section.get("status") != "ACTIVE" or section.get("section_id") in absent:
                 continue
             candidate = next(
                 (
@@ -1307,6 +1322,12 @@ class LocalCommandEditorialProvider:
         prompt both prohibit activating a no-news section.
         """
         recovery = research.get("research_recovery") if isinstance(research, dict) else None
+        finality = recovery.get("research_finality") if isinstance(recovery, dict) else None
+        if isinstance(finality, dict):
+            from dragon.research_finality import validate_research_finality
+            errors = validate_research_finality(finality, research)
+            if errors or not recovery.get("editorial_handoff_eligible"):
+                raise ProviderError("RESEARCH_FINALITY_NOT_ACCEPTED", ",".join(errors) or "Mandatory research incomplete")
         if isinstance(recovery, dict) and recovery.get("status") not in {"PASS", "NOT_APPLICABLE"}:
             code = "RESEARCH_INSUFFICIENT" if recovery.get("status") == "RESEARCH_INSUFFICIENT" else "RESEARCH_RECOVERY_REQUIRED"
             raise ProviderError(
@@ -1315,12 +1336,15 @@ class LocalCommandEditorialProvider:
             )
         sources = research.get("sources") if isinstance(research, dict) else None
         sections = research.get("sections") if isinstance(research, dict) else None
+        from dragon.research_finality import editorial_absent_sections
+        absent = editorial_absent_sections(research)
         publishable_sections = {
             item.get("section_id")
             for item in sections or []
             if isinstance(item, dict)
             and item.get("selected_candidate_id")
             and isinstance(item.get("section_id"), str)
+            and item.get("section_id") not in absent
         }
         source_count = len(sources) if isinstance(sources, list) else 0
         section_count = len(sections) if isinstance(sections, list) else 0
@@ -1335,6 +1359,8 @@ class LocalCommandEditorialProvider:
             )
         coverage_failures = []
         for rule_id, section_ids, minimum in self.coverage_requirements:
+            if rule_id == "accountability_and_service" and isinstance(finality, dict) and finality.get("combined_research_coverage_complete") and finality.get("editorial_absence_plan"):
+                continue
             actual = len(publishable_sections.intersection(section_ids))
             if actual < minimum:
                 coverage_failures.append(f"{rule_id}:{actual}/{minimum}")
@@ -1388,6 +1414,8 @@ class LocalCommandEditorialProvider:
         selected_active_skipped: list[dict] = []
         repair_linkage_changes: list[dict] = []
         repair_shortened_articles: list[dict] = []
+        from dragon.research_finality import editorial_absent_sections
+        absent = editorial_absent_sections(research)
         required_elements = (
             "lead",
             "nut_graf",
@@ -1431,7 +1459,7 @@ class LocalCommandEditorialProvider:
                     })
                 continue
             research_section = research_sections.get(section_id, {})
-            if research_section.get("status") == "NO_NEWS":
+            if research_section.get("status") == "NO_NEWS" or section_id in absent:
                 raise ProviderError(
                     "ARTICLE_SCHEMA_INVALID",
                     f"no-news research section {section_id} cannot become an active article",

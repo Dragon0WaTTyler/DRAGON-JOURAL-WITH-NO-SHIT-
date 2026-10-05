@@ -103,6 +103,24 @@ seed adapters emit discovery-only candidates. Normal HTML fetches are bounded
 and routed through Trafilatura into extracted-but-not-verified records; non-HTML
 materials are routed elsewhere rather than forced through the article parser.
 
+### Research finality
+
+ACCOUNTABILITY and SERVICE remain mandatory research obligations. Event
+existence is not mandatory. New V5 runs record each lane as `VALIDATED_EVENT`,
+`VERIFIED_NO_QUALIFYING_EVENT`, `BLOCKED_TECHNICAL_FAILURE`,
+`BLOCKED_CONTRACT_FAILURE`, `BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH`, or
+`UNRESOLVED`. Verified absence requires the full machine-audited bounded
+protocol defined in `docs/RESEARCH-FINALITY.md`; a provider's no-result label,
+rejected candidate, exhausted cap, or failed retrieval is insufficient.
+
+Research coverage and actual validated-event coverage have separate fields.
+Existing event metrics keep their original meaning. Verified absence creates
+no event, evidence, source promotion, or active story. Editorial omits the
+unsupported function's stories using the existing section inventory and skip
+mechanism. Other evidence/breadth requirements, edition floors, and publication
+gates remain mandatory. Historical editions and acceptance bundles retain
+their recorded contracts and verdicts.
+
 ## 5. Arabic contract
 
 Reader-facing V5 content uses professional journalistic Arabic in Arabic script.

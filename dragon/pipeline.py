@@ -65,6 +65,7 @@ from dragon.research_planning import (
     validate_research_plan,
 )
 from dragon.research_recovery import build_recovery_plan, validate_recovery_plan
+from dragon.research_finality import apply_research_finality, build_research_finality, validate_research_finality
 from dragon.source_coverage import SourceCoverageError, load_source_coverage
 from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
@@ -88,6 +89,16 @@ from dragon.whatsapp import DisabledWhatsAppProvider, WhatsAppError
 
 def _load(path: Path) -> dict | list:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _mandatory_hard_lanes(packet: dict, context: StageContext) -> tuple[str, ...]:
+    receipt = context.run_dir / "research" / "targeting-request.json"
+    if receipt.exists():
+        return tuple(sorted({target["semantic_lane"] for target in _load(receipt).get("unresolved_targets", [])
+                             if target.get("hard") and target.get("mandatory") and target.get("semantic_lane") in {"ACCOUNTABILITY", "SERVICE"}}))
+    return tuple(sorted({str(item.get("target_id") or "").split(":")[-1]
+        for item in packet.get("provider_response_validation", {}).get("hard_targets", [])
+        if item.get("target_id") in {"HARD:ACCOUNTABILITY", "HARD:SERVICE"}}))
 
 
 def _write_text(path: Path, value: str) -> Path:
@@ -263,6 +274,9 @@ def build_stage_definitions(
                 raise StageFailure("SOURCE_COVERAGE_CONFIG_INVALID", str(exc)) from exc
             provider_input["research_semantics"] = coverage["research_semantics"]
             inputs = (*inputs, coverage_path)
+        targeting_path = context.run_dir / "research" / "targeting-request.json"
+        if not synthetic:
+            atomic_write_json(targeting_path, provider_input["research_targeting"])
         try:
             packet = provider.research(context.edition_date, provider_input)
         except ProviderError as exc:
@@ -270,7 +284,7 @@ def build_stage_definitions(
         packet["provider_mode"] = provider.mode
         path = context.run_dir / "research" / "research-packet.json"
         atomic_write_json(path, packet)
-        return StageResult((continuity_path, path), inputs=inputs)
+        return StageResult((continuity_path, path, *((targeting_path,) if not synthetic else ())), inputs=inputs)
 
     def articles(context: StageContext) -> StageResult:
         recovered_packet_path = context.run_dir / "research" / "recovered-research-packet.json"
@@ -279,6 +293,12 @@ def build_stage_definitions(
         if not intelligence_path.exists():
             intelligence_path = context.run_dir / "source-intelligence" / "report.json"
         packet = _load(packet_path)
+        recovery_path = context.run_dir / "research-recovery" / "plan.json"
+        recovery = _load(recovery_path)
+        if isinstance(recovery.get("research_finality"), dict):
+            errors = validate_research_finality(recovery["research_finality"], packet)
+            if errors or not recovery.get("editorial_handoff_eligible"):
+                raise StageFailure("RESEARCH_FINALITY_NOT_ACCEPTED", "; ".join(errors) or "mandatory research is not complete")
         packet["source_intelligence"] = _load(
             intelligence_path
         )
@@ -379,7 +399,7 @@ def build_stage_definitions(
             raise StageFailure("DEEP_RESEARCH_CONFIG_INVALID", str(exc)) from exc
         packet = _load(packet_path)
         intelligence = _load(intelligence_path)
-        recovery = build_recovery_plan(packet, intelligence, coverage, readiness)
+        recovery = build_recovery_plan(packet, intelligence, coverage, readiness, mandatory_research_lanes=_mandatory_hard_lanes(packet, context))
         monitoring = _load(monitoring_path)
         try:
             report = build_deep_research_state(
@@ -532,7 +552,7 @@ def build_stage_definitions(
         initial_packet = packet
         initial_intelligence = intelligence
         initial_recovery = build_recovery_plan(
-            initial_packet, initial_intelligence, coverage, readiness
+            initial_packet, initial_intelligence, coverage, readiness, mandatory_research_lanes=_mandatory_hard_lanes(initial_packet, context)
         )
         execution = _load(execution_path)
         epoch0_hard_telemetry = deepcopy(execution.get("hard_lane_reservation") or {})
@@ -587,7 +607,7 @@ def build_stage_definitions(
         attempts = {
             need_id: 1 for need_id in combined["recovery_attempts"]
         } if execution.get("status") == "EXECUTED" else None
-        report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts)
+        report = build_recovery_plan(packet, intelligence, coverage, readiness, attempts_by_need=attempts, mandatory_research_lanes=_mandatory_hard_lanes(packet, context))
         epoch0_hard_telemetry["hard_lane_actions_executed"] = {
             lane: sum(
                 1 for action in execution.get("actions_planned", [])
@@ -685,7 +705,7 @@ def build_stage_definitions(
                 # Event-A/Event-B bundles survive resume and audit.
                 atomic_write_json(recovered_packet_path, packet)
                 atomic_write_json(recovered_intelligence_path, intelligence)
-                report = build_recovery_plan(packet, intelligence, coverage, readiness)
+                report = build_recovery_plan(packet, intelligence, coverage, readiness, mandatory_research_lanes=_mandatory_hard_lanes(packet, context))
                 epoch1_execution["hard_lane_reservation"]["hard_lane_closure_state"] = {
                     lane: (
                         "CLOSED" if not any(
@@ -704,6 +724,23 @@ def build_stage_definitions(
             epoch1_execution_path = context.run_dir / "deep-research" / "epoch-1-execution-report.json"
             atomic_write_json(epoch1_execution_path, epoch1_execution)
             outputs = (*outputs, epoch1_execution_path)
+        if _mandatory_hard_lanes(initial_packet, context):
+            targeting_path = context.run_dir / "research" / "targeting-request.json"
+            targeting = _load(targeting_path) if targeting_path.exists() else {}
+            config = load_deep_research_config(context.root / "config" / "deep-research.yaml",
+                                               context.root / "config" / "deep-research-schema.json")
+            epochs = [{"epoch": 0, "state": initial_state, "execution": execution}]
+            if epoch1_state is not None:
+                epochs.append({"epoch": 1, "state": epoch1_state, "execution": epoch1_execution})
+            timestamps = [o.get("observed_at") for epoch in epochs for j in epoch["execution"].get("jobs", [])
+                          for o in j.get("observations", []) if o.get("observed_at")]
+            finality = build_research_finality(packet, targeting=targeting, epochs=epochs,
+                config=config, closed_at=max(timestamps, default=context.edition_date + "T00:00:00+00:00"),
+                other_research_need_ids=[n["need_id"] for n in report["needs"] if n.get("kind") != "NEED_ACCOUNTABILITY_AND_SERVICE"])
+            report = apply_research_finality(report, finality)
+            finality_path = context.run_dir / "research-recovery" / "finality.json"
+            atomic_write_json(finality_path, finality)
+            outputs = (*outputs, finality_path)
         report["recovery_epochs"] = {
             "epoch_0": {"need_count": len(initial_recovery.get("needs", [])), "execution": execution.get("status")},
             "epoch_1": {"delta_need_count": len(delta_needs), "execution": epoch1_execution.get("status"), "jobs": len((epoch1_state or {}).get("recovery_job_mappings", []))},
@@ -738,9 +775,9 @@ def build_stage_definitions(
             raise StageFailure(
                 code,
                 "targeted source recovery is required before article generation",
-                outputs=(path,),
+                outputs=outputs,
             )
-        return StageResult(outputs, inputs=(packet_path, intelligence_path, context.run_dir / "deep-research" / "state.json", execution_path, coverage_path))
+        return StageResult(outputs, inputs=(packet_path, intelligence_path, context.run_dir / "deep-research" / "state.json", execution_path, coverage_path, *((targeting_path,) if _mandatory_hard_lanes(initial_packet, context) and targeting_path.exists() else ())))
 
     def research_planning(context: StageContext) -> StageResult:
         packet_path = context.run_dir / "research" / "research-packet.json"
