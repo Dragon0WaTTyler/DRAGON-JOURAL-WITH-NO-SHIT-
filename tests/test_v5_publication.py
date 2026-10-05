@@ -59,7 +59,9 @@ def test_long_arabic_article_expands_pages_instead_of_clipping(tmp_path: Path) -
     assert report["source_links"] == 1
     assert report["text_extraction"] == "AVAILABLE"
     assert report["language"]["status"] == "PASS"
-    extracted = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf)).pages)
+    # Native PDF extraction retains visual line breaks; compare the same
+    # reader text across layouts without changing any words or punctuation.
+    extracted = " ".join("\n".join(page.extract_text() or "" for page in PdfReader(str(pdf)).pages).split())
     assert article["headline"] in extracted
     assert "هذه مادة عربية موثقة" in extracted
     annotations = [

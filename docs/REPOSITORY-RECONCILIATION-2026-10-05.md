@@ -190,6 +190,12 @@ correction passed **101 tests** (55.47 seconds).
 The final full Windows regression passed **995 tests, 0 failed, 2 skipped** in
 307.49 seconds (`cross-platform-final-windows.xml`); the count increases by the
 new negative containment test. Linux native rendering cases remain enabled.
+Linux run `37375318588` reduced the failures to one: the exact Arabic headline
+was present across visual line breaks, while the Windows extraction layer returns
+one logical text run. The content comparison now normalizes only layout whitespace;
+the exact headline/body characters, punctuation and every assertion remain intact.
+Rendering and production validators are unchanged. This is a portable content
+comparison, not evidence or language-gate relaxation.
 
 The documentation contract check initially had one failure because the rewritten
 README omitted the existing tested phrase “V5 is the authoritative implementation
