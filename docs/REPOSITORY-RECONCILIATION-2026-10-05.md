@@ -155,6 +155,18 @@ Integrated-code full baseline: **994 passed, 0 failed, 2 skipped** (234.55
 seconds). Both skips are existing Windows WeasyPrint native-library cases in
 `tests/test_automatic_publication.py`; their Linux CI path is retained.
 
+The initial PR Linux CI run `37344894007` exposed stale verification setup:
+`unittest discover` ran 190 cases with 27 import errors because pytest was not
+installed, and would not discover the newer pytest functions. The minimal CI
+repair installs pytest 9.0.3 as a test-only dependency and invokes the complete
+suite with pytest, preserving `DRAGON_RENDER_SMOKE=1` and all native rendering
+cases. No test expectations, production workflow or runtime dependency changed.
+The final CI status is recorded on the reconciliation PR.
+The corrected runner command was also exercised locally: **994 passed, 0 failed,
+2 skipped** in 319.40 seconds (`ci-equivalent-windows.xml`). The two native-library
+smoke cases remain unavailable on this Windows host and stay enabled in Linux CI;
+this local result does not substitute for the required Linux check.
+
 The documentation contract check initially had one failure because the rewritten
 README omitted the existing tested phrase “V5 is the authoritative implementation
 target.” That truthful marker was restored; tests were not changed. The immediate

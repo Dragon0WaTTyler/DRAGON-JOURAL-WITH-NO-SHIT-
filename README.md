@@ -384,6 +384,8 @@ Install declared dependencies in an appropriate local environment. Java and
 the pinned EPUBCheck JAR are separate requirements (`DRAGON_EPUBCHECK_JAR` may
 point to a local install). Credentials remain environment/local-secret values;
 no paid provider is automatically enabled.
+The repository test suite uses pytest (9.0.3 in CI), which also discovers the
+retained unittest cases. Install it separately from runtime dependencies.
 
 ```text
 python dragon_daily.py --status
