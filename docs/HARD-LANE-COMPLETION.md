@@ -31,6 +31,12 @@ are excluded. A completed hard lane is not reopened. A job whose round limit
 is exhausted cannot gain another round. Successful upstream artifacts remain
 checkpoints; no epoch 2 is created.
 
+Fresh acceptance replay derives mandatory lanes from the archived actual request
+and reconstructs prior general opportunities from executed actions. Production
+and replay share `merge_required_research_continuations` so carried counters,
+unchanged needs and changed-need lineage materialize identically after the source
+run directory is removed. Revision and implementation-hash checks remain intact.
+
 For mandatory protocols the executor completes scheduled core work before
 recursive follow-ups. An already-observed dynamic extraction failure receives
 first follow-up priority; ranked exact discovery-lead inspection precedes

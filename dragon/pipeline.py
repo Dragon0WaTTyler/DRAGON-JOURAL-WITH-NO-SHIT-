@@ -66,7 +66,7 @@ from dragon.research_planning import (
 )
 from dragon.research_recovery import build_recovery_plan, validate_recovery_plan
 from dragon.research_finality import apply_research_finality, build_research_finality, validate_research_finality
-from dragon.deep_research_executor import continue_required_research_jobs
+from dragon.deep_research_executor import continue_required_research_jobs, merge_required_research_continuations
 from dragon.source_coverage import SourceCoverageError, load_source_coverage
 from dragon.science import science_integrity_report, validate_science_report
 from dragon.source_intelligence import build_source_intelligence
@@ -668,29 +668,10 @@ def build_stage_definitions(
                 run_scope_id=context.run_dir.name, recovery_epoch=1, recovery_only=True,
             )
             if continuation_jobs:
-                current_needs = {n["need_id"]: n for n in delta_needs}
-                identical_need_ids = {n["need_id"] for j in continuation_jobs for n in j.get("recovery_needs", []) if current_needs.get(n["need_id"]) == n}
                 # A renumbered or materially changed need is new work. Keep its
                 # native job and the old exact obligations as separate lineage;
                 # neither may silently replace the other's required searches.
-                auxiliary = []
-                for job in continuation_jobs:
-                    if job.get("recovery_needs") and not all(n["need_id"] in identical_need_ids for n in job["recovery_needs"]):
-                        job["continuation_recovery_needs"] = job.pop("recovery_needs")
-                        job["recovery_needs"] = []
-                        auxiliary.append({"job_id": job["job_id"], "original_need_ids": [n["need_id"] for n in job["continuation_recovery_needs"]],
-                            "action_ids": [a["action_id"] for a in job["required_continuation_actions"]]})
-                epoch1_state["required_continuation_mappings"] = auxiliary
-                replaced = {j["job_id"] for j in epoch1_state["jobs"] if any(n["need_id"] in identical_need_ids for n in j.get("recovery_needs", []))}
-                epoch1_state["jobs"] = [j for j in epoch1_state["jobs"] if j["job_id"] not in replaced] + continuation_jobs
-                carry_by_need = {n["need_id"]: j for j in continuation_jobs for n in j.get("recovery_needs", []) if n["need_id"] in identical_need_ids}
-                for mapping in epoch1_state.get("recovery_job_mappings", []):
-                    if mapping["recovery_need_id"] in carry_by_need:
-                        mapping["job_id"] = carry_by_need[mapping["recovery_need_id"]]["job_id"]
-                        mapping["continuation_of_epoch"] = 0
-                for lane in epoch1_state.get("hard_breadth_lanes", []):
-                    if lane["need_id"] in carry_by_need:
-                        lane["job_id"] = carry_by_need[lane["need_id"]]["job_id"]
+                epoch1_state = merge_required_research_continuations(epoch1_state, continuation_jobs, delta_needs)
             materialization_issues = validate_deep_research_state(epoch1_state)
             if materialization_issues:
                 raise StageFailure("RECOVERY_JOB_MATERIALIZATION_FAILED", "; ".join(materialization_issues))

@@ -8,7 +8,7 @@ import subprocess
 from dragon.archive import ArchiveError, verify_acceptance_bundle
 from dragon.config import load_local_config
 from dragon.deep_research import build_deep_research_state, load_deep_research_config
-from dragon.deep_research_executor import schedule_research_actions
+from dragon.deep_research_executor import schedule_research_actions, continue_required_research_jobs, merge_required_research_continuations
 from dragon.providers import LocalCommandEditorialProvider, ProviderError, SECTION_HEADINGS, editorial_provider_from_config
 from dragon.research_planning import build_research_plan, load_research_budget_config
 from dragon.research_recovery import build_recovery_plan
@@ -40,6 +40,9 @@ def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
 
     def read(relative):
         return json.loads((artifacts / relative).read_text(encoding="utf-8"))
+
+    mandatory_lanes = tuple(sorted({t["semantic_lane"] for t in read("research/targeting-request.json").get("unresolved_targets", [])
+        if t.get("hard") and t.get("mandatory") and t.get("semantic_lane") in {"ACCOUNTABILITY", "SERVICE"}})) if (artifacts / "research/targeting-request.json").is_file() else ()
 
     config = load_local_config(config_root)
     provider = editorial_provider_from_config(config, require_proven=False)
@@ -82,7 +85,7 @@ def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
         plan = build_research_plan(packet, intelligence, budget, readiness)
         results["research_planning"] = "PASS" if plan == read("research-planning/plan.json") else "FAIL"
         deep_config = load_deep_research_config(config_root / "config/deep-research.yaml", config_root / "config/deep-research-schema.json")
-        recovery = build_recovery_plan(packet, intelligence, coverage, readiness)
+        recovery = build_recovery_plan(packet, intelligence, coverage, readiness, mandatory_research_lanes=mandatory_lanes)
         monitoring = read("source-monitoring/report.json")
         recreated = build_deep_research_state(packet, intelligence, plan, recovery, deep_config,
             discovery_signals=monitoring.get("discovery_candidates", []), run_scope_id=manifest["run_id"])
@@ -91,9 +94,16 @@ def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
             inputs = read("deep-research/epoch-1-inputs.json")
             recreated1 = build_deep_research_state(inputs["packet"], inputs["intelligence"], plan,
                 inputs["recovery_plan"], deep_config, run_scope_id=manifest["run_id"], recovery_epoch=1, recovery_only=True)
+            continuations = continue_required_research_jobs(recreated, read("deep-research/execution-report.json"), deep_config, mandatory_lanes)
+            open_lanes = {n.get("target_editorial_function") for n in inputs["recovery_plan"].get("needs", [])}
+            continuations = [j for j in continuations if any(a.get("target_editorial_function") in open_lanes for a in j["required_continuation_actions"])]
+            if continuations:
+                recreated1 = merge_required_research_continuations(recreated1, continuations, inputs["recovery_plan"]["needs"])
             states.append((1, recreated1, "deep-research/epoch-1-state.json", "deep-research/epoch-1-scheduler-allocation.json"))
         for epoch, recreated, state_path, schedule_path in states:
-            schedule = schedule_research_actions(recreated["jobs"], deep_config)
+            prior_general = epoch == 1 and any(not a.get("target_editorial_function")
+                for j in read("deep-research/execution-report.json").get("jobs", []) for a in j.get("actions", []))
+            schedule = schedule_research_actions(recreated["jobs"], deep_config, mandatory_lanes=mandatory_lanes, general_opportunity_executed=prior_general)
             expected_schedule = read(schedule_path)
             selected = [item["action_id"] for item in schedule["actions"]]
             allocation = schedule["budget_allocation"]

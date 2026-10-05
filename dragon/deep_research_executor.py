@@ -2585,6 +2585,32 @@ def continue_required_research_jobs(initial_state: dict, execution: dict, config
     return result
 
 
+def merge_required_research_continuations(state: dict, continuations: list[dict], needs: list[dict]) -> dict:
+    """Apply the same lineage-preserving merge in production and sealed replay."""
+    state, continuations = deepcopy(state), deepcopy(continuations)
+    current = {n["need_id"]: n for n in needs}
+    identical = {n["need_id"] for j in continuations for n in j.get("recovery_needs", []) if current.get(n["need_id"]) == n}
+    auxiliary = []
+    for job in continuations:
+        if job.get("recovery_needs") and not all(n["need_id"] in identical for n in job["recovery_needs"]):
+            job["continuation_recovery_needs"] = job.pop("recovery_needs")
+            job["recovery_needs"] = []
+            auxiliary.append({"job_id": job["job_id"], "original_need_ids": [n["need_id"] for n in job["continuation_recovery_needs"]],
+                "action_ids": [a["action_id"] for a in job["required_continuation_actions"]]})
+    state["required_continuation_mappings"] = auxiliary
+    replaced = {j["job_id"] for j in state["jobs"] if any(n["need_id"] in identical for n in j.get("recovery_needs", []))}
+    state["jobs"] = [j for j in state["jobs"] if j["job_id"] not in replaced] + continuations
+    carry_by_need = {n["need_id"]: j for j in continuations for n in j.get("recovery_needs", []) if n["need_id"] in identical}
+    for mapping in state.get("recovery_job_mappings", []):
+        if mapping["recovery_need_id"] in carry_by_need:
+            mapping["job_id"] = carry_by_need[mapping["recovery_need_id"]]["job_id"]
+            mapping["continuation_of_epoch"] = 0
+    for lane in state.get("hard_breadth_lanes", []):
+        if lane["need_id"] in carry_by_need:
+            lane["job_id"] = carry_by_need[lane["need_id"]]["job_id"]
+    return state
+
+
 class FixtureResearchAdapter:
     """Deterministic read-only adapter keyed by action ID or action type."""
 
