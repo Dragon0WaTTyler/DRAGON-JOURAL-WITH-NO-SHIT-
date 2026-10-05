@@ -100,7 +100,9 @@ INDEPENDENT `s2`, exact artifact `s1`. `inv-rotork` remains rejected with
 `INVALID_EVIDENCE_ROLE_LINKAGE`: expected INDEPENDENT, explicit independent IDs
 empty; PRIMARY/exact `s3`. No IDs, facts, quotations, or source access are invented.
 
-Nine jobs materialize 31 actions. The scheduler selects eight and defers 23.
+Nine jobs materialize 31 action entries with 27 distinct IDs. Four general-search
+variants share already selected action identities; they do not add executions.
+The scheduler selects eight actions and defers 19.
 ACCOUNTABILITY reserves `ACT-156391587BBA` (PRIMARY) and `ACT-EBB9846FF233`
 (INDEPENDENT), both FETCH_URL for `investigations:inv-itrane`.
 SERVICE has zero executable initial actions and consumes zero reservations.

@@ -95,6 +95,8 @@ def replay_contract_isolation(bundle: Path, *, code_root: Path) -> dict:
         "candidate_audits": candidate_audits,
         "recovery_plan": recovery, "scheduler_inputs": state, "scheduler_configuration": deep_config,
         "materialized_actions": actions,
+        "materialization_counts": {"entries": len(actions), "distinct_action_ids": len({a["action_id"] for a in actions}),
+            "selected": len(schedule["actions"]), "deferred": len(schedule["deferred_actions"])},
         "scheduler_allocation": schedule, "original_failure": invocation.get("error_code")}
 
 
@@ -155,12 +157,20 @@ def preserve_contract_comparison(bundle: Path, *, code_root: Path, destination: 
         lines += [""]
     lines += ["", "## All materialized actions", "", "| Action ID | Type | Candidate | Source | Role | Lane | Decision | URL / query |", "|---|---|---|---|---|---|---|---|"]
     source_ids_by_url = {s["url"]: s["id"] for s in first["normalized_packet"]["sources"]}
+    seen_ids = set()
     for action in first["materialized_actions"]:
+        decision = "SELECTED" if action["action_id"] in selected else "DEFERRED"
+        if action["action_id"] in seen_ids:
+            decision = "DUPLICATE_" + decision + "_ID"
+        seen_ids.add(action["action_id"])
         row = [action["action_id"], action["action_type"], action.get("provider_candidate_id"), source_ids_by_url.get(action.get("provider_supplied_url")),
             action.get("provider_source_role"), action.get("target_editorial_function"),
-            "SELECTED" if action["action_id"] in selected else "DEFERRED", action.get("target") or action.get("query")]
+            decision, action.get("target") or action.get("query")]
         lines.append("| " + " | ".join(str(x or "").replace("|", "\\|").replace("\n", " ") for x in row) + " |")
-    lines += ["", "Full normalized data, rejected candidates, jobs, scheduler configuration, selection order, and deferred actions are in comparison.json.",
+    counts = first["materialization_counts"]
+    lines += ["", f"Materialized entries: {counts['entries']}; distinct action IDs: {counts['distinct_action_ids']}; "
+        f"scheduler selections: {counts['selected']}; deferred entries: {counts['deferred']}.", "",
+        "Full normalized data, rejected candidates, jobs, scheduler configuration, selection order, and deferred actions are in comparison.json.",
         "Raw inputs and frozen configuration remain in the verified input bundle.", ""]
     (report / "report.md").write_text("\n".join(lines), encoding="utf-8")
     verify_acceptance_bundle(bundle)

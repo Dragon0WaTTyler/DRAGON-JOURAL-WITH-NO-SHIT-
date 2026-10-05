@@ -233,6 +233,7 @@ def test_real_bundle_replays_deterministically_without_network_and_keeps_cap(tmp
     assert first == second
     assert first["input_manifest_sha256"] == "ba2899253f187da1d77acac28210f6d738635b5272945eb8382098fa27497ae8"
     assert first["provider_calls"] == first["network_calls"] == first["actions_executed"] == 0
+    assert first["materialization_counts"] == {"entries": 31, "distinct_action_ids": 27, "selected": 8, "deferred": 19}
     assert {c["id"] for c in pool(first["normalized_packet"])}.isdisjoint({"inv-rotork"})
     assert "inv-itrane" in {c["id"] for c in pool(first["normalized_packet"])}
     actions = first["materialized_actions"]
