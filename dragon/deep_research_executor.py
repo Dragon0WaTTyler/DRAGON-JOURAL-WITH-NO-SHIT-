@@ -2386,6 +2386,11 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     # still cannot leave World/breadth/distinct-event research at zero.
     first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
     first_wave_all = [item for item in available_actions if int(item.get("strategy_index", 0)) == 0]
+    def protocol_core(item: dict) -> bool:
+        return bool(item.get("recovery_need_id") and not item.get("lead_followup")
+                    and not item.get("dynamic_recovery") and not item.get("actor_first_search")
+                    and item.get("lead_origin") != "PROVIDER_EXACT")
+
     def hard_lane(item: dict) -> str | None:
         hard_deficit = item.get("hard_deficit") if isinstance(item.get("hard_deficit"), dict) else {}
         target = str(item.get("target_editorial_function") or hard_deficit.get("target_editorial_function") or "").upper()
@@ -2414,6 +2419,11 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
             [item for item in eligible_actions if hard_lane(item) == lane and item.get("action_type") in ACTION_TYPES
              and (item.get("action_type") not in FETCH_ACTIONS or assess_source_url(str(item.get("target") or "")).get("state") != "URL_UNSAFE")],
             key=lambda item: (
+                # In a mandatory protocol, finish the ordered native ladder
+                # before exact candidates or inherited child requests. Child
+                # fetches retain their original strategy_index (often zero);
+                # that index must not let them displace an untried core step.
+                0 if not mandatory_lanes or protocol_core(item) else 1,
                 0 if item.get("lead_origin") == "PROVIDER_EXACT" else 1,
                 0 if item.get("provider_source_role") == "PRIMARY" else 1,
                 int(item.get("strategy_index", 0)),
@@ -2424,10 +2434,14 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
         for lane in sorted(active_hard_lanes)
     }
     hard_reserved: dict[str, dict] = {}
+    pending_protocol_core = any(protocol_core(a) for lane in mandatory_lanes
+                                for a in hard_lane_actions.get(lane, []))
     # Give every active lane one executable opportunity before generic breadth
     # and the ordinary priority/fairness pass share the remaining fixed cap.
     for lane in ("ACCOUNTABILITY", "SERVICE"):
         candidates = hard_lane_actions.get(lane, [])
+        if lane in mandatory_lanes and pending_protocol_core:
+            candidates = [a for a in candidates if protocol_core(a)]
         if candidates and len(selected) < cap:
             selected.append(candidates[0])
             hard_reserved[lane] = candidates[0]
@@ -2455,6 +2469,10 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     # complementary original/corroborating page next when capacity permits.
     hard_reserved_ids = {action["action_id"] for action in hard_reserved.values()}
     for lane, chosen in list(hard_reserved.items()):
+        if lane in mandatory_lanes:
+            # The ordered protocol pool below also contains exact role pairs.
+            # Reserving the complement here could jump an unfinished ladder.
+            continue
         role = chosen.get("provider_source_role")
         complement = "INDEPENDENT" if role == "PRIMARY" else "PRIMARY" if role == "INDEPENDENT" else None
         if not complement or len(selected) >= cap:
@@ -2472,10 +2490,14 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     # need not reserve a second slot in an otherwise full epoch-1 protocol.
     required_pool = {lane: list(hard_lane_actions.get(lane, [])) for lane in mandatory_lanes}
     while len(selected) < cap and any(required_pool.values()):
+        core_pending = any(protocol_core(a) and a["action_id"] not in {s["action_id"] for s in selected}
+                           for pool in required_pool.values() for a in pool)
         for lane in sorted(required_pool):
             if len(selected) >= cap:
                 break
             while required_pool[lane]:
+                if core_pending and not protocol_core(required_pool[lane][0]):
+                    break
                 action = required_pool[lane].pop(0)
                 if action["action_id"] in {a["action_id"] for a in selected}:
                     continue
@@ -2540,6 +2562,10 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     if mandatory_lanes:
         hard_lane_telemetry.update(completion_policy="MANDATORY_PROTOCOL_BEFORE_OPTIONAL_WAVES",
             mandatory_lanes=list(mandatory_lanes), general_opportunity_executed_in_previous_epoch=general_opportunity_executed,
+            core_admission_policy="ORDERED_LADDER_BEFORE_CANDIDATE_AND_CHILD_FETCHES",
+            core_actions_selected=[a["action_id"] for a in selected if hard_lane(a) in mandatory_lanes and protocol_core(a)],
+            core_actions_deferred=[a["action_id"] for lane in mandatory_lanes for a in hard_lane_actions.get(lane, [])
+                                   if protocol_core(a) and a["action_id"] not in selected_ids],
             required_actions_planned={lane: [a["action_id"] for a in hard_lane_actions.get(lane, [])] for lane in mandatory_lanes})
     return {
         "actions": selected,
