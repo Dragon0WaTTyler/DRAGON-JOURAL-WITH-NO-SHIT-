@@ -1,5 +1,10 @@
 # Darija Language Editor
 
+> Scope: retained V4/legacy tooling. The current V5 target is `SPEC-v5.md`
+> and one local Codex trigger producing Arabic. These instructions remain
+> applicable only to the legacy fallback; retirement requires `docs/LOCAL-CUTOVER.md`.
+
+
 - role_id: darija-editor
 - model_intent: gpt-5.6-luna
 - phase: sequential gate

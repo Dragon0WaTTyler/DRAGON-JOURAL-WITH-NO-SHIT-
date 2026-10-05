@@ -1,5 +1,13 @@
 # V5 current safe-test baseline
 
+> Evidence scope: this ledger records the September 2026 baseline and its
+> runtime-bound observations. Counts/readiness described as current below are
+> current to that baseline, not a new production attestation. See
+> [the October 5 reconciliation](REPOSITORY-RECONCILIATION-2026-10-05.md)
+> for the selected lineage, fresh tests and live research outcome. Historical
+> trials and their failed verdicts remain unchanged.
+
+
 ## Recorded baseline
 
 On 2026-09-11, with generated machine evidence ignored, DRAGON ran:

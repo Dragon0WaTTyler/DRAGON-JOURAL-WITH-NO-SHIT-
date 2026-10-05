@@ -1,5 +1,13 @@
 # DRAGON V5 Definition-of-Done traceability
 
+> Evidence scope: this ledger records the September 2026 baseline and its
+> runtime-bound observations. Counts/readiness described as current below are
+> current to that baseline, not a new production attestation. See
+> [the October 5 reconciliation](REPOSITORY-RECONCILIATION-2026-10-05.md)
+> for the selected lineage, fresh tests and live research outcome. Historical
+> trials and their failed verdicts remain unchanged.
+
+
 This register maps all 67 requirements in section 121 of the V5 master
 specification to current evidence. It is an implementation and acceptance
 ledger, not a declaration that migration or cutover is complete.

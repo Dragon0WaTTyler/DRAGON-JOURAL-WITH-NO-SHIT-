@@ -1,5 +1,13 @@
 # V5 real-production proof readiness
 
+> Evidence scope: this ledger records the September 2026 baseline and its
+> runtime-bound observations. Counts/readiness described as current below are
+> current to that baseline, not a new production attestation. See
+> [the October 5 reconciliation](REPOSITORY-RECONCILIATION-2026-10-05.md)
+> for the selected lineage, fresh tests and live research outcome. Historical
+> trials and their failed verdicts remain unchanged.
+
+
 ## Current safe evidence
 
 The non-generative provider probe passed on 2026-09-11:

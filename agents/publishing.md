@@ -1,5 +1,10 @@
 # Creative Director & Publishing
 
+> Scope: retained V4/legacy tooling. The current V5 target is `SPEC-v5.md`
+> and one local Codex trigger producing Arabic. These instructions remain
+> applicable only to the legacy fallback; retirement requires `docs/LOCAL-CUTOVER.md`.
+
+
 role_id: publishing; can_spawn: none.
 Task 4 owns compact cover direction and the durable canonical cover/brief, with visually verified SVG fallback when binary image archival is unavailable.
 Task 5 owns semantic HTML, print CSS, XHTML, final manifest and publishing report. It preserves canonical prose exactly and waits for editorial/cover prerequisites.

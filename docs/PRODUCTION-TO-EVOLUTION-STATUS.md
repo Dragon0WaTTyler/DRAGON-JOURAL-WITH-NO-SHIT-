@@ -1,19 +1,24 @@
 # DRAGON production-to-evolution phase status
 
-| Phase | Status | Current acceptance evidence |
-| --- | --- | --- |
-| 1. Production Baseline Freeze | COMPLETE | Clean source tree; explicit generated-artifact policy; V4/V5 workflow scope; 380 passed, 2 skipped. |
-| 2. Real V5 Production Proof | BLOCKED | The one 2026-09-11 provider trial failed at the primary/independent evidence gate. The offline linking-and-demotion repair passes; a new trial still requires fresh authorization and must succeed. |
-| 3. Scheduler and Cutover | NOT_STARTED | Must follow a valid real V5 edition and archive proof. |
-| 4. Source Intelligence Hardening | NOT_STARTED | Existing Trafilatura/normalization path remains preserved. |
-| 5. Journalism Verification Hardening | NOT_STARTED | Existing claim graph and deterministic validators remain preserved. |
-| 6. Scientific Evidence Engine | NOT_STARTED | Existing science-integrity gate remains preserved. |
-| 7. Investigation Engine | NOT_STARTED | Existing persistent dossier model remains preserved. |
-| 8. Cover/Data-Visual Upgrade | NOT_STARTED | Current fallback, layout, PDF and EPUB paths remain preserved. |
-| 9. Delivery | NOT_STARTED | WhatsApp stays optional and disabled. |
-| 10. Evolution Lab | NOT_STARTED | Current benchmark/promotion safeguards remain non-mutating. |
-| 11. Advanced Optional Intelligence | NOT_STARTED | No optional framework is a current production dependency. |
+Current repository register: 2026-10-05. This records implementation and scoped
+acceptance, not an external Goal or production-complete declaration. Historical
+September counts/trials remain in dated ledgers; fresh Git/test/live evidence is
+in [the reconciliation report](REPOSITORY-RECONCILIATION-2026-10-05.md).
 
-This status register mirrors the active top-level Goal. A phase may advance
-only with its specified tests and real evidence; code presence alone is not a
-completion signal.
+| Phase | Status | Evidence and remaining dependency |
+| --- | --- | --- |
+| 1. Canonical development baseline | TESTED OFFLINE | Latest valid lineage selected, remote archive history merged, immutable data preserved; full baseline 994 passed / 2 skipped. Repository sync is distinct from runtime activation. |
+| 2. Real V5 production proof | BLOCKED | Research-only provider/retrieval trials and strict gates exist. No accepted complete real Arabic edition or human comparison. |
+| 3. Scheduler and production cutover | BLOCKED | Exactly one local Codex automation is configured but PAUSED; cutover switches stay disabled pending the acceptance plan. |
+| 4. Source intelligence and hard research | PARTIALLY VERIFIED | Origin/wire analysis, hard targeting, mandatory ladders, exact artifacts, bounded scheduling and dynamic extraction adapter exist. Fresh coverage/closure is not guaranteed. |
+| 5. Journalism verification | TESTED OFFLINE / real quality pending | Claim graph, adversarial/fact gates and editor contracts exist; real coherent Arabic newspaper review remains. |
+| 6. Scientific evidence engine | PARTIAL | Science-integrity passports/gates exist; external literature/full-text research adapters remain disabled/unintegrated. |
+| 7. Investigation engine | PARTIAL | Persistent scoped dossiers/timelines/evidence edges exist; mature Morocco accountability workflow remains. History intelligence engine is planned. |
+| 8. Cover, layout and publication | PARTIALLY VERIFIED | Fixture cover/HTML/PDF/EPUB, EPUBCheck, visual checks and Layout Doctor; human review of real typography, art and flow required. |
+| 9. Archive and delivery | PARTIALLY VERIFIED / delivery disabled | Git round-trip and historical remote archive fixtures exist. New real V5 archive evidence remains; WhatsApp is optional and unconfigured. |
+| 10. Evolution Lab | PARTIAL foundation / later-stage PLANNED | Metrics, candidate comparison and feedback queue exist; autonomous execution/promotion is not accepted. Fixed judges and truth sets cannot be changed by the generator. |
+| 11. Advanced optional intelligence | PLANNED | Evaluated/inspiration projects are not automatically runtime dependencies. |
+
+Only genuine runtime-bound evidence can advance production acceptance. Follow
+[LOCAL-CUTOVER.md](LOCAL-CUTOVER.md); neither offline tests nor GitHub merging
+permits fabricated reviews, activation flags or retirement of the V4 fallback.

@@ -139,10 +139,13 @@ causation, or misconduct. Evidence records a relation (`SUPPORTS`,
 origins remain leads for classification, not automatic rejections or evidence.
 
 Google News RSS remains an enabled discovery-only route. `general-search.yaml`
-defines an optional SearXNG JSON adapter, disabled by default until an operator
-configures a controlled HTTPS endpoint. DRAGON neither installs SearXNG nor
-uses arbitrary public instances. Results from all enabled backends are
-normalized and deduplicated before exact-page follow-up.
+now enables the private local SearXNG JSON adapter at `http://127.0.0.1:8088`,
+with a bounded timeout/result count and recorded integration status PASS.
+`infra/searxng/` and the explicit start/stop helpers describe that local
+deployment; this is not a second production scheduler. Arbitrary public
+instances are not assumed. A backend outage remains a bounded failure, and
+results are normalized/deduplicated before exact-page follow-up. Search
+availability alone does not establish accepted evidence or complete coverage.
 
 ## Configuration and secrets
 
