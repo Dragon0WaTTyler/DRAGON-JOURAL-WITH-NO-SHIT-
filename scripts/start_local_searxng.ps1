@@ -8,7 +8,13 @@ $deployment = Join-Path $repoRoot 'infra/searxng'
 # emitted by this script.  A fresh value is safe when Compose recreates the
 # container; an existing container keeps its already configured value.
 $bytes = New-Object byte[] 48
-[System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+try {
+    $rng.GetBytes($bytes)
+}
+finally {
+    $rng.Dispose()
+}
 $env:SEARXNG_SECRET = [Convert]::ToBase64String($bytes)
 try {
     docker compose --project-directory $deployment -f (Join-Path $deployment 'compose.yaml') up -d --wait
