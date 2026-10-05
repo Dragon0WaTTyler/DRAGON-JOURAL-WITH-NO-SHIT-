@@ -110,3 +110,22 @@ bounded failure behavior, and a provider integration test.
 
 No deferred entry is a production capability. Its failure mode today is simply
 `NOT_CONFIGURED` or `NOT_PROVEN`, and the current working pipeline continues.
+
+## Crawl4AI optional-route evidence — 2026-10-05
+
+The Windows integration in `docs/DYNAMIC-BROWSER-BACKEND.md` now has local
+Arabic JavaScript, strict-TLS negative, renderer-token sandbox, Job resource
+limit and bounded failure/cleanup fixtures, plus one public HTTPS smoke through
+the actual DRAGON adapter. The durable readiness audit is
+`dynamic-browser-readiness-1791213817443`. Readiness is limited to the captured
+native Python 3.13 / Crawl4AI 0.9.4 / Playwright 1.63.0 / Chromium runtime; the
+tested Store launcher and Edge integration were rejected. Registration requires
+unchanged host proofs and expires after 24 hours. The ordinary extraction and
+research evidence requirements are unchanged.
+
+The installed 0.9.4 metadata declares Apache-2.0, Beta development status and
+Python 3.13 support. Its [published release](https://pypi.org/project/Crawl4AI/0.9.4/)
+and [upstream maintenance/release history](https://github.com/unclecode/crawl4ai)
+were reviewed on this date. This qualifies the bounded exceptional adapter;
+it is not a claim that every Crawl4AI feature or deployment is production-ready.
+ADR sandbox/resource/failure requirements are retained.

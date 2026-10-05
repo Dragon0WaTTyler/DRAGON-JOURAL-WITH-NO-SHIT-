@@ -806,7 +806,7 @@ def _fallback_or_dynamic_route(
     author = extracted.get("author")
     if not author:
         metadata_warnings.append("AUTHOR_MISSING")
-    return {
+    normalized = {
         "canonical_url": str(extracted.get("url") or response.url),
         "discovered_url": discovered_url,
         "title": extracted.get("title"),
@@ -831,6 +831,15 @@ def _fallback_or_dynamic_route(
         "metadata_warnings": sorted(metadata_warnings),
         "verification_status": "EXTRACTED_NOT_VERIFIED",
     }
+    if isinstance(extracted.get("dynamic_provenance"), dict):
+        from copy import deepcopy
+        from dragon.browser_protocol import canonical_hash
+        provenance = deepcopy(extracted["dynamic_provenance"])
+        normalized["dynamic_provenance"] = provenance
+        normalized["retrieved_at"] = provenance["retrieved_at"]
+        normalized["http_status"] = provenance["http_status"]
+        provenance["normalized_output_sha256"] = canonical_hash(normalized)
+    return normalized
 
 
 def fetch_and_extract_source(

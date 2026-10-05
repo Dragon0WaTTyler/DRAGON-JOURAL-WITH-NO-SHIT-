@@ -2629,6 +2629,8 @@ def _fetch_action_source(action: dict, adapter) -> dict:
     fallback = getattr(adapter, "fallback_extractor", None) if dynamic else None
     if dynamic and not callable(fallback):
         raise DiscoveryError("SOURCE_DYNAMIC_ADAPTER_UNAVAILABLE", "No proven dynamic extractor was supplied")
+    if dynamic and hasattr(fallback, "for_action"):
+        fallback = fallback.for_action(action)
     return fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"],
         transport=getattr(adapter, "source_transport", default_transport), fallback_extractor=fallback, dynamic_only=dynamic)
 
@@ -3146,6 +3148,9 @@ def discovery_adapter_from_config(root, *, fallback_extractor=None) -> ResearchA
     searxng = searxng_search_adapter_from_config(root / "config" / "general-search.yaml", source_classes_by_origin=classes)
     gdelt = gdelt_doc_adapter_from_config(root / "config" / "gdelt-discovery.yaml")
     adapters = [item for item in (rss, searxng, gdelt) if item is not None]
+    if fallback_extractor is None:
+        from dragon.dynamic_browser import dynamic_extractor_from_config
+        fallback_extractor = dynamic_extractor_from_config(root)
     if fallback_extractor is not None:
         from dragon.discovery import load_extraction_adapter_config
         fallback_config = load_extraction_adapter_config(root / "config/extraction-adapters.yaml")

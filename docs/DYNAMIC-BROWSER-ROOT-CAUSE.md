@@ -41,3 +41,25 @@ require hash-bound readiness evidence, not an import or a YAML PASS string.
 The effect on retrieval remains unproven until the new integration tests/smoke.
 ADR-007 and research/finality/budget contracts remain unchanged.
 
+## Integration findings from isolated local probes
+
+- Crawl4AI's `browser_mode="builtin"` forces managed-browser operation in
+  `async_configs.py` (line 1027). A channel setting in that mode does not prove
+  the executable used. The old smoke's Edge setting is configuration intent;
+  it did not record an executable identity. Dedicated mode is needed for the
+  browser-manager extension to own the effective Playwright launch options.
+- The Microsoft Store Python 3.13 venv wrapper activated its actual interpreter
+  outside the parent Windows Job. Assigning the suspended wrapper was
+  insufficient. A named Job self-join also failed with access denied. Those
+  attempts were rejected and preserved, with no research execution.
+- A SHA-256 verified official CPython 3.13.14 embeddable runtime removes that
+  activation boundary. It reuses the already installed cp313 Crawl4AI packages
+  through a fixed, hash-bound `_pth` file; production Python 3.14 stays separate.
+- Actual Edge 154.0.4258.53 ran its worker, browser and renderers inside the Job,
+  but its `winrt_app_id.mojom.WinrtAppIdService` process was outside it. That
+  probe was also rejected. DRAGON does not claim containment of that Edge path.
+- The existing Playwright Chromium runtime passed the local rendered-page,
+  process-membership, restricted-renderer-token and invalid-certificate probes.
+  This changes the executable within the existing Crawl4AI/Playwright stack;
+  it does not add a crawler or an external service. Public readiness remains
+  conditional on the actual-adapter HTTPS smoke and all control proofs.
