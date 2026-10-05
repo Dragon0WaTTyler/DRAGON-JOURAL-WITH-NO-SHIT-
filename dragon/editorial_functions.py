@@ -49,6 +49,17 @@ _ACCOUNTABILITY_ACTION_MARKERS = (
     "rapport d'audit", "rapport d'inspection", "constat d'audit", "sanction", "marché public",
     "poursuite", "parquet", "dورية", "شكاية", "تحقيق", "صفقة عمومية", "افتحاص",
 )
+_ROUTINE_CONCENTRATION = (
+    "projet de concentration", "notification de concentration", "merger notification",
+    "concentration notification", "routine merger", "routine concentration",
+    "مشروع تركيز اقتصادي", "إشعار بعملية تركيز", "تبليغ عملية تركيز",
+)
+_SUBSTANTIVE_ACCOUNTABILITY = (
+    "sanction", "enforcement", "investigation", "audit finding", "inspection finding",
+    "prosecution", "court ruling", "inquiry", "anti-corruption", "enquête",
+    "abus de position", "pratique anticoncurrentielle", "injonction", "amende",
+    "عقوبة", "غرامة", "تحقيق", "افتحاص", "فساد", "حكم قضائي", "ممارسات منافية للمنافسة",
+)
 _SERVICE_ACTIONS = (
     "registration", "register", "deadline", "eligibility", "eligible", "apply",
     "application", "schedule", "timetable", "opening hours", "opens", "closes",
@@ -90,7 +101,8 @@ def classify_event_functions(
     accountability = _contains(text, _ACCOUNTABILITY_MECHANISMS)
     power = _contains(text, _PUBLIC_POWER)
     participation_only = _contains(text, _PARTICIPATION_MARKERS) and not _contains(text, _ACCOUNTABILITY_ACTION_MARKERS)
-    if accountability and power and not participation_only:
+    routine_concentration_only = _contains(text, _ROUTINE_CONCENTRATION) and not _contains(text, _SUBSTANTIVE_ACCOUNTABILITY)
+    if accountability and power and not participation_only and not routine_concentration_only:
         records.append({
             "function": "ACCOUNTABILITY", "status": VALIDATED,
             "reason": "Concrete oversight/enforcement mechanism tied to public or institutional power.",

@@ -25,6 +25,7 @@ from dragon.deep_research import (
     validate_deep_research_state,
 )
 from dragon.deep_research_executor import (
+    RoundActionBudget,
     apply_executor_results_to_packet,
     build_research_yield_report,
     execute_research_round,
@@ -443,14 +444,16 @@ def build_stage_definitions(
             actions_by_job: dict[str, list[dict]] = {}
             for action in schedule["actions"]:
                 actions_by_job.setdefault(action["job_id"], []).append(action)
+            round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
             executions = [
-                execute_research_round(job, research_adapter, config, actions=actions_by_job[job["job_id"]])
+                execute_research_round(job, research_adapter, config, actions=actions_by_job[job["job_id"]], round_budget=round_budget)
                 for job in all_jobs if job["job_id"] in actions_by_job
             ]
             report = {
                 "schema_version": 1,
                 "status": "EXECUTED",
                 "jobs": executions,
+                "round_execution_budget": round_budget.report(),
                 "actions_planned": [action for item in executions for action in item["actions"]],
                 "deferred_jobs": [
                     {
@@ -602,9 +605,16 @@ def build_stage_definitions(
             item["need_id"]: json.dumps(item, sort_keys=True, ensure_ascii=False)
             for item in initial_recovery.get("needs", [])
         }
+        initial_state = _load(context.run_dir / "deep-research" / "state.json")
+        deferred_need_ids = {
+            need["need_id"] for job in initial_state.get("jobs", [])
+            if job.get("action_deferral_reason") == "PROVIDER_NO_RESULT_REQUIRES_RECOVERY_EPOCH"
+            for need in job.get("recovery_needs", [])
+        }
         delta_needs = [
             item for item in report.get("needs", [])
-            if epoch0_signatures.get(item["need_id"]) != json.dumps(item, sort_keys=True, ensure_ascii=False)
+            if item["need_id"] in deferred_need_ids
+            or epoch0_signatures.get(item["need_id"]) != json.dumps(item, sort_keys=True, ensure_ascii=False)
         ]
         epoch1_execution = {"schema_version": 1, "status": "NOT_REQUIRED", "jobs": [], "actions_planned": []}
         epoch1_state = None
@@ -639,10 +649,11 @@ def build_stage_definitions(
                 by_job: dict[str, list[dict]] = {}
                 for action in schedule["actions"]:
                     by_job.setdefault(action["job_id"], []).append(action)
+                round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
                 epoch1_execution = {
                     "schema_version": 1, "status": "EXECUTED", "recovery_epoch": 1,
                     "jobs": [
-                        execute_research_round(job, research_adapter, config, actions=by_job[job["job_id"]])
+                        execute_research_round(job, research_adapter, config, actions=by_job[job["job_id"]], round_budget=round_budget)
                         for job in epoch1_state["jobs"] if job["job_id"] in by_job
                     ],
                     "deferred_actions": schedule["deferred_actions"],
@@ -650,6 +661,7 @@ def build_stage_definitions(
                         schedule.get("budget_allocation", {}).get("hard_lane_reservation", {})
                     ),
                 }
+                epoch1_execution["round_execution_budget"] = round_budget.report()
                 epoch1_execution["actions_planned"] = [
                     action for item in epoch1_execution["jobs"] for action in item["actions"]
                 ]

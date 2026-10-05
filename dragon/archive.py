@@ -277,7 +277,7 @@ class LocalAcceptanceArchive:
         for relative in str(_git(self.root, "ls-files", "--", "dragon", "scripts/codex_editorial_provider.py")).splitlines():
             if relative.endswith(".py"):
                 self.manifest["implementation_hashes"][relative] = sha256_file(self.root / relative)
-        for relative in ("dragon/acceptance_replay.py", "dragon_acceptance_bundle.py", "dragon_provider_research_acceptance.py"):
+        for relative in ("dragon/acceptance_replay.py", "dragon_acceptance_bundle.py", "dragon_provider_research_acceptance.py", "dragon_retrieval_acceptance.py"):
             if (self.root / relative).is_file():
                 self.manifest["implementation_hashes"][relative] = sha256_file(self.root / relative)
         self._write_manifest()

@@ -802,6 +802,8 @@ def build_deep_research_state(
         job = start_research_job(lead, config, budget_class="QUICK", run_scope_id=run_scope_id)
         job["research_lane"] = "GENERAL_DISCOVERY"
         jobs.append(job)
+    for job in jobs:
+        job["research_date"] = packet.get("edition_date")
     return {
         "schema_version": 1,
         "status": "PLANNED",

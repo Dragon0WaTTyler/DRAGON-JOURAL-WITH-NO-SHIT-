@@ -2217,7 +2217,7 @@ def create_research_action(
             "event_terms": list((recovery_need or {}).get("query_context", {}).get("event_terms", [])),
             "topic_terms": list((recovery_need or {}).get("topic_identifiers", [])),
             "geography": list((recovery_need or {}).get("query_context", {}).get("geography", [])),
-            "research_date": (recovery_need or {}).get("query_context", {}).get("research_date"),
+            "research_date": (recovery_need or {}).get("query_context", {}).get("research_date") or job.get("research_date"),
             "geography_policy": (recovery_need or {}).get("geography_policy") or (recovery_need or {}).get("event_acquisition_plan", {}).get("geography_scope"),
             "allowed_geographies": list((recovery_need or {}).get("allowed_geographies", [])),
             "scope_origin": (recovery_need or {}).get("scope_origin"),
@@ -2530,7 +2530,7 @@ class HttpResearchAdapter:
         if action["action_type"] not in FETCH_ACTIONS or not action.get("target"):
             raise ResearchExecutorError("RESEARCH_ACTION_ADAPTER_UNAVAILABLE")
         try:
-            return [fetch_and_extract_source(action["target"], timeout_seconds=action["timeout_seconds"])]
+            return [fetch_and_extract_source(action["target"], timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))]
         except DiscoveryError as exc:
             return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail}]
 
@@ -2578,7 +2578,7 @@ class RssSearchAdapter:
         if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
             try:
                 fetched = fetch_and_extract_source(
-                    str(action["target"]), timeout_seconds=action["timeout_seconds"]
+                    str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport)
                 )
             except DiscoveryError as exc:
                 return [{
@@ -2760,7 +2760,7 @@ class SearxngSearchAdapter:
     def execute(self, action: dict) -> list[dict]:
         if action.get("action_type") in FETCH_ACTIONS and action.get("target"):
             try:
-                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"])
+                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))
             except DiscoveryError as exc:
                 return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail, "discovery_channel": f"{self.adapter_id}-followup"}]
             origin = urlsplit(str(fetched.get("canonical_url") or "")).hostname or ""
@@ -2913,7 +2913,7 @@ class GdeltDocSearchAdapter:
             # Exact pages use DRAGON's one safe fetch path; GDELT never grants
             # a privileged retrieval route.
             try:
-                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"])
+                fetched = fetch_and_extract_source(str(action["target"]), timeout_seconds=action["timeout_seconds"], transport=getattr(self, "source_transport", default_transport))
             except DiscoveryError as exc:
                 return [{"result_type": "DEAD_END", "reason": exc.code, "detail": exc.detail,
                          "discovery_channel": f"{self.adapter_id}-followup"}]
@@ -4503,6 +4503,35 @@ def replay_exact_source_roles(observations: list[dict], actions: list[dict]) -> 
     return replayed, sources
 
 
+class RoundActionBudget:
+    """Share the round ceiling across jobs, protecting scheduled opportunities."""
+
+    def __init__(self, maximum: int, selected: list[dict]):
+        self.maximum = maximum
+        self.pending = {action["action_id"] for action in selected}
+        if len(self.pending) > maximum:
+            raise ResearchExecutorError("RESEARCH_ROUND_BUDGET_INVALID")
+        self.executed: list[str] = []
+        self.deferred: list[dict] = []
+
+    def admit(self, action: dict) -> bool:
+        identity = action["action_id"]
+        scheduled = identity in self.pending
+        if identity in self.executed or len(self.executed) >= self.maximum or (
+            not scheduled and len(self.executed) + len(self.pending) >= self.maximum
+        ):
+            self.deferred.append({"action": deepcopy(action), "reason": "ROUND_CAP_PRESERVES_SELECTED_ACTIONS"})
+            return False
+        self.pending.discard(identity)
+        self.executed.append(identity)
+        return True
+
+    def report(self) -> dict:
+        return {"maximum_actions_per_round": self.maximum, "executed_action_ids": list(self.executed),
+            "remaining_capacity": self.maximum - len(self.executed), "pending_selected_action_ids": sorted(self.pending),
+            "dynamic_actions_deferred": deepcopy(self.deferred), "budget_increased": False}
+
+
 def execute_research_round(
     job: dict,
     adapter: ResearchAdapter,
@@ -4510,6 +4539,7 @@ def execute_research_round(
     *,
     actions: list[dict] | None = None,
     known_event_ids: list[str] | None = None,
+    round_budget: RoundActionBudget | None = None,
 ) -> dict:
     """Execute one bounded round and feed observations to the state machine."""
     planned = actions if actions is not None else plan_research_actions(job, config, known_event_ids=known_event_ids)
@@ -4558,6 +4588,8 @@ def execute_research_round(
         counter = "search_actions" if is_search else ("lead_followups" if is_lead_followup else "fetches")
         ceiling = int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]) if is_lead_followup else limits[counter]
         if state[counter] >= ceiling:
+            return
+        if round_budget is not None and not round_budget.admit(action):
             return
         state[counter] += 1
         executed.append(action)
