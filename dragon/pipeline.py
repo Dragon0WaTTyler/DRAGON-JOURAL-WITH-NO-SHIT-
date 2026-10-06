@@ -467,9 +467,11 @@ def build_stage_definitions(
             for action in schedule["actions"]:
                 actions_by_job.setdefault(action["job_id"], []).append(action)
             round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
+            jobs_by_id = {job["job_id"]: job for job in all_jobs}
             executions = [
-                execute_research_round(job, research_adapter, config, actions=actions_by_job[job["job_id"]], round_budget=round_budget)
-                for job in all_jobs if job["job_id"] in actions_by_job
+                execute_research_round(jobs_by_id[job_id], research_adapter, config,
+                                       actions=actions_by_job[job_id], round_budget=round_budget)
+                for job_id in actions_by_job
             ]
             report = {
                 "schema_version": 1,
@@ -696,11 +698,13 @@ def build_stage_definitions(
                 for action in schedule["actions"]:
                     by_job.setdefault(action["job_id"], []).append(action)
                 round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
+                jobs_by_id = {job["job_id"]: job for job in epoch1_state["jobs"]}
                 epoch1_execution = {
                     "schema_version": 1, "status": "EXECUTED", "recovery_epoch": 1,
                     "jobs": [
-                        execute_research_round(job, research_adapter, config, actions=by_job[job["job_id"]], round_budget=round_budget)
-                        for job in epoch1_state["jobs"] if job["job_id"] in by_job
+                        execute_research_round(jobs_by_id[job_id], research_adapter, config,
+                                               actions=by_job[job_id], round_budget=round_budget)
+                        for job_id in by_job
                     ],
                     "deferred_actions": schedule["deferred_actions"],
                     "hard_lane_reservation": deepcopy(
