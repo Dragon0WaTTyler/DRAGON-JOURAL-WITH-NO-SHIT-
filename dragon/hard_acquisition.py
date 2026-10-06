@@ -188,6 +188,18 @@ class HardAcquisition:
         self.data["blocker"] = CAPACITY_BLOCK if minimum > remaining or self.data['allowance_blockers'] else None
         return self.data["blocker"]
 
+    def settled(self):
+        """Acquisition has no unfinished core, active route, or discovery frontier.
+
+        This is an admission boundary for optional GENERAL work, never proof of
+        accepted evidence or verified absence. Qualification may still fail.
+        """
+        return self.minimum() == 0 and all(
+            name in self.data['selected'] or not any(
+                p['lane'] == name and p['state'] != 'FAILED'
+                for p in self.data['paths'].values())
+            for name in self.lanes)
+
     def completed(self, action):
         if action["action_id"] not in self.data["completed_action_ids"]:
             self.data["completed_action_ids"].append(action["action_id"])

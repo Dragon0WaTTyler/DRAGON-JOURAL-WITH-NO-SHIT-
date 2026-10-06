@@ -97,7 +97,8 @@ def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
                 inputs["recovery_plan"], deep_config, run_scope_id=manifest["run_id"], recovery_epoch=1, recovery_only=True)
             continuations = continue_required_research_jobs(recreated, read("deep-research/execution-report.json"), deep_config, mandatory_lanes)
             open_lanes = {n.get("target_editorial_function") for n in inputs["recovery_plan"].get("needs", [])}
-            continuations = [j for j in continuations if any(a.get("target_editorial_function") in open_lanes for a in j["required_continuation_actions"])]
+            continuations = [j for j in continuations if j.get('general_opportunity_continuation')
+                            or any(a.get("target_editorial_function") in open_lanes for a in j["required_continuation_actions"])]
             if continuations:
                 recreated1 = merge_required_research_continuations(recreated1, continuations, inputs["recovery_plan"]["needs"])
             states.append((1, recreated1, "deep-research/epoch-1-state.json", "deep-research/epoch-1-scheduler-allocation.json"))

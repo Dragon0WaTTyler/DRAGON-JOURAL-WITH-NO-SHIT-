@@ -2375,34 +2375,43 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
             acquisition.promote()
         active = acquisition.actions()
         active_ids = {a['action_id'] for a in active}
+        general_candidates = [a for a in planned
+            if a.get('target_editorial_function') not in {'ACCOUNTABILITY', 'SERVICE'}
+            and int(a.get('strategy_index', 0)) == 0]
+        general_roots = [a for a in general_candidates
+            if a.get('research_lane') == 'GENERAL_DISCOVERY' and not a.get('recovery_need_id')]
+        general_action = None if general_opportunity_executed else next(iter(sorted(
+            general_roots or general_candidates,
+            key=lambda a: ((a['job_id'], a['action_id']) if general_roots else
+                (PRIORITY_ORDER[a['priority_class']], str(a.get('recovery_need_id') or a['job_id']), a['action_id'])))), None)
         filtered = []
         for job in jobs:
             copy = deepcopy(job)
             copy['required_continuation_actions'] = [a for a in planned if a['job_id'] == job['job_id']
+                and a.get('target_editorial_function') in {'ACCOUNTABILITY', 'SERVICE'}
                 and (a.get('target_editorial_function') not in mandatory_lanes or acquisition_core(a))]
             copy['required_continuation_actions'].extend(a for a in active if a['job_id'] == job['job_id'])
             filtered.append(copy)
         result = schedule_research_actions(filtered, config, known_event_ids=known_event_ids,
-            mandatory_lanes=mandatory_lanes, general_opportunity_executed=general_opportunity_executed)
-        general_selected = next((a['action_id'] for a in result['actions']
-            if a.get('target_editorial_function') not in {'ACCOUNTABILITY', 'SERVICE'}), None)
-        result['actions'] = [a for a in result['actions']
-            if a.get('target_editorial_function') in {'ACCOUNTABILITY', 'SERVICE'}
-            or (not general_opportunity_executed and a['action_id'] == general_selected)]
+            mandatory_lanes=mandatory_lanes, general_opportunity_executed=True)
         remaining = remaining_total_actions if remaining_total_actions is not None else config['executor']['maximum_actions_per_round']
-        general = int(not general_opportunity_executed and general_selected is not None)
-        blocker = acquisition.check_capacity(remaining, general)
+        blocker = acquisition.check_capacity(remaining)
         # Leave room for the selected path's not-yet-materialized role work.
         # Optional work cannot pre-book those slots; the configured cap stays 8.
         reserve = max(0, acquisition.minimum() - len(active) - len(set(acquisition.data['core_action_ids']) - set(acquisition.data['completed_action_ids'])))
         selected = result['actions']
+        # GENERAL never displaces a known core action or adds to the mandatory
+        # minimum. Its root remains available for dispatch after hard work settles.
+        if general_action and len(selected) < config['executor']['maximum_actions_per_round']:
+            selected.append(general_action)
         def optional_action(action):
-            return action.get('target_editorial_function') not in mandatory_lanes and not (general and action['action_id'] == general_selected)
-        optional_capacity = max(0, remaining - acquisition.minimum() - general)
+            return action.get('target_editorial_function') not in mandatory_lanes
+        optional_capacity = max(0, remaining - acquisition.minimum())
         dropped = False
         while (len(selected) > max(0, min(remaining, config['executor']['maximum_actions_per_round']) - reserve)
                or sum(optional_action(a) for a in selected) > optional_capacity):
-            optional = next((a for a in reversed(selected) if optional_action(a)), None)
+            optional = next((a for a in reversed(selected) if optional_action(a) and a != general_action),
+                            next((a for a in reversed(selected) if optional_action(a)), None))
             if optional is None:
                 break
             selected.remove(optional)
@@ -2416,16 +2425,20 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
                 job['required_continuation_actions'] = [a for a in job['required_continuation_actions']
                     if a.get('target_editorial_function') in mandatory_lanes or a['action_id'] in kept_ids]
             result = schedule_research_actions(limited, config, known_event_ids=known_event_ids,
-                mandatory_lanes=mandatory_lanes, general_opportunity_executed=general_opportunity_executed)
+                mandatory_lanes=mandatory_lanes, general_opportunity_executed=True)
             selected = result['actions']
+            if general_action and general_action['action_id'] in kept_ids:
+                selected.append(general_action)
         if blocker:
             selected = []
         selected_ids = {a['action_id'] for a in selected}
         alternatives = [a for a in planned if a['action_id'] not in selected_ids]
         result['actions'] = selected
         result['deferred_actions'] = [{**a, 'required_protocol': a.get('target_editorial_function') in mandatory_lanes and (acquisition_core(a) or a['action_id'] in active_ids),
-            'deferred_reason': blocker or ('FALLBACK_IF_CURRENT_PATH_FAILS' if not acquisition_core(a) and a['action_id'] not in active_ids else 'ROUND_BUDGET_PRIORITY_AND_FAIRNESS')}
+            'deferred_reason': ('GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION' if a == general_action else
+                blocker or ('FALLBACK_IF_CURRENT_PATH_FAILS' if not acquisition_core(a) and a['action_id'] not in active_ids else 'ROUND_BUDGET_PRIORITY_AND_FAIRNESS'))}
             for a in alternatives]
+        result['general_opportunity'] = deepcopy(general_action)
         telemetry = result['budget_allocation']['hard_lane_reservation']
         telemetry['hard_lane_actions_selected'] = {lane:[a['action_id'] for a in selected
             if a.get('target_editorial_function') == lane] for lane in telemetry['active_hard_lanes']}
@@ -2676,11 +2689,15 @@ def continue_required_research_jobs(initial_state: dict, execution: dict, config
     receipt = (execution.get('round_execution_budget') or {}).get('hard_acquisition')
     if receipt:
         deferred.extend(a for p in receipt['paths'].values() for a in p['actions'].values())
+    general = execution.get('general_opportunity') if mandatory_lanes else None
+    if general and general['action_id'] not in completed:
+        deferred.append(general)
     result = []
     for job in initial_state.get("jobs", []):
         native = plan_research_actions(job, config)
         pending = [a for a in [*native, *deferred] if a.get("job_id") == job["job_id"]
-                   and a.get("target_editorial_function") in mandatory_lanes and a["action_id"] not in completed]
+                   and (a.get("target_editorial_function") in mandatory_lanes or a == general)
+                   and a["action_id"] not in completed]
         if not pending:
             continue
         carry = deepcopy(job)
@@ -2694,6 +2711,8 @@ def continue_required_research_jobs(initial_state: dict, execution: dict, config
         carry["completed_strategy_indices"] = {r["need_id"]: r["executed_variants"] for r in prior.get("recovery_strategy_progress", [])}
         carry["required_continuation_actions"] = list({a["action_id"]: deepcopy(a) for a in pending}.values())
         carry["continuation_of_epoch"] = 0
+        if general and any(a['action_id'] == general['action_id'] for a in pending):
+            carry['general_opportunity_continuation'] = True
         result.append(carry)
     return result
 
@@ -2734,7 +2753,9 @@ def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
     while queue:
         identity = queue.pop(0)
         pending = [a for a in actions_by_job[identity]
-                   if a['action_id'] not in set(round_budget.executed) | blocked]
+                   if a['action_id'] not in set(round_budget.executed) | blocked
+                   and (a['action_id'] != round_budget.general_action_id
+                        or round_budget.acquisition.settled())]
         if not pending:
             continue
         executions[identity] = execute_research_round(by_id[identity], adapter, config,
@@ -2751,6 +2772,32 @@ def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
                 if other not in queue and other in by_id and len(round_budget.executed) < round_budget.maximum:
                     actions_by_job[other] = [a for a in active if a['job_id'] == other]
                     queue.append(other)
+            general = round_budget.general_action
+            general_job = by_id.get(general['job_id']) if general else None
+            general_execution_state = (executions.get(general['job_id'], {}).get('job', {}).get('executor_state')
+                if general else None) or (general_job or {}).get('executor_state', {})
+            if general and general_job:
+                general_limits = config["executor"]["budget_action_limits"][general_job["budget_class"]]
+                general_counter = ("search_actions" if general["action_type"] in SEARCH_ACTIONS
+                    else "lead_followups" if general.get("lead_followup") else "fetches")
+                general_ceiling = (config["executor"]["lead_followup_limits"][general_job["budget_class"]]["total"]
+                    if general_counter == "lead_followups" else general_limits[general_counter])
+                general_allowance_available = int(general_execution_state.get(general_counter, 0)) < int(general_ceiling)
+                if (not general_allowance_available
+                        and general["action_id"] not in round_budget.executed
+                        and not any(r["action"]["action_id"] == general["action_id"] for r in round_budget.deferred)):
+                    round_budget.pending.discard(general["action_id"])
+                    round_budget.deferred.append({"action": deepcopy(general),
+                        "reason": "JOB_ACTION_ALLOWANCE_EXHAUSTED"})
+                    blocked.add(general["action_id"])
+            else:
+                general_allowance_available = False
+            if (not queue and general and round_budget.acquisition.settled()
+                    and general['action_id'] not in set(round_budget.executed) | blocked
+                    and general['job_id'] in by_id and general_allowance_available
+                    and len(round_budget.executed) < round_budget.maximum):
+                actions_by_job[general['job_id']] = [general]
+                queue.append(general['job_id'])
     return list(executions.values())
 
 
@@ -4827,7 +4874,8 @@ class RoundActionBudget:
     """Share the round ceiling across jobs, protecting scheduled opportunities."""
 
     def __init__(self, maximum: int, selected: list[dict], *, acquisition: dict | None = None,
-                 mandatory_lanes: tuple[str, ...] = (), remaining_total_actions: int | None = None):
+                 mandatory_lanes: tuple[str, ...] = (), remaining_total_actions: int | None = None,
+                 general_action: dict | None = None):
         self.maximum = maximum
         self.pending = {action["action_id"] for action in selected}
         if len(self.pending) > maximum:
@@ -4836,12 +4884,18 @@ class RoundActionBudget:
         self.deferred: list[dict] = []
         self.acquisition = HardAcquisition(mandatory_lanes, receipt=acquisition) if acquisition else None
         self.remaining_total_actions = remaining_total_actions if remaining_total_actions is not None else maximum
-        self.general_action_id = next((a['action_id'] for a in selected
-            if a.get('target_editorial_function') not in {'ACCOUNTABILITY','SERVICE'}), None) if self.acquisition else None
+        self.general_action = deepcopy(general_action or next((a for a in selected
+            if a.get('target_editorial_function') not in {'ACCOUNTABILITY','SERVICE'}), None)) if self.acquisition else None
+        self.general_action_id = (self.general_action or {}).get('action_id')
 
     def admit(self, action: dict) -> bool:
         identity = action["action_id"]
         scheduled = identity in self.pending
+        if (self.acquisition and identity == self.general_action_id and not self.acquisition.settled()):
+            self.pending.discard(identity)
+            self.deferred.append({'action':deepcopy(action),
+                                  'reason':'GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION'})
+            return False
         general_reserved = int(self.general_action_id in self.pending and identity != self.general_action_id)
         if (self.acquisition and action.get('target_editorial_function') not in self.acquisition.lanes
                 and self.acquisition.minimum() + general_reserved > self.remaining_total_actions - len(self.executed) - 1):
@@ -4853,7 +4907,7 @@ class RoundActionBudget:
                                   'reason':'ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'})
             return False
         if identity in self.executed or len(self.executed) >= self.maximum or (
-            not scheduled and len(self.executed) + len(self.pending) >= self.maximum
+            not scheduled and len(self.executed) + len(self.pending - {self.general_action_id}) >= self.maximum
         ):
             self.deferred.append({"action": deepcopy(action), "reason": "ROUND_CAP_PRESERVES_SELECTED_ACTIONS"})
             return False
@@ -4862,12 +4916,16 @@ class RoundActionBudget:
         return True
 
     def report(self) -> dict:
+        deferred = deepcopy(self.deferred)
         if self.acquisition:
-            self.acquisition.check_capacity(self.remaining_total_actions - len(self.executed),
-                int(self.general_action_id in self.pending))
+            self.acquisition.check_capacity(self.remaining_total_actions - len(self.executed))
+            if (self.general_action and self.general_action_id not in self.executed
+                    and not any(r['action']['action_id'] == self.general_action_id for r in deferred)):
+                deferred.append({'action':deepcopy(self.general_action),
+                                 'reason':'GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION'})
         return {"maximum_actions_per_round": self.maximum, "executed_action_ids": list(self.executed),
             "remaining_capacity": self.maximum - len(self.executed), "pending_selected_action_ids": sorted(self.pending),
-            "dynamic_actions_deferred": deepcopy(self.deferred), "budget_increased": False,
+            "dynamic_actions_deferred": deferred, "budget_increased": False,
             **({'hard_acquisition': self.acquisition.report()} if self.acquisition else {})}
 
 
