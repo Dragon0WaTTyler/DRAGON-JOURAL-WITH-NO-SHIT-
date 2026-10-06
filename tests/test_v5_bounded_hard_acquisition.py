@@ -388,7 +388,7 @@ def test_optional_hard_lane_is_not_general_and_is_dropped_for_exact_mandatory_ca
     schedule = schedule_research_actions(jobs,case['config'],mandatory_lanes=(mandatory,),
         acquisition_receipt=state.report(),remaining_total_actions=remaining)
     assert schedule['hard_acquisition']['blocker'] is None
-    assert schedule['hard_acquisition']['minimum_remaining_required_actions']==remaining
+    assert schedule['hard_acquisition']['minimum_remaining_required_actions']==2
     assert {a['action_id'] for a in schedule['actions'] if a.get('target_editorial_function')==mandatory}=={'mandatory-p','mandatory-i'}
     assert not any(a.get('target_editorial_function')==optional for a in schedule['actions'])
     assert [a['action_id'] for a in schedule['actions'] if a.get('target_editorial_function') not in LANES]==(['real-general'] if real_general else [])
@@ -538,12 +538,15 @@ def test_optional_dynamic_children_preserve_unmaterialized_mandatory_role_capaci
         'source_class':'unknown'}]})
     optional_adapter.follow_discovery_leads=True
     result=execute_research_round(optional_job,optional_adapter,CONFIG,actions=[root],round_budget=budget)
-    assert optional_adapter.executed_actions==['optional-root']
-    assert len(result['actions'])==1
-    assert any(r['action'].get('lead_followup') and r['reason']=='ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'
-               for r in budget.deferred)
+    assert optional_adapter.executed_actions==(['optional-root'] if optional_lane else [])
+    assert len(result['actions'])==int(bool(optional_lane))
+    if optional_lane:
+        assert any(r['action'].get('lead_followup') and r['reason']=='ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'
+                   for r in budget.deferred)
+    else:
+        assert budget.deferred[0]['reason']=='GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION'
     assert budget.report()['hard_acquisition']['blocker'] is None
-    assert budget.acquisition.minimum()==7 and len(budget.executed)==1
+    assert budget.acquisition.minimum()==7 and len(budget.executed)==int(bool(optional_lane))
     hard_adapter=FixtureResearchAdapter({
         'FETCH_CONFIGURED_SOURCE':[],
         'hard-primary':[_result(primary['target'],'unknown',fetch_status='FETCHED',
@@ -556,7 +559,7 @@ def test_optional_dynamic_children_preserve_unmaterialized_mandatory_role_capaci
             text='Public authority publishes an audit report documenting oversight findings. '*8)]})
     execute_research_round(hard_job,hard_adapter,CONFIG,actions=core_actions+[primary],round_budget=budget)
     assert hard_adapter.executed_actions[:5]==[a['action_id'] for a in core_actions]+['hard-primary']
-    assert len(hard_adapter.executed_actions)==7 and len(budget.executed)==8
+    assert len(hard_adapter.executed_actions)==7 and len(budget.executed)==7+int(bool(optional_lane))
     assert budget.report()['hard_acquisition']['blocker'] is None
     assert budget.acquisition.minimum()==0
 
@@ -575,7 +578,7 @@ def test_optional_admission_counts_its_own_cost_without_recording_false_structur
         assert budget.deferred[0]['reason']=='ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'
 
 
-def test_optional_children_cannot_spend_the_pending_real_general_opportunity():
+def test_optional_children_preserve_general_which_yields_to_unsettled_mandatory_work():
     from test_v5_deep_research_executor import _job, CONFIG
     from dragon.deep_research_executor import plan_research_actions
     primary=action('selected-primary',pdf=True)
@@ -597,11 +600,12 @@ def test_optional_children_cannot_spend_the_pending_real_general_opportunity():
     adapter.follow_discovery_leads=True
     execute_research_round(optional_job,adapter,CONFIG,actions=[optional],round_budget=budget)
     assert adapter.executed_actions==['optional-service-root']
-    assert budget.report()['hard_acquisition']['minimum_remaining_required_actions']==7
+    assert budget.report()['hard_acquisition']['minimum_remaining_required_actions']==6
     assert budget.report()['hard_acquisition']['blocker'] is None
     general_adapter=FixtureResearchAdapter({})
     execute_research_round(general_job,general_adapter,CONFIG,actions=[general],round_budget=budget)
-    assert general_adapter.executed_actions==['protected-general-root']
-    assert budget.executed==['optional-service-root','protected-general-root']
+    assert general_adapter.executed_actions==[]
+    assert budget.executed==['optional-service-root']
+    assert any(r['reason']=='GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION' for r in budget.deferred)
     assert budget.report()['hard_acquisition']['minimum_remaining_required_actions']==6
     assert budget.report()['hard_acquisition']['blocker'] is None

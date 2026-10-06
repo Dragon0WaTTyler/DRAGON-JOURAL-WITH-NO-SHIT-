@@ -169,7 +169,7 @@ def test_current_event_without_publication_date_keeps_unknown_role_and_bounded_f
     assert len(budget.executed) == 2 and not budget.report()["budget_increased"]
 
 
-def test_pipeline_dispatches_hard_jobs_before_materialized_general_job(case, tmp_path):
+def test_pipeline_dispatches_all_mandatory_core_and_preserves_deferred_general(case, tmp_path):
     from test_v5_hard_lane_completion import EmptyAdapter
     from test_v5_research_finality import ROOT, DATE
     from dragon.pipeline import build_stage_definitions
@@ -192,5 +192,10 @@ def test_pipeline_dispatches_hard_jobs_before_materialized_general_job(case, tmp
     expected = list(dict.fromkeys(a["job_id"] for a in schedule["actions"]))
     assert [j["job"]["job_id"] for j in execution["jobs"]] == expected
     assert execution["jobs"][0]["actions"][0]["target_editorial_function"] == "ACCOUNTABILITY"
-    assert execution["jobs"][-1]["job"]["job_id"] == general["job_id"]
+    assert all(j['job']['job_id'] != general['job_id'] for j in execution['jobs'])
+    assert execution['general_opportunity']['job_id'] == general['job_id']
+    assert any(r['action']['job_id']==general['job_id'] and
+               r['reason']=='GENERAL_PREEMPTED_BY_MANDATORY_ACQUISITION'
+               for r in execution['round_execution_budget']['dynamic_actions_deferred'])
+    assert all(core(a) for j in execution['jobs'] for a in j['actions'])
     assert len(execution["round_execution_budget"]["executed_action_ids"]) <= 8

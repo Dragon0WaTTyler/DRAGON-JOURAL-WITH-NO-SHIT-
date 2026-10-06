@@ -472,12 +472,14 @@ def build_stage_definitions(
                 actions_by_job.setdefault(action["job_id"], []).append(action)
             round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"],
                 acquisition=schedule.get('hard_acquisition'), mandatory_lanes=mandatory_lanes,
-                remaining_total_actions=2 * config['executor']['maximum_actions_per_round'])
+                remaining_total_actions=2 * config['executor']['maximum_actions_per_round'],
+                general_action=schedule.get('general_opportunity'))
             executions = execute_scheduled_research_jobs(all_jobs, research_adapter, config, actions_by_job, round_budget)
             report = {
                 "schema_version": 1,
                 "status": "EXECUTED",
                 "jobs": executions,
+                "general_opportunity": schedule.get('general_opportunity'),
                 "round_execution_budget": round_budget.report(),
                 "actions_planned": [action for item in executions for action in item["actions"]],
                 "deferred_jobs": [
@@ -653,8 +655,9 @@ def build_stage_definitions(
         config = load_deep_research_config(context.root / "config/deep-research.yaml", context.root / "config/deep-research-schema.json")
         continuation_jobs = continue_required_research_jobs(initial_state, execution, config, mandatory_lanes)
         open_lanes = {n.get("target_editorial_function") for n in report.get("needs", [])}
-        continuation_jobs = [j for j in continuation_jobs if any(a.get("target_editorial_function") in open_lanes
-                            for a in j["required_continuation_actions"])]
+        continuation_jobs = [j for j in continuation_jobs if j.get('general_opportunity_continuation')
+                            or any(a.get("target_editorial_function") in open_lanes
+                                   for a in j["required_continuation_actions"])]
         continuation_needs = {n["need_id"] for j in continuation_jobs for n in j.get("recovery_needs", [])}
         continuation_lanes = {a.get("target_editorial_function") for j in continuation_jobs for a in j["required_continuation_actions"]}
         delta_needs = [n for n in report.get("needs", []) if n in delta_needs or n["need_id"] in continuation_needs or n.get("target_editorial_function") in continuation_lanes]
@@ -702,9 +705,11 @@ def build_stage_definitions(
                     by_job.setdefault(action["job_id"], []).append(action)
                 round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"],
                     acquisition=schedule.get('hard_acquisition'), mandatory_lanes=mandatory_lanes,
-                    remaining_total_actions=config['executor']['maximum_actions_per_round'])
+                    remaining_total_actions=config['executor']['maximum_actions_per_round'],
+                    general_action=schedule.get('general_opportunity'))
                 epoch1_execution = {
                     "schema_version": 1, "status": "EXECUTED", "recovery_epoch": 1,
+                    "general_opportunity": schedule.get('general_opportunity'),
                     "jobs": execute_scheduled_research_jobs(epoch1_state['jobs'], research_adapter, config, by_job, round_budget),
                     "deferred_actions": schedule["deferred_actions"],
                     "hard_lane_reservation": deepcopy(
