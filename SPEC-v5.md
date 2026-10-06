@@ -108,7 +108,8 @@ materials are routed elsewhere rather than forced through the article parser.
 ACCOUNTABILITY and SERVICE remain mandatory research obligations. Event
 existence is not mandatory. New V5 runs record each lane as `VALIDATED_EVENT`,
 `VERIFIED_NO_QUALIFYING_EVENT`, `BLOCKED_TECHNICAL_FAILURE`,
-`BLOCKED_CONTRACT_FAILURE`, `BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH`, or
+`BLOCKED_CONTRACT_FAILURE`, `BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH`,
+`BLOCKED_MANDATORY_PROTOCOL_CAPACITY`, or
 `UNRESOLVED`. Verified absence requires the full machine-audited bounded
 protocol defined in `docs/RESEARCH-FINALITY.md`; a provider's no-result label,
 rejected candidate, exhausted cap, or failed retrieval is insufficient.

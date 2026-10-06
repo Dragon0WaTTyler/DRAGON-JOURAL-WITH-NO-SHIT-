@@ -201,6 +201,7 @@ Verified absence adds no event or article credit and creates no filler.
 Read [deep research](docs/DEEP-RESEARCH-ENGINE.md),
 [executor](docs/DEEP-RESEARCH-EXECUTOR.md),
 [hard-lane completion](docs/HARD-LANE-COMPLETION.md),
+[bounded hard acquisition](docs/BOUNDED-HARD-ACQUISITION.md),
 [research finality](docs/RESEARCH-FINALITY.md), and
 [durable acceptance bundles](docs/ACCEPTANCE-BUNDLES.md).
 

@@ -1,8 +1,13 @@
 # Mandatory hard-lane execution completion
 
-This extends accepted finality downstream execution. The six states and eleven
+This extends accepted finality downstream execution. The states and eleven
 negative-closure requirements in RESEARCH-FINALITY.md remain authoritative.
 Neither exhaustion nor lack of findings grants a no-event result.
+
+New production acquisition additionally uses the staged candidate-path receipt
+defined in [BOUNDED-HARD-ACQUISITION.md](BOUNDED-HARD-ACQUISITION.md). Required
+core work is unchanged; recorded alternatives no longer all become mandatory
+at once. One GENERAL opportunity remains protected across the two epochs.
 
 ## Scheduling and recovery
 
@@ -11,9 +16,11 @@ completion priority. That receipt and research packet are declared execution
 checkpoint inputs. Missing actual request proof cannot acquire negative closure.
 Historical runs without this receipt retain their captured scheduling behavior.
 
-`schedule_research_actions(..., mandatory_lanes=...)` retains exact-provider
-preferences and complementary roles, then alternates required native strategies
-between mandatory lanes before optional/general waves. One general opportunity
+`schedule_research_actions(..., mandatory_lanes=...)` alternates required native
+core strategies between mandatory lanes before candidate acquisitions. Optional
+hard lanes retain their exact-provider preference and complementary roles.
+The staged receipt selects the current acquisition path after discovery and
+prioritizes its exact artifacts. One general opportunity
 is protected when executable general work exists. An actual general opportunity
 in epoch 0 satisfies that edition-wide reservation; epoch 1 can use its full
 remaining cap for mandatory work. Existing priority/fairness orders remaining

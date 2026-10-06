@@ -31,6 +31,7 @@ from dragon.source_coverage import need_source_family_policy, route_source_famil
 from dragon.authority_routing import authority_artifact_preferences, authority_route_metadata, authority_capability_from_text, configured_artifact_family_for_route
 from dragon.publisher_profiles import PublisherProfileCache, publisher_profile_from_pages
 from dragon.evidence_policy import candidate_evidence_policy
+from dragon.hard_acquisition import HardAcquisition, core as acquisition_core, exact as acquisition_exact
 from dragon.editorial_functions import classify_event_functions, validated_function_names
 from dragon.temporal_relevance import evaluate_temporal_relevance
 from dragon.institutional_navigation import (
@@ -2353,7 +2354,9 @@ def _action_allowance(job: dict, action: dict, config: dict) -> tuple[str, int]:
 
 
 def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids: list[str] | None = None,
-                              mandatory_lanes: tuple[str, ...] = (), general_opportunity_executed: bool = False) -> dict:
+                              mandatory_lanes: tuple[str, ...] = (), general_opportunity_executed: bool = False,
+                              acquisition_receipt: dict | None = None, remaining_total_actions: int | None = None,
+                              candidate_claim_contexts: dict | None = None) -> dict:
     """Select a finite, fair cross-desk slice without starving P1 behind P0.
 
     A wave contains the first untried strategy for each need.  Priority orders
@@ -2361,6 +2364,67 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     whole round.  Later ladder variants wait until every eligible need has had
     an earlier strategy considered.
     """
+    if mandatory_lanes and acquisition_receipt is not None:
+        planned = [a for j in jobs for a in plan_research_actions(j, config, known_event_ids=known_event_ids)]
+        acquisition = HardAcquisition(mandatory_lanes, planned, acquisition_receipt or None)
+        if candidate_claim_contexts is not None:
+            acquisition.data['candidate_claim_contexts'] = deepcopy(candidate_claim_contexts)
+        # Select after the discovery epoch: canonical exact artifacts then
+        # compete with provider suggestions using captured routing signals.
+        if acquisition_receipt:
+            acquisition.promote()
+        active = acquisition.actions()
+        active_ids = {a['action_id'] for a in active}
+        filtered = []
+        for job in jobs:
+            copy = deepcopy(job)
+            copy['required_continuation_actions'] = [a for a in planned if a['job_id'] == job['job_id']
+                and (a.get('target_editorial_function') not in mandatory_lanes or acquisition_core(a))]
+            copy['required_continuation_actions'].extend(a for a in active if a['job_id'] == job['job_id'])
+            filtered.append(copy)
+        result = schedule_research_actions(filtered, config, known_event_ids=known_event_ids,
+            mandatory_lanes=mandatory_lanes, general_opportunity_executed=general_opportunity_executed)
+        general_selected = next((a['action_id'] for a in result['actions']
+            if a.get('target_editorial_function') not in {'ACCOUNTABILITY', 'SERVICE'}), None)
+        result['actions'] = [a for a in result['actions']
+            if a.get('target_editorial_function') in {'ACCOUNTABILITY', 'SERVICE'}
+            or (not general_opportunity_executed and a['action_id'] == general_selected)]
+        remaining = remaining_total_actions if remaining_total_actions is not None else config['executor']['maximum_actions_per_round']
+        general = int(not general_opportunity_executed and any(a.get('target_editorial_function') not in mandatory_lanes for a in result['actions']))
+        blocker = acquisition.check_capacity(remaining, general)
+        # Leave room for the selected path's not-yet-materialized role work.
+        # Optional work cannot pre-book those slots; the configured cap stays 8.
+        reserve = max(0, acquisition.minimum() - len(active) - len(set(acquisition.data['core_action_ids']) - set(acquisition.data['completed_action_ids'])))
+        selected = result['actions']
+        while len(selected) > max(0, config['executor']['maximum_actions_per_round'] - reserve):
+            optional = next((a for a in reversed(selected) if a.get('target_editorial_function') not in mandatory_lanes and not general), None)
+            if optional is None:
+                break
+            selected.remove(optional)
+        if blocker:
+            selected = []
+        selected_ids = {a['action_id'] for a in selected}
+        alternatives = [a for a in planned if a['action_id'] not in selected_ids]
+        result['actions'] = selected
+        result['deferred_actions'] = [{**a, 'required_protocol': a.get('target_editorial_function') in mandatory_lanes and (acquisition_core(a) or a['action_id'] in active_ids),
+            'deferred_reason': blocker or ('FALLBACK_IF_CURRENT_PATH_FAILS' if not acquisition_core(a) and a['action_id'] not in active_ids else 'ROUND_BUDGET_PRIORITY_AND_FAIRNESS')}
+            for a in alternatives]
+        telemetry = result['budget_allocation']['hard_lane_reservation']
+        telemetry['hard_lane_actions_selected'] = {lane:[a['action_id'] for a in selected
+            if a.get('target_editorial_function') == lane] for lane in telemetry['active_hard_lanes']}
+        telemetry['hard_lane_actions_deferred'] = {lane:[a['action_id'] for a in active
+            if a.get('target_editorial_function') == lane and a['action_id'] not in selected_ids]
+            for lane in telemetry['active_hard_lanes']}
+        telemetry['remaining_general_capacity'] = int(any(a.get('target_editorial_function') not in {'ACCOUNTABILITY','SERVICE'} for a in selected))
+        telemetry['hard_lane_reserved_action_ids'] = sorted(a['action_id'] for a in selected
+            if a.get('target_editorial_function') in mandatory_lanes)
+        telemetry['hard_lane_reserved_capacity'] = len(telemetry['hard_lane_reserved_action_ids'])
+        telemetry['core_actions_selected'] = [a['action_id'] for a in selected if acquisition_core(a)]
+        telemetry['core_actions_deferred'] = [a['action_id'] for a in planned if acquisition_core(a)
+            and a.get('target_editorial_function') in mandatory_lanes and a['action_id'] not in selected_ids]
+        result['budget_allocation']['hard_breadth_reserved_slots'] = int(any(a.get('target_editorial_function') not in {'ACCOUNTABILITY','SERVICE'} for a in selected))
+        result['hard_acquisition'] = acquisition.report()
+        return result
     all_actions = [
         action for job in jobs
         for action in plan_research_actions(job, config, known_event_ids=known_event_ids)
@@ -2387,6 +2451,8 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
     first_wave = [item for item in eligible_actions if int(item.get("strategy_index", 0)) == 0]
     first_wave_all = [item for item in available_actions if int(item.get("strategy_index", 0)) == 0]
     def protocol_core(item: dict) -> bool:
+        if item.get('acquisition_path_id'):
+            return False
         return bool(item.get("recovery_need_id") and not item.get("lead_followup")
                     and not item.get("dynamic_recovery") and not item.get("actor_first_search")
                     and item.get("lead_origin") != "PROVIDER_EXACT")
@@ -2424,6 +2490,7 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
                 # fetches retain their original strategy_index (often zero);
                 # that index must not let them displace an untried core step.
                 0 if lane not in mandatory_lanes or protocol_core(item) else 1,
+                0 if lane in mandatory_lanes and acquisition_exact(item) else 1,
                 0 if item.get("lead_origin") == "PROVIDER_EXACT" else 1,
                 0 if item.get("provider_source_role") == "PRIMARY" else 1,
                 int(item.get("strategy_index", 0)),
@@ -2589,6 +2656,9 @@ def continue_required_research_jobs(initial_state: dict, execution: dict, config
     previous = {j["job"]["job_id"]: j for j in execution.get("jobs", [])}
     deferred = [record["action"] for record in (execution.get("round_execution_budget") or {}).get("dynamic_actions_deferred", [])
                 if record.get("action") and (record["action"].get("required_lead_inspection") or record["action"].get("dynamic_recovery"))]
+    receipt = (execution.get('round_execution_budget') or {}).get('hard_acquisition')
+    if receipt:
+        deferred.extend(a for p in receipt['paths'].values() for a in p['actions'].values())
     result = []
     for job in initial_state.get("jobs", []):
         native = plan_research_actions(job, config)
@@ -2635,6 +2705,27 @@ def merge_required_research_continuations(state: dict, continuations: list[dict]
         if lane["need_id"] in carry_by_need:
             lane["job_id"] = carry_by_need[lane["need_id"]]["job_id"]
     return state
+
+
+def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
+                                    actions_by_job: dict[str, list[dict]], round_budget) -> list[dict]:
+    """Preserve scheduled job order; dispatch newly promoted jobs within this cap."""
+    by_id = {j['job_id']:j for j in jobs}
+    queue = list(actions_by_job)
+    executions = []
+    visited = set()
+    while queue:
+        identity = queue.pop(0)
+        visited.add(identity)
+        executions.append(execute_research_round(by_id[identity], adapter, config,
+            actions=actions_by_job[identity], round_budget=round_budget))
+        if round_budget.acquisition:
+            for action in round_budget.acquisition.actions():
+                other = action['job_id']
+                if other not in visited and other not in queue and other in by_id:
+                    actions_by_job[other] = [a for a in round_budget.acquisition.actions() if a['job_id'] == other]
+                    queue.append(other)
+    return executions
 
 
 class FixtureResearchAdapter:
@@ -4709,13 +4800,16 @@ def reconcile_discovery_leads(observations: list[dict], actions: list[dict]) -> 
 class RoundActionBudget:
     """Share the round ceiling across jobs, protecting scheduled opportunities."""
 
-    def __init__(self, maximum: int, selected: list[dict]):
+    def __init__(self, maximum: int, selected: list[dict], *, acquisition: dict | None = None,
+                 mandatory_lanes: tuple[str, ...] = (), remaining_total_actions: int | None = None):
         self.maximum = maximum
         self.pending = {action["action_id"] for action in selected}
         if len(self.pending) > maximum:
             raise ResearchExecutorError("RESEARCH_ROUND_BUDGET_INVALID")
         self.executed: list[str] = []
         self.deferred: list[dict] = []
+        self.acquisition = HardAcquisition(mandatory_lanes, receipt=acquisition) if acquisition else None
+        self.remaining_total_actions = remaining_total_actions if remaining_total_actions is not None else maximum
 
     def admit(self, action: dict) -> bool:
         identity = action["action_id"]
@@ -4730,9 +4824,12 @@ class RoundActionBudget:
         return True
 
     def report(self) -> dict:
+        if self.acquisition:
+            self.acquisition.check_capacity(self.remaining_total_actions - len(self.executed))
         return {"maximum_actions_per_round": self.maximum, "executed_action_ids": list(self.executed),
             "remaining_capacity": self.maximum - len(self.executed), "pending_selected_action_ids": sorted(self.pending),
-            "dynamic_actions_deferred": deepcopy(self.deferred), "budget_increased": False}
+            "dynamic_actions_deferred": deepcopy(self.deferred), "budget_increased": False,
+            **({'hard_acquisition': self.acquisition.report()} if self.acquisition else {})}
 
 
 def execute_research_round(
@@ -4762,6 +4859,8 @@ def execute_research_round(
     strategy_counts: dict[str, int] = {}
     executed = []
     mandatory_protocol = any(a.get("required_protocol") for a in planned)
+    staged_protocol = bool(round_budget is not None and round_budget.acquisition
+        and any(a.get('target_editorial_function') in round_budget.acquisition.lanes for a in planned))
     core_phase = True
     followup_queue: list[dict] = []
     unexecuted_actions: list[dict] = []
@@ -4797,6 +4896,18 @@ def execute_research_round(
         nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, direct_route_selection, actor_first_telemetry
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
+        acquisition = round_budget.acquisition if staged_protocol else None
+        if acquisition and action.get('target_editorial_function') in acquisition.lanes and not acquisition_core(action):
+            identity = acquisition.register(action)
+            action = {**action, 'acquisition_path_id': identity}
+            if not acquisition.active(action):
+                round_budget.pending.discard(action['action_id'])
+                defer_action({**action, 'required_protocol': False}, 'FALLBACK_IF_CURRENT_PATH_FAILS')
+                return
+            action['required_protocol'] = True
+        if acquisition and acquisition.check_capacity(round_budget.remaining_total_actions - len(round_budget.executed)):
+            defer_action(action, acquisition.data['blocker'])
+            return
         if mandatory_protocol and core_phase and action["action_id"] not in {a["action_id"] for a in planned}:
             if not any(a["action_id"] == action["action_id"] for a in followup_queue):
                 followup_queue.append(deepcopy(action))
@@ -4807,12 +4918,18 @@ def execute_research_round(
         ceiling = int(config["executor"]["lead_followup_limits"][job["budget_class"]]["total"]) if is_lead_followup else limits[counter]
         if state[counter] >= ceiling:
             if mandatory_protocol:
+                if acquisition and acquisition.active(action):
+                    acquisition.data['allowance_blockers'].append({'action_id':action['action_id'],
+                        'job_id':job['job_id'], 'counter':counter, 'ceiling':ceiling,
+                        'reason':'JOB_ACTION_ALLOWANCE_EXHAUSTED'})
                 defer_action(action, "JOB_ACTION_ALLOWANCE_EXHAUSTED")
             return
         if round_budget is not None and not round_budget.admit(action):
             return
         state[counter] += 1
         executed.append(action)
+        if acquisition:
+            acquisition.completed(action)
         if action.get("recovery_need_id"):
             need_id = str(action["recovery_need_id"])
             attempted_strategies.setdefault(need_id, set()).add(int(action.get("strategy_index", 0)))
@@ -5075,6 +5192,47 @@ def execute_research_round(
                             "editorial_value_reason": value_reason,
                             "acceptable_story_roles": list(action.get("acceptable_story_roles") or []),
                         })
+        if acquisition and is_search and action.get('acquisition_path_id'):
+            # Inspect one ranked result of this selected role query immediately.
+            # Earlier core-search alternatives must not displace the result,
+            # and a late feedback query must not wait for a nonexistent epoch 2.
+            search_leads = [o for o in observations if o.get('provenance', {}).get('action_id') == action['action_id']]
+            selected_role_leads = select_leads_for_followup(search_leads, {action['action_id']:action},
+                config['executor']['lead_followup_limits'][job['budget_class']])[:1]
+            for lead in selected_role_leads:
+                target = lead.get('followup_target_url') or lead['url']
+                run_action({**action, 'action_id':_stable_id('ACT',action['action_id'],'FETCH_URL',target),
+                    'action_type':'FETCH_URL','target':target,'lead_followup':True,'required_lead_inspection':True,
+                    'discovery_only':bool(lead.get('followup_target_url')),'channel_fallback':None,
+                    'provenance_requirements':{**action.get('provenance_requirements',{}),'required_role':'INDEPENDENT'},
+                    'query_intent':'SELECTED_ROLE_EXACT_INSPECTION','expected_result_type':'EXTRACTED_SOURCE'})
+        # A listing/index consumes at most one additional existing follow-up
+        if acquisition and action.get('acquisition_path_id'):
+            pages = [o for o in observations if o.get('provenance', {}).get('action_id') == action['action_id']
+                     and o.get('extracted_text') and o.get('content_hash')]
+            exact_pages = [o for o in pages if o.get('page_type') not in NAVIGATION_PAGE_TYPES]
+            for page in exact_pages:
+                if ((page.get('post_fetch_qualification') or {}).get('state') == 'ELIGIBLE_OBSERVATION'
+                        and (page.get('source_role_resolution') or {}).get('evidence_role') == 'PRIMARY'
+                        and (page.get('temporal_relevance') or {}).get('active_on_edition_date') is True
+                        and page.get('exact_artifact_reached')):
+                    source = next((s for s in source_records if s.get('id') == page.get('source_id')), None)
+                    if source:
+                        original = acquisition.data['candidate_claim_contexts'].get(action.get('provider_candidate_id'))
+                        # A routine primary page cannot erase serious claims
+                        # in its provider candidate. Missing claim scope keeps
+                        # conservative role reservations rather than guessing.
+                        if original is not None or not action.get('provider_candidate_id'):
+                            candidate = deepcopy(original) if original is not None else {'title':page.get('title'), 'facts':[page['extracted_text']]}
+                            candidate['primary_evidence_source_ids'] = [source['id']]
+                            policy = candidate_evidence_policy(candidate, {source['id']:source}, section_id=action.get('desk'))
+                            acquisition.qualified_primary_policy(action, policy, page)
+            if exact_pages and all((o.get('temporal_relevance') or {}).get('active_on_edition_date') is False for o in exact_pages):
+                acquisition.reject(action, 'EXACT_CONTENT_OUTSIDE_CURRENT_EVENT_WINDOW')
+            elif exact_pages and not any(lane['function'] == action.get('target_editorial_function')
+                for o in exact_pages for lane in classify_event_functions(title=o.get('title'), facts=[o['extracted_text']],
+                    evidence_source_ids=[o.get('source_id') or o['observation_id']], exact_page_validated=True)):
+                acquisition.reject(action, 'EXACT_CONTENT_DOES_NOT_QUALIFY_FOR_TARGET_FUNCTION')
         # A listing/index consumes at most one additional existing follow-up
         # slot for its strongest child.  Depth is fixed at listing -> detail;
         # no recursive crawler or unbounded site traversal is introduced.
@@ -5225,6 +5383,10 @@ def execute_research_round(
         parents = {item["action_id"]: item for item in executed}
         followup_limits = config["executor"]["lead_followup_limits"][job["budget_class"]]
         selected_leads = select_leads_for_followup(observations, parents, followup_limits)
+        if staged_protocol:
+            # A search produces alternatives for one acquisition, not a set
+            # of simultaneous required pages. Retain the ranked first route.
+            selected_leads = []  # selected role-query results are handled above
         lead_followup_candidates = [
             {"url": item.get("url"), "priority": item.get("lead_priority"), "attrition_state": item.get("lead_attrition_state"), "need_id": item.get("_followup_need"), "source_identity": item.get("source_identity")}
             for item in observations if item.get("observation_class") == "LEAD" and item.get("url")
@@ -5270,6 +5432,8 @@ def execute_research_round(
                 item for item in select_leads_for_followup(observations, parents, followup_limits)
                 if item.get("url") not in followed_urls
             ]
+            if staged_protocol:
+                additional = []
             for observation in additional:
                 parent = parents[observation["provenance"]["action_id"]]
                 target_url = observation.get("followup_target_url") or observation["url"]
@@ -5293,6 +5457,18 @@ def execute_research_round(
                     break
     for action in followup_queue:
         run_action(action)
+    if staged_protocol:
+        # A failed exact inspection may promote a recorded fallback from the
+        # same job. Execute it in this round, using the same cumulative caps.
+        attempted = {a['action_id'] for a in executed} | {r['action']['action_id'] for r in unexecuted_actions
+            if r['reason'] != 'FALLBACK_IF_CURRENT_PATH_FAILS'}
+        while True:
+            next_action = next((a for a in round_budget.acquisition.actions()
+                if a['job_id'] == job['job_id'] and a['action_id'] not in attempted), None)
+            if next_action is None:
+                break
+            attempted.add(next_action['action_id'])
+            run_action(next_action)
     lead_evaluations = []
     if mandatory_protocol:
         lead_evaluations = reconcile_discovery_leads(observations, executed)
@@ -5307,7 +5483,17 @@ def execute_research_round(
                 "action_type": "FETCH_URL", "target": record["url"], "lead_followup": True,
                 "required_lead_inspection": True, "originating_observation_id": record["observation_id"],
                 "channel_fallback": None, "expected_result_type": "EXTRACTED_SOURCE"}
-            defer_action(pending, record["reason"])
+            if staged_protocol:
+                existing = next((p for p in round_budget.acquisition.data['paths'].values()
+                                 if pending['action_id'] in p['actions']), None)
+                if not existing and parent.get('acquisition_path_id'):
+                    pending['acquisition_path_id'] = parent['acquisition_path_id'] + ':ALTERNATE:' + record['observation_id']
+                    pending['fallback_parent_path_id'] = parent['acquisition_path_id']
+                identity = round_budget.acquisition.register(pending)
+                pending.update(acquisition_path_id=identity, required_protocol=False)
+                defer_action(pending, 'FALLBACK_IF_CURRENT_PATH_FAILS')
+            else:
+                defer_action(pending, record["reason"])
     # Event leads and their alternative exact pages are evaluated together.
     # This happens before downstream recovery so a complete, claim-policy-safe
     # bundle can become one normal candidate patch rather than disconnected
