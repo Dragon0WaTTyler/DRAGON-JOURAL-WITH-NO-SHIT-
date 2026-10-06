@@ -1,9 +1,10 @@
 # V5 research finality
 
 This is downstream of the accepted Phase 2 targeting, contract isolation,
-retrieval, allocation, provenance and evidence implementation. It introduces
-no provider schema, prompt, invocation, scheduler, action-cap, retrieval or
-archive changes. It applies to new V5 decisions; historical bytes and verdicts
+retrieval, allocation, provenance and evidence implementation. The current
+staged acquisition extension is described in `BOUNDED-HARD-ACQUISITION.md`;
+provider schemas, prompts, evidence gates and action caps remain unchanged.
+It applies to new V5 decisions; historical bytes and verdicts
 are immutable. The September 27 primary-artifact loss and replay waiver remain
 recorded in `HISTORICAL-ARTIFACT-STATUS.md`.
 
@@ -12,10 +13,12 @@ recorded in `HISTORICAL-ARTIFACT-STATUS.md`.
 Each requested hard lane has its own native acquisition ladder, materialized
 by `plan_research_actions` from the saved job state and exact configuration.
 All its core strategies are required, including those deferred by scheduling.
-Provider exact artifacts in that lane and admitted dynamic acquisitions are
-also recorded. A deferred follow-up of a concrete event, a required evidence
-role, or a selected listing detail is required. Uninspected potential event
-leads remain unresolved.
+Provider exact artifacts and dynamic acquisitions are also recorded. New V5
+production uses the staged protocol in `BOUNDED-HARD-ACQUISITION.md`: only the
+selected candidate path's exact artifact and required roles become mandatory.
+Non-selected leads and fallback routes remain recorded alternatives. They do
+not grant evidence, and plausible uninspected events still prevent verified
+absence. An uninspected selected exact artifact blocks positive closure too.
 
 Broad route and alternate-channel expansions generated after empty searches
 are contingent on spare capacity. Their deferrals are preserved explicitly as
@@ -71,12 +74,16 @@ deterministically rebuilt from its preserved machine inputs.
 | `BLOCKED_TECHNICAL_FAILURE` | No |
 | `BLOCKED_CONTRACT_FAILURE` | No |
 | `BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH` | No |
+| `BLOCKED_MANDATORY_PROTOCOL_CAPACITY` | No; active minimum exceeds remaining global or job allowance |
 | `UNRESOLVED` | No; reason `UNRESOLVED_SEARCH_NOT_EXHAUSTED` |
 
-Unresolved technical failure precedes contract failure; validated evidence then
-precedes incomplete unused acquisition capacity; budget truncation precedes
+Unresolved technical failure precedes contract failure. In the staged protocol,
+uninspected selected acquisitions block even an otherwise valid event; an
+impossible active protocol receives the distinct capacity blocker. Unpromoted
+alternatives do not block accepted positive closure. Budget truncation precedes
 negative closure; incomplete proof remains unresolved. Failure never turns into
-news absence.
+news absence. Historical callers without a staged receipt retain their original
+finality derivation.
 
 `combined_research_coverage_complete` requires every mandatory hard lane to be
 in one of the two acceptable states. `combined_event_coverage` counts real

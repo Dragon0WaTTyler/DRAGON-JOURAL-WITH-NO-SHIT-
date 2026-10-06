@@ -28,7 +28,7 @@ from dragon.deep_research_executor import (
     RoundActionBudget,
     apply_executor_results_to_packet,
     build_research_yield_report,
-    execute_research_round,
+    execute_scheduled_research_jobs,
     plan_research_actions,
     schedule_research_actions,
 )
@@ -66,6 +66,7 @@ from dragon.research_planning import (
 )
 from dragon.research_recovery import build_recovery_plan, validate_recovery_plan
 from dragon.research_finality import apply_research_finality, build_research_finality, validate_research_finality
+from dragon.hard_acquisition import candidate_claim_contexts
 from dragon.deep_research_executor import continue_required_research_jobs, merge_required_research_continuations
 from dragon.source_coverage import SourceCoverageError, load_source_coverage
 from dragon.science import science_integrity_report, validate_science_report
@@ -459,20 +460,20 @@ def build_stage_definitions(
             )
             all_jobs = list(state.get("jobs", []))
             mandatory_lanes = _mandatory_hard_lanes(_load(context.run_dir / "research/research-packet.json"), context) if (context.run_dir / "research/targeting-request.json").exists() else ()
-            schedule = schedule_research_actions(all_jobs, config, mandatory_lanes=mandatory_lanes)
+            schedule = schedule_research_actions(all_jobs, config, mandatory_lanes=mandatory_lanes,
+                acquisition_receipt={} if mandatory_lanes else None,
+                remaining_total_actions=2 * config['executor']['maximum_actions_per_round'],
+                candidate_claim_contexts=candidate_claim_contexts(_load(context.run_dir / 'research/research-packet.json')) if mandatory_lanes else None)
             schedule_path = context.run_dir / "deep-research" / "scheduler-allocation.json"
             atomic_write_json(schedule_path, schedule)
             schedule_outputs = (schedule_path,)
             actions_by_job: dict[str, list[dict]] = {}
             for action in schedule["actions"]:
                 actions_by_job.setdefault(action["job_id"], []).append(action)
-            round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
-            jobs_by_id = {job["job_id"]: job for job in all_jobs}
-            executions = [
-                execute_research_round(jobs_by_id[job_id], research_adapter, config,
-                                       actions=actions_by_job[job_id], round_budget=round_budget)
-                for job_id in actions_by_job
-            ]
+            round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"],
+                acquisition=schedule.get('hard_acquisition'), mandatory_lanes=mandatory_lanes,
+                remaining_total_actions=2 * config['executor']['maximum_actions_per_round'])
+            executions = execute_scheduled_research_jobs(all_jobs, research_adapter, config, actions_by_job, round_budget)
             report = {
                 "schema_version": 1,
                 "status": "EXECUTED",
@@ -690,22 +691,21 @@ def build_stage_definitions(
             if research_adapter is not None:
                 general_executed = any(not a.get("target_editorial_function") for j in execution.get("jobs", []) for a in j.get("actions", []))
                 schedule = schedule_research_actions(epoch1_state["jobs"], config, mandatory_lanes=mandatory_lanes,
-                                                     general_opportunity_executed=general_executed)
+                    general_opportunity_executed=general_executed,
+                    acquisition_receipt=(execution.get('round_execution_budget') or {}).get('hard_acquisition'),
+                    remaining_total_actions=config['executor']['maximum_actions_per_round'])
                 epoch1_schedule_path = context.run_dir / "deep-research" / "epoch-1-scheduler-allocation.json"
                 atomic_write_json(epoch1_schedule_path, schedule)
                 outputs = (*outputs, epoch1_schedule_path)
                 by_job: dict[str, list[dict]] = {}
                 for action in schedule["actions"]:
                     by_job.setdefault(action["job_id"], []).append(action)
-                round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"])
-                jobs_by_id = {job["job_id"]: job for job in epoch1_state["jobs"]}
+                round_budget = RoundActionBudget(config["executor"]["maximum_actions_per_round"], schedule["actions"],
+                    acquisition=schedule.get('hard_acquisition'), mandatory_lanes=mandatory_lanes,
+                    remaining_total_actions=config['executor']['maximum_actions_per_round'])
                 epoch1_execution = {
                     "schema_version": 1, "status": "EXECUTED", "recovery_epoch": 1,
-                    "jobs": [
-                        execute_research_round(jobs_by_id[job_id], research_adapter, config,
-                                               actions=by_job[job_id], round_budget=round_budget)
-                        for job_id in by_job
-                    ],
+                    "jobs": execute_scheduled_research_jobs(epoch1_state['jobs'], research_adapter, config, by_job, round_budget),
                     "deferred_actions": schedule["deferred_actions"],
                     "hard_lane_reservation": deepcopy(
                         schedule.get("budget_allocation", {}).get("hard_lane_reservation", {})

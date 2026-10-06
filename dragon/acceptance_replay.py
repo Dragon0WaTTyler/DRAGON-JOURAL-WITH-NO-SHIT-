@@ -15,6 +15,7 @@ from dragon.research_recovery import build_recovery_plan
 from dragon.source_coverage import load_source_coverage
 from dragon.source_intelligence import build_source_intelligence
 from dragon.state import sha256_file
+from dragon.hard_acquisition import candidate_claim_contexts
 
 
 def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
@@ -103,8 +104,14 @@ def replay_acceptance_bundle(bundle: Path, *, code_root: Path) -> dict:
         for epoch, recreated, state_path, schedule_path in states:
             prior_general = epoch == 1 and any(not a.get("target_editorial_function")
                 for j in read("deep-research/execution-report.json").get("jobs", []) for a in j.get("actions", []))
-            schedule = schedule_research_actions(recreated["jobs"], deep_config, mandatory_lanes=mandatory_lanes, general_opportunity_executed=prior_general)
             expected_schedule = read(schedule_path)
+            staged = 'hard_acquisition' in expected_schedule
+            previous_budget = read('deep-research/execution-report.json').get('round_execution_budget', {}) if epoch else {}
+            schedule = schedule_research_actions(recreated['jobs'], deep_config, mandatory_lanes=mandatory_lanes,
+                general_opportunity_executed=prior_general,
+                acquisition_receipt=(previous_budget.get('hard_acquisition') or {}) if staged else None,
+                remaining_total_actions=(1 if epoch else 2) * deep_config['executor']['maximum_actions_per_round'],
+                candidate_claim_contexts=candidate_claim_contexts(packet) if staged and not epoch else None)
             selected = [item["action_id"] for item in schedule["actions"]]
             allocation = schedule["budget_allocation"]
             epoch_results.append({

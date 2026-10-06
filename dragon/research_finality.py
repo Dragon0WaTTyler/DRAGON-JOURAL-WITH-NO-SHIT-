@@ -21,6 +21,7 @@ TERMINAL = {"VALIDATED_EVENT", "VERIFIED_NO_QUALIFYING_EVENT"}
 STATES = TERMINAL | {
     "BLOCKED_TECHNICAL_FAILURE", "BLOCKED_CONTRACT_FAILURE",
     "BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH", "UNRESOLVED",
+    "BLOCKED_MANDATORY_PROTOCOL_CAPACITY",
 }
 EMPTY_RESULTS = {"SEARXNG_NO_MATCHES", "RSS_NO_MATCHES"}
 REQUEST_FIELDS = (
@@ -158,6 +159,23 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
                        "closed_at": closed_at, "provider_failure": provider_failure,
                        "other_research_need_ids": other_research_need_ids})
     observations = deepcopy(_observations(epochs))
+    acquisition = next((e.get('execution', {}).get('round_execution_budget', {}).get('hard_acquisition')
+                        for e in reversed(epochs)
+                        if e.get('execution', {}).get('round_execution_budget', {}).get('hard_acquisition')), None)
+    def current_required(action):
+        if not acquisition:
+            return True
+        from dragon.hard_acquisition import core, required_for_path
+        if core(action):
+            return True
+        identity = acquisition.get('action_paths', {}).get(action['action_id']) or action.get('acquisition_path_id') or action.get('provider_candidate_id')
+        if not identity:
+            identity = next((p['path_id'] for p in acquisition['paths'].values()
+                             if action['action_id'] in p['actions']), None)
+        selected = acquisition['selected'].get(_lane(action))
+        return bool(identity == selected and acquisition['paths'][identity]['state'] != 'FAILED'
+                    and action['action_id'] in acquisition['paths'][identity]['actions']
+                    and required_for_path(action, acquisition['paths'][identity]))
     all_actions = [a for epoch in epochs for job in epoch.get("execution", {}).get("jobs", []) for a in job.get("actions", [])]
     # Reconcile cross-epoch inspections in a derived view. Earlier checkpoints
     # and historical inputs remain immutable; no-event still needs exact proof.
@@ -196,7 +214,7 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
         for epoch in epochs:
             execution = epoch.get("execution", {})
             planned = [a for job in epoch.get("state", {}).get("jobs", [])
-                       for a in plan_research_actions(job, config) if _lane(a) == lane]
+                       for a in plan_research_actions(job, config) if _lane(a) == lane and current_required(a)]
             for action in planned:
                 required[action["action_id"]] = _request(action)
             actual = [a for job in execution.get("jobs", []) for a in job.get("actions", []) if _lane(a) == lane]
@@ -220,6 +238,9 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
             dynamic_deferred = [(item.get("action") or {}) for item in budget.get("dynamic_actions_deferred", [])]
             for action in dynamic_deferred:
                 if _lane(action) == lane:
+                    if acquisition and not current_required(action):
+                        optional_deferred.append(deepcopy(action))
+                        continue
                     concrete_followup = (action.get("originating_event_lead_id")
                         or action.get("required_lead_inspection") or action.get("dynamic_recovery")
                         or (action.get("provenance_requirements") or {}).get("required_role") in {"PRIMARY", "INDEPENDENT"}
@@ -246,6 +267,12 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
                 "job_progress": [deepcopy(j.get("recovery_strategy_progress", [])) for j in execution.get("jobs", [])
                                  if any(_lane(a) == lane for a in j.get("actions", []))]})
         for lead in lead_evaluations:
+            if acquisition:
+                selected = acquisition['selected'].get(lane)
+                path = acquisition['paths'].get(selected, {})
+                active_urls = {a.get('target') for a in path.get('actions', {}).values()}
+                if lead.get('url') not in active_urls:
+                    continue
             if lead["parent_action_id"] in executed and lead["state"] == "BLOCKED_CONTRACT_FAILURE":
                 protocol_errors.append("REQUIRED_LEAD_CONTRACT_FAILURE:" + str(lead["observation_id"]))
         lane_observations = [o for o in observations if (o.get("provenance") or {}).get("action_id") in executed]
@@ -324,6 +351,14 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
                           and o.get("relevance_status") != "REJECTED"
                           and o.get("validation_state") != "VALIDATED_EVIDENCE"
                           and (o.get("temporal_relevance") or {}).get("active_on_edition_date") is not False]
+        if acquisition:
+            # Include late selected artifacts before computing exact hash-bound
+            # reuse. Receipt completion alone is never acquisition proof.
+            for path in acquisition['paths'].values():
+                if path['lane'] == lane and path['path_id'] == acquisition['selected'].get(lane) and path['state'] != 'FAILED':
+                    for action in path['actions'].values():
+                        if current_required(action):
+                            required.setdefault(action['action_id'], _request(action))
         reused = {}
         # A deferred duplicate exact fetch may reuse the very same fetched,
         # hash-bound artifact from this lane/edition. Search queries are never
@@ -357,6 +392,10 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
             state, reason = "BLOCKED_TECHNICAL_FAILURE", "REQUIRED_RESEARCH_FAILED"
         elif contract_errors or protocol_errors:
             state, reason = "BLOCKED_CONTRACT_FAILURE", "RESEARCH_CONTRACT_NOT_SATISFIED"
+        elif acquisition and acquisition.get('blocker') and not events[lane]:
+            state, reason = 'BLOCKED_MANDATORY_PROTOCOL_CAPACITY', acquisition['blocker']
+        elif acquisition and missing:
+            state, reason = 'BLOCKED_BUDGET_BEFORE_REQUIRED_SEARCH', 'SEARCH_CUT_SHORT_BY_CAPACITY'
         elif events[lane]:
             state, reason = "VALIDATED_EVENT", "EXISTING_EVENT_EVIDENCE_GATES_PASSED"
         elif missing and budget_cut:
@@ -367,6 +406,10 @@ def build_research_finality(packet: dict, *, targeting: dict, epochs: list[dict]
             state, reason = "UNRESOLVED", "UNRESOLVED_SEARCH_NOT_EXHAUSTED"
         lanes[lane] = {
             "target_id": target_id, "state": state, "reason": reason, "conditions": checks,
+            **({'active_acquisition_path': acquisition['selected'].get(lane),
+                'candidate_paths': [deepcopy(p) for p in acquisition['paths'].values() if p['lane'] == lane],
+                'minimum_remaining_required_actions': acquisition['minimum_remaining_required_actions'],
+                'capacity_blocker': acquisition.get('blocker')} if acquisition else {}),
             "missing_conditions": [key for key, passed in checks.items() if not passed],
             "provider_disposition": disposition.get("status"), "provider_attempts": deepcopy(provider_attempts),
             "provider_attempt_provenance": "PROVIDER_REPORTED_NOT_INDEPENDENTLY_OBSERVED",
