@@ -158,6 +158,15 @@ logical round once. Completed actions are not repeated; blocked action IDs and
 the shared cap prevent redispatch loops. The global execution ledger records
 actual chronological action order independently of grouped job reports.
 
+The subsequent fresh review found that optional jobs' dynamic children could
+spend unmaterialized hard-role reservations. Shared `RoundActionBudget.admit`
+now applies prospective one-action cost accounting to optional roots and
+children from every job. It also protects the pending real GENERAL opportunity,
+excluding that reservation when admitting the GENERAL action itself. Optional
+refusal records `ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION`, not a false hard
+structural blocker. Optional lanes retain normal lead/provenance processing
+whenever spare capacity exists; their evidence semantics are unchanged.
+
 One GENERAL opportunity is preserved across the protocol. Further optional
 work cannot pre-book mandatory acquisition capacity. Native core strategies
 cannot be replaced by a fetch or a fallback query. A fractional channel-fallback
@@ -223,10 +232,13 @@ promotion, independent work, capacity refusal, lane independence, exact priority
 unchanged configuration, and positive/negative finality distinctions.
 It also covers late role-query result inspection, qualified PRIMARY-only policy
 release, identical hash-bound artifact reuse, both/one/no mandatory lane cases,
-and optional SERVICE child behavior. There are 36 regression cases, including
-ten added for real GENERAL isolation, symmetric optional-lane pruning/refill,
+and optional SERVICE child behavior. There are 41 regression cases, including
+fifteen added for real GENERAL isolation, symmetric optional-lane pruning/refill,
 deterministic A → B → A promotion, cumulative counters and exhausted shared
 capacity. The neither-mandatory case retains provider-exact behavior.
+Five of these prove prospective optional cost, SERVICE/general dynamic-child
+reservation protection, retained hard search/fetch follow-ups, and preservation
+of the pending GENERAL opportunity without recording false structural failure.
 Run this with the hard-capacity, hard-lane, finality, evidence-policy, executor,
 provider-targeting and recovery suites, then the complete pytest suite.
 
@@ -238,10 +250,14 @@ those diagnostics used zero provider calls and zero research actions. The sealed
 offline replay forbids network/provider execution. All 92 sealed artifact hashes
 and the original manifest hash still verify. Configuration validation passes.
 
-After the P1/P2 review corrections: targeted group **196 passed in 21.58s**;
+After the initial P1/P2 review corrections: targeted group **196 passed in 21.58s**;
 complete Windows suite **1,041 passed, 2 existing platform skips in 295.75s**.
 The captured SERVICE unresolved-role route still requires 17 total actions;
 neither review correction changes evidence semantics or grants live acceptance.
+
+After the shared optional-child reservation correction: targeted group
+**201 passed in 22.07s**; complete Windows suite **1,046 passed, 2 existing
+platform skips in 299.31s**. No provider-backed research run was performed.
 
 Offline allocation acceptance is distinct from production acceptance. The next
 milestone is exactly ONE separately authorized fresh bounded live acceptance

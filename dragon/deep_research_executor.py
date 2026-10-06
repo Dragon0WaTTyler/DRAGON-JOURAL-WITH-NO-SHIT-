@@ -4836,10 +4836,22 @@ class RoundActionBudget:
         self.deferred: list[dict] = []
         self.acquisition = HardAcquisition(mandatory_lanes, receipt=acquisition) if acquisition else None
         self.remaining_total_actions = remaining_total_actions if remaining_total_actions is not None else maximum
+        self.general_action_id = next((a['action_id'] for a in selected
+            if a.get('target_editorial_function') not in {'ACCOUNTABILITY','SERVICE'}), None) if self.acquisition else None
 
     def admit(self, action: dict) -> bool:
         identity = action["action_id"]
         scheduled = identity in self.pending
+        general_reserved = int(self.general_action_id in self.pending and identity != self.general_action_id)
+        if (self.acquisition and action.get('target_editorial_function') not in self.acquisition.lanes
+                and self.acquisition.minimum() + general_reserved > self.remaining_total_actions - len(self.executed) - 1):
+            # Optional roots and dynamic children all consume one slot. They
+            # must not spend the selected hard paths' unmaterialized role work.
+            # Refusal is optional attrition, not a new hard capacity failure.
+            self.pending.discard(identity)
+            self.deferred.append({'action':deepcopy(action),
+                                  'reason':'ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'})
+            return False
         if identity in self.executed or len(self.executed) >= self.maximum or (
             not scheduled and len(self.executed) + len(self.pending) >= self.maximum
         ):
@@ -4851,7 +4863,8 @@ class RoundActionBudget:
 
     def report(self) -> dict:
         if self.acquisition:
-            self.acquisition.check_capacity(self.remaining_total_actions - len(self.executed))
+            self.acquisition.check_capacity(self.remaining_total_actions - len(self.executed),
+                int(self.general_action_id in self.pending))
         return {"maximum_actions_per_round": self.maximum, "executed_action_ids": list(self.executed),
             "remaining_capacity": self.maximum - len(self.executed), "pending_selected_action_ids": sorted(self.pending),
             "dynamic_actions_deferred": deepcopy(self.deferred), "budget_increased": False,

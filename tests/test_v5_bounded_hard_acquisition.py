@@ -504,3 +504,104 @@ def test_exhausted_shared_round_does_not_redispatch_a_new_action():
     assert budget.executed[6:]==['a-p','b-p'] and len(budget.executed)==8
     assert budget.acquisition.data['selected']['ACCOUNTABILITY']=='ACCOUNTABILITY:c'
     assert {a['action_id'] for a in budget.acquisition.actions()}=={'c-p','c-i'}
+
+
+@pytest.mark.parametrize('optional_lane',['SERVICE',None])
+def test_optional_dynamic_children_preserve_unmaterialized_mandatory_role_capacity(optional_lane):
+    from test_v5_deep_research_executor import _job, _result, CONFIG
+    from dragon.deep_research_executor import plan_research_actions
+    hard_job = _job(desk='investigations')
+    template = plan_research_actions(hard_job,CONFIG)[0]
+    template['research_date']='2099-01-02';template['event_context']['research_date']='2099-01-02'
+    core_actions=[]
+    for n in range(4):
+        a={**template,'action_id':f'hard-core-{n}','required_protocol':True,
+           'recovery_need_id':'CORE:ACCOUNTABILITY','target_editorial_function':'ACCOUNTABILITY',
+           'strategy_index':n,'strategy_count':4,'lead_origin':'NATIVE'}
+        if n<3:
+            a.update(action_type='SEARCH_DISCOVERY',target=None,query='core query '+str(n))
+        else:
+            a.update(action_type='FETCH_CONFIGURED_SOURCE',target='https://primary.example/navigation')
+        core_actions.append(a)
+    primary={**template,**action('hard-primary',pdf=True),'job_id':hard_job['job_id'],
+             'provider_candidate_id':None,'provider_source_role':None,'lead_origin':'NATIVE',
+             'required_protocol':True}
+    state=HardAcquisition(('ACCOUNTABILITY',),core_actions+[primary]);state.promote()
+    assert state.minimum()==7  # four core + primary + independent search/fetch
+    optional_job=_job(desk='service' if optional_lane else 'world')
+    root=plan_research_actions(optional_job,CONFIG)[0]
+    root.update(action_id='optional-root',action_type='SEARCH_DISCOVERY',target_editorial_function=optional_lane)
+    budget=RoundActionBudget(8,[root]+core_actions+[primary],acquisition=state.report(),
+        mandatory_lanes=('ACCOUNTABILITY',),remaining_total_actions=8)
+    optional_adapter=FixtureResearchAdapter({'optional-root':[{'result_type':'LEAD',
+        'url':'https://medias24.com/optional-lead','title':'Public service registration opens',
+        'source_class':'unknown'}]})
+    optional_adapter.follow_discovery_leads=True
+    result=execute_research_round(optional_job,optional_adapter,CONFIG,actions=[root],round_budget=budget)
+    assert optional_adapter.executed_actions==['optional-root']
+    assert len(result['actions'])==1
+    assert any(r['action'].get('lead_followup') and r['reason']=='ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'
+               for r in budget.deferred)
+    assert budget.report()['hard_acquisition']['blocker'] is None
+    assert budget.acquisition.minimum()==7 and len(budget.executed)==1
+    hard_adapter=FixtureResearchAdapter({
+        'FETCH_CONFIGURED_SOURCE':[],
+        'hard-primary':[_result(primary['target'],'unknown',fetch_status='FETCHED',
+            title='Public regulator publishes audit findings',
+            text='Public authority publishes an audit report documenting oversight findings. '*8)],
+        'FIND_DISTINCT_EVENT':[{'result_type':'LEAD','url':'https://medias24.com/exact-audit',
+            'title':'Morocco public audit findings','source_class':'unknown'}],
+        'FETCH_URL':[_result('https://medias24.com/exact-audit','unknown',fetch_status='FETCHED',
+            title='Public regulator publishes audit findings',
+            text='Public authority publishes an audit report documenting oversight findings. '*8)]})
+    execute_research_round(hard_job,hard_adapter,CONFIG,actions=core_actions+[primary],round_budget=budget)
+    assert hard_adapter.executed_actions[:5]==[a['action_id'] for a in core_actions]+['hard-primary']
+    assert len(hard_adapter.executed_actions)==7 and len(budget.executed)==8
+    assert budget.report()['hard_acquisition']['blocker'] is None
+    assert budget.acquisition.minimum()==0
+
+
+@pytest.mark.parametrize('remaining',[2,3])
+def test_optional_admission_counts_its_own_cost_without_recording_false_structural_failure(remaining):
+    state=HardAcquisition(('ACCOUNTABILITY',),pair());state.promote()
+    optional={**action('optional'),'target_editorial_function':'SERVICE'}
+    budget=RoundActionBudget(8,[optional],acquisition=state.report(),mandatory_lanes=('ACCOUNTABILITY',),
+                            remaining_total_actions=remaining)
+    assert budget.admit(optional) is (remaining==3)
+    assert budget.report()['hard_acquisition']['blocker'] is None
+    assert ('optional' in budget.executed) is (remaining==3)
+    if remaining==2:
+        assert 'optional' not in budget.pending
+        assert budget.deferred[0]['reason']=='ROUND_CAP_PRESERVES_MANDATORY_ACQUISITION'
+
+
+def test_optional_children_cannot_spend_the_pending_real_general_opportunity():
+    from test_v5_deep_research_executor import _job, CONFIG
+    from dragon.deep_research_executor import plan_research_actions
+    primary=action('selected-primary',pdf=True)
+    primary.pop('provider_source_role');primary.pop('provider_candidate_id')
+    cores=[{**action('core-'+str(n)), 'provider_candidate_id':None,'lead_origin':'NATIVE',
+            'recovery_need_id':'CORE:ACCOUNTABILITY','strategy_index':n} for n in range(3)]
+    state=HardAcquisition(('ACCOUNTABILITY',),cores+[primary]);state.promote()
+    assert state.minimum()==6
+    optional_job=_job(desk='service')
+    optional=plan_research_actions(optional_job,CONFIG)[0]
+    optional.update(action_id='optional-service-root',action_type='SEARCH_DISCOVERY',target_editorial_function='SERVICE')
+    general_job=_job(desk='world')
+    general=plan_research_actions(general_job,CONFIG)[0]
+    general.update(action_id='protected-general-root',action_type='SEARCH_DISCOVERY',target_editorial_function=None)
+    budget=RoundActionBudget(8,[optional,general]+cores+[primary],acquisition=state.report(),
+        mandatory_lanes=('ACCOUNTABILITY',),remaining_total_actions=8)
+    adapter=FixtureResearchAdapter({'optional-service-root':[{'result_type':'LEAD',
+        'url':'https://medias24.com/optional-child','title':'Public service registration opens','source_class':'unknown'}]})
+    adapter.follow_discovery_leads=True
+    execute_research_round(optional_job,adapter,CONFIG,actions=[optional],round_budget=budget)
+    assert adapter.executed_actions==['optional-service-root']
+    assert budget.report()['hard_acquisition']['minimum_remaining_required_actions']==7
+    assert budget.report()['hard_acquisition']['blocker'] is None
+    general_adapter=FixtureResearchAdapter({})
+    execute_research_round(general_job,general_adapter,CONFIG,actions=[general],round_budget=budget)
+    assert general_adapter.executed_actions==['protected-general-root']
+    assert budget.executed==['optional-service-root','protected-general-root']
+    assert budget.report()['hard_acquisition']['minimum_remaining_required_actions']==6
+    assert budget.report()['hard_acquisition']['blocker'] is None
