@@ -2773,9 +2773,22 @@ def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
                     actions_by_job[other] = [a for a in active if a['job_id'] == other]
                     queue.append(other)
             general = round_budget.general_action
+            general_job = by_id.get(general['job_id']) if general else None
+            general_execution_state = (executions.get(general['job_id'], {}).get('job', {}).get('executor_state')
+                if general else None) or (general_job or {}).get('executor_state', {})
+            if general and general_job:
+                general_limits = config["executor"]["budget_action_limits"][general_job["budget_class"]]
+                general_counter = ("search_actions" if general["action_type"] in SEARCH_ACTIONS
+                    else "lead_followups" if general.get("lead_followup") else "fetches")
+                general_ceiling = (config["executor"]["lead_followup_limits"][general_job["budget_class"]]["total"]
+                    if general_counter == "lead_followups" else general_limits[general_counter])
+                general_allowance_available = int(general_execution_state.get(general_counter, 0)) < int(general_ceiling)
+            else:
+                general_allowance_available = False
             if (not queue and general and round_budget.acquisition.settled()
                     and general['action_id'] not in set(round_budget.executed) | blocked
-                    and general['job_id'] in by_id and len(round_budget.executed) < round_budget.maximum):
+                    and general['job_id'] in by_id and general_allowance_available
+                    and len(round_budget.executed) < round_budget.maximum):
                 actions_by_job[general['job_id']] = [general]
                 queue.append(general['job_id'])
     return list(executions.values())

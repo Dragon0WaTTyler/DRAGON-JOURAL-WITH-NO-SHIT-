@@ -153,6 +153,32 @@ def test_two_epochs_exact_sixteen_hard_actions_or_spare_general(path_count, expe
     assert CONFIG==before and CONFIG['executor']['maximum_actions_per_round']==8
 
 
+def test_allowance_exhausted_general_is_not_redispatched_after_mandatory_settles():
+    general = _job(desk='world')
+    action = plan_research_actions(general, CONFIG)[0]
+    action.update(action_id='GENERAL-exhausted', action_type='SEARCH_DISCOVERY',
+                  query='bounded general query', research_lane='GENERAL_DISCOVERY',
+                  target_editorial_function=None)
+    general['required_continuation_actions'] = [action]
+    general['executor_state'] = {
+        'search_actions': CONFIG['executor']['budget_action_limits'][general['budget_class']]['search_actions'],
+        'fetches': 0, 'lead_followups': 0, 'seen_urls': [], 'seen_origins': [],
+        'route_memory': [],
+    }
+    acquisition = HardAcquisition(LANES, [])
+    acquisition.promote()
+    budget = RoundActionBudget(8, [action], acquisition=acquisition.report(),
+        mandatory_lanes=LANES, remaining_total_actions=16, general_action=action)
+    adapter = FixtureResearchAdapter({})
+
+    executions = execute_scheduled_research_jobs([general], adapter, CONFIG,
+        {general['job_id']: [action]}, budget)
+
+    assert len(executions) == 1
+    assert adapter.executed_actions == []
+    assert budget.executed == []
+
+
 def test_general_cannot_turn_a_fitting_mandatory_path_into_a_structural_block():
     jobs = protocol_jobs(8)
     pending = [a for j in jobs for a in j['required_continuation_actions'] if not core(a)]
