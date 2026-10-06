@@ -145,6 +145,19 @@ for a selected role search; other results remain recorded, not mandatory.
 Selected primary plus independent requests stay together. Newly promoted jobs
 dispatch inside the same shared round cap, without resetting job counters.
 
+The PR #6 review corrections classify GENERAL strictly as work outside both
+ACCOUNTABILITY and SERVICE. An optional hard lane cannot add a GENERAL
+reservation and is droppable before mandatory work; the real single GENERAL
+opportunity stays protected. Released optional slots are refilled in the existing
+mandatory order within unchanged per-job allowances; a full eight-action path
+cannot lose slots to optional hard work. Dispatch tracks new action IDs instead of excluding
+a job permanently. A → B → A promotion can resume A within the same shared
+round, retaining counters and observations. Its derived job state is rebuilt
+from the original job and the accumulated round observations, advancing the
+logical round once. Completed actions are not repeated; blocked action IDs and
+the shared cap prevent redispatch loops. The global execution ledger records
+actual chronological action order independently of grouped job reports.
+
 One GENERAL opportunity is preserved across the protocol. Further optional
 work cannot pre-book mandatory acquisition capacity. Native core strategies
 cannot be replaced by a fetch or a fallback query. A fractional channel-fallback
@@ -210,17 +223,25 @@ promotion, independent work, capacity refusal, lane independence, exact priority
 unchanged configuration, and positive/negative finality distinctions.
 It also covers late role-query result inspection, qualified PRIMARY-only policy
 release, identical hash-bound artifact reuse, both/one/no mandatory lane cases,
-and optional SERVICE child behavior. There are 26 new regression cases.
+and optional SERVICE child behavior. There are 36 regression cases, including
+ten added for real GENERAL isolation, symmetric optional-lane pruning/refill,
+deterministic A → B → A promotion, cumulative counters and exhausted shared
+capacity. The neither-mandatory case retains provider-exact behavior.
 Run this with the hard-capacity, hard-lane, finality, evidence-policy, executor,
 provider-targeting and recovery suites, then the complete pytest suite.
 
-Final local verification on October 6: targeted group **186 passed in 22.98s**;
+Before PR #6 review, local verification on October 6: targeted group **186 passed in 22.98s**;
 complete Windows suite **1,031 passed, 2 existing platform skips in 285.23s**.
 The host browser readiness receipt was requalified after its implementation
 hash changed, using operational diagnostics and **68 passing browser controls**;
 those diagnostics used zero provider calls and zero research actions. The sealed
 offline replay forbids network/provider execution. All 92 sealed artifact hashes
 and the original manifest hash still verify. Configuration validation passes.
+
+After the P1/P2 review corrections: targeted group **196 passed in 21.58s**;
+complete Windows suite **1,041 passed, 2 existing platform skips in 295.75s**.
+The captured SERVICE unresolved-role route still requires 17 total actions;
+neither review correction changes evidence semantics or grants live acceptance.
 
 Offline allocation acceptance is distinct from production acceptance. The next
 milestone is exactly ONE separately authorized fresh bounded live acceptance

@@ -367,3 +367,140 @@ def test_optional_service_keeps_ordinary_child_followup_under_an_accountability_
     result=execute_research_round(job,adapter,CONFIG,actions=[a],round_budget=budget)
     assert any(x['action_type']=='FETCH_URL' and x.get('lead_followup') for x in result['actions'])
     assert not budget.acquisition.data['paths']
+
+
+@pytest.mark.parametrize('mandatory', ['ACCOUNTABILITY', 'SERVICE'])
+@pytest.mark.parametrize('real_general', [False, True])
+def test_optional_hard_lane_is_not_general_and_is_dropped_for_exact_mandatory_capacity(case, mandatory, real_general):
+    optional = next(name for name in LANES if name != mandatory)
+    items = pair('mandatory', mandatory) + pair('optional', optional)
+    if real_general:
+        items.append({**action('real-general'), 'job_id':'general-job', 'target_editorial_function':None,
+                      'research_lane':'GENERAL_DISCOVERY', 'provider_candidate_id':None})
+    jobs = []
+    for job_id in dict.fromkeys(a['job_id'] for a in items):
+        job = deepcopy(case['epochs'][0]['state']['jobs'][0])
+        job.update(job_id=job_id,required_continuation_actions=[a for a in items if a['job_id']==job_id])
+        jobs.append(job)
+    state = HardAcquisition((mandatory,),items); state.promote()
+    config_before = deepcopy(case['config'])
+    remaining = 2 + int(real_general)
+    schedule = schedule_research_actions(jobs,case['config'],mandatory_lanes=(mandatory,),
+        acquisition_receipt=state.report(),remaining_total_actions=remaining)
+    assert schedule['hard_acquisition']['blocker'] is None
+    assert schedule['hard_acquisition']['minimum_remaining_required_actions']==remaining
+    assert {a['action_id'] for a in schedule['actions'] if a.get('target_editorial_function')==mandatory}=={'mandatory-p','mandatory-i'}
+    assert not any(a.get('target_editorial_function')==optional for a in schedule['actions'])
+    assert [a['action_id'] for a in schedule['actions'] if a.get('target_editorial_function') not in LANES]==(['real-general'] if real_general else [])
+    assert all(not a['required_protocol'] for a in schedule['deferred_actions'] if a.get('target_editorial_function')==optional)
+    assert schedule['budget_allocation']['hard_breadth_reserved_slots']==int(real_general)
+    assert case['config']==config_before and len(schedule['actions'])==remaining
+
+
+def test_neither_of_two_mandatory_lanes_consumes_a_general_reservation(case):
+    items = pair('a') + pair('s','SERVICE')
+    state = HardAcquisition(LANES,items); state.promote()
+    jobs = []
+    for job_id in dict.fromkeys(a['job_id'] for a in items):
+        job = deepcopy(case['epochs'][0]['state']['jobs'][0])
+        job.update(job_id=job_id,required_continuation_actions=[a for a in items if a['job_id']==job_id])
+        jobs.append(job)
+    schedule = schedule_research_actions(jobs,case['config'],mandatory_lanes=LANES,
+        acquisition_receipt=state.report(),remaining_total_actions=4)
+    assert schedule['hard_acquisition']['blocker'] is None
+    assert schedule['hard_acquisition']['minimum_remaining_required_actions']==4
+    assert schedule['budget_allocation']['hard_breadth_reserved_slots']==0
+    assert {a['action_id'] for a in schedule['actions']}=={'a-p','a-i','s-p','s-i'}
+
+
+@pytest.mark.parametrize('mandatory',['ACCOUNTABILITY','SERVICE'])
+def test_optional_lane_cannot_keep_slots_when_all_eight_are_needed_by_the_active_path(case, mandatory):
+    optional = next(name for name in LANES if name != mandatory)
+    native = []
+    for n in range(4):
+        a = action('core-'+str(n),lane=mandatory)
+        a.update(job_id='native-job',recovery_need_id='BREADTH:active',lead_origin='NATIVE',
+                 provider_candidate_id=None,strategy_index=n,strategy_count=4)
+        if n<3:
+            a.update(action_type='SEARCH_DISCOVERY',target=None,query='native query '+str(n))
+        else:
+            a['action_type']='FETCH_CONFIGURED_SOURCE'
+        native.append(a)
+    selected = pair('selected',mandatory) + [
+        action('selected-exact',lane=mandatory,candidate='selected',pdf=True),
+        action('selected-independent',lane=mandatory,candidate='selected',role='INDEPENDENT')]
+    items = native + selected + pair('optional',optional)
+    state = HardAcquisition((mandatory,),items); state.promote()
+    jobs = []
+    for job_id in dict.fromkeys(a['job_id'] for a in items):
+        job = deepcopy(case['epochs'][0]['state']['jobs'][0])
+        job.update(job_id=job_id,required_continuation_actions=[a for a in items if a['job_id']==job_id])
+        jobs.append(job)
+    schedule = schedule_research_actions(jobs,case['config'],mandatory_lanes=(mandatory,),
+        acquisition_receipt=state.report(),remaining_total_actions=8)
+    assert schedule['hard_acquisition']['minimum_remaining_required_actions']==8
+    assert schedule['hard_acquisition']['blocker'] is None
+    assert {a['action_id'] for a in schedule['actions']}=={a['action_id'] for a in native+selected}
+    assert all(not a['required_protocol'] for a in schedule['deferred_actions'])
+
+
+def returning_job_fixture(round_number=0):
+    from test_v5_deep_research_executor import _job, _result, CONFIG
+    from dragon.deep_research_executor import plan_research_actions
+    first = _job(desk='investigations'); first['round']=round_number
+    first['executor_state']={'search_actions':0,'fetches':1,'lead_followups':0,
+        'seen_urls':[],'seen_origins':[],'route_memory':[],'actions_executed':1}
+    second = deepcopy(first); second['job_id']='middle-job'
+    second['executor_state']['fetches']=0; second['executor_state']['actions_executed']=0
+    template = plan_research_actions(first,CONFIG)[0]
+    template['research_date']='2099-01-02'; template['event_context']['research_date']='2099-01-02'
+    items = [{**template,**a,'job_id':job['job_id'],'required_protocol':True}
+             for candidate,job in [('a',first),('b',second),('c',first)] for a in pair(candidate)]
+    registry = HardAcquisition(('ACCOUNTABILITY',),items); registry.promote()
+    responses = {a['action_id']:[_result(a['target'],'unknown',fetch_status='FETCHED',
+        title='A sports event' if a['action_id'][0] in 'ab' else 'Public regulator publishes audit findings',
+        text='Sports tournament results. '*8 if a['action_id'][0] in 'ab'
+            else 'Public authority publishes an audit report documenting oversight findings. '*8)] for a in items}
+    return [first,second],items,registry,responses,CONFIG
+
+
+@pytest.mark.parametrize('round_number',[0,1])
+def test_action_level_redispatch_returns_to_a_without_repeating_actions_or_advancing_another_round(round_number):
+    from dragon.deep_research_executor import execute_scheduled_research_jobs
+    ledgers = []
+    for replay in range(2):
+        jobs,items,state,responses,config=returning_job_fixture(round_number)
+        initial = [a for a in items if a['provider_candidate_id']=='ACCOUNTABILITY:a']
+        budget = RoundActionBudget(8,initial,acquisition=state.report(),mandatory_lanes=('ACCOUNTABILITY',),remaining_total_actions=8)
+        adapter = FixtureResearchAdapter(responses)
+        records = execute_scheduled_research_jobs(jobs,adapter,config,{jobs[0]['job_id']:initial},budget)
+        assert adapter.executed_actions[:4]==['a-p','b-p','c-p','c-i']
+        assert budget.executed==adapter.executed_actions
+        assert len(budget.executed)==len(set(budget.executed))<=8
+        assert 'a-i' not in budget.executed and 'b-i' not in budget.executed
+        first = next(r for r in records if r['job']['job_id']==jobs[0]['job_id'])
+        assert [a['action_id'] for a in first['actions'] if a['action_type']=='FETCH_URL']==['a-p','c-p','c-i']
+        assert first['budget_consumed']['fetches']==4  # original 1 + three new fetches
+        assert first['job']['executor_state']['actions_executed']==1+len(first['actions'])
+        assert all(r['job']['round']==round_number+1<=2 for r in records)
+        assert any(o.get('provenance',{}).get('action_id')=='a-p' for o in first['job']['observations'])
+        assert any(o.get('provenance',{}).get('action_id')=='c-p' for o in first['job']['observations'])
+        assert budget.acquisition.data['selected']['ACCOUNTABILITY']=='ACCOUNTABILITY:c'
+        assert all(budget.acquisition.data['paths']['ACCOUNTABILITY:'+c]['failure_reasons'] for c in 'ab')
+        assert jobs[0]['executor_state']['fetches']==1 and jobs[0]['round']==round_number
+        ledgers.append(budget.executed)
+    assert ledgers[0]==ledgers[1]
+
+
+def test_exhausted_shared_round_does_not_redispatch_a_new_action():
+    from dragon.deep_research_executor import execute_scheduled_research_jobs
+    jobs,items,state,responses,config=returning_job_fixture()
+    initial = [a for a in items if a['provider_candidate_id']=='ACCOUNTABILITY:a']
+    budget = RoundActionBudget(8,initial,acquisition=state.report(),mandatory_lanes=('ACCOUNTABILITY',),remaining_total_actions=16)
+    budget.executed=[f'earlier-optional-{n}' for n in range(6)]
+    adapter = FixtureResearchAdapter(responses)
+    execute_scheduled_research_jobs(jobs,adapter,config,{jobs[0]['job_id']:initial},budget)
+    assert adapter.executed_actions==['a-p','b-p']
+    assert budget.executed[6:]==['a-p','b-p'] and len(budget.executed)==8
+    assert budget.acquisition.data['selected']['ACCOUNTABILITY']=='ACCOUNTABILITY:c'
+    assert {a['action_id'] for a in budget.acquisition.actions()}=={'c-p','c-i'}

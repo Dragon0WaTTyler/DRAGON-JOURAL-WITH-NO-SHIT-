@@ -2390,17 +2390,34 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
             if a.get('target_editorial_function') in {'ACCOUNTABILITY', 'SERVICE'}
             or (not general_opportunity_executed and a['action_id'] == general_selected)]
         remaining = remaining_total_actions if remaining_total_actions is not None else config['executor']['maximum_actions_per_round']
-        general = int(not general_opportunity_executed and any(a.get('target_editorial_function') not in mandatory_lanes for a in result['actions']))
+        general = int(not general_opportunity_executed and general_selected is not None)
         blocker = acquisition.check_capacity(remaining, general)
         # Leave room for the selected path's not-yet-materialized role work.
         # Optional work cannot pre-book those slots; the configured cap stays 8.
         reserve = max(0, acquisition.minimum() - len(active) - len(set(acquisition.data['core_action_ids']) - set(acquisition.data['completed_action_ids'])))
         selected = result['actions']
-        while len(selected) > max(0, config['executor']['maximum_actions_per_round'] - reserve):
-            optional = next((a for a in reversed(selected) if a.get('target_editorial_function') not in mandatory_lanes and not general), None)
+        def optional_action(action):
+            return action.get('target_editorial_function') not in mandatory_lanes and not (general and action['action_id'] == general_selected)
+        optional_capacity = max(0, remaining - acquisition.minimum() - general)
+        dropped = False
+        while (len(selected) > max(0, min(remaining, config['executor']['maximum_actions_per_round']) - reserve)
+               or sum(optional_action(a) for a in selected) > optional_capacity):
+            optional = next((a for a in reversed(selected) if optional_action(a)), None)
             if optional is None:
                 break
             selected.remove(optional)
+            dropped = True
+        if dropped:
+            # Refill released optional-lane slots using the existing mandatory
+            # order and per-job allowances, rather than leaving active work out.
+            kept_ids = {a['action_id'] for a in selected}
+            limited = deepcopy(filtered)
+            for job in limited:
+                job['required_continuation_actions'] = [a for a in job['required_continuation_actions']
+                    if a.get('target_editorial_function') in mandatory_lanes or a['action_id'] in kept_ids]
+            result = schedule_research_actions(limited, config, known_event_ids=known_event_ids,
+                mandatory_lanes=mandatory_lanes, general_opportunity_executed=general_opportunity_executed)
+            selected = result['actions']
         if blocker:
             selected = []
         selected_ids = {a['action_id'] for a in selected}
@@ -2709,23 +2726,32 @@ def merge_required_research_continuations(state: dict, continuations: list[dict]
 
 def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
                                     actions_by_job: dict[str, list[dict]], round_budget) -> list[dict]:
-    """Preserve scheduled job order; dispatch newly promoted jobs within this cap."""
+    """Dispatch new action IDs, resuming a job inside the same bounded round."""
     by_id = {j['job_id']:j for j in jobs}
     queue = list(actions_by_job)
-    executions = []
-    visited = set()
+    executions = {}
+    blocked = set()
     while queue:
         identity = queue.pop(0)
-        visited.add(identity)
-        executions.append(execute_research_round(by_id[identity], adapter, config,
-            actions=actions_by_job[identity], round_budget=round_budget))
+        pending = [a for a in actions_by_job[identity]
+                   if a['action_id'] not in set(round_budget.executed) | blocked]
+        if not pending:
+            continue
+        executions[identity] = execute_research_round(by_id[identity], adapter, config,
+            actions=pending, round_budget=round_budget, prior_execution=executions.get(identity))
+        # Capacity/allowance failures cannot spin. An inactive alternative may
+        # become selected later, so it is not a permanently attempted action.
+        blocked.update(r['action']['action_id'] for r in round_budget.deferred
+                       if r['reason'] != 'FALLBACK_IF_CURRENT_PATH_FAILS')
         if round_budget.acquisition:
-            for action in round_budget.acquisition.actions():
+            active = [a for a in round_budget.acquisition.actions()
+                      if a['action_id'] not in set(round_budget.executed) | blocked]
+            for action in active:
                 other = action['job_id']
-                if other not in visited and other not in queue and other in by_id:
-                    actions_by_job[other] = [a for a in round_budget.acquisition.actions() if a['job_id'] == other]
+                if other not in queue and other in by_id and len(round_budget.executed) < round_budget.maximum:
+                    actions_by_job[other] = [a for a in active if a['job_id'] == other]
                     queue.append(other)
-    return executions
+    return list(executions.values())
 
 
 class FixtureResearchAdapter:
@@ -4840,31 +4866,45 @@ def execute_research_round(
     actions: list[dict] | None = None,
     known_event_ids: list[str] | None = None,
     round_budget: RoundActionBudget | None = None,
+    prior_execution: dict | None = None,
 ) -> dict:
     """Execute one bounded round and feed observations to the state machine."""
     planned = actions if actions is not None else plan_research_actions(job, config, known_event_ids=known_event_ids)
     limits = config["executor"]["budget_action_limits"][job["budget_class"]]
-    state = deepcopy(job.get("executor_state", {"search_actions": 0, "fetches": 0, "lead_followups": 0, "seen_urls": [], "seen_origins": [], "route_memory": []}))
+    prior = prior_execution or {}
+    prior_patch = prior.get('source_packet_patch', {})
+    state = deepcopy(prior.get('job', {}).get('executor_state') or job.get("executor_state", {"search_actions": 0, "fetches": 0, "lead_followups": 0, "seen_urls": [], "seen_origins": [], "route_memory": []}))
     state.setdefault("lead_followups", 0)
     state.setdefault("route_memory", [])
     seen_urls = set(state["seen_urls"])
     branch_results: dict[str, list[dict]] = {item["branch_id"]: [] for item in job.get("branches", [])}
-    observations, source_records, updates, candidate_discoveries, event_leads = [], [], [], [], []
-    lead_followup_selection: list[dict] = []
-    lead_followup_candidates: list[dict] = []
-    provenance_followup_selection: list[dict] = []
-    direct_route_selection: list[dict] = []
-    actor_first_telemetry: list[dict] = []
-    attempted_strategies: dict[str, set[int]] = {}
-    strategy_counts: dict[str, int] = {}
-    executed = []
+    observations = deepcopy(prior.get('observations', []))
+    source_records = deepcopy(prior_patch.get('sources', []))
+    updates = deepcopy(prior_patch.get('candidate_evidence_updates', []))
+    candidate_discoveries = deepcopy([d for d in prior_patch.get('candidate_discoveries', [])
+                                     if not d.get('event_lead_id')])  # bundles are rebuilt below
+    event_leads = deepcopy(prior_patch.get('event_leads', []))
+    lead_followup_selection = deepcopy(prior.get('lead_followup_selection', []))
+    lead_followup_candidates = deepcopy(prior.get('lead_followup_candidates', []))
+    provenance_followup_selection = deepcopy(prior.get('provenance_followup_selection', []))
+    direct_route_selection = deepcopy(prior.get('direct_route_selection', []))
+    actor_first_telemetry = deepcopy(prior.get('actor_first_telemetry', []))
+    attempted_strategies = {r['need_id']:set(r['executed_variants']) for r in prior.get('recovery_strategy_progress', [])}
+    strategy_counts = {r['need_id']:r['strategy_count'] for r in prior.get('recovery_strategy_progress', [])}
+    executed = deepcopy(prior.get('actions', []))
+    previous_count = len(executed)
+    parents = {a['action_id']:a for a in executed}
+    for observation in observations:
+        parent = parents.get(observation.get('provenance', {}).get('action_id'))
+        if parent:
+            branch_results.setdefault(parent['branch_id'], []).append(observation)
     mandatory_protocol = any(a.get("required_protocol") for a in planned)
     staged_protocol = bool(round_budget is not None and round_budget.acquisition
         and any(a.get('target_editorial_function') in round_budget.acquisition.lanes for a in planned))
     core_phase = True
     followup_queue: list[dict] = []
-    unexecuted_actions: list[dict] = []
-    dynamic_recovery_actions: list[str] = []
+    unexecuted_actions = deepcopy(prior.get('unexecuted_actions', []))
+    dynamic_recovery_actions = deepcopy(prior.get('dynamic_recovery_actions', []))
 
     def defer_action(action: dict, reason: str) -> None:
         record = {"action": deepcopy(action), "reason": reason}
@@ -4896,6 +4936,8 @@ def execute_research_round(
         nonlocal observations, source_records, updates, candidate_discoveries, event_leads, lead_followup_selection, provenance_followup_selection, direct_route_selection, actor_first_telemetry
         if action["job_id"] != job["job_id"] or action["action_type"] not in ACTION_TYPES:
             raise ResearchExecutorError("RESEARCH_ACTION_INVALID")
+        if round_budget is not None and any(a['action_id'] == action['action_id'] for a in executed):
+            return
         acquisition = round_budget.acquisition if staged_protocol else None
         if acquisition and action.get('target_editorial_function') in acquisition.lanes and not acquisition_core(action):
             identity = acquisition.register(action)
@@ -5522,10 +5564,12 @@ def execute_research_round(
             })
     candidate_discoveries.extend(bundle_discoveries)
     results = [{"branch_id": branch_id, "observations": values} for branch_id, values in branch_results.items() if values]
+    # Redispatch rebuilds this same logical round from the original job and
+    # accumulated observations. Counters carry forward; round advances once.
     advanced = advance_research_job(job, results, config)
     state["seen_urls"] = sorted(seen_urls)
     state["seen_origins"] = sorted(set(state["seen_origins"]))
-    state["actions_executed"] = int(state.get("actions_executed", 0)) + len(executed)
+    state["actions_executed"] = int(state.get("actions_executed", 0)) + len(executed) - previous_count
     advanced["executor_state"] = state
     strategy_progress = [
         {
