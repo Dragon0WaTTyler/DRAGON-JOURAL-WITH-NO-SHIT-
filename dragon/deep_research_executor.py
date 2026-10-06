@@ -2783,6 +2783,13 @@ def execute_scheduled_research_jobs(jobs: list[dict], adapter, config: dict,
                 general_ceiling = (config["executor"]["lead_followup_limits"][general_job["budget_class"]]["total"]
                     if general_counter == "lead_followups" else general_limits[general_counter])
                 general_allowance_available = int(general_execution_state.get(general_counter, 0)) < int(general_ceiling)
+                if (not general_allowance_available
+                        and general["action_id"] not in round_budget.executed
+                        and not any(r["action"]["action_id"] == general["action_id"] for r in round_budget.deferred)):
+                    round_budget.pending.discard(general["action_id"])
+                    round_budget.deferred.append({"action": deepcopy(general),
+                        "reason": "JOB_ACTION_ALLOWANCE_EXHAUSTED"})
+                    blocked.add(general["action_id"])
             else:
                 general_allowance_available = False
             if (not queue and general and round_budget.acquisition.settled()

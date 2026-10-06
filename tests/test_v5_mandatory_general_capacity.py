@@ -177,6 +177,9 @@ def test_allowance_exhausted_general_is_not_redispatched_after_mandatory_settles
     assert len(executions) == 1
     assert adapter.executed_actions == []
     assert budget.executed == []
+    assert [item["reason"] for item in budget.report()["dynamic_actions_deferred"]] == [
+        "JOB_ACTION_ALLOWANCE_EXHAUSTED"
+    ]
 
 
 def test_general_cannot_turn_a_fitting_mandatory_path_into_a_structural_block():
