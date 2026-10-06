@@ -2423,7 +2423,7 @@ def schedule_research_actions(jobs: list[dict], config: dict, *, known_event_ids
                 # before exact candidates or inherited child requests. Child
                 # fetches retain their original strategy_index (often zero);
                 # that index must not let them displace an untried core step.
-                0 if not mandatory_lanes or protocol_core(item) else 1,
+                0 if lane not in mandatory_lanes or protocol_core(item) else 1,
                 0 if item.get("lead_origin") == "PROVIDER_EXACT" else 1,
                 0 if item.get("provider_source_role") == "PRIMARY" else 1,
                 int(item.get("strategy_index", 0)),
@@ -5132,7 +5132,7 @@ def execute_research_round(
             skeleton = event_lead["event_skeleton"]
             query = " ".join(item for item in (
                 skeleton.get("actor"), skeleton.get("action"), skeleton.get("object"),
-                " ".join(skeleton.get("geography") or []), skeleton.get("published_at", "")[:7],
+                " ".join(skeleton.get("geography") or []), (skeleton.get("published_at") or "")[:7],
             ) if item).strip()
             if not query:
                 continue

@@ -2,11 +2,14 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import shutil
+import pytest
 
 from test_v5_research_finality import case
 from test_v5_hard_lane_completion import LANES, lane_jobs, run_schedule
 from dragon.deep_research_executor import (
-    SEARCH_ACTIONS, continue_required_research_jobs, plan_research_actions,
+    SEARCH_ACTIONS, FixtureResearchAdapter, RoundActionBudget,
+    continue_required_research_jobs, execute_research_round, plan_research_actions,
     schedule_research_actions,
 )
 
@@ -95,13 +98,36 @@ def test_two_epochs_complete_core_without_resetting_job_caps(case):
         assert j["budget_consumed"]["fetches"] <= 4
 
 
-def test_optional_protocol_retains_original_exact_artifact_preference(case):
+@pytest.mark.parametrize("mandatory_lanes", [LANES, ("ACCOUNTABILITY",), ("SERVICE",), ()])
+def test_core_preference_applies_only_to_each_mandatory_lane(case, mandatory_lanes):
     epoch = recorded()["epochs"][0]
-    selected = schedule_research_actions(epoch["jobs"], case["config"])["actions"]
+    config_before = deepcopy(case["config"])
+    jobs_before = deepcopy(epoch["jobs"])
+    schedule = schedule_research_actions(epoch["jobs"], case["config"], mandatory_lanes=mandatory_lanes)
+    selected = schedule["actions"]
     for lane in LANES:
-        first = next(a for a in selected if a.get("target_editorial_function") == lane)
-        assert first["lead_origin"] == "PROVIDER_EXACT"
-        assert first["provider_source_role"] == "PRIMARY"
+        admitted = [a for a in selected if a.get("target_editorial_function") == lane]
+        if lane in mandatory_lanes:
+            assert core(admitted[0])
+            assert all(a.get("required_protocol") for a in admitted)
+            core_indices = [a["strategy_index"] for a in admitted if core(a)]
+            assert core_indices == sorted(core_indices)
+            if any(not core(a) for a in admitted):
+                expected_core = [a for a in native(epoch["jobs"], case["config"])
+                                 if core(a) and a.get("target_editorial_function") == lane]
+                assert len(core_indices) == len(expected_core)
+        else:
+            assert admitted[0]["lead_origin"] == "PROVIDER_EXACT"
+            assert admitted[0]["provider_source_role"] == "PRIMARY"
+            assert admitted[1]["lead_origin"] == "PROVIDER_EXACT"
+            assert admitted[1]["provider_source_role"] == "INDEPENDENT"
+            assert admitted[1]["provider_candidate_id"] == admitted[0]["provider_candidate_id"]
+            assert not any(a.get("required_protocol") for a in admitted)
+    assert len(selected) == schedule["budget_allocation"]["round_cap"] == 8
+    assert not schedule["budget_allocation"]["budget_increased"]
+    assert len(selected) + len(schedule["deferred_actions"]) == len(native(epoch["jobs"], case["config"]))
+    assert case["config"] == config_before
+    assert epoch["jobs"] == jobs_before
 
 
 def test_lane_without_core_cannot_spend_other_lanes_core_reservation(case):
@@ -115,3 +141,56 @@ def test_lane_without_core_cannot_spend_other_lanes_core_reservation(case):
     expected = [a for a in native(jobs, case["config"]) if core(a)]
     assert [a["action_id"] for a in selected[:len(expected)]] == [a["action_id"] for a in expected]
     assert any(a.get("target_editorial_function") == "ACCOUNTABILITY" for a in selected[len(expected):])
+
+
+def test_current_event_without_publication_date_keeps_unknown_role_and_bounded_feedback():
+    from test_v5_deep_research_executor import _job, _result, CONFIG
+    job = _job()
+    action = plan_research_actions(job, CONFIG)[0]
+    action.update(action_type="FETCH_URL", target="https://unknown.example/current-notice",
+                  expected_result_type="EXTRACTED_SOURCE")
+    action["event_context"]["research_date"] = "2099-01-02"
+    raw = _result(action["target"], "unknown", published_at=None, event_date="2099-01-02",
+                  title="Morocco public operator opens registration",
+                  text="Morocco public operator opens registration on 2099-01-02. " * 8,
+                  fetch_status="FETCHED")
+    adapter = FixtureResearchAdapter({"FETCH_URL": [raw]})
+    budget = RoundActionBudget(8, [action])
+    result = execute_research_round(job, adapter, CONFIG, actions=[action], round_budget=budget)
+    observation = result["observations"][0]
+    assert observation["event_skeleton"]["state"] == "CONCRETE_EVENT"
+    assert observation["event_skeleton"]["published_at"] is None
+    assert observation["temporal_relevance"]["active_on_edition_date"] is True
+    assert observation["validation_state"] != "VALIDATED_EVIDENCE"
+    assert (observation.get("source_role_resolution") or {}).get("evidence_role") not in {"PRIMARY", "INDEPENDENT"}
+    feedback = next(a for a in result["actions"] if a.get("event_lead_feedback"))
+    assert "None" not in feedback["query"]
+    assert "2099-01" not in feedback["query"]
+    assert len(budget.executed) == 2 and not budget.report()["budget_increased"]
+
+
+def test_pipeline_dispatches_hard_jobs_before_materialized_general_job(case, tmp_path):
+    from test_v5_hard_lane_completion import EmptyAdapter
+    from test_v5_research_finality import ROOT, DATE
+    from dragon.pipeline import build_stage_definitions
+    from dragon.research_acceptance import ProviderFreeAcceptanceProvider
+    from dragon.stages import StageContext
+    from dragon.state import atomic_write_json
+    shutil.copytree(ROOT / "config", tmp_path / "config")
+    jobs = lane_jobs(case)
+    general = deepcopy(jobs[0])
+    general.update(job_id="general-first-in-materialization", research_lane="GENERAL_DISCOVERY", recovery_needs=[])
+    jobs.insert(0, general)
+    run = tmp_path / "runs/dispatch-order"
+    atomic_write_json(run / "deep-research/state.json", {"jobs": jobs})
+    atomic_write_json(run / "research/research-packet.json", case["packet"])
+    atomic_write_json(run / "research/targeting-request.json", case["targeting"])
+    stages = {s.name:s for s in build_stage_definitions(ProviderFreeAcceptanceProvider(), research_adapter=EmptyAdapter())}
+    stages["deep_research_execution"].runner(StageContext(tmp_path, DATE, run, tmp_path / "edition", 1))
+    schedule = json.loads((run / "deep-research/scheduler-allocation.json").read_text(encoding="utf-8"))
+    execution = json.loads((run / "deep-research/execution-report.json").read_text(encoding="utf-8"))
+    expected = list(dict.fromkeys(a["job_id"] for a in schedule["actions"]))
+    assert [j["job"]["job_id"] for j in execution["jobs"]] == expected
+    assert execution["jobs"][0]["actions"][0]["target_editorial_function"] == "ACCOUNTABILITY"
+    assert execution["jobs"][-1]["job"]["job_id"] == general["job_id"]
+    assert len(execution["round_execution_budget"]["executed_action_ids"]) <= 8

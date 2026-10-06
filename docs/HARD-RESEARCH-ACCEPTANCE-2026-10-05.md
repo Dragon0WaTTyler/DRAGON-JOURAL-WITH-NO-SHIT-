@@ -53,6 +53,20 @@ The existing edition-wide general-discovery opportunity is retained. Core IDs
 selected/deferred are recorded explicitly. Without a mandatory protocol the existing
 exact-provider preference is retained.
 
+PR #5's review identified that the initial sort key activated core-first behavior
+for both hard lanes whenever either lane was mandatory. The key now tests the lane
+being sorted: `lane not in mandatory_lanes`. The four-case regression covers both
+mandatory, only ACCOUNTABILITY, only SERVICE, and neither. Optional lanes retain
+their provider PRIMARY page and complementary INDEPENDENT page preference. The
+same regression checks all eight slots, complete selected/deferred accounting,
+unchanged configuration and untouched job counters. The two single-lane cases
+failed before the fix and all four pass after it.
+
+Both initial and recovery execution dispatch selected jobs in their first scheduled
+appearance order. Previously the executor grouped by job, then iterated original
+materialization order, allowing a general job to run before hard jobs. Jobs remain
+serial and retain their original IDs, counters and selected actions.
+
 No ladder variant, obligation, evidence gate, deferred record or expectation was
 removed. All budget files are unchanged: STANDARD job allowances remain four
 searches, four fetches, four lead follow-ups and two rounds; each global epoch remains
@@ -88,7 +102,8 @@ Targets are untrusted recorded retrieval inputs, not verified reporting. Order i
 the parent strategy index; child identity and URL distinguish inherited indices.
 E0 omitted core work was displaced by five provider/general pages; E1 omitted core
 work was displaced by eight child fetches. Other missing children could not fit
-after those eight selected inspections. Exact job counters were not exhausted.
+after those eight selected inspections. Core search/fetch allowances were not
+exhausted; the four-child allowance in each hard job was spent in epoch 1.
 
 | Lane | Order | Planned/discovered epoch | Admitted epoch | Executed epoch | Action ID | Type / target | Missing reason |
 |---|---:|---|---|---|---|---|---|
@@ -155,5 +170,94 @@ Full suite: 1,000 passed, zero failed, two existing Windows native-rendering ski
 in 306.46 seconds, Windows 11 / CPython 3.14.5. Existing test assertions and skip
 conditions remain intact.
 
-Exactly one authorized bounded provider trial remains to be recorded. Production
-automation remains paused. Raw run and browser proofs remain host-local and uncommitted.
+### Sole new live trial: execution not accepted
+
+Run: `provider-research-acceptance-4dda6883-7f84-4c3c-be34-2c9e0ff419e0`.
+Edition/as-of date: `2026-10-05`; technical validation after the production deadline.
+Source revision: `9fbff2efa15a45162821c9309b877172ccbdd521`.
+Provider invocation: one call, zero retries, normalized. Request began at
+22:21:32 UTC; response returned at 22:29:50 UTC. The actual saved request/prompt
+contains the ordered ACCOUNTABILITY then SERVICE targets, `as_of_date`, both HARD
+IDs, semantics, exclusions, current-operation guidance and discovery-only warnings.
+Provider-reported searches (four ACCOUNTABILITY, five SERVICE) are not independently
+observed native searches and do not satisfy native required acquisition obligations.
+
+Initial admission: eight actions (five searches, three fetches, zero children).
+Thirty-seven planned actions were deferred: one ACCOUNTABILITY provider page,
+one SERVICE alternate-language core search, and 35 general actions. The shared
+round cap remained eight. Epoch 1 was never reached.
+
+| Scheduled position | Lane | Order | Type | Action ID |
+|---:|---|---:|---|---|
+| 1 | ACCOUNTABILITY | 0 | SEARCH_DISCOVERY | `ACT-820A7CD499C9` |
+| 2 | SERVICE | 0 | SEARCH_DISCOVERY | `ACT-9D97188D8BF5` |
+| 3 | GENERAL | 0 | FETCH_URL | `ACT-6A7B22B3497B` |
+| 4 | ACCOUNTABILITY | 1 | SEARCH_DISCOVERY | `ACT-64CB89EA296E` |
+| 5 | SERVICE | 1 | SEARCH_DISCOVERY | `ACT-A5F5A5F9BEE4` |
+| 6 | ACCOUNTABILITY | 2 | FETCH_CONFIGURED_SOURCE | `ACT-661026B8E4FD` |
+| 7 | SERVICE | 2 | FETCH_CONFIGURED_SOURCE | `ACT-67CBE052C75E` |
+| 8 | ACCOUNTABILITY | 3 | SEARCH_DISCOVERY | `ACT-C44887CCD647` |
+
+SERVICE order 3 (`ACT-97B3168947F2`) remained explicitly deferred for continuation.
+Each lane's core ladder requires three searches and one canonical-navigation fetch.
+No hard search actually ran in this attempt.
+
+The stage failed with `UNHANDLED_STAGE_EXCEPTION` at the unknown-role event feedback
+query: `skeleton.get("published_at", "")[:7]` attempted to slice an explicit null.
+A current event can legitimately have an effective/event date and no publication
+date. The failure occurred while processing the general Rotork competition notice
+fetch, before either hard job. The old dispatch loop ran materialized GENERAL first,
+even though ACCOUNTABILITY was first in the scheduler. The selected-action budget
+protected the seven remaining requests from recursive follow-ups. Thus **one native
+fetch, zero searches and zero child fetches** can be derived from the traceback,
+job queue and admission guard. These are derived counts, not a persisted execution
+ledger: the exception prevented `execution-report.json` and finality from being
+written. Full execution replay is unavailable for that reason.
+
+The offline reproducer establishes the same null-date exception. The one-line fix
+uses `(skeleton.get("published_at") or "")[:7]`; it neither invents a date nor
+promotes unknown source roles. A regression proves the event stays unqualified,
+feedback stays bounded, and no publication date is fabricated. A pipeline integration
+regression proves scheduler job order survives execution despite GENERAL appearing
+first in materialization. Both execution epochs use the same dispatch rule.
+
+ACCOUNTABILITY normalization retained two unverified candidates:
+`investigations-01` (UK statement on the Sudan resolution,
+https://www.gov.uk/government/speeches/un-human-rights-council-63-introductory-statement-on-the-draft-resolution-on-sudan,
+with Sudan Tribune candidate independent source https://sudantribune.com/article/319647)
+and `investigations-02` (Moroccan Competition Council Rotork/ABB notice,
+https://conseil-concurrence.ma/communique-du-conseil-de-la-concurrence-relatif-au-projet-de-concentration-economique-concernant-la-prise-de-controle-exclusif-de-la-societe-rotork-plc-par-la-societe-abb-ltd/).
+These are provider claims, not accepted artifact evidence. SERVICE proposed that
+second candidate, which normalization rejected as `HARD_TARGET_CANDIDATE_MISMATCH`:
+it is not an auditable SERVICE candidate. Its effective disposition remains
+`CONTRACT_VIOLATION_NO_VALID_CANDIDATES`. No SERVICE exact candidate survived.
+
+Neither lane reached hard artifact inspection, child verification, source-origin
+qualification, evidence gate or closure. No artifact was selected as accepted;
+no role label became validated PRIMARY/INDEPENDENT evidence. The execution stage
+is FAILED, recovery is PENDING, final research finality was not produced, and article
+or publication stages did not execute.
+
+The sealed failed-run archive verifies PASS for all 79 preserved artifacts.
+Manifest SHA-256: `ddd480afda6ad10da4e7b3f46b99c6793860aab8aa688e9ba871b2f7697761ba`.
+Raw response SHA-256: `469c89632ca3ee66899405a42d9d1d1bdfef8ecae9558dbd6e37a27e1d798b38`.
+Archive completeness does not mean research acceptance. Raw evidence and browser
+proofs remain host-local and uncommitted; the failed record is immutable.
+
+### Post-failure offline validation
+
+The follow-up changes receive offline verification only; no second provider or live
+research attempt is authorized by this task. Targeted research/targeting/acceptance
+tests after the mandatory-lane review fix: 181 passed in 40.19 seconds, including
+ten capacity/dispatch/null-date cases. Browser containment/control tests: 68 passed
+in 3.59 seconds. Final full suite: 1,005 passed, zero failed, two existing Windows
+native-rendering skips in 288.53 seconds (1,007 collected), Windows 11
+`10.0.26300-SP0`, CPython 3.14.5. The earlier follow-up suite before the review fix
+also passed (1,002 passed, two skipped, 300.72 seconds). No original assertion or
+skip condition was changed. Final operational browser requalification used no
+provider calls or research actions and retained its prior receipt.
+
+Final task verdict: `HARD_SEARCH_EXECUTION_NOT_ACCEPTED`.
+Overall production verdict remains `CUTOVER_COMPLETE_PRODUCTION_NOT_YET_ACCEPTED`.
+Production automation remains paused. A later explicitly authorized bounded live
+run must establish execution and evidence outcomes for the final implementation.
