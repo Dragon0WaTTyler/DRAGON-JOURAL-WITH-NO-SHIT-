@@ -232,3 +232,91 @@ def test_general_preemption_cannot_change_hard_finality_or_editorial_handoff(cas
     assert after['editorial_handoff_eligible'] == before['editorial_handoff_eligible'] == (not incomplete)
     if incomplete:
         assert all(v['state'] not in {'VALIDATED_EVENT','VERIFIED_NO_QUALIFYING_EVENT'} for v in after['lanes'].values())
+
+
+def _run_empty_delta_recovery_stage(case, tmp_path, monkeypatch, *, carry_general):
+    import shutil
+    import dragon.pipeline as pipeline
+    from test_v5_hard_lane_completion import EmptyAdapter
+    from test_v5_research_finality import DATE, ROOT
+    from dragon.research_acceptance import ProviderFreeAcceptanceProvider
+    from dragon.stages import StageContext
+    from dragon.state import atomic_write_json
+
+    shutil.copytree(ROOT / 'config', tmp_path / 'config')
+    jobs = protocol_jobs(8)
+    if not carry_general:
+        jobs = [job for job in jobs if job['job_id'] != jobs[-1]['job_id']]
+    # Keep this scenario to the mandatory core tranche and the one deferred
+    # GENERAL action; there are no candidate paths left open after epoch 0.
+    for job in jobs:
+        job['required_continuation_actions'] = [
+            action for action in job['required_continuation_actions']
+            if core(action) or not action.get('target_editorial_function')
+        ]
+    schedule, budget, epoch0 = execute_epoch(jobs, {}, 16)
+    assert len(budget.executed) == 8
+    assert all(core(action) for action in schedule['actions'])
+    assert budget.acquisition.minimum() == 0
+
+    # Model settled hard needs: the recovery planner reports no remaining needs,
+    # while the epoch-0 execution still carries a deferred GENERAL action.
+    execution = {
+        **epoch0,
+        'status': 'EXECUTED',
+        'hard_lane_reservation': schedule['budget_allocation']['hard_lane_reservation'],
+        'actions_planned': [action for item in epoch0['jobs'] for action in item['actions']],
+    }
+    run = tmp_path / 'runs' / ('with-general' if carry_general else 'without-general')
+    atomic_write_json(run / 'deep-research/state.json', {'jobs': jobs})
+    atomic_write_json(run / 'deep-research/execution-report.json', execution)
+    atomic_write_json(run / 'research/research-packet.json', case['packet'])
+    atomic_write_json(run / 'research/targeting-request.json', case['targeting'])
+    atomic_write_json(run / 'source-intelligence/report.json', {'event_clusters': []})
+    atomic_write_json(run / 'research-planning/plan.json', {'plans': []})
+
+    settled = {'schema_version': 1, 'status': 'PASS', 'needs': [], 'article_generation_allowed': True}
+    monkeypatch.setattr(pipeline, '_mandatory_hard_lanes', lambda *_: LANES)
+    monkeypatch.setattr(pipeline, 'load_source_coverage', lambda *_: {})
+    monkeypatch.setattr(pipeline, 'load_local_config', lambda *_: {'editorial_readiness': case['readiness']})
+    monkeypatch.setattr(pipeline, 'build_recovery_plan', lambda *args, **kwargs: deepcopy(settled))
+    monkeypatch.setattr(pipeline, 'apply_executor_results_to_packet', lambda packet, *_: packet)
+    monkeypatch.setattr(pipeline, 'build_source_intelligence', lambda *_: {'event_clusters': []})
+    monkeypatch.setattr(pipeline, 'build_research_finality', lambda *_args, **_kwargs: {'combined_research_coverage_complete': True})
+    monkeypatch.setattr(pipeline, 'apply_research_finality', lambda recovery, _finality: recovery)
+    monkeypatch.setattr(pipeline, 'build_research_yield_report', lambda *_args, **_kwargs: {})
+    stage = next(s for s in pipeline.build_stage_definitions(
+        ProviderFreeAcceptanceProvider(), research_adapter=EmptyAdapter()) if s.name == 'research_recovery')
+    stage.runner(StageContext(tmp_path, DATE, run, tmp_path / 'edition', 1))
+    return run, budget, execution
+
+
+def test_empty_delta_starts_epoch_for_carried_general_only_once(case, tmp_path, monkeypatch):
+    run, epoch0_budget, epoch0 = _run_empty_delta_recovery_stage(case, tmp_path, monkeypatch, carry_general=True)
+    assert len(epoch0_budget.report()['executed_action_ids']) == 8
+    assert epoch0['general_opportunity']['action_id'] not in epoch0_budget.executed
+    assert not json.loads((run / 'research-recovery/plan.json').read_text(encoding='utf-8'))['needs']
+
+    epoch1_state = json.loads((run / 'deep-research/epoch-1-state.json').read_text(encoding='utf-8'))
+    epoch1 = json.loads((run / 'deep-research/epoch-1-execution-report.json').read_text(encoding='utf-8'))
+    assert epoch1_state['required_continuation_mappings'] == []
+    assert epoch1_state['jobs'] and all(not job.get('recovery_needs') for job in epoch1_state['jobs'])
+    assert [job['job_id'] for job in epoch1_state['jobs']] == [epoch0['general_opportunity']['job_id']]
+    assert len(epoch1['round_execution_budget']['executed_action_ids']) == 1
+    assert epoch1['round_execution_budget']['executed_action_ids'] == [epoch0['general_opportunity']['action_id']]
+    assert epoch1['jobs'][0]['job']['round'] == 1
+
+    hard_ids = [action['action_id'] for item in epoch0['jobs'] for action in item['actions']
+                if core(action)]
+    all_ids = hard_ids + epoch1['round_execution_budget']['executed_action_ids']
+    assert len(all_ids) == len(set(all_ids))
+    assert len(hard_ids) == 8
+    assert len(all_ids) <= 8 * 2
+    assert epoch1['round_execution_budget']['hard_acquisition']['blocker'] is None
+
+
+def test_empty_delta_without_general_continuation_does_not_start_epoch(case, tmp_path, monkeypatch):
+    run, _, epoch0 = _run_empty_delta_recovery_stage(case, tmp_path, monkeypatch, carry_general=False)
+    assert not epoch0.get('general_opportunity')
+    assert not list((run / 'deep-research').glob('epoch-1-*'))
+    assert json.loads((run / 'research-recovery/plan.json').read_text(encoding='utf-8'))['needs'] == []

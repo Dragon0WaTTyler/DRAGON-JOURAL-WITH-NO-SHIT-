@@ -663,7 +663,10 @@ def build_stage_definitions(
         delta_needs = [n for n in report.get("needs", []) if n in delta_needs or n["need_id"] in continuation_needs or n.get("target_editorial_function") in continuation_lanes]
         epoch1_execution = {"schema_version": 1, "status": "NOT_REQUIRED", "jobs": [], "actions_planned": []}
         epoch1_state = None
-        if delta_needs:
+        # A carried GENERAL opportunity is eligible for its bounded best-effort
+        # dispatch after mandatory acquisition settles, even when it closed all
+        # recovery needs and therefore has no delta need to materialize.
+        if delta_needs or any(job.get("general_opportunity_continuation") for job in continuation_jobs):
             config = load_deep_research_config(
                 context.root / "config" / "deep-research.yaml",
                 context.root / "config" / "deep-research-schema.json",
